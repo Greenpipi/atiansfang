@@ -13,6 +13,9 @@ _srv/
 *.vbs
 *.bat
 
+# 本地 GitHub Token（明文，切勿提交到公开仓库）
+.github_token
+
 # 截图等参考图（不进仓库）
 *.png
 !favicon.png
