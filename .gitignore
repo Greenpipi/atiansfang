@@ -1,0 +1,21 @@
+# 构建产物 / 备份 / 测试
+site/
+_backup/
+_probe/
+__pycache__/
+.playwright-cli/
+_ep_*/
+_ptx/
+_srv/
+
+# 杂项
+*.csv
+*.vbs
+*.bat
+
+# 截图等参考图（不进仓库）
+*.png
+!favicon.png
+!icon-512.png
+!apple-touch-icon.png
+!favicon/*.png
