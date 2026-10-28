@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='bb4a87bff4';
+  var V='41e07ec7fd';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -669,6 +669,29 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dmtable td input{width:100%;border:none;border-radius:0;padding:3px 5px}
 .dmtable tr:hover td{background:#f2f7ff}
 .dmtable tr.sel td{background:var(--pri-soft)}
+/* ── 药物管理：行内编辑（默认纯文本，点单元格才变输入框） ──────────────
+   ⚠ 全局有 input{border:1px solid …!important; background:…#!important}，
+     编辑框的边框/背景必须 !important 才压得住，否则会变成灰边大盒子。 */
+.dm-page .dmtable td{ padding:0!important; height:38px; text-align:left!important; }
+.dm-page .dmtable td>span{
+  display:block; padding:0 10px; line-height:37px; min-height:37px;
+  text-align:left!important; font-variant-numeric:tabular-nums;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.dm-page .dmtable td.num>span{ text-align:left!important; }
+.dm-page .dmtable td.dm-editing{ padding:2px 4px!important; }
+.dm-page .dmtable td.dm-editing>input{
+  display:block; width:100%; height:32px; box-sizing:border-box; margin:0;
+  border:1px solid var(--pri)!important; border-radius:3px!important;
+  background:var(--n-white)!important; color:var(--neutral-ink)!important;
+  padding:0 8px!important; font-family:inherit; font-size:12px; font-weight:400;
+  text-align:left!important; outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14);
+}
+.dm-page .dmtable td.dm-editing>input:focus{ box-shadow:0 0 0 3px rgba(52,192,106,.22); }
+@keyframes dmFlashOk{ 0%{ background:#c9f2d8; } 100%{ background:transparent; } }
+@keyframes dmFlashErr{ 0%{ background:#fdd; } 100%{ background:transparent; } }
+.dm-page .dmtable td.dm-flash-ok{ animation:dmFlashOk .95s ease-out; }
+.dm-page .dmtable td.dm-flash-err{ animation:dmFlashErr .95s ease-out; }
 .wordrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:5px 2px;font-size:12px;color:#333}
 .wordrow span.w{background:#fff;border:1px solid #c5c2b8;border-radius:3px;padding:0 6px;cursor:pointer}
 .wordrow span.w:hover{background:var(--n-1)}
@@ -7610,54 +7633,104 @@ var Drug=(function(){
   return { ensure:ensure, openDetail:openDetail, ddRenderUnits:ddRenderUnits, ddAddUnit:ddAddUnit,
            ddDelUnit:ddDelUnit, ddSuggest:ddSuggest, ddSave:ddSave };
 })();
+/* ---------- 药物管理：行内编辑（inline edit） ----------
+   默认每个单元格只渲染纯文本 <span>，表格里没有常驻输入框；
+   点单元格 → 原地换成 <input>；失焦 / 回车保存并回到文本；Esc 取消恢复原值；
+   保存成功该单元格绿色闪一下，失败红色闪一下并保留编辑状态（输入框不收起）。 */
+function dmCellText(td, v){ td.innerHTML='<span>'+esc(v==null?'':v)+'</span>'; }
+function dmFlash(td, ok){
+  td.classList.remove('dm-flash-ok','dm-flash-err');
+  void td.offsetWidth;                    /* 强制重排：连续两次保存都能看到闪 */
+  td.classList.add(ok?'dm-flash-ok':'dm-flash-err');
+  setTimeout(function(){ td.classList.remove('dm-flash-ok','dm-flash-err'); }, 1000);
+}
 function dmCommit(td,tr){
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
-  var inp=td.querySelector('input'), v=inp?inp.value:'';
-  drugsList[idx][f]=v;
-  td.innerHTML='<span>'+esc(v)+'</span>';
-  /* 药名 → 拼音自动生成（2026-10-08 用户要求）。
-     每个汉字取拼音首字母，规格标注里的字也算进去：
-     麦冬 → md；麦冬[另包] → mdlb；制附子{先煎} → zfzxj。
-     生僻字不在映射表里就跳过，不影响其它字；一个都认不出时留空由人手填。 */
-  if(f==='n'){
-    var py=genPinyin(v);
-    if(drugsList[idx].py!==py){
-      drugsList[idx].py=py;
-      var tdPy=tr.querySelector('td[data-f="py"]');
-      if(tdPy) tdPy.innerHTML='<span>'+esc(py)+'</span>';
+  var d=drugsList[idx];
+  var inp=td.querySelector('input');
+  if(!inp) return;                        /* 已收尾过，别重复提交 */
+  if(td.__cancel){                        /* Esc：丢弃本次改动，恢复原值 */
+    td.__cancel=false; td.classList.remove('dm-editing');
+    if(d) dmCellText(td, d[f]);
+    return;
+  }
+  var v=inp.value;
+  if(!d){ td.classList.remove('dm-editing'); dmCellText(td,v); return; }
+  var old=(d[f]==null)?'':String(d[f]);
+  if(String(v)===old){                    /* 没改动：不写盘、不闪 */
+    td.classList.remove('dm-editing'); dmCellText(td, old); return;
+  }
+  try{
+    d[f]=v;
+    /* 药名 → 拼音自动生成（2026-10-08 用户要求）。
+       每个汉字取拼音首字母，规格标注里的字也算进去：
+       麦冬 → md；麦冬[另包] → mdlb；制附子{先煎} → zfzxj。
+       生僻字不在映射表里就跳过，不影响其它字；一个都认不出时留空由人手填。 */
+    if(f==='n'){
+      var py=genPinyin(v);
+      if(d.py!==py){ d.py=py; var tdPy=tr.querySelector('td[data-f="py"]'); if(tdPy) dmCellText(tdPy, py); }
     }
+    /* 填进价 → 按利润率顺带算出售价 */
+    if(f==='bp'&&v){
+      var rate=n($('dmRate').value)||SET.rate||1.25;
+      d.p=(Math.round(n(v)*rate*1000)/1000).toString();
+      var tdP=tr.querySelector('td[data-f="p"]'); if(tdP) dmCellText(tdP, d.p);
+    }
+    saveDrugsLS();                        /* 本机落盘 + 云端（防抖整表上传） */
+  }catch(err){
+    d[f]=old;                             /* 内存回滚，输入框原地保留 = 保持编辑状态 */
+    dmFlash(td,false);
+    toastErr('保存失败：'+((err&&err.message)||err)+'，请重试');
+    try{ inp.focus(); }catch(e2){}
+    return;
   }
-  if(f==='bp'&&v){
-    var rate=n($('dmRate').value)||SET.rate||1.25;
-    drugsList[idx].p=(Math.round(n(v)*rate*1000)/1000).toString();
-    var tdP=tr.querySelector('td[data-f="p"]');
-    if(tdP) tdP.innerHTML='<span>'+esc(drugsList[idx].p)+'</span>';
-  }
-  /* 「添加」出来的新行：药名一填上就立刻落本机 + insert 云端，
-     不必等用户再点「保 存」，也不会因为关页面丢掉（2026-10-08）。
-     只对 __new 行这么做，避免普通改单元格时反复触发整表上传。 */
-  if(drugsList[idx] && drugsList[idx].__new && f==='n' && String(v).trim()){
-    saveDrugsLS();
-    supaInsertNewDrugs().then(function(k){
-      if(k) toast('已新增「'+v+'」并写入云端数据库');
-    });
+  td.classList.remove('dm-editing');
+  dmCellText(td, v);
+  dmFlash(td, true);                      /* 保存成功：该格短暂高亮 */
+  /* 「添加」出来的新行：药名一填上就立刻真 INSERT 进云端（2026-10-08），
+     不必等用户再点「保 存」，也不会因为关页面丢掉。 */
+  if(d.__new && f==='n' && String(v).trim()){
     renderDrugList();
-  } else if(f==='n'){
-    /* 改已有药的药名：拼音变了要落盘 + 同步云端，否则刷新后又变回旧拼音 */
-    saveDrugsLS();
+    supaInsertNewDrugs().then(function(k){ if(k) toast('已新增「'+v+'」并写入云端数据库'); });
   }
 }
+/* 把鼠标落点换算成「文字里的第几个字符」，供编辑框定位光标用。
+   点空白处 / 不支持 caretRangeFromPoint 时返回 null（退回默认行为）。 */
+function dmCaretOffset(td, x, y){
+  try{
+    var sp=td.querySelector('span'); if(!sp) return null;
+    var r=null;
+    if(document.caretRangeFromPoint){ r=document.caretRangeFromPoint(x,y); }
+    else if(document.caretPositionFromPoint){
+      var p=document.caretPositionFromPoint(x,y);
+      if(p){ r=document.createRange(); r.setStart(p.offsetNode,p.offset); r.collapse(true); }
+    }
+    if(!r || !td.contains(r.startContainer)) return null;
+    var pre=document.createRange();
+    pre.selectNodeContents(sp);
+    try{ pre.setEnd(r.startContainer, r.startOffset); }catch(e){ return null; }
+    return pre.toString().length;
+  }catch(e){ return null; }
+}
 function dmStartEdit(td,tr){
-  if(td.querySelector('input')) return;
+  if(!td||td.querySelector('input')) return;
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
-  var v=drugsList[idx][f]; v=(v==null?'':v);
-  td.innerHTML='<input value="'+esc(v)+'">';
+  var d=drugsList[idx]; if(!d) return;
+  var v=d[f]; v=(v==null?'':v);
+  td.__cancel=false;
+  td.classList.add('dm-editing');
+  td.innerHTML='<input type="text" autocomplete="off" spellcheck="false" value="'+esc(v)+'">';
   var inp=td.querySelector('input');
-  inp.focus(); inp.select();
+  inp.focus();
+  try{
+    /* 数值列全选（直接重打），文本列光标落在末尾（可在原位置接着改） */
+    if(/^(bp|dp|p|st|c|dw)$/.test(f)) inp.select();
+    else { var L=String(v).length; inp.setSelectionRange(L,L); }
+  }catch(e){}
   inp.addEventListener('blur',function(){ dmCommit(td,tr); });
   inp.addEventListener('keydown',function(e){
-    if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }
-    if(e.key==='Escape'){ td.innerHTML='<span>'+esc(drugsList[idx][f]||'')+'</span>'; }
+    if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }            /* 回车 = 保存退出 */
+    else if(e.key==='Escape'){ e.preventDefault(); td.__cancel=true; inp.blur(); }  /* Esc = 取消 */
   });
 }
 
@@ -8518,7 +8591,15 @@ $('btnSave').onclick=function(){
     var tr=e.target.closest('tr'); if(!tr) return;
     selDrugRow=+tr.getAttribute('data-i');
     var td=e.target.closest('td');
-    if(td&&tr) dmStartEdit(td,tr);
+    if(!td||!tr) return;
+    /* 先记住点击落点在文字里的位置：编辑框打开后光标就停在点的地方
+       （点名中间插字，不用再从末尾按左箭头挪回来） */
+    var off=dmCaretOffset(td, e.clientX, e.clientY);
+    dmStartEdit(td,tr);
+    if(off!=null && !/^(bp|dp|p|st|c|dw)$/.test(td.getAttribute('data-f')||'')){
+      var inp=td.querySelector('input');
+      if(inp){ try{ inp.setSelectionRange(off,off); }catch(e2){} }
+    }
   };
   /* 表格渲染时用不到 data-i，所以插入/定位都靠它 */
   $('dmAdd').onclick=function(){
@@ -8604,7 +8685,7 @@ $('btnSave').onclick=function(){
     for(var i=0;i<hit.length;i++) h+='<tr><td><span>'+esc(hit[i].n)+'</span></td><td class="num"><span>'+esc(hit[i].st)+'</span></td></tr>';
     $('dmBody').innerHTML='<tr><td colspan="10" style="padding:6px;color:#c00">库存报警（低于 '+lim+'）：'+hit.length+' 味</td></tr>'+h;
   };
-  $('dmTutorial').onclick=function(){ alert('药物管理使用说明：\n\n1. 只保留「中药」一个分类，上方搜索框按拼音/中文筛选。\n2. 表格内药名按拼音 A-Z 顺序排列。\n3. 点任意单元格即可修改；点「添 加」新增一味药。\n4. 填「进价」后若售价为空，点「保 存」会按利润率自动算出售价。\n5. 「保 存」会写入本机，并上传到云端数据库——手机、电脑打开都能看到最新药价。\n6. 「导出药物明细」可导出 CSV 备份。\n7. 编辑单元格时，点下方常用词可直接插入（如 g / 每日3次）。'); };
+  $('dmTutorial').onclick=function(){ alert('药物管理使用说明：\n\n1. 只保留「中药」一个分类，上方搜索框按拼音/中文筛选。\n2. 表格内药名按拼音 A-Z 顺序排列。\n3. 点任意单元格即在原位置修改：回车保存、Esc 取消、点别处自动保存；点「添 加」新增一味药。\n4. 填「进价」后若售价为空，点「保 存」会按利润率自动算出售价。\n5. 「保 存」会写入本机，并上传到云端数据库——手机、电脑打开都能看到最新药价。\n6. 「导出药物明细」可导出 CSV 备份。\n7. 编辑单元格时，点下方常用词可直接插入（如 g / 每日3次）。'); };
   $('dmWords').onclick=function(e){
     var w=e.target.closest('.w'); if(!w) return;
     var inp=$('dmBody').querySelector('input');
