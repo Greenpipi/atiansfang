@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='27c604f27c';
+  var V='bb4a87bff4';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -2960,14 +2960,17 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-sub b{ color:var(--pri-deep); }
 .wp-block-head .spacer{ flex:1; }
 .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
-.wp-tbl-wrap{ padding:0 var(--wp-pad-x) 35px; }
+.wp-tbl-wrap{ padding:0 0 35px; }
 /* 窄窗口时等比收窄外边距，避免备注列被挤没（正常桌面宽度仍是 60px） */
 @media (max-width:1200px){ .wp-block{ --wp-pad-x:24px; } }
 @media (max-width:1000px){ .wp-block{ --wp-pad-x:12px; } }
 .wp-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--fs-body); }
 .wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:10px 6px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
 .wp-tbl td{ padding:5px 6px!important; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
-.wp-tbl th:first-child, .wp-tbl td:first-child{ padding-left:10px!important; }
+.wp-tbl col.c-plus{ width:calc(var(--wp-pad-x) + 38px); }
+.wp-tbl col.c-act{ width:calc(var(--wp-pad-x) + 82px); }
+.wp-tbl th:first-child{ padding-left:calc(var(--wp-pad-x) + 8px)!important; }
+.wp-tbl th:last-child{ padding-right:calc(var(--wp-pad-x) + 10px)!important; }
 .wp-tbl tbody tr:last-child td{ border-bottom:none; }
 /* 表格内所有输入框统一：40px 高、左右内边距 11px、文字垂直居中 */
 .wp-tbl .wp-nm, .wp-tbl .num, .wp-tbl .wp-unit-in, .wp-tbl .wp-rm-in{
@@ -2982,10 +2985,10 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
 .wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; padding:5px 11px 5px 6px!important; }
-.wp-tbl td.row-act{ padding:5px 10px 5px 6px!important; text-align:right; }
+.wp-tbl td.row-act{ padding:5px calc(var(--wp-pad-x) + 10px) 5px 6px!important; text-align:right; }
 .wp-tbl .row-act button{ margin:0; padding:0 12px; }
 /* 行内加号：默认隐藏，悬停整行淡入 */
-.wp-tbl td.wp-plus-td{ padding:5px 6px 5px 8px!important; text-align:center; overflow:visible; }
+.wp-tbl td.wp-plus-td{ padding:5px 6px 5px calc(var(--wp-pad-x) + 8px)!important; text-align:center; overflow:visible; }
 .wplan .wp-tbl .wp-plus{ width:20px; height:20px; min-height:0; padding:0; line-height:18px; border-radius:50%; font-size:15px; font-weight:700;
   display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
   color:var(--pri-h)!important; background:var(--pri-soft)!important; border:1px solid var(--pri-line)!important;
@@ -9282,7 +9285,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col style="width:38px"><col style="width:32%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col style="width:82px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
