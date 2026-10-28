@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='6271c075d5';
+  var V='07ec79fcf8';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -2960,19 +2960,33 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-sub b{ color:var(--pri-deep); }
 .wp-block-head .spacer{ flex:1; }
 .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
-.wp-tbl{ width:100%; border-collapse:collapse; font-size:var(--fs-body); }
-.wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:8px 12px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
-.wp-tbl td{ padding:6px 12px; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
-.wp-tbl .wp-nm{ width:auto; min-width:120px; flex:1 1 auto; border:none; border-bottom:1px dotted var(--neutral-3); background:transparent; font-size:var(--fs-body); padding:4px 2px; color:var(--neutral-ink); }
-.wp-nm-wrap{ display:flex; align-items:center; gap:4px; }
+.wp-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--fs-body); }
+.wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
+.wp-tbl td{ padding:6px 10px; border-bottom:1px solid var(--neutral-2); vertical-align:middle; overflow:hidden; }
+.wp-tbl .wp-nm{ width:auto; min-width:0; flex:1 1 auto; border:none; border-bottom:1px dotted var(--neutral-3); background:transparent; font-size:var(--fs-body); padding:4px 2px; color:var(--neutral-ink); }
+.wp-nm-wrap{ display:flex; align-items:center; gap:6px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-tbl .wp-nm:focus{ border-bottom-color:var(--pri); outline:none; }
-.wp-tbl .num{ width:100px; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:4px 6px; font-size:var(--fs-body); text-align:right; background:var(--n-white); }
-.wp-tbl .wp-unit{ color:var(--neutral-5); width:64px; }
-.wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; width:120px; white-space:nowrap; }
-.wp-tbl .row-act button{ margin:0; }
-.wp-remark{ padding:8px 16px 12px; }
-.wp-remark input{ width:100%; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:6px 10px; font-size:var(--fs-body); background:var(--n-white); box-sizing:border-box; }
+.wp-tbl .num{ width:100%; box-sizing:border-box; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:4px 6px; font-size:var(--fs-body); text-align:right; background:var(--n-white); }
+.wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.wp-tbl td.row-act{ padding:6px 6px 6px 2px; text-align:right; }
+.wp-tbl .row-act button{ margin:0; padding:3px 8px; }
+/* 行内加号：默认隐藏，悬停药名输入框淡入 */
+.wp-tbl td.wp-plus-td{ padding:6px 0 6px 4px; text-align:center; overflow:visible; }
+.wplan .wp-tbl .wp-plus{ width:20px; height:20px; min-height:0; padding:0; line-height:18px; border-radius:50%; font-size:15px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+  color:var(--pri-h)!important; background:var(--pri-soft)!important; border:1px solid var(--pri-line)!important;
+  opacity:0; pointer-events:none; transition:opacity .18s ease; }
+.wplan .wp-tbl .wp-plus:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
+.wp-tbl tbody tr:hover .wp-plus, .wp-tbl tbody tr:focus-within .wp-plus, .wp-tbl td.wp-plus-td:hover .wp-plus, .wplan .wp-tbl .wp-plus:focus-visible{ opacity:1; pointer-events:auto; }
+/* 克数 + 单位同格 */
+.wp-qty-cell{ display:flex; align-items:center; gap:5px; }
+.wp-qty-cell .wp-qty{ flex:1 1 auto; min-width:0; }
+.wp-qty-cell .wp-unit-in{ width:56px; flex:0 0 56px; }
+/* 行内备注 */
+.wp-tbl .wp-rm-in{ width:100%; box-sizing:border-box; min-height:28px; border:1px solid var(--neutral-2); border-radius:var(--radius-input); padding:3px 8px; font-size:12px; background:var(--n-white); color:var(--neutral-6); }
+.wp-tbl .wp-rm-in:focus{ border-color:var(--pri-line); outline:none; }
+.wp-tbl .wp-rm-in::placeholder{ color:var(--neutral-4); }
 .wp-empty{ padding:22px; text-align:center; color:var(--neutral-4); font-size:var(--fs-cap); }
 .wp-add{ margin:16px 0; }
 .wp-foot{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card); padding:16px; box-shadow:var(--shadow-1); }
@@ -3064,7 +3078,6 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 /* 单位 g/kg 切换 + 药名备选 */
 .wp-unit-btn{ min-height:26px; padding:2px 10px; font-size:12px; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--pri-deep); border-radius:var(--r-pill); cursor:pointer; font-weight:700; box-shadow:none; }
 .wp-unit-btn:hover{ background:var(--pri-soft); border-color:var(--pri-line); }
-.wp-tbl td.wp-unit{ width:76px; padding:6px 4px; }
 .wp-unit-in{ width:100%; min-height:28px; box-sizing:border-box; padding:2px 3px; font-size:12px; text-align:center; border:1px solid var(--neutral-2); border-radius:var(--radius-input); background:var(--n-white); color:var(--pri-deep); font-weight:700; }
 .wp-unit-in:focus{ border-color:var(--pri-line); outline:none; }
 .wp-ac{ position:fixed; display:none; z-index:9999; max-height:260px; overflow-y:auto; background:var(--n-white); border:1px solid var(--neutral-3); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.14); cursor:pointer; }
@@ -3072,7 +3085,6 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-ac .r.on, .wp-ac .r:hover{ background:var(--pri-soft); }
 .wp-ac .r .nm{ color:var(--neutral-title); }
 .wp-ac .r .pr{ color:var(--aux); font-size:12px; white-space:nowrap; }
-.wp-nm-wrap{ display:flex; align-items:center; gap:4px; }
 .wp-nm-wrap .wp-nm{ flex:1 1 auto; min-width:0; }
 .wp-subpane{ margin-top:14px; }
 </style>
@@ -9157,19 +9169,19 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<table class="wp-tbl"><thead><tr><th>药名</th><th style="text-align:right">数量</th><th>单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>'
-      + '<div class="wp-remark"><input placeholder="备注（选填）" value="' + esc(b.remark || '') + '" oninput="WPlan.setRemark(\'' + b.id + '\',this.value)"></div>'
+      + '<table class="wp-tbl"><colgroup><col style="width:26px"><col style="width:32%"><col style="width:150px"><col style="width:96px"><col style="width:100px"><col><col style="width:68px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
+      + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
       + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名/拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
-      + '<td style="text-align:right"><input class="num" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)"></td>'
-      + '<td class="wp-unit">' + unitCell + '</td>'
-      + '<td style="text-align:right"><input class="num" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
+      + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
+      + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
+      + '<td class="wp-rm-td"><input class="wp-rm-in" placeholder="备注（选填）" value="' + esc(it.rm || '') + '" oninput="WPlan.setItemRemark(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="row-act"><button class="btn danger sm" type="button" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')">删除</button></td>'
       + '</tr>';
   }
@@ -9266,6 +9278,11 @@ var WPlan = (function(){
   }
   function setBlockTitle(bid, v){ var b = blockById(bid); if(!b) return; b.title = v; saveDebounced(); }
   function setRemark(bid, v){ var b = blockById(bid); if(!b) return; b.remark = v; saveDebounced(); }
+  function setItemRemark(bid, i, v){
+    var b = blockById(bid); if(!b) return;
+    if(!b.items[i]) b.items[i] = BLANK_ITEM();
+    b.items[i].rm = v; saveDebounced();
+  }
   function setQty(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return;
     var it = b.items[i]; var du = it.du || it.unit || 'g';
@@ -9498,7 +9515,7 @@ var WPlan = (function(){
   }
 
   /* ---- 药名内联检索：表格药名输入框直接输药名/拼音，浮层选药自动带价 ---- */
-  function BLANK_ITEM(){ return { name:'', qty:0, unit:'g', du:'g', price:null, manual:false, zibei:false, sfx:'' }; }
+  function BLANK_ITEM(){ return { name:'', qty:0, unit:'g', du:'g', price:null, manual:false, zibei:false, sfx:'', rm:'' }; }
   function acSearch(q){
     q = String(q || '').trim().toLowerCase();
     var list = drugsList || [], out = [];
@@ -9689,7 +9706,7 @@ var WPlan = (function(){
     setFilter: setFilter, delOrderById: delOrderById,
     showSub: showSub, setSearch: setSearch,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
-    setBlockTitle: setBlockTitle, setRemark: setRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
+    setBlockTitle: setBlockTitle, setRemark: setRemark, setItemRemark: setItemRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
     setItemName: setItemName, delItem: delItem, addItems: addItems, saveNow: saveNow,
     toggleUnit: toggleUnit, setUnit: setUnit,
     openHistory: openHistory, bringHistory: bringHistory,
