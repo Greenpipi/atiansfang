@@ -8461,8 +8461,13 @@ var Drug=(function(){
     d.og=String($('ddOrigin').value||'').trim();
     d.al=String($('ddAlias').value).split(/[\s,，、]+/).map(function(s){return s.trim();}).filter(Boolean);
     d.bp=vBp; d.wp=vWp; d.p=vP;
-    d.rates={ p:(numOrNull(vRp)==null?rateOf('p',d):numOrNull(vRp)),
-              wp:(numOrNull(vRw)==null?rateOf('wp',d):numOrNull(vRw)) };
+    /* 保存时按最终金额回算倍率：避免「手改了价格、倍率还是旧的」，
+       否则下次改进货价联动又会把价格算回去。金额与倍率一致时回算结果不变。 */
+    var rp=numOrNull(vRp), rw=numOrNull(vRw);
+    var bpN=numOrNull(vBp), pN=numOrNull(vP), wpN=numOrNull(vWp);
+    if(bpN && pN!=null && pN>0) rp=Math.round(pN*1000/bpN*10000)/10000;
+    if(bpN && wpN!=null && wpN>0) rw=Math.round(wpN/bpN*10000)/10000;
+    d.rates={ p:(rp==null?rateOf('p',d):rp), wp:(rw==null?rateOf('wp',d):rw) };
     d.dp=vP;                         /* 云端 daily_price 列沿用，值同步为零售价 */
     delete d.gp;                     /* 客人专属价 → 改为「重要客人价格」，按客人维度存 DOCTORS */
     d.st=d.st||'';
