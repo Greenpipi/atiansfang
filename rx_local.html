@@ -9832,6 +9832,11 @@ function supaBoot(){
     ]);
   }).then(function(){
     renderHistory(); renderDrugList(); renderPriceList(); loadDoctors();
+    /* 药物管理页（#drug）是并行渲染的：navInit 早就用本机缓存画完了，
+       云端药价回来后必须重画一次，否则进货价/云端零售价要切走再切回才看得到。 */
+    try{
+      if((location.hash||'').replace(/^#/,'')==='drug') Drug.ensure();
+    }catch(e){}
     autoBackup();
     /* 计价前提：有药名才算得出价。药价一个都没加载成功时直接点名。 */
     try{
