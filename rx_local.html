@@ -3514,74 +3514,233 @@ body{ --navw:0px; }
             border:1px solid var(--neutral-2);border-radius:var(--radius-card);background:var(--n-white);box-shadow:var(--shadow-1)}
           .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
           #dmStat{font-size:12px;color:#6b7280}
-          .dd-name{font-size:15px;font-weight:700;margin-bottom:8px}
-          .dd-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-          .dd-f{display:flex;flex-direction:column;gap:3px;flex:1 1 180px}
-          .dd-f label{font-size:12px;color:#555}
-          .dd-f input{border:1px solid #c8c4ba;border-radius:4px;padding:5px 8px;font-size:13px}
-          .dd-sub{font-weight:700;font-size:13px;margin:10px 0 5px;border-top:1px solid #d9d5cb;padding-top:8px}
-          .dd-prices{display:flex;gap:10px;flex-wrap:wrap}
-          .dd-pf{display:flex;align-items:center;gap:4px}
-          .dd-pf label{font-size:12px;color:#555;width:52px;flex:0 0 52px}
-          .dd-pf input{width:90px;border:1px solid #c8c4ba;border-radius:4px;padding:5px 8px;font-size:13px;text-align:right}
-          .dd-sug{margin-left:2px}
-          .dd-units{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
-          .dd-unit{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-          .dd-unit input{border:1px solid #c8c4ba;border-radius:4px;padding:4px 6px;font-size:12px}
-          .dd-unit .u-name{width:110px}
-          .dd-unit .u-num{width:80px;text-align:right}
-          .dd-unit .xu{cursor:pointer;color:#c0392b;border:1px solid #e0a89f;border-radius:3px;padding:2px 7px;font-size:12px;background:#fbe9e6}
-          .dd-costlog{max-height:160px;overflow:auto;border:1px solid #c8c4ba;border-radius:3px}
-          .dd-costlog table{width:100%;border-collapse:collapse;font-size:12px}
-          .dd-costlog th,.dd-costlog td{border:1px solid #e3e0d8;padding:3px 5px}
-          .dd-costlog th{background:#e8e6df;font-weight:700}
-          .dd-guest{font-size:12px;color:#666}
-          .dd-empty{font-size:12px;color:#8a8f98;padding:5px 6px}
-          .dd-costlog td.num{text-align:right;font-variant-numeric:tabular-nums}
+          /* ================= 药物详情弹窗 =================
+             结构：核心信息区（名称 + 四个价格，权重最高）
+                   ↓ 次要信息（可折叠）
+                   ↓ 多单位 / 进货价历史 / 售价历史 / 引用 / 客人专属价（各成一折）
+             边距：左右 24px、区块间距 20px；标签一律在输入框上方左对齐。 */
+          .dd-dlg{width:640px;max-width:96vw}
+          .dd-dlg>.body{padding:24px;display:flex;flex-direction:column;gap:20px}
+          .dd-core{display:flex;flex-direction:column;gap:16px}
+          .dd-core-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+          .dd-core-t{font-size:var(--fs-sub);font-weight:700;color:var(--neutral-title)}
+          .dd-core-hint{font-size:var(--fs-cap);color:var(--neutral-4)}
+          .dd-frow{display:flex;gap:16px;align-items:flex-start}
+          .dd-f{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:6px}
+          .dd-f-2{flex:2 1 0}
+          .dd-f label{font-size:var(--fs-cap);color:var(--neutral-5);text-align:left}
+          .dd-f input{width:100%;height:36px;box-sizing:border-box;
+            border:1px solid var(--neutral-3);border-radius:var(--radius-input);
+            padding:0 10px;font-size:var(--fs-body);color:var(--neutral-ink);
+            background:var(--neutral-0);font-family:var(--font-ui);outline:none}
+          .dd-f input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
+          /* ---- 价格卡片：四个价格同一行，数字等宽右对齐 ---- */
+          .dd-pricecard{border:1px solid var(--neutral-2);border-radius:var(--radius-item);
+            background:var(--neutral-1);padding:14px 16px 12px}
+          .dd-pc-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+          .dd-pc-t{font-size:var(--fs-cap);font-weight:700;color:var(--neutral-6);letter-spacing:.04em}
+          .dd-pc-unit{font-size:var(--fs-cap);color:var(--neutral-4)}
+          .dd-pc-unit b{color:var(--neutral-6);font-weight:600}
+          .dd-prices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+          .dd-pcol{display:flex;flex-direction:column;gap:5px;min-width:0}
+          .dd-pcol>label{font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap}
+          .dd-pcol .opt{font-style:normal;font-size:10px;color:var(--neutral-4);margin-left:4px}
+          .dd-pin{display:flex;align-items:center;gap:3px;height:38px;box-sizing:border-box;
+            border:1px solid var(--neutral-3);border-radius:var(--radius-input);
+            background:var(--neutral-0);padding:0 8px 0 10px}
+          .dd-pin:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
+          .dd-pin .cur{flex:0 0 auto;font-size:var(--fs-cap);color:var(--neutral-4)}
+          .dd-pin input{flex:1 1 0;min-width:0;width:100%;border:0;outline:none;background:transparent;
+            padding:0;text-align:right;font-family:var(--font-num);font-size:16px;font-weight:600;
+            font-variant-numeric:tabular-nums;letter-spacing:.01em;color:var(--neutral-title)}
+          .dd-sug{align-self:flex-start;border:0;background:none;padding:0 2px;cursor:pointer;
+            font-size:var(--fs-cap);line-height:16px;color:var(--neutral-4)}
+          .dd-sug:hover{color:var(--pri);text-decoration:underline}
+          .dd-pin.bad{border-color:#e0b070;background:#fffaf0}
+          .dd-cost{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;
+            border-top:1px dashed var(--neutral-3);flex-wrap:wrap}
+          .dd-cost>label{flex:0 0 auto;font-size:var(--fs-cap);color:var(--neutral-5)}
+          .dd-cost .dd-pin{height:30px;width:124px;flex:0 0 124px;padding:0 6px 0 8px}
+          .dd-cost .dd-pin input{font-size:var(--fs-body);font-weight:500}
+          .dd-cost-note{font-size:var(--fs-cap);color:var(--neutral-4)}
+          .dd-cost-note b{color:var(--neutral-6);font-weight:600}
+          /* ---- 折叠区块 ---- */
+          .dd-sec{border-top:1px solid var(--neutral-2)}
+          .dd-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;height:44px;
+            font-size:13px;font-weight:600;color:var(--neutral-6);cursor:pointer;user-select:none}
+          .dd-sec>summary::-webkit-details-marker{display:none}
+          .dd-sec>summary::before{content:"▸";font-size:11px;color:var(--neutral-4);
+            display:inline-block;transition:transform .18s var(--ease-out)}
+          .dd-sec[open]>summary::before{transform:rotate(90deg)}
+          .dd-sec>summary:hover{color:var(--neutral-title)}
+          .dd-sum-hint{font-weight:400;font-size:var(--fs-cap);color:var(--neutral-4);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .dd-sec-body{padding:2px 0 18px;display:flex;flex-direction:column;gap:14px}
+          /* ---- 中药分类：可搜索下拉 ---- */
+          .dd-combo{position:relative}
+          .dd-combo>input{padding-right:26px}
+          .dd-caret{position:absolute;right:10px;top:18px;transform:translateY(-50%);
+            font-size:10px;color:var(--neutral-4);pointer-events:none}
+          .dd-clist{display:none;position:fixed;z-index:2000;overflow:auto;background:var(--neutral-0);
+            border:1px solid var(--neutral-3);border-radius:var(--radius-input);
+            box-shadow:var(--shadow-pop);padding:4px}
+          .dd-clist.on{display:block}
+          .dd-cg{padding:6px 8px 4px;font-size:11px;font-weight:700;color:var(--neutral-4)}
+          .dd-ci{display:flex;align-items:center;justify-content:space-between;gap:8px;
+            padding:7px 8px;border-radius:6px;font-size:13px;color:var(--neutral-ink);cursor:pointer}
+          .dd-ci:hover,.dd-ci.act{background:var(--pri-soft);color:var(--pri-h)}
+          .dd-ci .chk{font-size:12px;color:var(--pri)}
+          .dd-cnone{padding:8px;font-size:var(--fs-cap);color:var(--neutral-4)}
+          .dd-tip{font-size:11px;line-height:15px;color:var(--neutral-4);min-height:0}
+          .dd-tip.warn{color:#a15c07}
+          /* ---- 多单位 ---- */
+          .dd-units{display:flex;flex-direction:column;gap:8px}
+          .dd-unit{display:flex;gap:8px;align-items:center}
+          .dd-unit input{height:32px;min-width:0;box-sizing:border-box;border:1px solid var(--neutral-3);
+            border-radius:var(--radius-input);padding:0 8px;font-size:var(--fs-cap);
+            background:var(--neutral-0);color:var(--neutral-ink);outline:none}
+          .dd-unit input:focus{border-color:var(--pri)}
+          .dd-unit .u-name{flex:1 1 0}
+          .dd-unit .u-num{flex:1 1 0;text-align:right;font-variant-numeric:tabular-nums}
+          .dd-unit .xu{flex:0 0 auto;cursor:pointer;color:var(--neutral-4);background:var(--neutral-0);
+            border:1px solid var(--neutral-2);border-radius:6px;padding:4px 8px;font-size:12px}
+          .dd-unit .xu:hover{color:var(--danger);border-color:var(--danger-line);background:var(--danger-soft)}
+          /* ---- 历史表格 ---- */
+          .dd-costlog{max-height:200px;overflow:auto;border:1px solid var(--neutral-2);
+            border-radius:var(--radius-input);background:var(--neutral-0)}
+          .dd-costlog table{width:100%;border-collapse:collapse;font-size:var(--fs-cap)}
+          .dd-costlog th,.dd-costlog td{height:auto;padding:7px 10px;text-align:left;
+            border:0;border-bottom:1px solid var(--neutral-2)}
+          .dd-costlog th{background:var(--neutral-1);color:var(--neutral-5);font-weight:600;
+            position:sticky;top:0;white-space:nowrap}
+          .dd-costlog td.num,.dd-costlog th.num{text-align:right;font-variant-numeric:tabular-nums}
+          .dd-costlog tr:last-child td{border-bottom:0}
+          .dd-empty{font-size:var(--fs-cap);color:var(--neutral-4);padding:10px}
+          .dd-guest{font-size:var(--fs-cap);color:var(--neutral-5);line-height:1.7}
+          /* 窄屏：价格两列、字段整行，避免挤压 */
+          @media (max-width:680px){
+            .dd-dlg{width:96vw}
+            .dd-dlg>.body{padding:16px;gap:16px}
+            .dd-prices{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+            .dd-frow{flex-wrap:wrap;gap:12px}
+            .dd-f,.dd-f-2{flex:1 1 100%}
+          }
         </style>
       </section>
 
-      <!-- ================= 药物详情（别名 / 产地 / 多单位 / 进货价历史 / 建议价） ================= -->
+      <!-- ================= 药物详情：核心信息（名称/四个价格） + 次要信息（可折叠）
+                             + 多单位 / 进货价历史 / 售价历史 / 引用 / 客人专属价 ================= -->
       <div class="modal" id="mDrugDetail">
-        <div class="dlg" style="width:720px">
+        <div class="dlg dd-dlg">
           <header>药物详情<span class="spacer"></span><span class="x" data-close>✕</span></header>
           <div class="body">
-            <div class="dd-name" id="ddName"></div>
-            <div class="dd-sub" style="border-top:none;margin-top:0;padding-top:0">基础信息</div>
-            <div class="dd-grid">
-              <div class="dd-f"><label>单位</label><input id="ddUnit" placeholder="g"></div>
-              <div class="dd-f"><label>常用量</label><input id="ddAmount" placeholder="如 10"></div>
-              <div class="dd-f"><label>拼音</label><input id="ddPy" placeholder="留空自动生成"></div>
-            </div>
-            <div class="dd-grid">
-              <div class="dd-f"><label>中药分类</label><input id="ddTc" placeholder="如 补虚药"></div>
-              <div class="dd-f"><label>斗位</label><input id="ddDw"></div>
-              <div class="dd-f"><label>分类</label><input id="ddCat" placeholder="中药"></div>
-            </div>
-            <div class="dd-grid">
-              <div class="dd-f"><label>产地</label><input id="ddOrigin" placeholder="如 安徽 / 四川"></div>
-              <div class="dd-f" style="flex:1 1 100%"><label>别名（多个用空格或逗号分隔）</label><input id="ddAlias" placeholder="别名1 别名2"></div>
-            </div>
-            <div class="dd-sub">三档价格（元 / 主单位）</div>
-            <div class="dd-prices">
-              <div class="dd-pf"><label>进价</label><input id="ddBp" class="num" inputmode="decimal"></div>
-              <div class="dd-pf"><label>日常价</label><input id="ddDp" class="num" inputmode="decimal"><button type="button" class="mini dd-sug" id="ddSugDp">建议</button></div>
-              <div class="dd-pf"><label>零售价</label><input id="ddP" class="num" inputmode="decimal"><button type="button" class="mini dd-sug" id="ddSugP">建议</button></div>
-            </div>
-            <div class="dd-sub">多单位（库存 / 进货价 / 零售价 / 日常价）</div>
-            <div id="ddUnits" class="dd-units"></div>
-            <button type="button" class="mini" id="ddAddUnit">+ 添加单位</button>
-            <div class="dd-sub">进货价历史</div>
-            <div id="ddCostLog" class="dd-costlog"></div>
-            <div class="dd-sub">售价历史（本机已存处方里实际成交的单价）</div>
-            <div id="ddSaleLog" class="dd-costlog"></div>
-            <div class="dd-sub">被哪些药方引用（<span id="ddRefCnt">0</span> 条）</div>
-            <div id="ddRefs" class="dd-costlog"></div>
-            <div class="dd-sub">客人专属价</div>
-            <div id="ddGuest" class="dd-guest">（在「客人管理」页为客人设置专属价）</div>
+
+            <!-- ============ 核心信息区（视觉权重最高） ============ -->
+            <section class="dd-core">
+              <div class="dd-core-hd">
+                <span class="dd-core-t">核心信息</span>
+                <span class="dd-core-hint">名称与四个价格，保存前必填</span>
+              </div>
+              <div class="dd-frow">
+                <div class="dd-f dd-f-2"><label for="ddName">药品名称</label><input id="ddName" autocomplete="off"></div>
+                <div class="dd-f"><label for="ddCat">药品信息</label><input id="ddCat" placeholder="如 中药" autocomplete="off"></div>
+              </div>
+              <div class="dd-pricecard">
+                <div class="dd-pc-hd">
+                  <span class="dd-pc-t">价格</span>
+                  <span class="dd-pc-unit">单位：元 / <b id="ddPUnit">g</b></span>
+                </div>
+                <div class="dd-prices">
+                  <div class="dd-pcol">
+                    <label for="ddDp">打单价</label>
+                    <div class="dd-pin"><span class="cur">¥</span><input id="ddDp" class="num" inputmode="decimal" autocomplete="off"></div>
+                    <button type="button" class="dd-sug" id="ddSugDp" tabindex="-1">建议</button>
+                  </div>
+                  <div class="dd-pcol">
+                    <label for="ddWp">批发价</label>
+                    <div class="dd-pin"><span class="cur">¥</span><input id="ddWp" class="num" inputmode="decimal" autocomplete="off"></div>
+                    <button type="button" class="dd-sug" id="ddSugWp" tabindex="-1">建议</button>
+                  </div>
+                  <div class="dd-pcol">
+                    <label for="ddP">零售价</label>
+                    <div class="dd-pin"><span class="cur">¥</span><input id="ddP" class="num" inputmode="decimal" autocomplete="off"></div>
+                    <button type="button" class="dd-sug" id="ddSugP" tabindex="-1">建议</button>
+                  </div>
+                  <div class="dd-pcol">
+                    <label for="ddGp">专属价<em class="opt">选填</em></label>
+                    <div class="dd-pin"><span class="cur">¥</span><input id="ddGp" class="num" inputmode="decimal" autocomplete="off"></div>
+                    <button type="button" class="dd-sug" id="ddSugGp" tabindex="-1">建议</button>
+                  </div>
+                </div>
+                <div class="dd-cost">
+                  <label for="ddBp">进价</label>
+                  <div class="dd-pin"><span class="cur">¥</span><input id="ddBp" class="num" inputmode="decimal" autocomplete="off"></div>
+                  <span class="dd-cost-note">「建议」= 进价 × 利润率 <b id="ddRateTxt">1.25</b></span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ============ 次要信息区（默认折叠，弱化） ============ -->
+            <details class="dd-sec" id="ddMore">
+              <summary><span>次要信息</span><span class="dd-sum-hint">别名 · 斗位 · 产地 · 常用量 · 单位 · 拼音 · 中药分类</span></summary>
+              <div class="dd-sec-body">
+                <div class="dd-frow">
+                  <div class="dd-f"><label for="ddAlias">别名（空格或逗号分隔）</label><input id="ddAlias" placeholder="别名1 别名2" autocomplete="off"></div>
+                  <div class="dd-f"><label for="ddDw">斗位</label><input id="ddDw" autocomplete="off"></div>
+                </div>
+                <div class="dd-frow">
+                  <div class="dd-f"><label for="ddOrigin">产地</label><input id="ddOrigin" placeholder="如 安徽 / 四川" autocomplete="off"></div>
+                  <div class="dd-f"><label for="ddAmount">常用量</label><input id="ddAmount" placeholder="如 10" autocomplete="off"></div>
+                  <div class="dd-f"><label for="ddUnit">单位</label><input id="ddUnit" placeholder="g" autocomplete="off"></div>
+                </div>
+                <div class="dd-frow">
+                  <div class="dd-f"><label for="ddPy">拼音</label><input id="ddPy" placeholder="留空自动生成" autocomplete="off"></div>
+                  <div class="dd-f dd-f-2">
+                    <label for="ddTc">中药分类</label>
+                    <div class="dd-combo" id="ddTcCombo">
+                      <input id="ddTc" placeholder="点击选择，或输入筛选" autocomplete="off">
+                      <span class="dd-caret">▾</span>
+                      <div class="dd-clist" id="ddTcList"></div>
+                    </div>
+                    <div class="dd-tip" id="ddTcTip"></div>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <!-- ============ 多单位 ============ -->
+            <details class="dd-sec">
+              <summary><span>多单位</span><span class="dd-sum-hint">库存 / 进货价 / 零售价 / 日常价</span></summary>
+              <div class="dd-sec-body">
+                <div id="ddUnits" class="dd-units"></div>
+                <div><button type="button" class="mini" id="ddAddUnit">+ 添加单位</button></div>
+              </div>
+            </details>
+
+            <!-- ============ 进货价历史 ============ -->
+            <details class="dd-sec">
+              <summary><span>进货价历史</span><span class="dd-sum-hint">来自进货单</span></summary>
+              <div class="dd-sec-body"><div id="ddCostLog" class="dd-costlog"></div></div>
+            </details>
+
+            <!-- ============ 售价历史 ============ -->
+            <details class="dd-sec">
+              <summary><span>售价历史</span><span class="dd-sum-hint">本机已存处方里实际成交的单价</span></summary>
+              <div class="dd-sec-body"><div id="ddSaleLog" class="dd-costlog"></div></div>
+            </details>
+
+            <!-- ============ 被引用 / 客人专属价 ============ -->
+            <details class="dd-sec">
+              <summary><span>被哪些药方引用（<span id="ddRefCnt">0</span> 条）</span></summary>
+              <div class="dd-sec-body"><div id="ddRefs" class="dd-costlog"></div></div>
+            </details>
+            <details class="dd-sec">
+              <summary><span>客人专属价</span></summary>
+              <div class="dd-sec-body"><div id="ddGuest" class="dd-guest">（在「客人管理」页为客人设置专属价）</div></div>
+            </details>
           </div>
           <div class="foot">
-            <span id="ddMsg" class="redhint"></span>
+            <span id="ddMsg" class="redhint" style="display:none"></span>
             <span class="spacer"></span>
             <button type="button" id="ddClose" class="mini">关闭</button>
             <button type="button" id="ddSave" class="pri">保存详情</button>
@@ -5700,19 +5859,73 @@ function rxCalibDrugFloor(n){
 }
 /* noSave=true：只读刷新（划价前实时拉库用）——换 drugsList + 重建索引，
    不写 localStorage、不触发整表 upsert、不写备份，纯读取零副作用。 */
+/* ---------- 药名尾缀统一方括号（2026-10-28 用户要求）----------
+   「XXX{备注}」→「XXX[备注]」；已经是 [备注] 或没有后缀的条目一律不动。
+   书剑/历史数据本来就是方括号，程序里 splitSfx 也只认方括号，这里把旧名洗一遍，
+   本机存储与云端老行都跟着转，避免同一味药出现「{}」「[]」两条。 */
+function brkNormName(n){
+  return String(n==null?'':n).replace(/\s*[\{｛]\s*([^\{\}｛｝]*?)\s*[\}｝]\s*$/,'[$1]');
+}
+function brkMigrateList(list){
+  var pairs=[];
+  if(!list||!list.length) return pairs;
+  for(var i=0;i<list.length;i++){
+    var d=list[i]; if(!d) continue;
+    var o=String(d.n||''), v=brkNormName(o);
+    if(v!==o){ d.n=v; pairs.push({o:o,n:v}); }
+  }
+  return pairs;
+}
+/* 云端清理：先确保新名那行写进去了，再删旧名那行；进货价历史按药名 PATCH 过去。
+   云端不可达时直接放弃（下次加载会再触发一次），绝不删了旧的又没写成新的。 */
+var _brkPending=[], _brkTimer=null;
+function brkScheduleCleanup(pairs){
+  if(!pairs||!pairs.length) return;
+  _brkPending=_brkPending.concat(pairs);
+  if(_brkTimer) clearTimeout(_brkTimer);
+  _brkTimer=setTimeout(function(){
+    if(typeof SUPA==='undefined' || !SUPA.on){ return; }
+    var ps=_brkPending; _brkPending=[];
+    var ups=[], seen={};
+    for(var i=0;i<ps.length;i++){
+      var p=ps[i]; if(!p.o||!p.n||p.o===p.n||seen[p.n]) continue;
+      var d=null;
+      for(var j=0;j<drugsList.length;j++){ if(drugsList[j] && drugsList[j].n===p.n){ d=drugsList[j]; break; } }
+      if(!d) continue;
+      seen[p.n]=1; ups.push({p:p,d:d});
+    }
+    if(!ups.length) return;
+    SUPA.q('drugs?on_conflict=name',{method:'POST',body:ups.map(function(x){ return dmRowOfFull(x.d); })})
+      .then(function(){
+        ups.forEach(function(x){
+          SUPA.q('drugs?name=eq.'+encodeURIComponent(x.p.o),{method:'DELETE'}).catch(function(){});
+          SUPA.q('drug_cost_log?drug=eq.'+encodeURIComponent(x.p.o),{method:'PATCH',body:{drug:x.p.n}}).catch(function(){});
+        });
+      })
+      .catch(function(e){ console.warn('旧药名云端清理跳过:',e&&e.message); });
+  },8000);
+}
 SUPA.loadDrugs=function(noSave){
   return SUPA.qAll('drugs?select=*&order=name')
   .then(function(rows){
     if(!rows||!rows.length) throw new Error('云端没有药价');
     rxCalibDrugFloor(rows.length);
+    /* 云端没有 whitelist 之外的列（批发价/专属价只存本机），换表前先按药名把这两个价带过去 */
+    var prev={};
+    for(var q=0;q<drugsList.length;q++){ var pd=drugsList[q]; if(pd&&pd.n) prev[brkNormName(pd.n)]=pd; }
     drugsList=rows.map(function(r){
-      return {n:r.name,u:r.unit||'g',c:r.usage||'',tc:r.tccat||'',py:r.py||'',
+      var nm=brkNormName(r.name), old=prev[nm];
+      return {n:nm,u:r.unit||'g',c:r.usage||'',tc:r.tccat||'',py:r.py||'',
               dw:'',cat:r.category||'中药',bp:r.cost==null?'':String(r.cost),
               p:r.price==null?'':String(r.price),st:'',
               dp:r.daily_price==null?'':String(r.daily_price),
+              wp:(old&&old.wp!=null)?old.wp:'',
+              gp:(old&&old.gp!=null)?old.gp:'',
               og:r.origin||'', al:Array.isArray(r.aliases)?r.aliases:[],
               un:Array.isArray(r.units)?r.units:[]};
     });
+    var brkPairs=brkMigrateList(drugsList);
+    brkScheduleCleanup(brkPairs);
     if(noSave){ buildIndex(); } else { saveDrugsLS(); }
     return drugsList.length;
   });
@@ -7303,6 +7516,12 @@ function loadDrugs(){
   /* __fresh 只是「本次会话刚新增」的临时标记，会被 saveDrugsLS 一起写进本机存储，
      读回来时必须清掉，否则下次打开页面那行还会赖在列表末尾不走。 */
   for(var i=0;i<drugsList.length;i++){ if(drugsList[i]) delete drugsList[i].__fresh; }
+  /* 旧药名尾缀 {备注} → [备注]：本机存储同步改掉，云端老行稍后清（见 brkScheduleCleanup） */
+  var brkPairs=brkMigrateList(drugsList);
+  if(brkPairs.length){
+    try{ localStorage.setItem(LS_DRUGS,JSON.stringify(drugsList)); }catch(e){}
+    brkScheduleCleanup(brkPairs);
+  }
   buildIndex();
 }
 /* 药价目录有变动 → 整目录 upsert 回数据库。
@@ -7586,6 +7805,183 @@ function ddLoadRefs(d){
     +(r.refs.length>30?'<div class="dd-empty">共 '+r.refs.length+' 条，仅显示前 30 条</div>':'');
 }
 
+/* =========================================================
+   药物详情：中药分类（来源 + 药用部位）
+   两级组织，二级选项可搜索过滤。
+   识别规则：药名在下表能命中（自动剥掉「炙/炒/醋/酒/制/生…」等炮制前缀）
+   → 自动填默认分类；命中不了（如本店的「艾草黄」）→ 留空，由用户手动选，
+   不做强制校验。
+   ========================================================= */
+var TC_TREE=[
+  {g:'植物类',items:['根及根茎类','块根类','块茎类','茎木类','皮类','叶类','花类','果实类','种子类','全草类','菌藻类']},
+  {g:'动物类',items:['动物胶类','昆虫类','贝壳类','角骨类','其他动物类']},
+  {g:'矿物类',items:['矿物类']},
+  {g:'加工品类',items:['加工品']}
+];
+var TC_DICT_SRC={
+  '根及根茎类':'人参 红参 白参 党参 太子参 西洋参 高丽参 黄芪 甘草 白术 苍术 当归 川芎 白芍 赤芍 丹参 紫丹参 玄参 苦参 沙参 北沙参 南沙参 桔梗 柴胡 银柴胡 防风 羌活 独活 白芷 藁本 细辛 葛根 粉葛 柴葛根 升麻 前胡 白前 紫菀 龙胆 威灵仙 白头翁 板蓝根 黄芩 黄连 大黄 巴戟天 肉苁蓉 锁阳 淫羊藿 仙茅 狗脊 骨碎补 续断 牛膝 川牛膝 土茯苓 萆薢 芦根 白茅根 苎麻根 山豆根 北豆根 秦艽 防己 徐长卿 知母 远志 白蔹 三棱 莪术 姜黄 香附 木香 虎杖 常山 甘遂 商陆 乌药 天葵子 黄精 玉竹 土贝母 川贝母 浙贝母 平贝母 白薇 白前 高良姜 干姜 紫草 白芷 苦楝根 岗梅根 岗梅',
+  '块根类':'麦冬 麦门冬 天冬 天门冬 百部 地黄 生地 熟地 熟地黄 何首乌 生首乌 白首乌 郁金 川乌 草乌 附子 天葵 白头翁 威灵仙 甘薯 参薯',
+  '块茎类':'半夏 天南星 白附子 天麻 山药 泽泻 元胡 延胡索 白及 百合 薤白 山慈菇 魔芋 黄独 白芨 贝母',
+  '茎木类':'桂枝 桑枝 苏木 降香 沉香 檀香 木通 川木通 通草 小通草 鸡血藤 大血藤 忍冬藤 钩藤 络石藤 海风藤 青风藤 夜交藤 首乌藤 皂角刺 紫苏梗 荆芥穗 桑寄生 槲寄生 木贼 鬼箭羽 丁公藤 宽筋藤 竹茹 天仙藤 油松节 苏梗 桂枝尖',
+  '皮类':'杜仲 厚朴 黄柏 关黄柏 牡丹皮 丹皮 地骨皮 桑白皮 肉桂 官桂 五加皮 秦皮 白鲜皮 苦楝皮 椿皮 合欢皮 海桐皮 紫荆皮 茯苓皮 生姜皮 姜皮 大腹皮 冬瓜皮 梓白皮 石榴皮 橘红 化橘红 香加皮 救必应',
+  '叶类':'艾叶 桑叶 荷叶 紫苏叶 枇杷叶 侧柏叶 淡竹叶 竹叶 番泻叶 银杏叶 罗布麻叶 功劳叶 大青叶 淫羊藿 石韦 棕榈叶 龙脷叶',
+  '花类':'金银花 忍冬花 菊花 野菊花 红花 西红花 番红花 槐花 槐米 辛夷 辛夷花 丁香 公丁香 玫瑰花 月季花 旋覆花 密蒙花 芫花 款冬花 冬花 蒲黄 鸡冠花 凌霄花 合欢花 厚朴花 葛花 扁豆花 玉米须 夏枯草 莲须 松花粉 木棉花 素馨花',
+  '果实类':'五味子 山楂 木瓜 陈皮 青皮 枳实 枳壳 佛手 香橼 砂仁 白豆蔻 豆蔻 草豆蔻 草果 益智仁 枸杞 枸杞子 女贞子 栀子 连翘 川楝子 山茱萸 山萸肉 乌梅 诃子 芡实 龙眼肉 桂圆 大枣 红枣 吴茱萸 花椒 川椒 胡椒 白胡椒 荜茇 覆盆子 金樱子 桑椹 桑葚 瓜蒌 瓜蒌皮 瓜蒌仁 蔓荆子 苍耳子 地肤子 蛇床子 石榴 八角 八月札 白果 罗汉果 胖大海 无花果 阳春砂 春砂仁 豆蔻壳',
+  '种子类':'决明子 菟丝子 沙苑子 车前子 牛蒡子 王不留行 莱菔子 紫苏子 白芥子 葶苈子 牵牛子 使君子 槟榔 苦杏仁 桃仁 郁李仁 火麻仁 柏子仁 酸枣仁 莲子 薏苡仁 白扁豆 黑芝麻 葫芦巴 韭菜子 韭子 谷芽 麦芽 稻芽 绿豆 赤小豆 冬瓜子 甜瓜子 南瓜子 白花菜子 大枫子 鸦胆子 郁李 蕤仁 楮实子 茺蔚子',
+  '全草类':'麻黄 薄荷 荆芥 紫苏 藿香 佩兰 香薷 蒲公英 紫花地丁 益母草 泽兰 车前草 金钱草 广金钱草 半边莲 半枝莲 马齿苋 鱼腥草 败酱草 白花蛇舌草 穿心莲 青蒿 茵陈 大蓟 小蓟 仙鹤草 地锦草 老鹳草 豨莶草 臭梧桐 灯心草 卷柏 马鞭草 透骨草 伸筋草 鹅不食草 金牛草 鸡骨草 积雪草 旱莲草 墨旱莲 刘寄奴 北刘寄奴 寻骨风 白英 龙葵 浮萍 矮地茶 肿节风 白花丹 走马胎 白背桐 石见穿 半边旗 落地生根 地耳草 田基黄 虎耳草 猫爪草 筋骨草 飞天蠄蟧',
+  '菌藻类':'茯苓 茯神 猪苓 灵芝 冬虫夏草 海藻 昆布 银耳 桑黄 雷丸 马勃 竹荪 云芝 蝉花 金蝉花',
+  '动物胶类':'阿胶 鹿角胶 龟甲胶 鳖甲胶 黄明胶 新阿胶 猪皮胶 鹿胎胶',
+  '昆虫类':'全蝎 蜈蚣 地龙 僵蚕 白僵蚕 蝉蜕 土鳖虫 水蛭 虻虫 斑蝥 桑螵蛸 蜂房 蜂蜜 蜂王浆 蚕沙 蚕砂 九香虫 蝼蛄 蛴螬 五倍子 鸡内金 蝉花 虻 蝎尾',
+  '贝壳类':'石决明 珍珠母 牡蛎 瓦楞子 蛤壳 海蛤壳 海螵蛸 珍珠 紫贝齿 砗磲 海螺蛸 蚝壳',
+  '角骨类':'鹿茸 鹿角 鹿角霜 龟甲 龟板 鳖甲 穿山甲 羚羊角 水牛角 牛角 犀角 虎骨 豹骨 猪蹄甲 鹿筋 鹿鞭',
+  '其他动物类':'紫河车 蛇蜕 乌梢蛇 白花蛇 蕲蛇 金钱白花蛇 海马 海龙 蛤蚧 壁虎 守宫 地龙 蛴螬 紫梢花 海狗肾 狗肾 猪脾 牛黄 人工牛黄 熊胆 麝香 蟾酥 哈蟆油 燕窝',
+  '矿物类':'石膏 煅石膏 寒水石 磁石 代赭石 赭石 赤石脂 滑石 芒硝 玄明粉 龙骨 龙齿 朱砂 辰砂 雄黄 硫黄 白矾 硼砂 炉甘石 阳起石 禹余粮 紫石英 白石英 自然铜 铅丹 琥珀 玛瑙 云母 浮石 海浮石 胆矾 轻粉 皂矾 钟乳石 花蕊石 金礞石 青礞石 密陀僧 玄精石 伏龙肝 无名异 赤石 白石脂',
+  '加工品':'神曲 建曲 六神曲 红曲 半夏曲 沉香曲 胆南星 淡豆豉 大豆黄卷 青黛 冰片 竹沥 阿胶珠 焦三仙 炮姜 血余炭 人中白 人中黄 焦神曲 炒神曲 陈曲 麦芽曲 霞天曲 姜汁 竹沥水'
+};
+var TC_BY_NAME={};
+(function(){
+  for(var k in TC_DICT_SRC){
+    var arr=String(TC_DICT_SRC[k]).split(/\s+/);
+    for(var i=0;i<arr.length;i++){ var w=arr[i]; if(w && !TC_BY_NAME[w]) TC_BY_NAME[w]=k; }
+  }
+})();
+/* 常见别名 / 规格写法（药名比词典多了品牌、产地、规格前缀时的兜底） */
+(function(){
+  var alias={
+    '根及根茎类':'三七 田七 三七粉 北柴胡 南柴胡 柴胡头 穿山龙 穿破石 菝葜 白头翁 白芷 独活 羌活 前胡 生姜 干姜 甘松 地榆 地榆炭 刺五加',
+    '块根类':'川贝 浙贝 平贝 麦冬 大川麦冬 天冬 生地 熟地 何首乌',
+    '块茎类':'半夏 法半夏 姜半夏 清半夏 白及 天麻 山药 炒好山药',
+    '茎木类':'半枫荷 柽柳 桑枝 桂枝 鸡血藤',
+    '皮类':'椿根皮 海桐皮 杜仲 厚朴 黄柏',
+    '叶类':'薄荷叶 布渣叶 侧柏叶 艾叶 桑叶',
+    '花类':'藏红花 白丁香 辛夷 金银花 菊花',
+    '果实类':'蒺藜 白蒺藜 刺蒺藜 荜澄茄 毕澄茄 五味子 砂仁 炒小茴香',
+    '种子类':'薏仁 薏米 炒薏仁 杏仁 炒杏仁 草决明 巴豆 补骨脂 炒牛子 炒苏子 覆盆子 大覆盆子 浮小麦 冬葵子 榧子 刀豆',
+    '全草类':'垂盆草 萹蓄 葱白 薄荷 鹅不食草 地丁 凤尾草 冬凌草 独脚金 风流果',
+    '菌藻类':'虫草花 赤茯苓 炒茯苓卷 茯苓 灵芝',
+    '昆虫类':'五倍子 蚕沙 蝉蜕',
+    '其他动物类':'五灵脂 炒五灵脂 刺猬皮 蟾蜍 紫河车',
+    '矿物类':'石膏 龙骨 牡蛎',
+    '加工品':'薄荷冰 薄荷脑 安息香 乳香 没药 血竭 儿茶 芦荟 青黛 冰片'
+  };
+  for(var k in alias){
+    if(!TC_BY_NAME[k]) continue;                 /* 只补已存在的分类，避免拼错造出野分类 */
+    var arr=String(alias[k]).split(/\s+/);
+    for(var i=0;i<arr.length;i++){ var w=arr[i]; if(w && !TC_BY_NAME[w]) TC_BY_NAME[w]=k; }
+  }
+})();
+/* 兜底：名字里含词典词（如「大川麦冬」含「麦冬」）按最长词命中 */
+var TC_KEYS=(function(){ var a=[]; for(var k in TC_BY_NAME) a.push(k); a.sort(function(x,y){ return y.length-x.length; }); return a; })();
+/* 炮制前缀 / 形态后缀：识别前先剥掉，再查表 */
+var TC_PROC=/^(麸炒|土炒|清炒|砂炒|蜜炙|酒炙|醋炙|盐炙|姜炙|姜制|酒制|醋制|蜜制|清水|炙|炒|生|制|醋|酒|盐|蜜|姜|煅|焦|煨|蒸|烫|法|清|鲜|干)/;
+var TC_TAIL=/[片丝条粉末炭块]$/;
+function tcGuess(name){
+  var s=String(name||'').replace(/[\[［{【（(].*$/,'').trim();   /* 去掉 [先煎] / {…} / （规格） 等尾巴 */
+  if(!s) return '';
+  if(TC_BY_NAME[s]) return TC_BY_NAME[s];
+  var t=s,g=0;
+  while(g++<4){
+    var m=t.match(TC_PROC); if(!m) break;
+    t=t.slice(m[0].length);
+    if(TC_BY_NAME[t]) return TC_BY_NAME[t];
+  }
+  if(TC_TAIL.test(t)){
+    var t2=t.replace(TC_TAIL,'');
+    if(TC_BY_NAME[t2]) return TC_BY_NAME[t2];
+  }
+  /* 兜底：名字里包含某个词条（取最长命中），如「大川麦冬」「阿胶福牌」 */
+  for(var i=0;i<TC_KEYS.length;i++){
+    var k=TC_KEYS[i];
+    if(t.length>k.length && t.indexOf(k)>=0) return TC_BY_NAME[k];
+  }
+  return '';
+}
+function tcAll(){ var a=[]; for(var i=0;i<TC_TREE.length;i++){ var g=TC_TREE[i]; for(var j=0;j<g.items.length;j++) a.push({g:g.g,n:g.items[j]}); } return a; }
+function tcInTree(v){ var a=tcAll(); for(var i=0;i<a.length;i++){ if(a[i].n===v) return true; } return false; }
+
+/* ---------- 中药分类：可搜索下拉 ---------- */
+var _tcAct=-1;
+function tcGet(){ return String(($('ddTc')&&$('ddTc').value)||'').trim(); }
+function tcTip(txt,warn){
+  var el=$('ddTcTip'); if(!el) return;
+  el.textContent=txt||'';
+  el.className='dd-tip'+(warn?' warn':'');
+}
+function tcSetVal(v,tipText){
+  var inp=$('ddTc'); if(!inp) return;
+  inp.value=v||'';
+  if(tipText!==undefined){ tcTip(tipText,false); return; }
+  if(!v) tcTip('未填（可不填，不影响保存）',false);
+  else if(!tcInTree(v)) tcTip('旧分类「'+v+'」，可重新选择',false);
+  else tcTip('',false);
+}
+function tcRender(q){
+  var box=$('ddTcList'); if(!box) return;
+  q=String(q||'').trim().toLowerCase();
+  var cur=tcGet(), h='', n=0;
+  for(var i=0;i<TC_TREE.length;i++){
+    var g=TC_TREE[i], rows=[];
+    for(var j=0;j<g.items.length;j++){
+      var it=g.items[j];
+      if(q && it.toLowerCase().indexOf(q)<0 && g.g.toLowerCase().indexOf(q)<0) continue;
+      rows.push(it);
+    }
+    if(!rows.length) continue;
+    h+='<div class="dd-cg">'+esc(g.g)+'</div>';
+    for(var k=0;k<rows.length;k++){
+      h+='<div class="dd-ci" data-v="'+esc(rows[k])+'"><span>'+esc(rows[k])+'</span>'
+        +(cur===rows[k]?'<span class="chk">✓</span>':'')+'</div>';
+      n++;
+    }
+  }
+  box.innerHTML=h||'<div class="dd-cnone">没有匹配的分类，可直接留空</div>';
+  _tcAct=-1;
+}
+function tcPlace(){
+  /* 弹窗 body 是滚动容器，下拉若用 absolute 会被裁掉 → 改成 fixed 定位贴在输入框下方 */
+  var inp=$('ddTc'), list=$('ddTcList');
+  if(!inp||!list) return;
+  var r=inp.getBoundingClientRect();
+  var below=window.innerHeight-r.bottom-12, above=r.top-12;
+  var h=Math.min(232, Math.max(140, Math.max(below, above)));
+  list.style.width=r.width+'px';
+  list.style.left=r.left+'px';
+  list.style.maxHeight=h+'px';
+  if(below>=h || below>=above){ list.style.top=(r.bottom+4)+'px'; }
+  else { list.style.top=(r.top-h-4)+'px'; }
+}
+function tcOpen(){ tcRender(''); var b=$('ddTcList'); if(b){ tcPlace(); b.classList.add('on'); } }
+function tcClose(){ var b=$('ddTcList'); if(b) b.classList.remove('on'); _tcAct=-1; }
+function tcMove(step){
+  var box=$('ddTcList'); if(!box) return;
+  var its=box.querySelectorAll('.dd-ci'); if(!its.length) return;
+  if(_tcAct>=0 && its[_tcAct]) its[_tcAct].classList.remove('act');
+  _tcAct=(_tcAct+step+its.length)%its.length;
+  its[_tcAct].classList.add('act');
+  try{ its[_tcAct].scrollIntoView({block:'nearest'}); }catch(e){}
+}
+function tcPick(v){ tcSetVal(v); tcClose(); var inp=$('ddTc'); if(inp) inp.blur(); }
+
+/* ---------- 底部提示条 ---------- */
+function ddMsgBox(txt){
+  var e=$('ddMsg'); if(!e) return;
+  if(!txt){ e.style.display='none'; e.textContent=''; return; }
+  e.style.display=''; e.textContent=txt;
+}
+function ddBadClear(){
+  ['ddName','ddDp','ddWp','ddP'].forEach(function(id){
+    var el=$(id); if(!el) return;
+    var box=el.closest('.dd-pin'); (box||el).classList.remove('bad');
+  });
+}
+function ddBadMark(ids){
+  ddBadClear();
+  ids.forEach(function(id){
+    var el=$(id); if(!el) return;
+    var box=el.closest('.dd-pin'); (box||el).classList.add('bad');
+  });
+}
+
 var Drug=(function(){
   var curIdx=-1;
   function ensure(){ try{ renderTabs(); renderDrugTable(); }catch(e){ console.warn('Drug.ensure', e); } }
@@ -7594,21 +7990,37 @@ var Drug=(function(){
     if(i<0 || !drugsList[i]){ toastErr('先点一行，再点「详情」'); return; }
     var d=drugsList[i]; if(!d) return;
     selDrugRow=i; curIdx=i;
-    $('ddName').textContent=(d.n||'(未命名)')+'　['+(d.u||'g')+']';
+    /* 核心信息区 */
+    $('ddName').value=d.n||'';
+    $('ddCat').value=d.cat||'中药';
+    $('ddBp').value=(d.bp==null?'':d.bp);
+    $('ddDp').value=(d.dp==null?'':d.dp);
+    $('ddWp').value=(d.wp==null?'':d.wp);
+    $('ddP').value=(d.p==null?'':d.p);
+    $('ddGp').value=(d.gp==null?'':d.gp);
+    $('ddPUnit').textContent=d.u||'g';
+    var rate=(typeof SET!=='undefined'&&SET&&SET.rate)?SET.rate:1.25;
+    var rt=$('ddRateTxt'); if(rt) rt.textContent=rate;
+    /* 次要信息区 */
     $('ddUnit').value=d.u||'g';
     $('ddAmount').value=d.c||'';
     $('ddPy').value=d.py||'';
-    $('ddTc').value=d.tc||'';
     $('ddDw').value=d.dw||'';
-    $('ddCat').value=d.cat||'中药';
     $('ddOrigin').value=d.og||'';
     $('ddAlias').value=Array.isArray(d.al)?d.al.join(' '):'';
-    $('ddBp').value=d.bp||''; $('ddDp').value=d.dp||''; $('ddP').value=d.p||'';
+    /* 中药分类：已有值原样回填；空值才尝试按药名识别，识别不到就留空 */
+    var tcV=String(d.tc||'').trim(), hit='';
+    if(!tcV){ var g=tcGuess(d.n); if(g){ tcV=g; hit='已按药名自动识别，可修改'; } }
+    if(hit) tcSetVal(tcV, hit); else tcSetVal(tcV);
+    $('ddMore').open=false;
+    $('ddMore').scrollTop=0;
+    ddBadClear(); ddMsgBox('');
     ddRenderUnits(d.un||[]);
     ddLoadCostLog(d.n);
     ddLoadRefs(d);
-    $('ddMsg').textContent='';
     $('mDrugDetail').classList.add('on');
+    var body=$('mDrugDetail').querySelector('.body'); if(body) body.scrollTop=0;
+    setTimeout(function(){ try{ $('ddName').focus(); }catch(e){} },60);
   }
   function ddRenderUnits(units){
     var h='';
@@ -7621,7 +8033,7 @@ var Drug=(function(){
         +'<input class="u-num" data-f="daily" placeholder="日常价" value="'+(u.daily==null?'':u.daily)+'">'
         +'<span class="xu" data-del="'+i+'">✕</span></div>';
     }
-    $('ddUnits').innerHTML=h||'<div style="font-size:12px;color:#888">暂无多单位，点下方「+ 添加单位」。</div>';
+    $('ddUnits').innerHTML=h||'<div class="dd-empty">暂无多单位，点下方「+ 添加单位」。</div>';
   }
   function ddSyncUnits(){
     var d=drugsList[curIdx]; if(!d) return;
@@ -7653,12 +8065,17 @@ var Drug=(function(){
   }
   function ddSuggest(which){
     var d=drugsList[curIdx]; if(!d) return;
-    var cost=latestCost(d);
+    /* 进价以「当前输入框」为准（用户可能刚改了还没保存），没填才退回多单位 / 已存值 */
+    var inpBp=String($('ddBp').value||'').trim();
+    var cost=(inpBp!=='' && !isNaN(parseFloat(inpBp)))?parseFloat(inpBp):latestCost(d);
     if(cost==null){ toastErr('没有进货价可参考（先填进价或多单位进货价）'); return; }
-    var rate=n(SET.rate)||1.25;
+    var rate=(typeof SET!=='undefined'&&SET&&SET.rate)?n(SET.rate)||1.25:1.25;
     var sug=Math.round(cost*rate*1000)/1000;
-    if(which==='dp'){ $('ddDp').value=sug; } else { $('ddP').value=sug; }
-    toast('已按 进货价 ¥'+cost+' × 利润率 '+rate+' 建议 ¥'+sug);
+    var map={dp:'ddDp', wp:'ddWp', p:'ddP', gp:'ddGp'};
+    var box=$(map[which]||'ddDp'); if(!box) return;
+    box.value=sug;
+    var b=box.closest('.dd-pin'); if(b) b.classList.remove('bad');
+    toast('已按 进价 ¥'+cost+' × 利润率 '+rate+' 建议 ¥'+sug);
   }
   function ddLoadCostLog(name){
     var box=$('ddCostLog'); box.innerHTML='<div class="dd-empty">加载中…</div>';
@@ -7684,21 +8101,59 @@ var Drug=(function(){
   }
   function ddSave(){
     var d=drugsList[curIdx]; if(!d) return;
+    /* ---- 核心字段校验：药品名称 + 打单价 / 批发价 / 零售价 非空 ----
+       专属价是「某位客人/医生的默认专属价」，留空表示不单独设价，不拦保存。 */
+    var nm=String($('ddName').value||'').trim();
+    var vDp=String($('ddDp').value||'').trim();
+    var vWp=String($('ddWp').value||'').trim();
+    var vP =String($('ddP').value||'').trim();
+    var vGp=String($('ddGp').value||'').trim();
+    var miss=[], bad=[];
+    if(!nm){ miss.push('药品名称'); bad.push('ddName'); }
+    if(!vDp){ miss.push('打单价'); bad.push('ddDp'); }
+    if(!vWp){ miss.push('批发价'); bad.push('ddWp'); }
+    if(!vP){  miss.push('零售价'); bad.push('ddP'); }
+    if(miss.length){
+      ddBadMark(bad);
+      ddMsgBox('请先填写：'+miss.join('、'));
+      var first=$(bad[0]); if(first){ try{ first.focus(); }catch(e){} }
+      return;
+    }
+    var numBad=[];
+    [['ddDp','打单价',vDp],['ddWp','批发价',vWp],['ddP','零售价',vP],['ddGp','专属价',vGp],['ddBp','进价',String($('ddBp').value||'').trim()]]
+      .forEach(function(x){ if(x[2]!=='' && isNaN(parseFloat(x[2]))) numBad.push(x[1]); });
+    if(numBad.length){
+      ddMsgBox('价格必须是数字：'+numBad.join('、'));
+      return;
+    }
+    ddBadClear(); ddMsgBox('');
+    /* ---- 改名：云端以 name 为主键，改名前先确认 ---- */
+    var oldName=String(d.n||'').trim();
+    if(oldName && oldName!==nm){
+      if(!confirm('药名「'+oldName+'」改为「'+nm+'」？\n\n改名后：\n· 药价目录、进货价历史会跟着改\n· 已保存处方里的文字不会自动改')) return;
+    }
     ddSyncUnits();
+    d.n=nm;
     d.u=($('ddUnit').value||'g').trim()||'g';
-    d.c=$('ddAmount').value.trim();
-    d.tc=$('ddTc').value.trim();
-    d.dw=$('ddDw').value.trim();
-    d.cat=($('ddCat').value.trim())||'中药';
-    var pyIn=$('ddPy').value.trim();
+    d.c=String($('ddAmount').value||'').trim();
+    d.tc=String($('ddTc').value||'').trim();
+    d.dw=String($('ddDw').value||'').trim();
+    d.cat=(String($('ddCat').value||'').trim())||'中药';
+    var pyIn=String($('ddPy').value||'').trim();
     d.py=pyIn||genPinyin(d.n||'');
-    d.og=$('ddOrigin').value.trim();
+    d.og=String($('ddOrigin').value||'').trim();
     d.al=String($('ddAlias').value).split(/[\s,，、]+/).map(function(s){return s.trim();}).filter(Boolean);
-    d.bp=$('ddBp').value.trim(); d.dp=$('ddDp').value.trim(); d.p=$('ddP').value.trim();
-    d.tc=d.tc||''; d.st=d.st||'';
+    d.bp=String($('ddBp').value||'').trim();
+    d.dp=vDp; d.wp=vWp; d.p=vP; d.gp=vGp;
+    d.st=d.st||'';
     saveDrugsLS(); renderDrugTable(); renderDrugList();
+    if(oldName && oldName!==d.n && SUPA.on){
+      /* 旧名那一行必须删掉，否则刷新时云端又会把它拉回来（变成两条同名药） */
+      SUPA.q('drugs?name=eq.'+encodeURIComponent(oldName),{method:'DELETE'}).catch(function(){});
+      SUPA.q('drug_cost_log?drug=eq.'+encodeURIComponent(oldName),{method:'PATCH',body:{drug:d.n}}).catch(function(){});
+    }
     $('mDrugDetail').classList.remove('on');
-    toast('已保存「'+(d.n||'')+'」详情');
+    toast('已保存「'+d.n+'」详情');
   }
   return { ensure:ensure, openDetail:openDetail, ddRenderUnits:ddRenderUnits, ddAddUnit:ddAddUnit,
            ddDelUnit:ddDelUnit, ddSuggest:ddSuggest, ddSave:ddSave };
@@ -8723,7 +9178,42 @@ $('btnSave').onclick=function(){
   $('ddSave').onclick=function(){ Drug.ddSave(); };
   $('ddAddUnit').onclick=function(){ Drug.ddAddUnit(); };
   $('ddSugDp').onclick=function(){ Drug.ddSuggest('dp'); };
+  $('ddSugWp').onclick=function(){ Drug.ddSuggest('wp'); };
   $('ddSugP').onclick=function(){ Drug.ddSuggest('p'); };
+  $('ddSugGp').onclick=function(){ Drug.ddSuggest('gp'); };
+  /* 单位改动 → 价格卡片右上角的「元 / g」跟着变 */
+  $('ddUnit').oninput=function(){ var u=(this.value||'').trim()||'g'; $('ddPUnit').textContent=u; };
+  /* 中药分类：可搜索下拉 */
+  (function(){
+    var inp=$('ddTc'), list=$('ddTcList');
+    if(!inp||!list) return;
+    inp.addEventListener('focus',function(){ tcOpen(); });
+    inp.addEventListener('input',function(){ tcRender(inp.value); tcPlace(); list.classList.add('on'); });
+    (function(){
+      var body=$('mDrugDetail').querySelector('.body');
+      if(body) body.addEventListener('scroll',function(){ tcClose(); });
+      window.addEventListener('resize',function(){ tcClose(); });
+    })();
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'){ e.preventDefault(); if(!list.classList.contains('on')){ tcOpen(); } else { tcMove(1); } }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); tcMove(-1); }
+      else if(e.key==='Enter'){
+        if(list.classList.contains('on')){
+          var act=list.querySelector('.dd-ci.act');
+          if(act){ e.preventDefault(); tcPick(act.getAttribute('data-v')); }
+        }
+      }
+      else if(e.key==='Escape'){ tcClose(); }
+    });
+    inp.addEventListener('blur',function(){ setTimeout(function(){ if(!list.contains(document.activeElement)) tcClose(); },120); tcSetVal(tcGet()); });
+    list.addEventListener('mousedown',function(e){
+      var it=e.target.closest('.dd-ci'); if(!it) return;
+      e.preventDefault(); tcPick(it.getAttribute('data-v'));
+    });
+    document.addEventListener('click',function(e){
+      if(!$('ddTcCombo').contains(e.target)) tcClose();
+    });
+  })();
   $('ddUnits').onclick=function(e){
     var x=e.target.closest('.xu'); if(!x) return;
     Drug.ddDelUnit(+x.getAttribute('data-del'));
