@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='fe4befab16';
+  var V='6c5f78eac0';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -281,8 +281,6 @@ function injectActionIcons(){
     dmSave:'save', setSave:'save',
     plAuto:'calc',
     dmDel:'trash', dmWipe:'trash',
-    btnStat:'chart', btnDocs:'book',
-    btnDrugMaint:'calc', btnSettings:'gear',
     plFa:'send'
   };
   for(var id in map) addIcon(id,map[id]);
@@ -2921,60 +2919,35 @@ input,select,textarea,button{
 }
 
 /* =====================================================================
-   🧭 左侧固定导航栏 + 多页面路由（2026-10-27）
-   结构：#appRoot > .navShell > (.navBar + .pageHost > .page[data-page])
+   🧭 顶部横向导航 + 多页面路由（2026-10-28：原左侧竖排导航迁移到顶栏）
+   结构：#appRoot > (.topbar + .navShell > .pageHost > .page[data-page])
    ⚠ .main 的直接父级仍是 .mainScroll —— vsAvail() 依赖它算四栏可用宽度，
      改这一层会让拖拽分栏与面板内滚动全部失效。
    ⚠ 页面切换只切 .page 显隐，DOM 不销毁 → 切页不丢处方录入状态。
    ===================================================================== */
-body{ --navw:208px; }
-body.navCollapsed{ --navw:60px; }
+body{ --navw:0px; }
 
 .navShell{ flex:1 1 0; min-height:0; min-width:0; display:flex; }
 
-/* ---------- 左侧导航栏 ---------- */
-.navBar{ flex:0 0 var(--navw); width:var(--navw); display:flex; flex-direction:column;
-  background:var(--neutral-0); border-right:1px solid var(--neutral-2);
-  transition:flex-basis .18s ease,width .18s ease; overflow:hidden; }
-
-.navHead{ flex:0 0 auto; display:flex; align-items:center; gap:8px;
-  height:52px; padding:0 10px 0 14px; border-bottom:1px solid var(--neutral-2); }
-.navLogo{ flex:1 1 auto; min-width:0; font-size:15px; font-weight:600;
-  color:var(--neutral-title); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-body.navCollapsed .navLogo{ display:none; }
-
-.navToggle{ flex:0 0 auto; width:32px; height:32px; min-height:32px !important;
-  padding:0 !important; display:inline-flex; align-items:center; justify-content:center;
-  background:transparent !important; border:none !important; border-radius:var(--r-sm) !important;
-  color:var(--neutral-5) !important; cursor:pointer; }
-.navToggle:hover{ background:var(--neutral-1) !important; color:var(--neutral-title) !important;
-  transform:none !important; box-shadow:none !important; }
-.navToggle svg{ width:18px; height:18px; stroke:currentColor; fill:none;
-  stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; transition:transform .18s ease; }
-body.navCollapsed .navToggle svg{ transform:rotate(180deg); }
-
-.navList{ flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:8px; }
-.navItem{ display:flex !important; align-items:center; gap:10px; width:100%;
-  height:40px; min-height:40px !important; padding:0 10px !important; margin:0 0 2px;
-  background:transparent !important; border:none !important; border-radius:var(--r-md) !important;
+/* ---------- 顶栏横向导航 ---------- */
+.topbar .brand{ margin-left:0 !important; margin-right:18px; white-space:nowrap; }
+.topNav{ display:flex; align-items:center; gap:2px; flex:1 1 auto; min-width:0;
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.topNav::-webkit-scrollbar{ display:none; }
+.topbar .navItem{ display:inline-flex !important; align-items:center; gap:7px;
+  width:auto !important; flex:0 0 auto; height:34px; min-height:34px !important;
+  padding:0 13px !important; margin:0;
+  background:transparent !important; border:none !important; border-radius:var(--r-pill) !important;
   color:var(--neutral-6) !important; font-size:var(--fs-body) !important; font-weight:500 !important;
-  text-align:left; cursor:pointer; white-space:nowrap; overflow:hidden;
+  white-space:nowrap; cursor:pointer; box-shadow:none !important;
   transition:background .14s ease,color .14s ease; }
-.navItem:hover{ background:var(--neutral-1) !important; color:var(--neutral-title) !important;
+.topbar .navItem:hover{ background:var(--neutral-1) !important; color:var(--neutral-title) !important;
   transform:none !important; box-shadow:none !important; }
-.navItem.on{ background:var(--pri-soft) !important; color:var(--pri-deep) !important; font-weight:600 !important; }
-.navIco{ flex:0 0 20px; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; }
-.navIco svg{ width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.7;
+.topbar .navItem.on{ background:var(--pri-soft) !important; color:var(--pri-deep) !important; font-weight:600 !important; }
+.navIco{ flex:0 0 18px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; }
+.navIco svg{ width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.7;
   stroke-linecap:round; stroke-linejoin:round; }
-.navTx{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; }
-body.navCollapsed .navTx{ display:none; }
-body.navCollapsed .navItem{ justify-content:center; padding:0 !important; }
-body.navCollapsed .navHead{ justify-content:center; padding:0; }
-
-/* ---------- 顶栏当前模块标题 ---------- */
-.navTitle{ font-size:15px; font-weight:600; color:var(--neutral-title);
-  margin-right:10px; padding-right:10px; border-right:1px solid var(--neutral-2);
-  white-space:nowrap; }
+.navTx{ white-space:nowrap; }
 
 /* ---------- 右侧页面容器 ---------- */
 .pageHost{ flex:1 1 0; min-width:0; min-height:0; display:flex; position:relative; overflow:hidden; }
@@ -2983,11 +2956,13 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .pageBody{ flex:1 1 0; min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
 .pageEmpty{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
 
-/* 通知浮层原本贴着视口左下角，左侧加了导航栏会被压住 → 跟着导航宽度右移 */
-#toastWrap{ left:calc(var(--navw) + 12px) !important; }
+/* 顶栏右侧：数据库连接状态 */
+#rxSyncBar{ margin-left:auto; display:inline-flex; align-items:center; flex:0 0 auto; }
 
-/* 打印时导航栏与模块标题不出现（打印走 #printArea，与 #appRoot 无关） */
-@media print{ .navBar,.navTitle{ display:none !important; } }
+#toastWrap{ left:12px !important; }
+
+/* 打印时导航与顶栏不出现（打印走 #printArea，与 #appRoot 无关） */
+@media print{ .topbar,.topNav{ display:none !important; } }
 </style>
 
 <style id="wplanCss">
@@ -3164,24 +3139,12 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 <div id="appRoot">
 
   <div class="topbar">
-    <span class="navTitle" id="navTitle">日常药方打印</span>
-    <button id="btnStat">统 计</button>
-    <button id="btnDocs">重要客人</button>
-    <button id="btnDrugMaint">药物管理</button>
-    <button id="btnSettings">设置</button>
     <span class="brand">阿田药方打印</span>
+    <nav class="topNav" id="navList" aria-label="主导航"></nav>
     <span id="rxSyncBar"></span>
   </div>
 
   <div class="navShell">
-    <aside class="navBar" id="navBar">
-      <div class="navHead">
-        <span class="navLogo">阿田药方打印</span>
-        <button id="navToggle" class="navToggle" title="收起导航" aria-label="收起或展开导航"></button>
-      </div>
-      <nav class="navList" id="navList"></nav>
-    </aside>
-
     <div class="pageHost" id="pageHost">
 
       <section class="page" data-page="daily">
@@ -7995,25 +7958,23 @@ function loadSet(){
   if(SET.rxLh==null||!(n(SET.rxLh)>0)) SET.rxLh=1.6;
   if(SET.showPrice===undefined) SET.showPrice=true;
 }
+/* 打开设置面板（原顶栏「设置」按钮，2026-10-28 导航上移后统一由顶部导航调用） */
+function openSettings(){
+  $('setRcptFs').value=SET.rcptFs||'';
+  $('setRcptBold').checked=!!SET.rcptBold; $('setRcptLh').value=(SET.rcptLh==null?'':SET.rcptLh);
+  $('setRxFs').value=(SET.rxFs==null?'':SET.rxFs); $('setRxBold').checked=!!SET.rxBold;
+  $('setRxLh').value=(SET.rxLh==null?'':SET.rxLh);
+  if(typeof applySheetFont==='function') applySheetFont();
+  fillPrinterSelects();
+  $('setPrinterA5').value=SET.printerA5||'HP LaserJet 1020';
+  var ag=$('agentState'); if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（会改用打印窗口）';
+  $('setShowPrice').checked=SET.showPrice!==false; $('setShowClinic').checked=!!SET.showClinic;
+  refreshStorageStat();
+  loadPrinterList();
+  $('mSet').classList.add('on');
+}
 function bind(){
   $('btnNew').onclick=newRx;
-  $('btnStat').onclick=openStat;
-  $('btnDocs').onclick=openGuest;
-  $('btnDrugMaint').onclick=openDrugMaint;
-  $('btnSettings').onclick=function(){
-    $('setRcptFs').value=SET.rcptFs||'';
-    $('setRcptBold').checked=!!SET.rcptBold; $('setRcptLh').value=(SET.rcptLh==null?'':SET.rcptLh);
-    $('setRxFs').value=(SET.rxFs==null?'':SET.rxFs); $('setRxBold').checked=!!SET.rxBold;
-    $('setRxLh').value=(SET.rxLh==null?'':SET.rxLh);
-    if(typeof applySheetFont==='function') applySheetFont();
-    fillPrinterSelects();
-    $('setPrinterA5').value=SET.printerA5||'HP LaserJet 1020';
-    var ag=$('agentState'); if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（会改用打印窗口）';
-    $('setShowPrice').checked=SET.showPrice!==false; $('setShowClinic').checked=!!SET.showClinic;
-    refreshStorageStat();
-    loadPrinterList();
-    $('mSet').classList.add('on');
-  };
   $('setSave').onclick=function(){
     SET.rcptFs=$('setRcptFs').value.trim();
     SET.printerA5=$('setPrinterA5').value||'HP LaserJet 1020';
@@ -9065,7 +9026,7 @@ var NAV_ICONS={
   gear:'<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.6M8 12.6v1.6M14.2 8h-1.6M3.4 8H1.8M12.4 3.6l-1.1 1.1M4.7 11.3l-1.1 1.1M12.4 12.4l-1.1-1.1M4.7 4.7 3.6 3.6"/>',
   box:'<path d="M2.5 4h11v8.5h-11z"/><path d="M2.5 7h11"/>'
 };
-var NAV_KEY='rx_nav_collapsed';
+
 /* 占位页的「打开现有面板」入口：药方打印暂无对应面板，其余四个都有现成弹窗 */
 var NAV_EXIST={ guest:'openGuest', stat:'openStat', set:'_navOpenSet' };
 
@@ -9097,6 +9058,12 @@ function navRender(){
 
 /* 切换页面：只改 .page 的 on 类，DOM 全部保留 */
 function navGo(key, pushHash){
+  /* 设置是现有弹窗面板（打印模板/字体/打印机等），不切页，直接打开 */
+  if(key==='set'){
+    if(!document.querySelector('.page.on')) navGo('daily', false);
+    try{ openSettings(); }catch(e){ console.warn('Settings', e); }
+    return;
+  }
   var pages=document.querySelectorAll('.page');
   var found=false;
   for(var i=0;i<pages.length;i++){
@@ -9139,43 +9106,12 @@ function navGo(key, pushHash){
 function navCallExisting(key){
   var fn=NAV_EXIST[key];
   if(!fn) return;
-  if(fn==='_navOpenSet'){ var b=document.getElementById('btnSettings'); if(b) b.click(); return; }
+  if(fn==='_navOpenSet'){ openSettings(); return; }
   if(typeof window[fn]==='function'){ window[fn](); }
-}
-
-/* 收起 / 展开导航 */
-function navToggle(){
-  var c=!document.body.classList.contains('navCollapsed');
-  document.body.classList.toggle('navCollapsed',c);
-  try{ localStorage.setItem(NAV_KEY, c?'1':'0'); }catch(e){}
-  var tg=document.getElementById('navToggle');
-  if(tg) tg.setAttribute('title', c? '展开导航' : '收起导航');
-  try{ vsFit(vsRead()); }catch(e){}
-  try{ rxFitCols(); }catch(e){}
 }
 
 function navInit(){
   navRender();
-  /* 收起状态：用户手动切换过的按用户选择（storage 有值）；
-     从没切过的（storage 为 null）按视口宽自动决定 ——
-     四栏布局绝对下限 1410px（center 560 硬地板），导航展开要 208px、
-     收起只要 60px，视口不够时自动收起，别让主区一上来就横滚 178px。
-     自动结果不写 storage：视口变大后下次打开能自动恢复展开。 */
-  var c=null;
-  try{ c=localStorage.getItem(NAV_KEY); }catch(e){ c=null; }
-  if(c===null||c===''){
-    var need=1618;  /* 1410 四栏下限 + 208 导航宽 */
-    try{ need=1410+208; }catch(e){}
-    var vw=window.innerWidth||1440;
-    c=(vw>=need)?'0':'1';
-  }
-  document.body.classList.toggle('navCollapsed', c==='1');
-  var tg=document.getElementById('navToggle');
-  if(tg){
-    tg.innerHTML=navIcon('chev');
-    tg.setAttribute('title', c==='1'? '展开导航' : '收起导航');
-    tg.onclick=navToggle;
-  }
   /* hash → 页面；无 hash 用 daily */
   var key=(location.hash||'').replace(/^#/,'');
   var ok=false;
