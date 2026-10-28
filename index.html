@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='14680e790f';
+  var V='497e787928';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -9539,7 +9539,7 @@ var WPlan = (function(){
     return -1;
   }
   var AC_LIMIT = 60;
-  /* 以输入框完整内容为检索词，包含匹配 + 相关性排序 */
+  /* 包含匹配 + 相关性排序（检索词由 openAc 按光标位置给出） */
   function acSearch(q){
     var key = acNorm(q);
     var list = drugsList || [], out = [], i, d;
@@ -9593,25 +9593,40 @@ var WPlan = (function(){
     el.style.top = top + 'px';
     el.style.minWidth = Math.max(rect.width, 220) + 'px';
   }
-  /* 以输入框【完整内容】检索并弹出备选（不含光标位置因素） */
+  /* 检索词 = 光标之前的文字：光标停在「桔|梗」时搜「桔」，停在「桔梗|」时搜「桔梗」；
+     光标在最前面（前面没字）时退回用整串内容。 */
+  function acTerm(el){
+    var v = String(el.value || '');
+    var pos = el.selectionStart;
+    if(pos == null || pos < 0 || pos >= v.length) return v;
+    var t = v.slice(0, pos);
+    if(!acNorm(t)) return v;
+    return t;
+  }
+  /* 按「光标前文字」检索并弹出备选 */
   function openAc(bid, i, el){
     var b = blockById(bid);
     if(b && !b.items[i]) b.items[i] = BLANK_ITEM();   /* 空药方的首行：输入即落账 */
-    var list = acSearch(el.value);
+    var term = acTerm(el);
+    var list = acSearch(term);
+    if(!list.length){                                  /* 光标落在规格括号里（「桔梗（普」/「桔梗（普）」）→ 退一步按主体名搜 */
+      var t2 = term.replace(/\s+$/, '').replace(/[（(【\[{][^）)】\]}]*[）)】\]}]?$/, '');
+      if(t2 && acNorm(t2) && t2 !== term) list = acSearch(t2);
+    }
     if(!list.length){ closeAc(); return; }
-    _ac = { bid: bid, i: i, el: el, list: list, idx: 0 };
+    _ac = { bid: bid, i: i, el: el, list: list, idx: 0, term: term };
     acRender();
   }
   function nameInput(bid, i, el){
     setItemName(bid, i, el.value);
     openAc(bid, i, el);
   }
-  /* 聚焦 / 点击输入框任意位置（开头、中间、结尾、选中文字）即按当前内容检索；空内容显示全部/常用药材 */
+  /* 聚焦 / 点击输入框任意位置即按「光标前文字」检索；空内容显示全部/常用药材 */
   function nameFocus(bid, i, el){
     if(_acSilent){ _acSilent = false; return; }
     openAc(bid, i, el);
   }
-  /* 键盘移动光标 / 选中文字（← → Home End 及 Shift 组合）同样按完整内容重新检索 */
+  /* 键盘移动光标（← → Home End 及 Shift 组合）后按新光标位置重新检索 */
   function nameCursor(e, bid, i, el){
     var k = e.key;
     if(k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End' || k === 'ArrowUp' || k === 'ArrowDown'){
