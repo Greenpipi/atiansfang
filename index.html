@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='39ee5fd745';
+  var V='53adfca3a8';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -2961,31 +2961,38 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-block-head .spacer{ flex:1; }
 .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
 .wp-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--fs-body); }
-.wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
-.wp-tbl td{ padding:6px 10px; border-bottom:1px solid var(--neutral-2); vertical-align:middle; overflow:hidden; }
-.wp-tbl .wp-nm{ width:auto; min-width:0; flex:1 1 auto; border:none; border-bottom:1px dotted var(--neutral-3); background:transparent; font-size:var(--fs-body); padding:4px 2px; color:var(--neutral-ink); }
-.wp-nm-wrap{ display:flex; align-items:center; gap:6px; }
+.wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:10px 6px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
+.wp-tbl td{ padding:5px 6px!important; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
+.wp-tbl th:first-child, .wp-tbl td:first-child{ padding-left:10px!important; }
+/* 表格内所有输入框统一：40px 高、左右内边距 11px、文字垂直居中 */
+.wp-tbl .wp-nm, .wp-tbl .num, .wp-tbl .wp-unit-in, .wp-tbl .wp-rm-in{
+  height:40px; box-sizing:border-box; width:100%; padding:0 11px;
+  border:1px solid var(--neutral-3); border-radius:var(--radius-input);
+  background:var(--n-white); font-size:var(--fs-body); color:var(--neutral-ink);
+}
+.wp-tbl .wp-nm:focus, .wp-tbl .num:focus, .wp-tbl .wp-unit-in:focus, .wp-tbl .wp-rm-in:focus{ border-color:var(--pri); outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14); }
+.wp-tbl .wp-nm{ flex:1 1 auto; min-width:0; }
+.wp-nm-wrap{ display:flex; align-items:center; gap:8px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
-.wp-tbl .wp-nm:focus{ border-bottom-color:var(--pri); outline:none; }
-.wp-tbl .num{ width:100%; box-sizing:border-box; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:4px 6px; font-size:var(--fs-body); text-align:right; background:var(--n-white); }
-.wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; }
-.wp-tbl td.row-act{ padding:6px 6px 6px 2px; text-align:right; }
-.wp-tbl .row-act button{ margin:0; padding:3px 8px; }
-/* 行内加号：默认隐藏，悬停药名输入框淡入 */
-.wp-tbl td.wp-plus-td{ padding:6px 0 6px 4px; text-align:center; overflow:visible; }
+.wp-sfx:empty{ display:none; }
+.wp-tbl .num{ text-align:right; }
+.wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; padding:5px 11px 5px 6px!important; }
+.wp-tbl td.row-act{ padding:5px 10px 5px 6px!important; text-align:right; }
+.wp-tbl .row-act button{ margin:0; padding:0 12px; }
+/* 行内加号：默认隐藏，悬停整行淡入 */
+.wp-tbl td.wp-plus-td{ padding:5px 6px 5px 8px!important; text-align:center; overflow:visible; }
 .wplan .wp-tbl .wp-plus{ width:20px; height:20px; min-height:0; padding:0; line-height:18px; border-radius:50%; font-size:15px; font-weight:700;
   display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
   color:var(--pri-h)!important; background:var(--pri-soft)!important; border:1px solid var(--pri-line)!important;
   opacity:0; pointer-events:none; transition:opacity .18s ease; }
 .wplan .wp-tbl .wp-plus:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
 .wp-tbl tbody tr:hover .wp-plus, .wp-tbl tbody tr:focus-within .wp-plus, .wp-tbl td.wp-plus-td:hover .wp-plus, .wplan .wp-tbl .wp-plus:focus-visible{ opacity:1; pointer-events:auto; }
-/* 克数 + 单位同格 */
-.wp-qty-cell{ display:flex; align-items:center; gap:5px; }
+/* 克数 + 单位同格：两个输入框之间留 10px */
+.wp-qty-cell{ display:flex; align-items:center; gap:10px; }
 .wp-qty-cell .wp-qty{ flex:1 1 auto; min-width:0; }
-.wp-qty-cell .wp-unit-in{ width:56px; flex:0 0 56px; }
+.wp-qty-cell .wp-unit-in{ width:68px; flex:0 0 68px; padding:0 10px; text-align:center; font-size:12px; font-weight:700; color:var(--pri-deep); }
 /* 行内备注 */
-.wp-tbl .wp-rm-in{ width:100%; box-sizing:border-box; min-height:28px; border:1px solid var(--neutral-2); border-radius:var(--radius-input); padding:3px 8px; font-size:12px; background:var(--n-white); color:var(--neutral-6); }
-.wp-tbl .wp-rm-in:focus{ border-color:var(--pri-line); outline:none; }
+.wp-tbl .wp-rm-in{ font-size:12px; color:var(--neutral-6); }
 .wp-tbl .wp-rm-in::placeholder{ color:var(--neutral-4); }
 .wp-empty{ padding:22px; text-align:center; color:var(--neutral-4); font-size:var(--fs-cap); }
 .wp-add{ margin:16px 0; }
@@ -9169,7 +9176,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<table class="wp-tbl"><colgroup><col style="width:26px"><col style="width:32%"><col style="width:150px"><col style="width:96px"><col style="width:100px"><col><col style="width:68px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<table class="wp-tbl"><colgroup><col style="width:38px"><col style="width:32%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col style="width:82px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
