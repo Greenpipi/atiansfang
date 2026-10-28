@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='497e787928';
+  var V='39ee5fd745';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -9585,13 +9585,37 @@ var WPlan = (function(){
     for(var k=0;k<rows.length;k++){
       (function(r){ r.onmousedown = function(e){ e.preventDefault(); acPick(r.getAttribute('data-nm')); }; })(rows[k]);
     }
-    /* 定位：贴着当前输入框下方；贴近视口底部时翻到上方 */
+    /* 定位：按浮层【实际高度】贴着输入框摆放（下方放不下就紧贴上沿翻上去，不再用固定高度估算） */
     var rect = _ac.el.getBoundingClientRect();
-    var top = rect.bottom + 2;
-    if(top + 264 > window.innerHeight) top = Math.max(4, rect.top - 266);
-    el.style.left = rect.left + 'px';
-    el.style.top = top + 'px';
     el.style.minWidth = Math.max(rect.width, 220) + 'px';
+    acPlace();
+  }
+  /* 贴着输入框定位：优先下方，下方不足且上方够高则紧贴上沿，两边都不够则取空间大的一侧 */
+  function acPlace(){
+    if(!_ac) return;
+    var el = document.getElementById('wpAc');
+    if(!el || el.style.display === 'none') return;
+    var rect = _ac.el.getBoundingClientRect();
+    var Gap = 2, Pad = 6;
+    var h = el.offsetHeight, w = el.offsetWidth;
+    var below = window.innerHeight - rect.bottom - Pad;
+    var above = rect.top - Pad;
+    var top;
+    if(h <= below) top = rect.bottom + Gap;                /* 下方放得下：紧贴下沿 */
+    else if(h <= above) top = rect.top - h - Gap;          /* 下方放不下、上方放得下：紧贴上沿 */
+    else if(above > below) top = Pad;                      /* 两边都放不下：取空间大的一侧并贴边 */
+    else top = Math.max(Pad, window.innerHeight - h - Pad);
+    var left = rect.left;
+    if(left + w > window.innerWidth - Pad) left = Math.max(Pad, window.innerWidth - w - Pad);
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  }
+  /* 滚动/缩放后跟随；输入框滚出视口则收起 */
+  function acFollow(){
+    if(!_ac) return;
+    var r = _ac.el.getBoundingClientRect();
+    if(r.bottom < 6 || r.top > window.innerHeight - 6){ closeAc(); return; }
+    acPlace();
   }
   /* 检索词 = 光标之前的文字：光标停在「桔|梗」时搜「桔」，停在「桔梗|」时搜「桔梗」；
      光标在最前面（前面没字）时退回用整串内容。 */
@@ -9749,8 +9773,9 @@ var WPlan = (function(){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
-    /* 页面滚动时收起药名检索浮层（浮层自身滚动除外） */
-    window.addEventListener('scroll', function(e){ if(e.target && e.target.id === 'wpAc') return; closeAc(); }, true);
+    /* 页面滚动 / 窗口缩放时浮层继续跟着输入框走（输入框滚出视口才收起） */
+    window.addEventListener('scroll', function(e){ if(e.target && e.target.id === 'wpAc') return; acFollow(); }, true);
+    window.addEventListener('resize', acFollow);
   }
 
   function ensure(){
