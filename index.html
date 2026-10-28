@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='449c3eb25e';
+  var V='628f21c482';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -3532,10 +3532,11 @@ body{ --navw:0px; }
           .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
           #dmStat{font-size:12px;color:#6b7280}
           /* ================= 药物详情弹窗 =================
-             结构：核心信息区（名称 + 四个价格，权重最高）
+             结构：核心信息区（名称 + 零售/批发/进货 各自一行、各带独立倍率
+                              + 重要客人价格列表，权重最高）
                    ↓ 次要信息（可折叠）
-                   ↓ 多单位 / 进货价历史 / 售价历史 / 引用 / 客人专属价（各成一折）
-             边距：左右 24px、区块间距 20px；标签一律在输入框上方左对齐。 */
+                   ↓ 多单位 / 进货价历史 / 售价历史（各成一折）
+             边距：左右 24px、区块间距 20px；标签在输入框左侧同行对齐。 */
           .dd-dlg{width:640px;max-width:96vw}
           .dd-dlg>.body{padding:24px;display:flex;flex-direction:column;gap:20px}
           .dd-core{display:flex;flex-direction:column;gap:16px}
@@ -3558,11 +3559,49 @@ body{ --navw:0px; }
           .dd-pc-t{font-size:var(--fs-cap);font-weight:700;color:var(--neutral-6);letter-spacing:.04em}
           .dd-pc-unit{font-size:var(--fs-cap);color:var(--neutral-4)}
           .dd-pc-unit b{color:var(--neutral-6);font-weight:600}
-          .dd-prices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-          .dd-pcol{display:flex;flex-direction:column;gap:6px;min-width:0}
-          .dd-pcol>label{font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap;
-            display:flex;align-items:center;gap:5px}
-          .dd-pcol>label .tag{font-style:normal;font-size:10px;font-weight:500;color:var(--neutral-4)}
+          /* 价格行：一行一个价格 = 名称 | 金额框 | 倍率 | 建议
+             —— 金额框旁边不再套输入框，倍率单独成格、与金额同排 */
+          .dd-prows{display:flex;flex-direction:column;gap:10px}
+          .dd-prow{display:flex;align-items:center;gap:12px;min-width:0}
+          .dd-prow-nm{flex:0 0 96px;display:flex;align-items:baseline;gap:5px;
+            font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap}
+          .dd-prow-nm .tag{font-style:normal;font-size:10px;font-weight:500;color:var(--neutral-4)}
+          .dd-prow .dd-pin{flex:1 1 0;min-width:0}
+          .dd-prow-rate{flex:0 0 auto;display:flex;align-items:center;gap:5px}
+          .dd-prow-rate>span{font-size:var(--fs-cap);color:var(--neutral-4);white-space:nowrap}
+          .dd-prow-base{flex:0 0 auto;width:186px;font-size:11px;color:var(--neutral-4);
+            text-align:right;white-space:nowrap}
+          .dd-prow .dd-sug{flex:0 0 32px;align-self:center;text-align:right}
+          /* ---- 重要客人价格（订单成交沉淀，价格只按最近成交价展示） ---- */
+          .dd-gsec{margin-top:14px;padding-top:12px;border-top:1px dashed var(--neutral-3)}
+          .dd-gsec-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+          .dd-gsec-t{font-size:var(--fs-cap);font-weight:700;color:var(--neutral-6);letter-spacing:.04em}
+          .dd-gsec-hint{font-size:11px;color:var(--neutral-4)}
+          .dd-gsec-hd .spacer{flex:1}
+          .dd-gsec-hd .mini{height:24px;padding:0 8px;font-size:11px}
+          .dd-glist{display:flex;flex-direction:column;gap:6px;max-height:236px;overflow:auto}
+          .dd-grow{display:flex;align-items:center;gap:10px;min-width:0;background:var(--neutral-0);
+            border:1px solid var(--neutral-2);border-radius:var(--radius-input);padding:5px 8px 5px 10px}
+          .dd-grow:hover{border-color:var(--neutral-3)}
+          .dd-grow-nm{flex:0 0 116px;display:flex;flex-direction:column;gap:1px;min-width:0}
+          .dd-grow-nm b{font-size:12px;font-weight:600;color:var(--neutral-title);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .dd-gsrc{font-size:10px;color:var(--neutral-4);white-space:nowrap;
+            overflow:hidden;text-overflow:ellipsis}
+          .dd-gsrc.ord{color:var(--pri-h)}
+          .dd-gsrc.mn{color:#a15c07}
+          .dd-grow .dd-pin{flex:1 1 0;min-width:0;height:32px;padding:0 10px}
+          .dd-grow .dd-pin input{font-size:14px;font-weight:600}
+          .dd-grow-rate{flex:0 0 auto;display:flex;align-items:center;gap:5px}
+          .dd-grow-rate>span{font-size:11px;color:var(--neutral-4);white-space:nowrap}
+          .dd-grow .dd-rate-in{width:74px;height:28px;padding:0 6px}
+          .dd-grow .dd-rate-in input{font-size:12px}
+          .dd-gact{flex:0 0 auto;display:flex;gap:1px;opacity:.5;transition:opacity .12s}
+          .dd-grow:hover .dd-gact,.dd-grow:focus-within .dd-gact{opacity:1}
+          .dd-gact button{border:0;background:none;padding:2px 4px;border-radius:4px;cursor:pointer;
+            font-size:11px;color:var(--neutral-4);line-height:16px}
+          .dd-gact button:hover{color:var(--pri);background:var(--pri-soft)}
+          .dd-gempty{font-size:var(--fs-cap);color:var(--neutral-4);padding:6px 0}
           /* 单一清晰的价格输入框：外框即输入框，¥ 前缀内置，数字等宽右对齐 */
           .dd-pin{display:flex;align-items:center;gap:4px;height:42px;box-sizing:border-box;
             border:1px solid var(--neutral-3);border-radius:var(--radius-input);
@@ -3578,10 +3617,7 @@ body{ --navw:0px; }
           .dd-sug{align-self:flex-end;border:0;background:none;padding:0;cursor:pointer;
             font-size:11px;line-height:15px;height:15px;color:var(--neutral-4)}
           .dd-sug:hover{color:var(--pri);text-decoration:underline}
-          /* ---- 利润倍率行（替代原「进价」独立行） ---- */
-          .dd-rate{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;
-            border-top:1px dashed var(--neutral-3);flex-wrap:wrap}
-          .dd-rate>label{flex:0 0 auto;font-size:var(--fs-cap);color:var(--neutral-5)}
+          /* ---- 倍率小输入框（与金额框同排，不嵌套） ---- */
           .dd-rate-in{display:flex;align-items:center;gap:4px;height:30px;box-sizing:border-box;
             border:1px solid var(--neutral-3);border-radius:var(--radius-input);background:var(--neutral-0);
             padding:0 8px;width:88px}
@@ -3590,8 +3626,6 @@ body{ --navw:0px; }
           .dd-rate-in input{flex:1 1 0;min-width:0;border:0;outline:none;background:transparent;
             width:100%;text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
             font-size:14px;font-weight:600;color:var(--neutral-title)}
-          .dd-rate-note{font-size:var(--fs-cap);color:var(--neutral-4)}
-          .dd-rate-note b{color:var(--neutral-6);font-weight:600}
           /* ---- 折叠区块 ---- */
           .dd-sec{border-top:1px solid var(--neutral-2)}
           .dd-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;height:44px;
@@ -3644,57 +3678,23 @@ body{ --navw:0px; }
           .dd-costlog td.num,.dd-costlog th.num{text-align:right;font-variant-numeric:tabular-nums}
           .dd-costlog tr:last-child td{border-bottom:0}
           .dd-empty{font-size:var(--fs-cap);color:var(--neutral-4);padding:10px}
-          .dd-guest{font-size:var(--fs-cap);color:var(--neutral-5);line-height:1.7}
-          /* ---- 客人专属价（按医生/客人维度） ---- */
-          .dd-gdoc{border:1px solid var(--neutral-2);border-radius:var(--radius-input);
-            background:var(--neutral-0);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-          .dd-gdoc+.dd-gdoc{margin-top:8px}
-          .dd-gdoc-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-          .dd-gdoc-name{font-size:13px;font-weight:700;color:var(--neutral-title)}
-          .dd-gdoc-tag{font-size:10px;color:var(--neutral-4);border:1px solid var(--neutral-3);
-            border-radius:10px;padding:1px 7px}
-          .dd-gdoc-act{margin-left:auto;font-size:11px;color:var(--pri);cursor:pointer;background:none;
-            border:0;padding:0}
-          .dd-gdoc-act:hover{text-decoration:underline}
-          .dd-gdoc-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-          .dd-gfield{display:flex;align-items:center;gap:5px}
-          .dd-gfield>span{font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap}
-          .dd-gin{display:flex;align-items:center;gap:4px;height:30px;box-sizing:border-box;
-            border:1px solid var(--neutral-3);border-radius:var(--radius-input);background:var(--neutral-0);
-            padding:0 8px;width:108px}
-          .dd-gin:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
-          .dd-gin span{flex:0 0 auto;font-size:12px;color:var(--neutral-4)}
-          .dd-gin input{flex:1 1 0;min-width:0;border:0;outline:none;background:transparent;width:100%;
-            text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
-            font-size:14px;font-weight:600;color:var(--neutral-title)}
-          .dd-ghint{font-size:11px;color:var(--neutral-4)}
-          .dd-ghint b{color:var(--neutral-6);font-weight:600}
-          .dd-ghist{max-height:184px;overflow:auto;border:1px solid var(--neutral-2);
-            border-radius:var(--radius-input);background:var(--neutral-0);margin-top:2px}
-          .dd-ghist table{width:100%;border-collapse:collapse;font-size:var(--fs-cap)}
-          .dd-ghist th,.dd-ghist td{height:auto;padding:6px 10px;text-align:left;border:0;
-            border-bottom:1px solid var(--neutral-2)}
-          .dd-ghist th{background:var(--neutral-1);color:var(--neutral-5);font-weight:600;position:sticky;top:0}
-          .dd-ghist td.num,.dd-ghist th.num{text-align:right;font-variant-numeric:tabular-nums}
-          .dd-ghist tr:last-child td{border-bottom:0}
-          .dd-gadd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
-          .dd-gadd select{height:30px;border:1px solid var(--neutral-3);border-radius:var(--radius-input);
-            background:var(--neutral-0);padding:0 8px;font-size:var(--fs-cap);color:var(--neutral-ink)}
-          .dd-gadd .mini{height:28px}
-          .dd-gnone{font-size:var(--fs-cap);color:var(--neutral-4);padding:2px 0}
-          /* 窄屏：价格两列、字段整行，避免挤压 */
+          /* 窄屏：价格行折行，金额框独占一行，避免挤压 */
           @media (max-width:680px){
             .dd-dlg{width:96vw}
             .dd-dlg>.body{padding:16px;gap:16px}
-            .dd-prices{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+            .dd-prow{flex-wrap:wrap;gap:6px 10px}
+            .dd-prow-nm{flex:0 0 100%}
+            .dd-prow-base{width:auto;text-align:left}
+            .dd-grow{flex-wrap:wrap}
+            .dd-grow-nm{flex:0 0 100%}
             .dd-frow{flex-wrap:wrap;gap:12px}
             .dd-f,.dd-f-2{flex:1 1 100%}
           }
         </style>
       </section>
 
-      <!-- ================= 药物详情：核心信息（名称/四个价格） + 次要信息（可折叠）
-                             + 多单位 / 进货价历史 / 售价历史 / 引用 / 客人专属价 ================= -->
+      <!-- ================= 药物详情：核心信息（名称 + 三档价格 + 各价格倍率 + 重要客人价格）
+                             + 次要信息（可折叠）+ 多单位 / 进货价历史 / 售价历史 ================= -->
       <div class="modal" id="mDrugDetail">
         <div class="dlg dd-dlg">
           <header>药物详情<span class="spacer"></span><span class="x" data-close>✕</span></header>
@@ -3704,42 +3704,43 @@ body{ --navw:0px; }
             <section class="dd-core">
               <div class="dd-core-hd">
                 <span class="dd-core-t">核心信息</span>
-                <span class="dd-core-hint">名称 + 零售价/批发价/进货价必填，客人专属价选填</span>
+                <span class="dd-core-hint">名称 + 进货价/批发价/零售价必填；每档价格各自按「进货价 × 倍率」联动</span>
               </div>
               <div class="dd-frow">
-                <div class="dd-f dd-f-2"><label for="ddName">药品名称</label><input id="ddName" autocomplete="off"></div>
-                <div class="dd-f"><label for="ddCat">药品信息</label><input id="ddCat" placeholder="如 中药" autocomplete="off"></div>
+                <div class="dd-f"><label for="ddName">药品名称</label><input id="ddName" autocomplete="off"></div>
               </div>
               <div class="dd-pricecard">
                 <div class="dd-pc-hd">
                   <span class="dd-pc-t">价格</span>
                   <span class="dd-pc-unit">零售价按 <b id="ddPUnit">g</b> · 批发/进货按 kg</span>
                 </div>
-                <div class="dd-prices">
-                  <div class="dd-pcol">
-                    <label for="ddP">零售价<em class="tag">元/g</em></label>
+                <div class="dd-prows">
+                  <div class="dd-prow">
+                    <div class="dd-prow-nm">零售价<em class="tag">元/g</em></div>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddP" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span><input id="ddRateP" class="num" inputmode="decimal" autocomplete="off"></div></div>
                     <button type="button" class="dd-sug" id="ddSugP" tabindex="-1">建议</button>
                   </div>
-                  <div class="dd-pcol">
-                    <label for="ddWp">批发价<em class="tag">元/kg · 自动</em></label>
+                  <div class="dd-prow">
+                    <div class="dd-prow-nm">批发价<em class="tag">元/kg</em></div>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddWp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span><input id="ddRateWp" class="num" inputmode="decimal" autocomplete="off"></div></div>
                     <button type="button" class="dd-sug" id="ddSugWp" tabindex="-1">建议</button>
                   </div>
-                  <div class="dd-pcol">
-                    <label for="ddBp">进货价<em class="tag">元/kg</em></label>
+                  <div class="dd-prow">
+                    <div class="dd-prow-nm">进货价<em class="tag">元/kg</em></div>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddBp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
-                  </div>
-                  <div class="dd-pcol">
-                    <label for="ddGp">客人专属价<em class="tag">元/g · 选填</em></label>
-                    <div class="dd-pin"><span class="cur">¥</span><input id="ddGp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
-                    <button type="button" class="dd-sug" id="ddSugGp" tabindex="-1">建议</button>
+                    <span class="dd-prow-base">基准价 · 各价格 = 进货价 × 各自倍率</span>
                   </div>
                 </div>
-                <div class="dd-rate">
-                  <label for="ddRate">利润倍率</label>
-                  <div class="dd-rate-in"><span>×</span><input id="ddRate" class="num" inputmode="decimal" autocomplete="off"></div>
-                  <span class="dd-rate-note">批发价 = 进货价 × <b id="ddRateTxt">1.5</b>（进货价或倍率变动时联动更新）</span>
+                <div class="dd-gsec">
+                  <div class="dd-gsec-hd">
+                    <span class="dd-gsec-t">重要客人价格</span>
+                    <span class="dd-gsec-hint">默认按批发价；开单改价后自动沉淀为该客人的最近成交价</span>
+                    <span class="spacer"></span>
+                    <button type="button" class="mini" id="ddGuestAdd">+ 客人</button>
+                  </div>
+                  <div id="ddGuest" class="dd-glist"></div>
                 </div>
               </div>
             </section>
@@ -3791,23 +3792,6 @@ body{ --navw:0px; }
             <details class="dd-sec">
               <summary><span>售价历史</span><span class="dd-sum-hint">本机已存处方里实际成交的单价</span></summary>
               <div class="dd-sec-body"><div id="ddSaleLog" class="dd-costlog"></div></div>
-            </details>
-
-            <!-- ============ 被引用 / 客人专属价 ============ -->
-            <details class="dd-sec">
-              <summary><span>被哪些药方引用（<span id="ddRefCnt">0</span> 条）</span></summary>
-              <div class="dd-sec-body"><div id="ddRefs" class="dd-costlog"></div></div>
-            </details>
-            <details class="dd-sec" id="ddGuestSec">
-              <summary><span>客人专属价</span><span class="dd-sum-hint">按医生/客人维度独立记录 · 来源药方打印</span></summary>
-              <div class="dd-sec-body">
-                <div id="ddGuest" class="dd-guest"></div>
-                <div class="dd-gadd">
-                  <span class="dd-ghint">未列出的医生：</span>
-                  <select id="ddGuestPick"></select>
-                  <button type="button" class="mini" id="ddGuestAdd">+ 添加专属价</button>
-                </div>
-              </div>
             </details>
           </div>
           <div class="foot">
@@ -5403,8 +5387,15 @@ var GUEST_CUR='';       /* 当前查看的客人 */
 
 /* ---------- Supabase 数据层（复用 doctors 表，prices jsonb 承载全部客人状态）---------- */
 function guestRowOf(g){
-  return {name:g.name, prices:{discount:g.discount||0, note:g.note||'',
-                              pins:(g.pins||[]).slice(0,3), stars:(g.stars||{})}};
+  /* prices 里还存着各味药的「重要客人价格」（药名 → 单价）和各药倍率（__rates），
+     写客人档案时必须保留，否则在「重要客人」页改一次折扣就会把药价整片抹掉。 */
+  var keep={}, o=(typeof DOCTORS!=='undefined'&&DOCTORS[g.name])||{};
+  var src=o.price||{};
+  for(var k in src){ if(Object.prototype.hasOwnProperty.call(src,k)) keep[k]=src[k]; }
+  if(o.rates) keep.__rates=o.rates;
+  keep.discount=g.discount||0; keep.note=g.note||'';
+  keep.pins=(g.pins||[]).slice(0,3); keep.stars=(g.stars||{});
+  return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
   var p=(r&&r.prices)||{};
@@ -5421,6 +5412,18 @@ function guestLoadAll(){
   return SUPA.q('doctors?select=name,prices').then(function(rows){
     GUESTS={};
     (rows||[]).forEach(function(r){ GUESTS[r.name]=guestFromRow(r); });
+    /* 同一张表里 prices 还存着「药名 → 重要客人价格」，另外捞一份给 DOCTORS 用 */
+    CLOUD_DOC_PRICES={}; CLOUD_DOC_RATES={};
+    (rows||[]).forEach(function(r){
+      var p=r.prices||{}, dp={}, has=false;
+      for(var k in p){
+        if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates') continue;
+        if(p[k]==null || p[k]==='') continue;
+        dp[k]=p[k]; has=true;
+      }
+      if(has) CLOUD_DOC_PRICES[r.name]=dp;
+      if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
+    });
   }).catch(function(e){ console.warn('重要客人数据拉取失败:',e.message); });
 }
 function guestDelete(name){
@@ -5999,8 +6002,8 @@ SUPA.loadDrugs=function(noSave){
               dw:'',cat:r.category||'中药',bp:r.cost==null?'':String(r.cost),
               p:r.price==null?'':String(r.price),st:'',
               dp:r.daily_price==null?'':String(r.daily_price),
-              wp:(old&&old.wp!=null)?old.wp:'',
-              gp:(old&&old.gp!=null)?old.gp:'',
+              wp:(r.wp!=null)?String(r.wp):((old&&old.wp!=null)?old.wp:''),
+              rates:(r.rates&&typeof r.rates==='object')?r.rates:((old&&old.rates)||null),
               og:r.origin||'', al:Array.isArray(r.aliases)?r.aliases:[],
               un:Array.isArray(r.units)?r.units:[]};
     });
@@ -6239,6 +6242,21 @@ SUPA.loadDoctors=function(){
     return m;
   });
 };
+/* ---------- 8. 云端是否已加「批发价 / 各价格倍率」列 ----------
+   加列语句见 supabase_price_rates.sql（drugs.wp numeric、drugs.rates jsonb）。
+   没加之前只存本机：绝不能把未知列塞进 upsert —— 一批 300 味药会整批 400，
+   连零售价/进货价一起写不进去。 */
+SUPA.ext={ok:false, checked:false};
+SUPA.probeExt=function(){
+  if(SUPA.ext.checked) return Promise.resolve(SUPA.ext.ok);
+  return SUPA.q('drugs?select=wp,rates&limit=1').then(function(){
+    SUPA.ext.checked=true; SUPA.ext.ok=true; return true;
+  }).catch(function(){
+    SUPA.ext.checked=true; SUPA.ext.ok=false;
+    console.info('[价格] 云端暂无 drugs.wp / drugs.rates 列，批发价与倍率仅存本机；执行 supabase_price_rates.sql 后自动上云。');
+    return false;
+  });
+};
 
 /* ---------- 9. 配送地址（2026-10-07 16:00 上云）----------
    🔴 之前只存 localStorage（ADDR_KEY='rx_addr_v1'），换设备看不到，
@@ -6311,6 +6329,8 @@ SUPA.ping=function(){
   return SUPA.q('drugs?select=name&limit=1').then(function(){ SUPA.on=true; return true; });
 };var DOCTORS={};          /* 重要客人档案表 */
 var DOCTOR_HINT={};      /* 姓名 → 1（用户手动指定为医生，非猜测） */
+var CLOUD_DOC_PRICES={}; /* 云端 doctors.prices 里各客人的药价（换设备/清缓存后靠它还原） */
+var CLOUD_DOC_RATES={};  /* 云端 doctors.prices.__rates：各客人每味药的倍率 */
 
 function loadDoctors(){
   var s=null;
@@ -6321,6 +6341,23 @@ function loadDoctors(){
     var t=localStorage.getItem('rx_doctor_names_v1');
     if(t){ var a=JSON.parse(t)||[]; for(var i=0;i<a.length;i++) DOCTOR_HINT[a[i]]=1; }
   }catch(e){}
+  /* 云端各客人已存的药价补进来（本机有的优先，只补缺） */
+  for(var cn in CLOUD_DOC_PRICES){
+    var cp=CLOUD_DOC_PRICES[cn]; if(!cp) continue;
+    if(!DOCTORS[cn]) DOCTORS[cn]={n:cn, at:nowStr(), price:{}, log:[]};
+    var t2=DOCTORS[cn]; t2.price=t2.price||{};
+    for(var ck in cp){
+      if(!Object.prototype.hasOwnProperty.call(t2.price,ck)) t2.price[ck]=cp[ck];
+    }
+    DOCTOR_HINT[cn]=1;
+  }
+  /* 云端各客人的倍率也补进来（本机已有的不覆盖） */
+  for(var rn in CLOUD_DOC_RATES){
+    var rr=CLOUD_DOC_RATES[rn]; if(!rr) continue;
+    if(!DOCTORS[rn]) DOCTORS[rn]={n:rn, at:nowStr(), price:{}, log:[]};
+    var t3=DOCTORS[rn]; t3.rates=t3.rates||{};
+    for(var rk in rr){ if(t3.rates[rk]==null) t3.rates[rk]=rr[rk]; }
+  }
 }
 function saveDoctors(){
   try{
@@ -6330,11 +6367,20 @@ function saveDoctors(){
   if(typeof syncPatch==='function'){
     try{ syncPatch(LS_DOCTORS, DOCTORS); }catch(e){}
   }
-  /* 医生专属价 → 写回自建数据库 */
+  /* 重要客人价格 → 写回数据库；顺带把「重要客人」页的折扣/备注/置顶/标星一起带上，
+     否则只写药名价格会把那边的档案字段冲掉。 */
   try{
     if(SUPA.on){
       for(var dn in DOCTORS){
-        (function(nm, d){ SUPA.saveDoctor(nm, (d&&d.price)||{}); })(dn, DOCTORS[dn]);
+        (function(nm, d){
+          var pr={}, src=(d&&d.price)||{};
+          for(var k in src){ if(Object.prototype.hasOwnProperty.call(src,k)) pr[k]=src[k]; }
+          var g=(typeof GUESTS!=='undefined'&&GUESTS)?GUESTS[nm]:null;
+          if(g){ pr.discount=g.discount||0; pr.note=g.note||'';
+                 pr.pins=(g.pins||[]).slice(0,3); pr.stars=(g.stars||{}); }
+          if(d && d.rates) pr.__rates=d.rates;      /* 该客人各味药的倍率 */
+          SUPA.saveDoctor(nm, pr);
+        })(dn, DOCTORS[dn]);
       }
     }
   }catch(e){}
@@ -7700,13 +7746,20 @@ function dmRowOf(d){
 /* 增强版：含新增字段（日常打单价/产地/别名/多单位）。
    ⚠ 仅在已执行 supabase_new_tables.sql 后调用，否则云端会因未知列报错。 */
 function dmRowOfFull(d){
-  return {name:String(d.n||'').trim(), py:d.py||'', unit:d.u||'g', usage:d.c||'',
+  var row={name:String(d.n||'').trim(), py:d.py||'', unit:d.u||'g', usage:d.c||'',
           category:d.cat||'中药', tccat:d.tc||'',
           price:(d.p===''||d.p==null)?null:parseFloat(d.p),
           cost:(d.bp===''||d.bp==null)?null:parseFloat(d.bp),
           daily_price:(d.dp===''||d.dp==null)?null:parseFloat(d.dp),
           origin:d.og||'', aliases:Array.isArray(d.al)?d.al:[],
           units:Array.isArray(d.un)?d.un:[]};
+  /* 批发价 + 各价格倍率：只有在云端确实有这两列时才带（见 SUPA.probeExt） */
+  if(SUPA.ext && SUPA.ext.ok){
+    var wp=(d.wp===''||d.wp==null)?null:parseFloat(d.wp);
+    row.wp=(wp==null||isNaN(wp))?null:wp;
+    row.rates=(d.rates&&typeof d.rates==='object')?d.rates:null;
+  }
+  return row;
 }
 function supaInsertNewDrugs(){
   if(!SUPA.on) return Promise.resolve(0);
@@ -7846,63 +7899,41 @@ function openDrugMaint(){ navGo('drug'); }
    详情抽屉编辑：产地 / 别名 / 三档价格（含「建议价格」）/ 多单位 / 进货价历史。
    ⚠ 这些增强字段（daily_price/origin/aliases/units）依赖 supabase_new_tables.sql，
       未执行该 SQL 时云端 upsert 会因未知列报错（已被捕获提示，本机不受影响）。 */
-/* ---------- 药物详情：被哪些药方引用 / 售价历史 ----------
-   数据来源：历史处方（RX_HISTORY_SRC 5650 条）+ 本机已存处方（SAVED）。
-   两者都只存「一整串药味文字」m，所以先按 3 个以上空格切成单味，
-   再取首词以药名主体（去掉（规格）后的部分）开头的那些行。
-   SAVED 另有 px 字段（与药味一一对应的成交单价）→ 用来还原「售价历史」。 */
+/* ---------- 药物详情：售价历史 ----------
+   数据来源：本机已存处方（SAVED）的 px 字段（与药味一一对应的成交单价）。
+   m 是一整串药味文字，先按 2 个以上空格切成单味，取首词以药名主体开头的那些行。 */
 function dmBaseName(name){ return String(name||'').replace(/[（(\[【{].*$/,'').trim(); }
-function dmRefScan(d){
+function dmSaleScan(d){
   var base=dmBaseName(d&&d.n);
-  if(!base) return {refs:[],sales:[]};
-  var refs=[], sales=[];
-  function take(list, isHist){
-    if(!list||!list.length) return;
-    for(var i=0;i<list.length;i++){
-      var r=list[i]; if(!r) continue;
-      var m=String(r.m||''); if(m.indexOf(base)<0) continue;
-      var parts=m.split(/\s{2,}/), at=-1, txt='';
-      for(var p=0;p<parts.length;p++){
-        var toks=parts[p].split(/\s+/);
-        if(toks.length && toks[0].indexOf(base)===0){ at=p; txt=parts[p]; break; }
-      }
-      if(at<0) continue;
-      refs.push({guest:r.n||'—', dt:String(r.tm||r.dt||''), txt:txt, hist:isHist});
-      if(!isHist && r.px){
-        var px=String(r.px).split('|');
-        if(px[at]!=null && px[at]!=='' && px[at]!=='-') sales.push({dt:String(r.tm||r.dt||''), guest:r.n||'—', p:px[at]});
-      }
+  if(!base) return [];
+  var sales=[], list=SAVED;
+  if(!list||!list.length) return sales;
+  for(var i=0;i<list.length;i++){
+    var r=list[i]; if(!r) continue;
+    var m=String(r.m||''); if(m.indexOf(base)<0) continue;
+    var parts=m.split(/\s{2,}/), at=-1;
+    for(var p=0;p<parts.length;p++){
+      var toks=parts[p].split(/\s+/);
+      if(toks.length && toks[0].indexOf(base)===0){ at=p; break; }
+    }
+    if(at<0 || !r.px) continue;
+    var px=String(r.px).split('|');
+    if(px[at]!=null && px[at]!=='' && px[at]!=='-'){
+      sales.push({dt:String(r.tm||r.dt||''), guest:r.n||'—', p:px[at]});
     }
   }
-  take(HISTORY_ORIG, true);
-  take(SAVED, false);
-  return {refs:refs, sales:sales};
+  return sales;
 }
-function ddLoadRefs(d){
-  var box=$('ddRefs'), saleBox=$('ddSaleLog'), cnt=$('ddRefCnt');
-  var r=dmRefScan(d);
-  if(cnt) cnt.textContent=r.refs.length;
-  if(saleBox){
-    if(!r.sales.length){
-      saleBox.innerHTML='<div class="dd-empty">暂无成交记录（只统计本机保存过的处方）</div>';
-    }else{
-      var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
-      var n1=Math.min(r.sales.length,20);
-      for(var i=0;i<n1;i++){ var x=r.sales[i];
-        hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
-      }
-      saleBox.innerHTML=hs+'</tbody></table>';
-    }
+function ddLoadSaleLog(d){
+  var saleBox=$('ddSaleLog'); if(!saleBox) return;
+  var sales=dmSaleScan(d);
+  if(!sales.length){ saleBox.innerHTML='<div class="dd-empty">暂无成交记录（只统计本机保存过的处方）</div>'; return; }
+  var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
+  var n1=Math.min(sales.length,20);
+  for(var i=0;i<n1;i++){ var x=sales[i];
+    hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
   }
-  if(!box) return;
-  if(!r.refs.length){ box.innerHTML='<div class="dd-empty">还没有药方用到这味药</div>'; return; }
-  var h='<table><thead><tr><th>来源</th><th>客人</th><th>日期</th><th>药味</th></tr></thead><tbody>';
-  var n2=Math.min(r.refs.length,30);
-  for(var j=0;j<n2;j++){ var y=r.refs[j];
-    h+='<tr><td>'+(y.hist?'历史':'本机')+'</td><td>'+esc(y.guest)+'</td><td>'+esc(y.dt)+'</td><td>'+esc(y.txt)+'</td></tr>';
-  }
-  box.innerHTML=h+'</tbody></table>'
-    +(r.refs.length>30?'<div class="dd-empty">共 '+r.refs.length+' 条，仅显示前 30 条</div>':'');
+  saleBox.innerHTML=hs+'</tbody></table>';
 }
 
 /* =========================================================
@@ -8069,7 +8100,7 @@ function ddMsgBox(txt){
   e.style.display=''; e.textContent=txt;
 }
 function ddBadClear(){
-  ['ddName','ddBp','ddWp','ddP','ddGp'].forEach(function(id){
+  ['ddName','ddBp','ddWp','ddP'].forEach(function(id){
     var el=$(id); if(!el) return;
     var box=el.closest('.dd-pin'); (box||el).classList.remove('bad');
   });
@@ -8092,17 +8123,15 @@ var Drug=(function(){
     selDrugRow=i; curIdx=i;
     /* 核心信息区 */
     $('ddName').value=d.n||'';
-    $('ddCat').value=d.cat||'中药';
     $('ddBp').value=(d.bp==null?'':d.bp);
     $('ddWp').value=(d.wp==null?'':d.wp);
     $('ddP').value=(d.p==null?'':d.p);
-    $('ddGp').value=(d.gp==null?'':d.gp);
     $('ddPUnit').textContent=d.u||'g';
-    var rate=(d.rate!=null && !isNaN(parseFloat(d.rate)))?parseFloat(d.rate):((typeof SET!=='undefined'&&SET&&SET.rate)?SET.rate:1.5);
-    var rt=$('ddRateTxt'); if(rt) rt.textContent=rate;
-    $('ddRate').value=rate;
-    /* 批发价缺省时按 进货价 × 倍率 自动算出（已手动填过则保留用户值） */
-    if(String($('ddWp').value||'').trim()==='' && String($('ddBp').value||'').trim()!==''){ calcWholesale(); }
+    /* 每个价格各自的倍率（按已存倍率回填；旧数据按「价格 ÷ 进货价」反推） */
+    $('ddRateP').value=rateOf('p', d);
+    $('ddRateWp').value=rateOf('wp', d);
+    /* 批发价 / 零售价缺省时，按各自的倍率×进货价算出（已有值则保留） */
+    if(String($('ddWp').value||'').trim()==='' && String($('ddBp').value||'').trim()!==''){ applyRate('wp'); }
     /* 次要信息区 */
     $('ddUnit').value=d.u||'g';
     $('ddAmount').value=d.c||'';
@@ -8119,7 +8148,7 @@ var Drug=(function(){
     ddBadClear(); ddMsgBox('');
     ddRenderUnits(d.un||[]);
     ddLoadCostLog(d.n);
-    ddLoadRefs(d);
+    ddLoadSaleLog(d);
     ddRenderGuest(d);
     $('mDrugDetail').classList.add('on');
     var body=$('mDrugDetail').querySelector('.body'); if(body) body.scrollTop=0;
@@ -8166,46 +8195,74 @@ var Drug=(function(){
     }
     return main!=null?main:(alt!=null?alt:null);
   }
+  /* ================= 每个价格各自的倍率 =================
+     价格 = 进货价 × 该价格自己的倍率；各行独立，改动只联动自己那一行。
+     单位：进货价 / 批发价按 元/kg，零售价 / 客人价按 元/g → 算 元/g 时再 ÷1000。
+     倍率存 d.rates={p:.., wp:..}；旧数据没有 rates 时按「价格 ÷ 进货价」反推。 */
+  var DEF_RATE=1.5;      /* 批发价默认倍率 */
+  var DEF_RATE_P=2.5;    /* 零售价默认倍率（零售通常高于批发；可在行内随时改） */
+  function numOrNull(v){ if(v===''||v==null) return null; var x=parseFloat(v); return isNaN(x)?null:x; }
+  function rateOf(kind, d){
+    d=d||drugsList[curIdx]||{};
+    var rs=(d.rates&&typeof d.rates==='object')?d.rates:{};
+    var v=numOrNull(rs[kind]);
+    if(v!=null) return Math.round(v*10000)/10000;
+    var bp=numOrNull(d.bp);
+    if(bp){
+      if(kind==='wp'){ var wp=numOrNull(d.wp); if(wp!=null) return Math.round(wp/bp*10000)/10000; }
+      if(kind==='p'){ var p=numOrNull(d.p); if(p!=null) return Math.round(p*1000/bp*10000)/10000; }
+    }
+    /* 老数据：沿用原来的单倍率 d.rate / SET.rate；零售倍率至少给到 2.5（否则零售=批发） */
+    var legacy=numOrNull(d.rate);
+    if(legacy==null && typeof SET!=='undefined' && SET) legacy=numOrNull(SET.rate);
+    if(kind==='p') return Math.round(Math.max(legacy==null?0:legacy, DEF_RATE_P)*10000)/10000;
+    return Math.round((legacy==null?DEF_RATE:legacy)*10000)/10000;
+  }
+  function rateInputOf(kind){
+    var el=$(kind==='p'?'ddRateP':'ddRateWp');
+    var v=numOrNull(el&&el.value);
+    return (v==null)?rateOf(kind):v;
+  }
+  /* 用「进货价 × 该行倍率」重算某一行 */
+  function applyRate(kind){
+    var bp=numOrNull($('ddBp')?$('ddBp').value:null);
+    if(bp==null) return;
+    var inp=kind==='p'?'ddRateP':'ddRateWp';
+    var rate=numOrNull($(inp)&&$(inp).value);
+    if(rate==null) return;
+    if(kind==='p'){
+      $('ddP').value=Math.round(bp*rate/1000*100000)/100000;      /* 元/kg → 元/g */
+      var b1=$('ddP').closest('.dd-pin'); if(b1) b1.classList.remove('bad');
+    }else{
+      $('ddWp').value=Math.round(bp*rate*1000)/1000;
+      var b2=$('ddWp').closest('.dd-pin'); if(b2) b2.classList.remove('bad');
+    }
+  }
+  /* 进货价变动 → 只按各自倍率更新对应价格，互不影响 */
+  function calcWholesale(){
+    if(numOrNull($('ddRateWp')&&$('ddRateWp').value)!=null) applyRate('wp');
+    if(numOrNull($('ddRateP')&&$('ddRateP').value)!=null)  applyRate('p');
+  }
   function ddSuggest(which){
     var d=drugsList[curIdx]; if(!d) return;
     /* 进货价以「当前输入框」为准（用户可能刚改了还没保存），没填才退回多单位 / 已存值 */
-    var inpBp=String($('ddBp').value||'').trim();
-    var cost=(inpBp!=='' && !isNaN(parseFloat(inpBp)))?parseFloat(inpBp):latestCost(d);
+    var cost=numOrNull(String($('ddBp').value||'').trim());
+    if(cost==null) cost=latestCost(d);
     if(cost==null){ toastErr('没有进货价可参考（先填进货价或多单位进货价）'); return; }
-    var rate=currentRate();
-    var sug, gField=(which==='p'||which==='gp');
-    if(gField){
-      /* 进货价按元/kg，零售价/专属价按元/g → ÷1000 */
-      sug=Math.round(cost*rate/1000*100000)/100000;
-    } else {
-      /* 批发价与进货价同为元/kg */
-      sug=Math.round(cost*rate*1000)/1000;
-    }
-    var map={wp:'ddWp', p:'ddP', gp:'ddGp'};
-    var box=$(map[which]||'ddP'); if(!box) return;
+    var kind=(which==='p')?'p':'wp';
+    var rate=rateInputOf(kind);
+    var sug=(kind==='p') ? Math.round(cost*rate/1000*100000)/100000
+                         : Math.round(cost*rate*1000)/1000;
+    var box=$(kind==='p'?'ddP':'ddWp'); if(!box) return;
     box.value=sug;
     var b=box.closest('.dd-pin'); if(b) b.classList.remove('bad');
-    toast('已按 进货价 ¥'+cost+' 元/kg × 利润倍率 '+rate+'，建议 ¥'+sug+(gField?' 元/g':' 元/kg'));
+    toast('按 进货价 ¥'+cost+' 元/kg × 倍率 '+rate+' → ¥'+sug+(kind==='p'?' 元/g':' 元/kg'));
   }
-  /* 当前利润倍率：取弹窗里的输入值，否则退回 SET.rate，再否则 1.5 */
-  function currentRate(){
-    var v=String($('ddRate').value||'').trim();
-    if(v!=='' && !isNaN(parseFloat(v))) return parseFloat(v);
-    if(typeof SET!=='undefined'&&SET&&SET.rate) return n(SET.rate)||1.5;
-    return 1.5;
-  }
-  /* 批发价 = 进货价 × 利润倍率（联动）；进货价或倍率变动时调用 */
-  function calcWholesale(){
-    var bp=String($('ddBp').value||'').trim();
-    if(bp==='' || isNaN(parseFloat(bp))) return;
-    var cost=parseFloat(bp), rate=currentRate();
-    var wp=Math.round(cost*rate*1000)/1000;
-    $('ddWp').value=wp;
-    var b=$('ddWp').closest('.dd-pin'); if(b) b.classList.remove('bad');
-  }
-  /* ---- 客人专属价（按医生/客人维度） ---- */
+  /* ============ 重要客人价格（客人名单 + 最近成交价沉淀） ============
+     价格来源：开单时改过的成交价（setPrice → setDocPrice 自动写入）。
+     详情页默认不写价，只展示「最近成交 / 未成交按批发价」；
+     手动填只作覆盖手段，之后再有改价订单仍以订单成交价为准。 */
   function ddGuestKey(d){ return drugKey(d.n||''); }
-  /* 取该医生该药当前专属价（没有则 null） */
   function ddDocGp(doc, d){
     if(!doc||!d) return null;
     var o=DOCTORS[doc]; if(!o||!o.price) return null;
@@ -8213,126 +8270,151 @@ var Drug=(function(){
     if(Object.prototype.hasOwnProperty.call(o.price,k)) return o.price[k];
     return null;
   }
-  /* 取该医生利润倍率（没有则全局 SET.rate） */
-  function ddDocRate(doc){
-    var o=DOCTORS[doc];
-    if(o && o.rate!=null && !isNaN(parseFloat(o.rate))) return parseFloat(o.rate);
-    if(typeof SET!=='undefined'&&SET&&SET.rate) return n(SET.rate)||1.5;
-    return 1.5;
+  /* 该客人这味药最近一次「订单成交」记录（详情页手改的不算，没有单号跳过） */
+  function ddLastDeal(doc, d){
+    var o=DOCTORS[doc]; if(!o||!o.log||!o.log.length) return null;
+    var k=ddGuestKey(d);
+    for(var i=0;i<o.log.length;i++){
+      var r=o.log[i];
+      if(r && r.rx && drugKey(r.d||'')===k) return r;
+    }
+    return null;
   }
-  /* 渲染客人专属价区块：列出所有医生 + 本药专属价 + 倍率 + 改动历史 */
+  /* 该客人这味药的倍率（存 DOCTORS[doc].rates[药名]；缺省跟随批发倍率） */
+  function ddGuestRate(doc, d){
+    var o=DOCTORS[doc], k=ddGuestKey(d);
+    if(o && o.rates){ var v=numOrNull(o.rates[k]); if(v!=null) return v; }
+    return rateOf('wp', d);
+  }
+  /* 批发价（元/kg）→ 元/g，作为「未成交」时的默认参考价 */
+  function wpPerGram(){
+    var wp=numOrNull($('ddWp')?$('ddWp').value:null);
+    return (wp==null)?null:Math.round(wp/1000*100000)/100000;
+  }
+  /* 名单 = 「重要客人」页的客人 ∪ 有药价记录的客人；有本药价的排前面 */
+  function ddGuestNames(d){
+    var out=[], seen={};
+    var g=(typeof GUESTS!=='undefined'&&GUESTS)?GUESTS:{};
+    for(var k in g){ if(g[k] && !seen[k]){ seen[k]=1; out.push(k); } }
+    for(var m in DOCTORS){ if(DOCTORS[m] && !seen[m]){ seen[m]=1; out.push(m); } }
+    out.sort(function(a,b){
+      var pa=(ddDocGp(a,d)!=null)?0:1, pb=(ddDocGp(b,d)!=null)?0:1;
+      if(pa!==pb) return pa-pb;
+      return a.localeCompare(b,'zh');
+    });
+    return out;
+  }
   function ddRenderGuest(d){
     var box=$('ddGuest'); if(!box) return;
     var drugNm=String(d.n||'').trim();
-    if(!drugNm){ box.innerHTML='<div class="dd-gnone">先填写药品名称后，可在此设置各医生的专属价。</div>'; return; }
-    var docs=Object.keys(DOCTORS||{}).filter(function(k){ return DOCTORS[k] && (DOCTORS[k].price||DOCTORS[k].rate!=null); });
+    if(!drugNm){ box.innerHTML='<div class="dd-gempty">先填写药品名称，再维护重要客人价格。</div>'; return; }
+    var docs=ddGuestNames(d);
     if(!docs.length){
-      box.innerHTML='<div class="dd-gnone">还没有任何医生/客人专属价。在「药方打印」新建医生计划单并导入药品后，这里会自动按批发价（进货价 × 倍率）列出；手动改价即成为该医生专属价。</div>';
-    } else {
-      var h='';
-      for(var i=0;i<docs.length;i++){
-        var doc=docs[i], o=DOCTORS[doc];
-        var gv=ddDocGp(doc,d), rv=ddDocRate(doc);
-        var hasPrice=Object.prototype.hasOwnProperty.call(o.price||{}, ddGuestKey(d));
-        var hint=hasPrice?'':'<span class="dd-ghint">未单独设价 → 按批发价 × 该医生倍率计入专属药价</span>';
-        h+='<div class="dd-gdoc" data-doc="'+esc(doc)+'">'
-          +'<div class="dd-gdoc-hd"><span class="dd-gdoc-name">'+esc(doc)+'</span>'
-          +'<span class="dd-gdoc-tag">专属价 '+(hasPrice?'已设':'默认批发价')+'</span>'
-          +'<button type="button" class="dd-gdoc-act" data-hist="'+esc(doc)+'">改动历史</button></div>'
-          +'<div class="dd-gdoc-row">'
-          +'<span class="dd-gfield"><span>利润倍率</span><span class="dd-gin"><span>×</span>'
-          +'<input data-gr="'+esc(doc)+'" class="num" inputmode="decimal" value="'+rv+'"></span></span>'
-          +'<span class="dd-gfield"><span>专属价<em class="tag" style="font-style:normal;font-weight:400">元/g</em></span><span class="dd-gin"><span>¥</span>'
-          +'<input data-gp="'+esc(doc)+'" class="num" inputmode="decimal" value="'+(gv==null?'':gv)+'"></span></span>'
-          +hint
-          +'</div>'
-          +'<div class="dd-ghist" data-ghist="'+esc(doc)+'" style="display:none"></div>'
-          +'</div>';
-      }
-      box.innerHTML=h;
+      box.innerHTML='<div class="dd-gempty">还没有重要客人。点右上「+ 客人」新增（也可在「重要客人」页维护名单）。</div>';
+      return;
     }
-    /* 未列出医生下拉框 */
-    var pick=$('ddGuestPick');
-    if(pick){
-      var all=Object.keys(DOCTORS||{}), opt='<option value="">选择医生…</option>';
-      for(var j=0;j<all.length;j++){ opt+='<option value="'+esc(all[j])+'">'+esc(all[j])+'</option>'; }
-      pick.innerHTML=opt;
+    var wpg=wpPerGram(), h='';
+    for(var i=0;i<docs.length;i++){
+      var doc=docs[i], gv=ddDocGp(doc,d), rv=ddGuestRate(doc,d), deal=ddLastDeal(doc,d);
+      var src, cls;
+      if(gv==null || gv===''){ src='未成交'; cls=''; }
+      else if(deal && Math.abs(parseFloat(deal.to)-parseFloat(gv))<1e-9){ src='成交 '+String(deal.t||'').slice(5,10); cls='ord'; }
+      else { src='手动覆盖'; cls='mn'; }
+      h+='<div class="dd-grow" data-doc="'+esc(doc)+'">'
+        +'<div class="dd-grow-nm"><b title="'+esc(doc)+'">'+esc(doc)+'</b>'
+        +'<span class="dd-gsrc '+cls+'" title="元/g · '+esc(src)+'">元/g · '+esc(src)+'</span></div>'
+        +'<div class="dd-pin"><span class="cur">¥</span>'
+        +'<input data-gp="'+esc(doc)+'" class="num" inputmode="decimal" autocomplete="off" value="'+(gv==null?'':gv)+'"'
+        +' placeholder="'+(wpg==null?'0.00':wpg)+'"></div>'
+        +'<div class="dd-grow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span>'
+        +'<input data-gr="'+esc(doc)+'" class="num" inputmode="decimal" autocomplete="off" value="'+rv+'"></div></div>'
+        +'<div class="dd-gact"><button type="button" data-gren="'+esc(doc)+'">改名</button>'
+        +'<button type="button" data-gdel="'+esc(doc)+'">移除</button></div>'
+        +'</div>';
     }
+    box.innerHTML=h;
   }
-  /* 下拉新增：把某医生加入本药专属价（默认按批发价 × 该医生倍率） */
+  /* 名单：新增 / 改名 / 移除 */
   function ddGuestAdd(){
-    var pick=$('ddGuestPick'); if(!pick) return;
-    var doc=String(pick.value||'').trim(); if(!doc) return;
-    if(!DOCTORS[doc]) DOCTORS[doc]={n:doc, at:nowStr(), price:{}, log:[]};
     var d=drugsList[curIdx]; if(!d) return;
-    /* 未设过则默认 = 当前批发价（进货价 × 倍率），并记一条历史 */
-    var k=ddGuestKey(d);
-    if(!Object.prototype.hasOwnProperty.call(DOCTORS[doc].price||{}, k)){
-      var wp=String($('ddWp').value||'').trim();
-      /* 批发价按元/kg，专属价按元/g → ÷1000 */
-      var def=(wp!==''&&!isNaN(parseFloat(wp)))?Math.round(parseFloat(wp)/1000*100000)/100000:null;
-      if(def!=null){ setDocPrice(doc, d.n, def, '', '', (SET&&SET.doctor)||'详情页'); }
+    var nm=String(prompt('新增重要客人姓名：')||'').trim();
+    if(!nm) return;
+    if(DOCTORS[nm]){ toastErr('「'+nm+'」已在名单里'); return; }
+    DOCTORS[nm]={n:nm, at:nowStr(), price:{}, log:[], rates:{}};
+    /* 名单同时进「重要客人」页（同一张 doctors 表） */
+    if(typeof GUESTS!=='undefined' && !GUESTS[nm] && typeof guestSave==='function'){
+      guestSave({name:nm, discount:0, note:'', pins:[], stars:{}});
     }
-    if(DOCTORS[doc].rate==null){ DOCTORS[doc].rate=ddDocRate(doc); }
     saveDoctors();
     ddRenderGuest(d);
-    toast('已为「'+doc+'」建立本药专属价');
+    toast('已添加客人「'+nm+'」');
   }
-  /* 编辑某医生专属价（失焦保存 + 记历史） */
+  function ddGuestRename(doc){
+    var nm=String(prompt('修改客人姓名：', doc)||'').trim();
+    if(!nm || nm===doc) return;
+    if(DOCTORS[nm]){ toastErr('「'+nm+'」已存在，不能重名'); return; }
+    var o=DOCTORS[doc]||{n:doc, price:{}, log:[]};
+    o.n=nm; DOCTORS[nm]=o; delete DOCTORS[doc];
+    /* 「重要客人」页那份档案也跟着改名 */
+    if(typeof GUESTS!=='undefined' && GUESTS[doc]){
+      GUESTS[nm]=GUESTS[doc]; GUESTS[nm].name=nm; delete GUESTS[doc];
+      if(typeof guestSave==='function') guestSave(GUESTS[nm]);
+    }
+    saveDoctors();
+    /* 旧名那一行必须删掉，否则刷新时云端又把旧客人拉回来 */
+    if(SUPA.on){ SUPA.q('doctors?name=eq.'+encodeURIComponent(doc),{method:'DELETE'}).catch(function(){}); }
+    var d=drugsList[curIdx]; if(d) ddRenderGuest(d);
+    toast('已改名为「'+nm+'」');
+  }
+  function ddGuestDel(doc){
+    if(!confirm('把「'+doc+'」从重要客人名单移除？\n\n该客人各味药的专属价格与改价记录会一并删除；已保存的药方不受影响。')) return;
+    delete DOCTORS[doc];
+    if(typeof GUESTS!=='undefined') delete GUESTS[doc];
+    saveDoctors();
+    if(SUPA.on){ SUPA.q('doctors?name=eq.'+encodeURIComponent(doc),{method:'DELETE'}).catch(function(){}); }
+    var d=drugsList[curIdx]; if(d) ddRenderGuest(d);
+    toast('已移除「'+doc+'」');
+  }
+  /* 手动覆盖某客人价格（失焦保存；后续订单改价仍会覆盖它） */
   function ddGuestPriceChange(doc, el){
     var d=drugsList[curIdx]; if(!d) return;
-    var val=String(el.value||'').trim();
-    if(!DOCTORS[doc]) DOCTORS[doc]={n:doc, at:nowStr(), price:{}, log:[]};
+    if(!DOCTORS[doc]) DOCTORS[doc]={n:doc, at:nowStr(), price:{}, log:[], rates:{}};
     if(!DOCTORS[doc].price) DOCTORS[doc].price={};
     var k=ddGuestKey(d);
     var old=(Object.prototype.hasOwnProperty.call(DOCTORS[doc].price,k))?DOCTORS[doc].price[k]:'';
-    if(val===''){ delete DOCTORS[doc].price[k]; if(old!=='') setDocPrice(doc, d.n, '', old, '', (SET&&SET.doctor)||'详情页'); }
-    else if(!isNaN(parseFloat(val))){
-      var nv=parseFloat(val);
-      if(String(old)==='' || parseFloat(old)!==nv){ setDocPrice(doc, d.n, nv, old, '', (SET&&SET.doctor)||'详情页'); }
-    }
-    saveDoctors();
-  }
-  /* 编辑某医生利润倍率（倍率变动 → 专属价联动更新 + 记历史） */
-  function ddGuestRateChange(doc, el){
-    var d=drugsList[curIdx]; if(!d) return;
-    var val=String(el.value||'').trim(); if(val===''||isNaN(parseFloat(val))) return;
-    if(!DOCTORS[doc]) DOCTORS[doc]={n:doc, at:nowStr(), price:{}, log:[]};
-    var newRate=parseFloat(val);
-    var oldRate=ddDocRate(doc);
-    DOCTORS[doc].rate=newRate;
-    /* 联动：该医生本药专属价若已设，按新倍率重算（进货价 × 倍率）；未设则随批发价默认计入 */
-    var k=ddGuestKey(d);
-    if(Object.prototype.hasOwnProperty.call(DOCTORS[doc].price||{}, k)){
-      var bp=String($('ddBp').value||'').trim();
-      if(bp!==''&&!isNaN(parseFloat(bp))){
-        var nv=Math.round(parseFloat(bp)*newRate/1000*100000)/100000;   /* 进货价元/kg → 专属价元/g */
-        var old=DOCTORS[doc].price[k];
-        DOCTORS[doc].price[k]=nv;
+    var val=String(el.value||'').trim();
+    if(val===''){
+      if(old!==''){ delete DOCTORS[doc].price[k]; setDocPrice(doc, d.n, '', old, '', (SET&&SET.doctor)||'详情页'); }
+    }else{
+      var nv=numOrNull(val);
+      if(nv==null){ el.value=(old===''?'':old); toastErr('请输入数字'); return; }
+      if(String(old)==='' || Math.abs(parseFloat(old)-nv)>1e-9){
         setDocPrice(doc, d.n, nv, old, '', (SET&&SET.doctor)||'详情页');
-        var inp=document.querySelector('input[data-gp="'+cssEsc(doc)+'"]'); if(inp) inp.value=nv;
       }
     }
     saveDoctors();
-    toast('「'+doc+'」利润倍率已改为 '+newRate+'，专属价联动更新');
+    ddRenderGuest(d);
   }
-  /* 查看某医生本药改动历史 */
-  function ddGuestHistory(doc){
-    var box=document.querySelector('.dd-ghist[data-ghist="'+cssEsc(doc)+'"]');
-    if(!box) return;
-    if(box.style.display!=='none'){ box.style.display='none'; box.innerHTML=''; return; }
+  /* 改某客人的倍率 → 只联动该客人的价格（进货价 × 倍率，元/kg → 元/g） */
+  function ddGuestRateChange(doc, el){
     var d=drugsList[curIdx]; if(!d) return;
-    var k=ddGuestKey(d), o=DOCTORS[doc];
-    var rows=(o&&o.log)?o.log.filter(function(x){ return drugKey(x.d||'')===k; }):[];
-    if(!rows.length){ box.innerHTML='<div class="dd-gnone">暂无「'+esc(d.n)+'」的改动历史。</div>'; box.style.display='block'; return; }
-    var h='<table><thead><tr><th>时间</th><th class="num">改动前</th><th class="num">改动后</th><th>操作人</th><th>来源处方</th></tr></thead><tbody>';
-    for(var i=0;i<rows.length;i++){ var r=rows[i];
-      h+='<tr><td>'+esc(r.t||'')+'</td><td class="num">'+(r.from===''?'—':esc(r.from))+'</td><td class="num">'+(r.to===''?'—':esc(r.to))+'</td><td>'+esc(r.who||'')+'</td><td>'+(r.rx?esc(r.rx):'—')+'</td></tr>';
+    var rate=numOrNull(String(el.value||'').trim());
+    if(rate==null){ toastErr('倍率必须是数字'); ddRenderGuest(d); return; }
+    if(!DOCTORS[doc]) DOCTORS[doc]={n:doc, at:nowStr(), price:{}, log:[], rates:{}};
+    DOCTORS[doc].rates=DOCTORS[doc].rates||{};
+    DOCTORS[doc].rates[ddGuestKey(d)]=rate;
+    var bp=numOrNull($('ddBp')?$('ddBp').value:null);
+    if(bp!=null){
+      var nv=Math.round(bp*rate/1000*100000)/100000;
+      var old=ddDocGp(doc,d);
+      if(old==null || Math.abs(parseFloat(old)-nv)>1e-9){
+        setDocPrice(doc, d.n, nv, (old==null?'':old), '', (SET&&SET.doctor)||'详情页');
+      }
     }
-    box.innerHTML=h+'</tbody></table>'; box.style.display='block';
+    saveDoctors();
+    ddRenderGuest(d);
+    toast('「'+doc+'」倍率改为 '+rate+'，价格已联动更新');
   }
-  /* 简单 CSS 选择器转义（医生名可能含特殊字符） */
-  function cssEsc(s){ return String(s||'').replace(/["\\]/g,'\\$&'); }
   function ddLoadCostLog(name){
     var box=$('ddCostLog'); box.innerHTML='<div class="dd-empty">加载中…</div>';
     if(!SUPA.on){ box.innerHTML='<div class="dd-empty">未连接云端，无进货价历史。</div>'; return; }
@@ -8358,12 +8440,13 @@ var Drug=(function(){
   function ddSave(){
     var d=drugsList[curIdx]; if(!d) return;
     /* ---- 核心字段校验：药品名称 + 进货价 / 批发价 / 零售价 非空 ----
-       客人专属价为「按医生/客人维度的专属价默认价」，留空表示不单独设价，不拦保存。 */
+       客人价格由订单成交自动沉淀（按客人维度存在 DOCTORS 里），不参与这里保存。 */
     var nm=String($('ddName').value||'').trim();
     var vBp=String($('ddBp').value||'').trim();
     var vWp=String($('ddWp').value||'').trim();
     var vP =String($('ddP').value||'').trim();
-    var vGp=String($('ddGp').value||'').trim();
+    var vRp=String($('ddRateP').value||'').trim();
+    var vRw=String($('ddRateWp').value||'').trim();
     var miss=[], bad=[];
     if(!nm){ miss.push('药品名称'); bad.push('ddName'); }
     if(!vBp){ miss.push('进货价'); bad.push('ddBp'); }
@@ -8376,10 +8459,11 @@ var Drug=(function(){
       return;
     }
     var numBad=[];
-    [['ddBp','进货价',vBp],['ddWp','批发价',vWp],['ddP','零售价',vP],['ddGp','客人专属价',vGp],['ddRate','利润倍率',String($('ddRate').value||'').trim()]]
+    [['ddBp','进货价',vBp],['ddWp','批发价',vWp],['ddP','零售价',vP],
+     ['ddRateP','零售倍率',vRp],['ddRateWp','批发倍率',vRw]]
       .forEach(function(x){ if(x[2]!=='' && isNaN(parseFloat(x[2]))) numBad.push(x[1]); });
     if(numBad.length){
-      ddMsgBox('价格必须是数字：'+numBad.join('、'));
+      ddMsgBox('价格/倍率必须是数字：'+numBad.join('、'));
       return;
     }
     ddBadClear(); ddMsgBox('');
@@ -8394,13 +8478,16 @@ var Drug=(function(){
     d.c=String($('ddAmount').value||'').trim();
     d.tc=String($('ddTc').value||'').trim();
     d.dw=String($('ddDw').value||'').trim();
-    d.cat=(String($('ddCat').value||'').trim())||'中药';
+    d.cat=d.cat||'中药';             /* 「药品信息」输入框已去掉，分类沿用原值 */
     var pyIn=String($('ddPy').value||'').trim();
     d.py=pyIn||genPinyin(d.n||'');
     d.og=String($('ddOrigin').value||'').trim();
     d.al=String($('ddAlias').value).split(/[\s,，、]+/).map(function(s){return s.trim();}).filter(Boolean);
-    d.bp=vBp; d.wp=vWp; d.p=vP; d.gp=vGp;
-    d.dp=vP; d.rate=currentRate();   /* 打单价与零售价重复→同步为零售价；利润倍率随药保存 */
+    d.bp=vBp; d.wp=vWp; d.p=vP;
+    d.rates={ p:(numOrNull(vRp)==null?rateOf('p',d):numOrNull(vRp)),
+              wp:(numOrNull(vRw)==null?rateOf('wp',d):numOrNull(vRw)) };
+    d.dp=vP;                         /* 云端 daily_price 列沿用，值同步为零售价 */
+    delete d.gp;                     /* 客人专属价 → 改为「重要客人价格」，按客人维度存 DOCTORS */
     d.st=d.st||'';
     saveDrugsLS(); renderDrugTable(); renderDrugList();
     if(oldName && oldName!==d.n && SUPA.on){
@@ -8413,8 +8500,9 @@ var Drug=(function(){
   }
   return { ensure:ensure, openDetail:openDetail, ddRenderUnits:ddRenderUnits, ddAddUnit:ddAddUnit,
            ddDelUnit:ddDelUnit, ddSuggest:ddSuggest, ddSave:ddSave, calcWholesale:calcWholesale,
-           ddRenderGuest:ddRenderGuest, ddGuestAdd:ddGuestAdd, ddGuestPriceChange:ddGuestPriceChange,
-           ddGuestRateChange:ddGuestRateChange, ddGuestHistory:ddGuestHistory };
+           applyRate:applyRate, ddRenderGuest:ddRenderGuest, ddGuestAdd:ddGuestAdd,
+           ddGuestRename:ddGuestRename, ddGuestDel:ddGuestDel,
+           ddGuestPriceChange:ddGuestPriceChange, ddGuestRateChange:ddGuestRateChange };
 })();
 /* ---------- 药物管理：行内编辑（inline edit） ----------
    默认每个单元格只渲染纯文本 <span>，表格里没有常驻输入框；
@@ -8470,11 +8558,15 @@ function dmCommit(td,tr){
       var py=genPinyin(v);
       if(d.py!==py){ d.py=py; var tdPy=tr.querySelector('td[data-f="py"]'); if(tdPy) dmCellText(tdPy, py); }
     }
-    /* 改进货价（元/kg）→ 批发价按「进货价 × 利润倍率」联动（同为元/kg，无需换算） */
+    /* 改进货价（元/kg）→ 批发价按「进货价 × 批发倍率」联动（同为元/kg，无需换算） */
     if(f==='bp'){
       var bpv=parseFloat(v);
       if(!isNaN(bpv)){
-        var rr=(d.rate!=null&&!isNaN(parseFloat(d.rate)))?parseFloat(d.rate):((typeof SET!=='undefined'&&SET&&SET.rate)?SET.rate:1.5);
+        var rs=(d.rates&&typeof d.rates==='object')?d.rates:{};
+        var rr=parseFloat(rs.wp);
+        if(isNaN(rr) && d.wp!=='' && d.wp!=null && bpv) rr=parseFloat(d.wp)/bpv;   /* 老数据反推 */
+        if(isNaN(rr)) rr=(parseFloat(d.rate)||(typeof SET!=='undefined'&&SET&&parseFloat(SET.rate))||1.5);
+        d.rates=d.rates||{}; d.rates.wp=Math.round(rr*10000)/10000;
         d.wp=String(Math.round(bpv*rr*1000)/1000);
         var tdWp=tr.querySelector('td[data-f="wp"]'); if(tdWp) dmCellText(tdWp, d.wp);
       }
@@ -9446,11 +9538,11 @@ $('btnSave').onclick=function(){
   $('ddAddUnit').onclick=function(){ Drug.ddAddUnit(); };
   $('ddSugWp').onclick=function(){ Drug.ddSuggest('wp'); };
   $('ddSugP').onclick=function(){ Drug.ddSuggest('p'); };
-  $('ddSugGp').onclick=function(){ Drug.ddSuggest('gp'); };
-  /* 利润倍率 / 进货价 变动 → 批发价联动更新 */
-  $('ddRate').oninput=function(){ var rt=$('ddRateTxt'); if(rt) rt.textContent=this.value||currentRate(); Drug.calcWholesale(); };
+  /* 进货价变动 → 按各自倍率更新对应价格；某一行倍率变动 → 只联动该行 */
   $('ddBp').oninput=function(){ Drug.calcWholesale(); };
-  /* 客人专属价区块：倍率/专属价编辑（失焦落库+记历史）、历史查询、新增医生 */
+  $('ddRateWp').oninput=function(){ Drug.applyRate('wp'); };
+  $('ddRateP').oninput=function(){ Drug.applyRate('p'); };
+  /* 重要客人价格：名单增删改 + 价格/倍率编辑 */
   $('ddGuestAdd').onclick=function(){ Drug.ddGuestAdd(); };
   $('ddGuest').addEventListener('change', function(e){
     var gp=e.target.getAttribute('data-gp');
@@ -9459,8 +9551,10 @@ $('btnSave').onclick=function(){
     if(gr){ Drug.ddGuestRateChange(gr, e.target); }
   });
   $('ddGuest').addEventListener('click', function(e){
-    var h=e.target.getAttribute('data-hist');
-    if(h){ Drug.ddGuestHistory(h); }
+    var rn=e.target.getAttribute('data-gren');
+    var dl=e.target.getAttribute('data-gdel');
+    if(rn){ Drug.ddGuestRename(rn); }
+    if(dl){ Drug.ddGuestDel(dl); }
   });
   /* 单位改动 → 价格卡片右上角的「元 / g」跟着变 */
   $('ddUnit').oninput=function(){ var u=(this.value||'').trim()||'g'; $('ddPUnit').textContent=u; };
@@ -9680,6 +9774,7 @@ function supaBoot(){
     return;
   }
   SUPA.ping().then(function(){
+    SUPA.probeExt();   /* 探一次云端有没有 wp/rates 列（不阻塞主流程） */
     return Promise.all([
       SUPA.loadHist().catch(function(e){ console.warn('历史处方拉取失败:', e.message); supaLoadFail('hist', e.message); return 0; }),
       /* 新录的处方必须从云端读回来，否则换个设备就看不到自己录的东西 */
@@ -10892,7 +10987,12 @@ var Purchase = (function(){
     if(!uu){ uu={unit:unit,stock:0,cost:cost,retail:'',daily:''}; d.un.push(uu); }
     uu.stock=(parseFloat(uu.stock)||0)+qty; uu.cost=cost;
     if(unit===d.u){ d.st=String(parseFloat(d.st||0)+qty); d.bp=String(cost); }
-    if(!d.p){ var rate=(SET&&SET.rate)?SET.rate:1.5; d.p=String(round2(cost*rate/1000)); }   /* 进货价元/kg → 零售价元/g */
+    if(!d.p){
+      /* 没有零售价 → 按这味药自己的零售倍率算（没设过才退回老的全局倍率） */
+      var rr=(d.rates&&parseFloat(d.rates.p))||((SET&&SET.rate)?SET.rate:1.5);
+      d.rates=d.rates||{}; d.rates.p=rr;
+      d.p=String(round2(cost*rr/1000));   /* 进货价元/kg → 零售价元/g */
+    }
     saveDrugsLS();
     if(SUPA.on){
       try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(function(){}); }catch(e){}
