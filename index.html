@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='6c5f78eac0';
+  var V='076ec4719f';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -670,7 +670,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 /* ── 药物管理：浅灰底 + 细分隔线 + 行内编辑（默认纯文本，点单元格才变输入框） ──
    ⚠ 全局有 td{padding:0 var(--sp2)!important} / input{border:…!important}，
      这里所有间距、边框、背景都必须 !important 才压得住。 */
-.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:#fafbfa; min-width:720px; }
+.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:transparent; min-width:720px; }
 .dm-page .dmtable thead th{
   position:sticky; top:0; z-index:2; height:42px; padding:0 14px!important;
   text-align:left!important; font-size:12px; font-weight:700; color:var(--neutral-6);
@@ -3513,10 +3513,11 @@ body{ --navw:0px; }
           </div>
         </div>
         <style>
-          .dm-page{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:2px}
+          /* 边距与全站 .wplan 标准（药方打印/进货单）一致：22/26/44 + 灰底 */
+          .dm-page{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:22px 26px 44px;background:var(--neutral-1)}
           /* 顶部：标题 + 搜索（左）/ 操作（右） */
-          .dm-top{display:flex;align-items:center;gap:12px;padding:2px 2px 10px}
-          .dm-title{font-size:15px;font-weight:700;color:var(--neutral-title);white-space:nowrap;letter-spacing:.02em}
+          .dm-top{display:flex;align-items:center;gap:12px;padding:0 0 16px}
+          .dm-title{font-size:var(--fs-title);font-weight:700;color:var(--neutral-title);white-space:nowrap;letter-spacing:.02em}
           .dm-search{width:210px!important;height:32px;box-sizing:border-box;flex:0 0 210px;
             border:1px solid var(--n-3)!important;border-radius:8px!important;
             padding:0 12px!important;font-size:12px!important;background:var(--n-white)!important}
@@ -3524,8 +3525,8 @@ body{ --navw:0px; }
           .dm-spacer{flex:1}
           .dm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
           .dm-tablewrap{flex:1 1 0;min-height:0;overflow:auto;
-            border:1px solid var(--n-2);border-radius:10px;background:#fafbfa}
-          .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding-left:2px}
+            border:1px solid var(--neutral-2);border-radius:var(--radius-card);background:var(--n-white);box-shadow:var(--shadow-1)}
+          .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
           #dmStat{font-size:12px;color:#6b7280}
           .dd-name{font-size:15px;font-weight:700;margin-bottom:8px}
           .dd-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
