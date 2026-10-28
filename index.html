@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='07ec79fcf8';
+  var V='14680e790f';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -9177,7 +9177,7 @@ var WPlan = (function(){
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名/拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
+      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名/拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
@@ -9516,15 +9516,50 @@ var WPlan = (function(){
 
   /* ---- 药名内联检索：表格药名输入框直接输药名/拼音，浮层选药自动带价 ---- */
   function BLANK_ITEM(){ return { name:'', qty:0, unit:'g', du:'g', price:null, manual:false, zibei:false, sfx:'', rm:'' }; }
+  /* 检索词规范化：去首尾空白、去内部空格、统一小写（“麦 冬”与“麦冬”等价） */
+  function acNorm(q){ return String(q == null ? '' : q).replace(/\s+/g, '').toLowerCase(); }
+  /* 药名去掉规格后缀（（罐）/（大）/【...】/{...}）后的主体名，用于提高匹配相关性 */
+  function acBare(nm){
+    return String(nm || '').replace(/（[^（）]*）/g, '').replace(/\([^()]*\)/g, '')
+      .replace(/【[^【】]*】/g, '').replace(/\[[^\[\]]*\]/g, '').replace(/\{[^{}]*\}/g, '');
+  }
+  /* 匹配打分：0-1 完全一致、2-3 前缀、4-5 包含；越小越相关，-1 = 不匹配 */
+  function acScore(d, q){
+    var nm = String(d.n || '').toLowerCase();
+    var py = String(d.py || '').toLowerCase();
+    var bare = acBare(nm);
+    if(nm === q) return 0;
+    if(bare === q) return 1;
+    if(py === q) return 1;
+    if(nm.indexOf(q) === 0) return 2;
+    if(bare.indexOf(q) === 0) return 3;
+    if(py.indexOf(q) === 0) return 3;
+    if(nm.indexOf(q) > 0) return 4;          /* 药名中间包含：冬 → 麦冬/天冬 */
+    if(py.indexOf(q) > 0) return 5;          /* 拼音中间包含 */
+    return -1;
+  }
+  var AC_LIMIT = 60;
+  /* 以输入框完整内容为检索词，包含匹配 + 相关性排序 */
   function acSearch(q){
-    q = String(q || '').trim().toLowerCase();
-    var list = drugsList || [], out = [];
-    if(!q){ for(var i=0;i<list.length && out.length<40;i++){ if(list[i]) out.push(list[i]); } return out; }
-    for(var i=0;i<list.length && out.length<40;i++){
-      var d = list[i]; if(!d) continue;
-      var nm = String(d.n || '').toLowerCase(); var py = String(d.py || '').toLowerCase();
-      if(nm.indexOf(q) >= 0 || py.indexOf(q) >= 0) out.push(d);
+    var key = acNorm(q);
+    var list = drugsList || [], out = [], i, d;
+    if(!key){                                 /* 空框：按目录顺序给出常用备选 */
+      for(i=0;i<list.length && out.length<AC_LIMIT;i++){ if(list[i]) out.push(list[i]); }
+      return out;
     }
+    var hits = [];
+    for(i=0;i<list.length;i++){
+      d = list[i]; if(!d || !d.n) continue;
+      var s = acScore(d, key);
+      if(s < 0) continue;
+      hits.push({ d: d, s: s, len: String(d.n).length, i: i });
+    }
+    hits.sort(function(a, b){
+      if(a.s !== b.s) return a.s - b.s;
+      if(a.len !== b.len) return a.len - b.len;   /* 同分则短名优先：麦冬 < 麦冬（罐） < 大川麦冬 */
+      return a.i - b.i;
+    });
+    for(i=0;i<hits.length && out.length<AC_LIMIT;i++) out.push(hits[i].d);
     return out;
   }
   function acEl(){
@@ -9558,24 +9593,32 @@ var WPlan = (function(){
     el.style.top = top + 'px';
     el.style.minWidth = Math.max(rect.width, 220) + 'px';
   }
-  function nameInput(bid, i, el){
+  /* 以输入框【完整内容】检索并弹出备选（不含光标位置因素） */
+  function openAc(bid, i, el){
     var b = blockById(bid);
     if(b && !b.items[i]) b.items[i] = BLANK_ITEM();   /* 空药方的首行：输入即落账 */
-    setItemName(bid, i, el.value);
     var list = acSearch(el.value);
     if(!list.length){ closeAc(); return; }
     _ac = { bid: bid, i: i, el: el, list: list, idx: 0 };
     acRender();
   }
-  /* 聚焦 / 点击输入框（含点击文字中间）即按当前内容检索；空内容显示全部/常用药材 */
+  function nameInput(bid, i, el){
+    setItemName(bid, i, el.value);
+    openAc(bid, i, el);
+  }
+  /* 聚焦 / 点击输入框任意位置（开头、中间、结尾、选中文字）即按当前内容检索；空内容显示全部/常用药材 */
   function nameFocus(bid, i, el){
     if(_acSilent){ _acSilent = false; return; }
-    var b = blockById(bid);
-    if(b && !b.items[i]) b.items[i] = BLANK_ITEM();
-    var list = acSearch(el.value);
-    if(!list.length){ closeAc(); return; }
-    _ac = { bid: bid, i: i, el: el, list: list, idx: 0 };
-    acRender();
+    openAc(bid, i, el);
+  }
+  /* 键盘移动光标 / 选中文字（← → Home End 及 Shift 组合）同样按完整内容重新检索 */
+  function nameCursor(e, bid, i, el){
+    var k = e.key;
+    if(k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End' || k === 'ArrowUp' || k === 'ArrowDown'){
+      if(k === 'ArrowUp' || k === 'ArrowDown'){ if(_ac && _ac.bid === bid && _ac.i === i) return; }  /* 上下键交给 ac 导航 */
+      _acSilent = false;
+      openAc(bid, i, el);
+    }
   }
   function nameKey(e, bid, i){
     var k = e.key;
@@ -9712,7 +9755,7 @@ var WPlan = (function(){
     openHistory: openHistory, bringHistory: bringHistory,
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
-    nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
+    nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
     openExcel: openExcel, onExcelFile: onExcelFile, closeModal: closeModal
   };
 })();
