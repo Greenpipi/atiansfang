@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='fa8ea418e9';
+  var V='6271c075d5';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -4323,11 +4323,13 @@ var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 function normUnit(u){
   u=String(u||'').trim().toLowerCase();
   if(!u) return 'g';                 /* 无单位默认按 g */
-  if(u==='克'||u==='g') return 'g';
-  if(u==='kg'||u==='千克'||u==='公斤') return 'kg';   /* 千克/公斤 与 kg 统一 */
+  if(u==='克'||u==='g'||u==='ｇ') return 'g';
+  if(u==='kg'||u==='千克'||u==='公斤'||u==='㎏') return 'kg';   /* kg/Kg/KG 与 千克/公斤 统一 */
   if(u==='ml'||u==='毫升') return 'ml';
   return u;                         /* 个/条/盒/斤 等非重量单位原样保留 */
 }
+/* CSV 导入可识别的单位（normUnit 归一后）。不在此表 → 视为「未识别到单位」，须提示用户。 */
+var KNOWN_UNITS={ g:1,kg:1,斤:1,ml:1,个:1,条:1,盒:1,包:1,瓶:1,片:1,罐:1,袋:1,支:1,粒:1,贴:1,把:1,丸:1,只:1,对:1,张:1,卷:1,块:1,束:1 };
 function mkItem(name,qty,unit,zibei){
   /* du=选定的计价单位；dp=该单位对应的单价（选哪个候选就用哪个单位的价格） */
   return {name:String(name||'').trim(),qty:qty||0,unit:unit||'',zibei:!!zibei,price:null,nm0:null,zibeiTxt:'',du:'',dp:null};
@@ -8989,13 +8991,23 @@ var WPlan = (function(){
     var x = dirPricePerUnit(name, unit);
     return x ? x.price : null;
   }
-  function mk(name, guest, qty, fileUnit){
-    var all = findDrugAll(name) || []; var d = all[0] || null;
-    var du = d ? String(d.u || 'g') : (fileUnit || 'g');
+  /* mk(name, guest, qty, fileUnit, keepUnit)
+     keepUnit=true：保留原始单位（CSV 导入用）——数量不做任何换算，单价按该单位带出，
+                     kg 行就存 kg、g 行就存 g，各行独立计价。
+     否则（历史复用 / 文本制表等既有口径）：数量换算到目录单位后存储。 */
+  function mk(name, guest, qty, fileUnit, keepUnit){
+    var u = normUnit((fileUnit == null || fileUnit === '') ? 'g' : fileUnit) || 'g';
     var q = qty || 0;
+    if(keepUnit){
+      var nm = name;
+      if(u !== 'g' && u !== 'kg'){ nm = baseOf({ name: name, unit: u }) + '（' + u + '）'; ensureUnitDrug(nm, u); }
+      return { name: nm, qty: q, unit: u, du: u, price: priceFor(nm, guest, u), manual: false, zibei: false };
+    }
+    var all = findDrugAll(name) || []; var d = all[0] || null;
+    var du = d ? String(d.u || 'g') : u;
     /* 数量换算：fileUnit → du（如 kg→g 应 ×1000）。
        unitCoef(a,b) 是「价格/单位a → 价格/单位b」系数，数量换算用其逆，即 unitCoef(du, fileUnit)。 */
-    if(fileUnit && fileUnit !== du){ q = q * unitCoef(du, fileUnit); }
+    if(u !== du){ q = q * unitCoef(du, u); }
     return { name: name, qty: q, unit: du, du: du, price: priceFor(name, guest, du), manual: false, zibei: false };
   }
   function mkFromParsed(it, guest){
@@ -9613,17 +9625,29 @@ var WPlan = (function(){
     var cn = col('药名','名称','品名','药材','药品'), cq = col('数量','克数','重量','剂量','克','量'), cu = col('单位','规格');
     if(cn < 0){ toastErr('没找到药名列（表头需含 药名/名称/品名）'); return null; }
     var rows = lines.slice(1).map(pl).filter(function(a){ return a.length > 1; });
-    var out = [];
+    var parsed = [], miss = [];
     for(var r=0;r<rows.length;r++){
       var nm = (rows[r][cn] || '').trim(); if(!nm) continue;
-      var raw = (cq >= 0 ? rows[r][cq] : '').trim();
+      var raw = String(cq >= 0 ? (rows[r][cq] || '') : '').trim();
+      var rawU = String(cu >= 0 ? (rows[r][cu] || '') : '').trim();
       var qv = parseFloat(raw); if(isNaN(qv)) qv = 0;
-      var u = (cu >= 0 ? normUnit(rows[r][cu]) : '') || 'g';
-      /* 数量列内联单位：如 0.5kg / 500g / 2千克 / 1.5公斤，识别后优先采用，不必单列单位列 */
-      var im = raw.match(/^([0-9]*\.?[0-9]+)\s*(克|千克|公斤|g|kg|ml)\s*$/i);
-      if(im){ qv = parseFloat(im[1]); var iu = normUnit(im[2]); if(iu) u = iu; }
-      out.push(mk(nm, curGuest(), qv, u));
+      /* 数量列内联单位：15kg / 10000g / 2千克 / 0.5公斤 —— 与单位列同等对待 */
+      var im = raw.match(/^([0-9]*\.?[0-9]+)\s*([^\d\s]+)$/);
+      if(im){ qv = parseFloat(im[1]); if(!rawU) rawU = im[2]; }
+      /* 单位识别不区分大小写（kg/Kg/KG → kg，g/G → g，千克/公斤 → kg）；识别不到要提示，不静默处理 */
+      var u = rawU ? normUnit(rawU) : '';
+      if(!u || !KNOWN_UNITS[u]) miss.push('第 ' + (r + 2) + ' 行 ' + nm + (rawU ? '（' + rawU + '）' : '（未填单位）'));
+      parsed.push({ name: nm, qty: qv, unit: u || 'g' });
     }
+    if(!parsed.length) return [];
+    if(miss.length){
+      var msg = '有 ' + miss.length + ' 行未识别到单位：\n' + miss.slice(0, 10).join('\n') + (miss.length > 10 ? '\n…' : '')
+        + '\n\n这些行按「g」导入，继续？\n（点「取消」中止本次导入）';
+      if(!confirm(msg)) return null;
+    }
+    /* 保留每行原始单位：kg 行按 kg、g 行按 g，各自数量 × 该单位单价，不统一换算 */
+    var out = [];
+    for(var k=0;k<parsed.length;k++) out.push(mk(parsed[k].name, curGuest(), parsed[k].qty, parsed[k].unit, true));
     return out;
   }
   function onExcelFile(fi){
