@@ -648,6 +648,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dmtable{width:100%;border-collapse:collapse;font-size:12px;background:#fff;min-width:1000px}
 .dmtable th{position:sticky;top:0;background:#e8e6df;border:1px solid #c8c4ba;padding:3px 5px;font-weight:700;white-space:nowrap}
 .dmtable td{border:1px solid #eceae3;padding:0;white-space:nowrap}
+.dmtable th .tu{font-weight:400;color:var(--neutral-4);font-size:11px;margin-left:3px}
 .dmtable td>span{display:block;padding:3px 5px;min-height:19px}
 .dmtable td.num>span{text-align:right}
 .dmtable td input{width:100%;border:none;border-radius:0;padding:3px 5px}
@@ -3484,10 +3485,12 @@ body{ --navw:0px; }
             </div>
             <div class="dm-tablewrap">
               <table class="dmtable">
-                <colgroup><col><col style="width:84px"><col style="width:112px"><col style="width:112px"><col style="width:104px"><col style="width:132px"></colgroup>
+                <colgroup><col><col style="width:130px"><col style="width:130px"><col style="width:130px"><col style="width:92px"><col style="width:118px"></colgroup>
                 <thead><tr>
-                  <th class="c-nm">药物名称</th><th class="c-u">单位</th>
-                  <th class="c-money">日常价</th><th class="c-money">售价</th>
+                  <th class="c-nm">药物名称</th>
+                  <th class="c-money">零售价<span class="tu">元/g</span></th>
+                  <th class="c-money">批发价<span class="tu">元/kg</span></th>
+                  <th class="c-money">进货价<span class="tu">元/kg</span></th>
                   <th class="c-st">库存量</th><th class="c-act">操作</th>
                 </tr></thead>
                 <tbody id="dmBody"></tbody>
@@ -3696,25 +3699,25 @@ body{ --navw:0px; }
               <div class="dd-pricecard">
                 <div class="dd-pc-hd">
                   <span class="dd-pc-t">价格</span>
-                  <span class="dd-pc-unit">单位：元 / <b id="ddPUnit">g</b></span>
+                  <span class="dd-pc-unit">零售价按 <b id="ddPUnit">g</b> · 批发/进货按 kg</span>
                 </div>
                 <div class="dd-prices">
                   <div class="dd-pcol">
-                    <label for="ddP">零售价</label>
+                    <label for="ddP">零售价<em class="tag">元/g</em></label>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddP" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
                     <button type="button" class="dd-sug" id="ddSugP" tabindex="-1">建议</button>
                   </div>
                   <div class="dd-pcol">
-                    <label for="ddWp">批发价<em class="tag">自动</em></label>
+                    <label for="ddWp">批发价<em class="tag">元/kg · 自动</em></label>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddWp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
                     <button type="button" class="dd-sug" id="ddSugWp" tabindex="-1">建议</button>
                   </div>
                   <div class="dd-pcol">
-                    <label for="ddBp">进货价</label>
+                    <label for="ddBp">进货价<em class="tag">元/kg</em></label>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddBp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
                   </div>
                   <div class="dd-pcol">
-                    <label for="ddGp">客人专属价<em class="tag">选填</em></label>
+                    <label for="ddGp">客人专属价<em class="tag">元/g · 选填</em></label>
                     <div class="dd-pin"><span class="cur">¥</span><input id="ddGp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
                     <button type="button" class="dd-sug" id="ddSugGp" tabindex="-1">建议</button>
                   </div>
@@ -7742,8 +7745,11 @@ function genPinyin(name){
 }
 /* 表格只平铺常用核心列；常用量/分类/拼音/斗位/进价等挪到「详情」弹窗里看。 */
 var DM_COLS=[
-  {k:'n',t:'药物名称'},{k:'u',t:'单位'},
-  {k:'dp',t:'日常价',money:1},{k:'p',t:'售价',money:1},{k:'st',t:'库存量'}
+  {k:'n',t:'药物名称'},
+  {k:'p',t:'零售价',money:1},
+  {k:'wp',t:'批发价',money:1},
+  {k:'bp',t:'进货价',money:1},
+  {k:'st',t:'库存量'}
 ];
 function renderTabs(){
   /* 只保留「中药」一个分类（2026-10-07 用户要求：删除中药颗粒/穴位/西成药/收费项目/用法）
@@ -8144,12 +8150,19 @@ var Drug=(function(){
     var cost=(inpBp!=='' && !isNaN(parseFloat(inpBp)))?parseFloat(inpBp):latestCost(d);
     if(cost==null){ toastErr('没有进货价可参考（先填进货价或多单位进货价）'); return; }
     var rate=currentRate();
-    var sug=Math.round(cost*rate*1000)/1000;
+    var sug, gField=(which==='p'||which==='gp');
+    if(gField){
+      /* 进货价按元/kg，零售价/专属价按元/g → ÷1000 */
+      sug=Math.round(cost*rate/1000*100000)/100000;
+    } else {
+      /* 批发价与进货价同为元/kg */
+      sug=Math.round(cost*rate*1000)/1000;
+    }
     var map={wp:'ddWp', p:'ddP', gp:'ddGp'};
     var box=$(map[which]||'ddP'); if(!box) return;
     box.value=sug;
     var b=box.closest('.dd-pin'); if(b) b.classList.remove('bad');
-    toast('已按 进货价 ¥'+cost+' × 利润倍率 '+rate+' 建议 ¥'+sug);
+    toast('已按 进货价 ¥'+cost+' 元/kg × 利润倍率 '+rate+'，建议 ¥'+sug+(gField?' 元/g':' 元/kg'));
   }
   /* 当前利润倍率：取弹窗里的输入值，否则退回 SET.rate，再否则 1.5 */
   function currentRate(){
@@ -8206,7 +8219,7 @@ var Drug=(function(){
           +'<div class="dd-gdoc-row">'
           +'<span class="dd-gfield"><span>利润倍率</span><span class="dd-gin"><span>×</span>'
           +'<input data-gr="'+esc(doc)+'" class="num" inputmode="decimal" value="'+rv+'"></span></span>'
-          +'<span class="dd-gfield"><span>专属价</span><span class="dd-gin"><span>¥</span>'
+          +'<span class="dd-gfield"><span>专属价<em class="tag" style="font-style:normal;font-weight:400">元/g</em></span><span class="dd-gin"><span>¥</span>'
           +'<input data-gp="'+esc(doc)+'" class="num" inputmode="decimal" value="'+(gv==null?'':gv)+'"></span></span>'
           +hint
           +'</div>'
@@ -8233,7 +8246,8 @@ var Drug=(function(){
     var k=ddGuestKey(d);
     if(!Object.prototype.hasOwnProperty.call(DOCTORS[doc].price||{}, k)){
       var wp=String($('ddWp').value||'').trim();
-      var def=(wp!==''&&!isNaN(parseFloat(wp)))?parseFloat(wp):null;
+      /* 批发价按元/kg，专属价按元/g → ÷1000 */
+      var def=(wp!==''&&!isNaN(parseFloat(wp)))?Math.round(parseFloat(wp)/1000*100000)/100000:null;
       if(def!=null){ setDocPrice(doc, d.n, def, '', '', (SET&&SET.doctor)||'详情页'); }
     }
     if(DOCTORS[doc].rate==null){ DOCTORS[doc].rate=ddDocRate(doc); }
@@ -8269,7 +8283,7 @@ var Drug=(function(){
     if(Object.prototype.hasOwnProperty.call(DOCTORS[doc].price||{}, k)){
       var bp=String($('ddBp').value||'').trim();
       if(bp!==''&&!isNaN(parseFloat(bp))){
-        var nv=Math.round(parseFloat(bp)*newRate*1000)/1000;
+        var nv=Math.round(parseFloat(bp)*newRate/1000*100000)/100000;   /* 进货价元/kg → 专属价元/g */
         var old=DOCTORS[doc].price[k];
         DOCTORS[doc].price[k]=nv;
         setDocPrice(doc, d.n, nv, old, '', (SET&&SET.doctor)||'详情页');
@@ -8486,7 +8500,7 @@ function dmStartEdit(td,tr){
   inp.focus();
   try{
     /* 数值列全选（直接重打），文本列光标落在末尾（可在原位置接着改） */
-    if(/^(bp|dp|p|st|c|dw)$/.test(f)) inp.select();
+    if(/^(bp|dp|p|wp|st|c|dw)$/.test(f)) inp.select();
     else { var L=String(v).length; inp.setSelectionRange(L,L); }
   }catch(e){}
   inp.addEventListener('blur',function(){ dmCommit(td,tr); });
@@ -9361,7 +9375,7 @@ $('btnSave').onclick=function(){
        （点名中间插字，不用再从末尾按左箭头挪回来） */
     var off=dmCaretOffset(td, e.clientX, e.clientY);
     dmStartEdit(td,tr);
-    if(off!=null && !/^(bp|dp|p|st|c|dw)$/.test(td.getAttribute('data-f')||'')){
+    if(off!=null && !/^(bp|dp|p|wp|st|c|dw)$/.test(td.getAttribute('data-f')||'')){
       var inp=td.querySelector('input');
       if(inp){ try{ inp.setSelectionRange(off,off); }catch(e2){} }
     }
@@ -9392,7 +9406,7 @@ $('btnSave').onclick=function(){
   };
   /* 顶部「删除」= 删掉当前选中行；行内每行也有独立的「删除」 */
   $('dmDel').onclick=function(){ dmDelByIdx(selDrugRow); };
-  $('dmExpDrug').onclick=function(){ download('药物明细.csv', toCSV(drugsList,['n','c','u','tc','py','dw','cat','bp','p','st']), 'text/csv'); };
+  $('dmExpDrug').onclick=function(){ download('药物明细.csv', toCSV(drugsList,['n','c','u','tc','py','dw','cat','bp','wp','p','st']), 'text/csv'); };
   $('dmExpStock').onclick=function(){ download('库存.csv', toCSV(drugsList,['n','st']), 'text/csv'); };
   /* 药物详情抽屉（入口只保留在每行的「详情」按钮上） */
   $('ddClose').onclick=function(){ $('mDrugDetail').classList.remove('on'); };
@@ -10846,7 +10860,7 @@ var Purchase = (function(){
     if(!uu){ uu={unit:unit,stock:0,cost:cost,retail:'',daily:''}; d.un.push(uu); }
     uu.stock=(parseFloat(uu.stock)||0)+qty; uu.cost=cost;
     if(unit===d.u){ d.st=String(parseFloat(d.st||0)+qty); d.bp=String(cost); }
-    if(!d.p){ var rate=(SET&&SET.rate)?SET.rate:1.25; d.p=String(round2(cost*rate)); }
+    if(!d.p){ var rate=(SET&&SET.rate)?SET.rate:1.5; d.p=String(round2(cost*rate/1000)); }   /* 进货价元/kg → 零售价元/g */
     saveDrugsLS();
     if(SUPA.on){
       try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(function(){}); }catch(e){}
