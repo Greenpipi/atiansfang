@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='5ce08c8fd6';
+  var V='fa8ea418e9';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -3010,6 +3010,19 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-hist-row{ display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid var(--neutral-2); }
 .wp-hist-row .meta{ flex:1; font-size:var(--fs-body); color:var(--neutral-6); }
 .wp-hist-row .meta b{ color:var(--neutral-title); }
+.wp-hist-row .chk{ flex:0 0 auto; width:16px; height:16px; cursor:pointer; }
+.wp-prev-block{ margin-bottom:18px; }
+.wp-prev-block:last-child{ margin-bottom:0; }
+.wp-prev-hd{ font-size:var(--fs-body); color:var(--neutral-title); font-weight:700; margin-bottom:8px; }
+.wp-prev-hd .fy{ font-weight:400; color:var(--neutral-4); margin-left:6px; }
+.wp-prev-tbl{ width:100%; border-collapse:collapse; font-size:var(--fs-cap); }
+.wp-prev-tbl th,.wp-prev-tbl td{ border:1px solid var(--neutral-2); padding:6px 8px; text-align:left; }
+.wp-prev-tbl th{ background:var(--neutral-1); color:var(--neutral-6); font-weight:600; }
+.wp-prev-tbl td.num,.wp-prev-tbl th.num{ text-align:right; }
+.wp-prev-sfx{ color:var(--warn,#c77c02); font-size:12px; margin-left:4px; }
+.wp-prev-note{ margin-top:8px; font-size:var(--fs-cap); color:var(--neutral-6); }
+.wp-prev-sum{ margin-top:8px; font-size:var(--fs-body); color:var(--neutral-title); }
+.wp-prev-sum b{ color:var(--pri-deep); }
 /* 历史订单 / 药单列表 */
 .wp-list{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card); box-shadow:var(--shadow-1); margin-bottom:18px; overflow:hidden; }
 .wp-list-bar{ display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); flex-wrap:wrap; }
@@ -3051,6 +3064,9 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 /* 单位 g/kg 切换 + 药名备选 */
 .wp-unit-btn{ min-height:26px; padding:2px 10px; font-size:12px; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--pri-deep); border-radius:var(--r-pill); cursor:pointer; font-weight:700; box-shadow:none; }
 .wp-unit-btn:hover{ background:var(--pri-soft); border-color:var(--pri-line); }
+.wp-tbl td.wp-unit{ width:76px; padding:6px 4px; }
+.wp-unit-in{ width:100%; min-height:28px; box-sizing:border-box; padding:2px 3px; font-size:12px; text-align:center; border:1px solid var(--neutral-2); border-radius:var(--radius-input); background:var(--n-white); color:var(--pri-deep); font-weight:700; }
+.wp-unit-in:focus{ border-color:var(--pri-line); outline:none; }
 .wp-ac{ position:fixed; display:none; z-index:9999; max-height:260px; overflow-y:auto; background:var(--n-white); border:1px solid var(--neutral-3); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.14); cursor:pointer; }
 .wp-ac .r{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:7px 12px; font-size:13px; }
 .wp-ac .r.on, .wp-ac .r:hover{ background:var(--pri-soft); }
@@ -3316,15 +3332,26 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
               <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
 
               <div class="wp-foot" id="wpFoot"></div>
-              <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史带入 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
+              <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
             </div>
           </div>
         </div>
 
         <div class="modal" id="wpHistModal">
           <div class="wp-mw">
-            <div class="wp-mh">从该客人历史药方带入 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
+            <div class="wp-mh">从该客人历史药方复用 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
             <div class="wp-mb" id="wpHistBody"></div>
+            <div class="wp-mb-actions" id="wpHistFoot"></div>
+          </div>
+        </div>
+        <div class="modal" id="wpPrevModal">
+          <div class="wp-mw">
+            <div class="wp-mh">历史药方预览 <button class="x" type="button" onclick="WPlan.closeModal('wpPrevModal')">×</button></div>
+            <div class="wp-mb" id="wpPrevBody"></div>
+            <div class="wp-mb-actions">
+              <button class="btn" type="button" onclick="WPlan.closeModal('wpPrevModal')">取消</button>
+              <button class="btn pri" type="button" onclick="WPlan.confirmPreview()">确认复用</button>
+            </div>
           </div>
         </div>
         <div class="modal" id="wpTextModal">
@@ -3336,6 +3363,13 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
             </div>
           </div>
         </div>
+        <datalist id="wpUnitList">
+          <option value="g"></option><option value="kg"></option><option value="斤"></option>
+          <option value="罐"></option><option value="盒"></option><option value="包"></option>
+          <option value="瓶"></option><option value="片"></option><option value="个"></option>
+          <option value="条"></option><option value="袋"></option><option value="支"></option>
+          <option value="粒"></option><option value="贴"></option><option value="ml"></option>
+        </datalist>
         <input type="file" id="wpFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="WPlan.onExcelFile(this)">
       </section>
 
@@ -4287,11 +4321,12 @@ var UNIT_RE='g|克|kg|KG|斤|个|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|�
 var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 function normUnit(u){
-  u=String(u||'g');
-  if(u==='克') u='g';
-  if(u.toUpperCase()==='KG') u='kg';
-  if(u.toUpperCase()==='ML') u='ml';
-  return u;
+  u=String(u||'').trim().toLowerCase();
+  if(!u) return 'g';                 /* 无单位默认按 g */
+  if(u==='克'||u==='g') return 'g';
+  if(u==='kg'||u==='千克'||u==='公斤') return 'kg';   /* 千克/公斤 与 kg 统一 */
+  if(u==='ml'||u==='毫升') return 'ml';
+  return u;                         /* 个/条/盒/斤 等非重量单位原样保留 */
 }
 function mkItem(name,qty,unit,zibei){
   /* du=选定的计价单位；dp=该单位对应的单价（选哪个候选就用哪个单位的价格） */
@@ -8958,7 +8993,9 @@ var WPlan = (function(){
     var all = findDrugAll(name) || []; var d = all[0] || null;
     var du = d ? String(d.u || 'g') : (fileUnit || 'g');
     var q = qty || 0;
-    if(fileUnit && fileUnit !== du){ q = q * unitCoef(fileUnit, du); }
+    /* 数量换算：fileUnit → du（如 kg→g 应 ×1000）。
+       unitCoef(a,b) 是「价格/单位a → 价格/单位b」系数，数量换算用其逆，即 unitCoef(du, fileUnit)。 */
+    if(fileUnit && fileUnit !== du){ q = q * unitCoef(du, fileUnit); }
     return { name: name, qty: q, unit: du, du: du, price: priceFor(name, guest, du), manual: false, zibei: false };
   }
   function mkFromParsed(it, guest){
@@ -8979,7 +9016,7 @@ var WPlan = (function(){
       var it = b.items[i]; if(!it || it.zibei) continue;
       var du = String(it.du || it.unit || 'g').toLowerCase();
       if(du !== 'g' && du !== 'kg') continue;
-      g += n(it.qty) * unitCoef(du, 'g') * (n(b.doses) || 1);
+      g += n(it.qty) * unitCoef('g', du) * (n(b.doses) || 1);
     }
     return g;
   }
@@ -9104,7 +9141,7 @@ var WPlan = (function(){
       + '<button class="btn danger sm" type="button" onclick="WPlan.delBlock(\'' + b.id + '\')">删除药方</button>'
       + '</div>'
       + '<div class="wp-block-tools">'
-      + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">从历史药方带入</button>'
+      + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">从历史药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
@@ -9114,10 +9151,7 @@ var WPlan = (function(){
   }
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
-    var wu = isWeightUnit(it.du || it.unit);
-    var unitCell = wu
-      ? '<button class="wp-unit-btn" type="button" title="点击切换 g / kg" onclick="WPlan.toggleUnit(\'' + bid + '\',' + i + ')">' + esc(it.unit || it.du || 'g') + '</button>'
-      : '<span class="wp-unit">' + esc(it.unit || it.du || '') + '</span>';
+    var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
       + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名/拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
       + '<td style="text-align:right"><input class="num" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)"></td>'
@@ -9231,11 +9265,53 @@ var WPlan = (function(){
     b.doses = Math.max(1, Math.round(n(v) || 1));
     saveDebounced(); recount(); renderFoot();
   }
-  function toggleUnit(bid, i){
+  /* 去掉药名末尾「（当前单位）」后缀，得到基础药名（安全：只剥当前单位，避免误伤 姜半夏（旱）等变体名） */
+  function baseOf(it){
+    var s = String(it.name || '').trim();
+    var cur = String(it.unit || it.du || '').trim();
+    if(cur && cur !== 'g' && cur !== 'kg'){
+      var s1 = '（' + cur + '）', s2 = '(' + cur + ')';
+      if(s.length > s1.length && s.slice(-s1.length) === s1) return s.slice(0, -s1.length).trim();
+      if(s.length > s2.length && s.slice(-s2.length) === s2) return s.slice(0, -s2.length).trim();
+    }
+    return s;
+  }
+  /* 药库没有该单位 → 新增一条「药名（单位）」记录（独立价格/库存），并落本机+云端 */
+  function ensureUnitDrug(name, unit){
+    var all = findDrugAll(name) || [];
+    for(var i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === String(unit).toLowerCase()) return all[i]; }
+    var rec = { n: name, py: '', u: unit, c: '', cat: '中药', tccat: '', p: null, bp: null, st: 0 };
+    if(!drugsList) drugsList = [];
+    drugsList.push(rec);
+    saveDrugsLS();     /* 写入 rx_drugs_v3（云端同步键）并触发 drugs 表 upsert */
+    return rec;
+  }
+  /* 设置单位：支持 g/kg/罐/盒/瓶…（可自定义）。
+     - g↔kg：按重量换算数量，金额不变
+     - 换成非重量单位：数量不再换算成克，按「数量 × 单价」计价
+     - 药库缺该单位→新增「药名（单位）」记录，单价带出（无价则留空手填） */
+  function setUnit(bid, i, raw){
     var b = blockById(bid); if(!b || !b.items[i]) return;
     var it = b.items[i];
-    it.unit = (String(it.unit || it.du || 'g').toLowerCase() === 'kg') ? 'g' : 'kg';
+    var u = normUnit(raw) || 'g';
+    var base = baseOf(it);
+    var oldDu = String(it.du || it.unit || 'g').toLowerCase();
+    var uname = (u === 'g' || u === 'kg') ? base : (base + '（' + u + '）');
+    var q = n(it.qty);
+    if(isWeightUnit(oldDu) && isWeightUnit(u)){ q = q * uCoef(u, oldDu); }   /* 仅重量单位间换算 */
+    it.qty = q;
+    it.du = u;
+    it.unit = u;
+    it.name = uname;
+    it.manual = false;
+    if(u !== 'g' && u !== 'kg') ensureUnitDrug(uname, u);
+    it.price = priceFor(uname, curGuest(), u);
     save(); renderBlocks(); recount();
+  }
+  function toggleUnit(bid, i){
+    var b = blockById(bid); if(!b || !b.items[i]) return;
+    var cur = String(b.items[i].unit || b.items[i].du || 'g').toLowerCase();
+    setUnit(bid, i, cur === 'kg' ? 'g' : 'kg');
   }
   function setPrice(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return;
@@ -9255,11 +9331,7 @@ var WPlan = (function(){
   function setItemName(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return; var it = b.items[i];
     it.name = v;
-    if(!it.manual){
-      it.price = priceFor(it.name, curGuest(), it.du);
-      var ue = document.getElementById('wpUnit-' + bid + '-' + i);
-      if(ue) ue.textContent = it.unit || '';
-    }
+    if(!it.manual){ it.price = priceFor(it.name, curGuest(), it.du); }
     saveDebounced(); updateAmt(bid,i); recount();
   }
   function delItem(bid, i){ var b = blockById(bid); if(!b) return; b.items.splice(i,1); save(); renderBlocks(); recount(); }
@@ -9273,34 +9345,132 @@ var WPlan = (function(){
     toast('已保存到云端（自动同步）');
   }
 
-  /* ---- 历史药方带入 ---- */
+  /* ---- 历史药方复用（先预览，确认后再带入；可多选） ---- */
+  var _prevNos = [], _prevBid = null;
+  function findRx(no){
+    var all = allRx();
+    for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
+    return null;
+  }
+  function rxItems(rx){
+    var its = parseItems(rx.m || ''); var items = [];
+    for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], curGuest()));
+    return items;
+  }
   function openHistory(bid){
-    _tgt = bid; var o = curOrder();
+    _tgt = bid; _prevBid = bid; _prevNos = [];
+    var o = curOrder();
     if(!o || !o.guest){ toastErr('请先在上方选择医生'); return; }
     var rxs = doctorRxs(o.guest); var body = document.getElementById('wpHistBody'); if(!body) return;
-    if(!rxs.length){ body.innerHTML = '<div class="wp-empty">该客人暂无历史药方（来自日常药方打印数据）</div>'; }
-    else {
+    if(!rxs.length){
+      body.innerHTML = '<div class="wp-empty">该客人暂无历史药方（来自日常药方打印数据）</div>';
+    } else {
       var h2 = '';
       for(var i=0;i<rxs.length;i++){
         var r = rxs[i];
-        h2 += '<div class="wp-hist-row"><span class="meta"><b>' + esc(r.dt) + ' ' + esc(r.tm || '') + '</b> · ' + r.j + '付 · ¥' + money(r.total) + ' · ' + (r.fy ? '已发' : '未发') + '</span>'
-          + '<button class="btn sm pri" type="button" onclick="WPlan.bringHistory(\'' + bid + '\',\'' + esc(r.no) + '\')">带入</button></div>';
+        h2 += '<div class="wp-hist-row">'
+          + '<input class="chk" type="checkbox" title="勾选后可与其他一起复用" onchange="WPlan.prevToggle(\'' + esc(r.no) + '\',this.checked)">'
+          + '<span class="meta"><b>' + esc(r.dt) + ' ' + esc(r.tm || '') + '</b> · ' + r.j + '付 · ¥' + money(r.total) + ' · ' + (r.fy ? '已发' : '未发') + '</span>'
+          + '<button class="btn sm" type="button" onclick="WPlan.openPreview([\'' + esc(r.no) + '\'])">预览</button>'
+          + '<button class="btn sm pri" type="button" onclick="WPlan.openPreview([\'' + esc(r.no) + '\'])">复用</button>'
+          + '</div>';
       }
       body.innerHTML = h2;
     }
+    updateHistFoot();
     openModal('wpHistModal');
   }
+  function prevToggle(no, on){
+    _prevNos = _prevNos.filter(function(x){ return x !== no; });
+    if(on) _prevNos.push(no);
+    updateHistFoot();
+  }
+  function getPrevSel(){ return _prevNos.slice(); }
+  function updateHistFoot(){
+    var f = document.getElementById('wpHistFoot'); if(!f) return;
+    var n2 = _prevNos.length;
+    f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
+      + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">取消</button>'
+      + '<button class="btn pri" type="button" onclick="WPlan.openPreview(WPlan.getPrevSel())">复用选中' + (n2 ? '（' + n2 + '）' : '') + '</button>';
+  }
+  /* 预览：只读展示完整明细（药名/克数/单位/单价/金额/付数/备注/煎煮法/总价），不改原数据 */
+  function openPreview(nos){
+    nos = nos || [];
+    if(!nos.length){ toastErr('请先勾选要复用的药方'); return; }
+    var body = document.getElementById('wpPrevBody'); if(!body) return;
+    var guest = curGuest(); var h = '';
+    for(var i=0;i<nos.length;i++){
+      var rx = findRx(nos[i]); if(!rx) continue;
+      var g = rx.n || guest;
+      var items = rxItems(rx);
+      var doses = Math.max(1, Math.round(n(rx.j) || 1));
+      var per = 0, rowsH = '';
+      for(var k=0;k<items.length;k++){
+        var it = items[k];
+        var sp = splitSfx(it.name || '');
+        var qty = n(it.qty), unit = it.unit || it.du || 'g';
+        var price = it.zibei ? 0 : (it.price == null ? 0 : n(it.price));
+        var amt = it.zibei ? 0 : price * qty;
+        per += amt;
+        rowsH += '<tr>'
+          + '<td>' + esc(sp.nm) + (sp.sfx ? '<span class="wp-prev-sfx">' + esc(sp.sfx) + '</span>' : '') + '</td>'
+          + '<td class="num">' + (it.zibei ? '自备' : qty) + '</td>'
+          + '<td>' + (it.zibei ? '' : esc(unit)) + '</td>'
+          + '<td class="num">' + (it.zibei ? '' : money(price)) + '</td>'
+          + '<td class="num">' + (it.zibei ? '' : money(amt)) + '</td>'
+          + '</tr>';
+      }
+      var st = statAmount(rx);
+      h += '<div class="wp-prev-block">'
+        + '<div class="wp-prev-hd">' + esc(rx.dt || '') + ' ' + esc(rx.tm || '') + ' · ' + doses + '付 · ¥' + money(st.total)
+        + '<span class="fy">' + (rx.fy ? '已发' : '未发') + ' · ' + esc(g || '未命名客人') + '</span></div>'
+        + '<table class="wp-prev-tbl"><thead><tr><th>药名</th><th class="num">克数</th><th>单位</th><th class="num">单价</th><th class="num">金额</th></tr></thead><tbody>'
+        + (rowsH || '<tr><td colspan="5">（无药材）</td></tr>') + '</tbody></table>'
+        + '<div class="wp-prev-sum">单付 <b>¥' + money(per) + '</b> × ' + doses + '付 = <b>¥' + money(per * doses) + '</b>'
+        + (Math.abs(per * doses - st.total) > 0.01 ? '（原方总价 ¥' + money(st.total) + '）' : '') + '</div>'
+        + (rx.b ? '<div class="wp-prev-note">备注：' + esc(rx.b) + '</div>' : '')
+        + '</div>';
+    }
+    if(!h){ toastErr('找不到药方内容'); return; }
+    _prevNos = nos.slice();
+    body.innerHTML = h;
+    closeModal('wpHistModal');
+    openModal('wpPrevModal');
+  }
+  /* 确认复用：选中几张就带入几个药方块（当前空方块优先复用，其余新建） */
+  function confirmPreview(){
+    var o = curOrder(); if(!o) return;
+    if(!_prevNos.length){ toastErr('没有可复用的药方'); return; }
+    var usedTarget = false, cnt = 0, totalItems = 0;
+    for(var i=0;i<_prevNos.length;i++){
+      var rx = findRx(_prevNos[i]); if(!rx) continue;
+      var items = rxItems(rx);
+      var b = null;
+      if(!usedTarget && _prevBid){
+        var tb = blockById(_prevBid);
+        if(tb && !tb.items.length){ b = tb; usedTarget = true; }
+      }
+      if(!b){ b = blankBlock(); o.blocks.push(b); }
+      b.items = b.items.concat(items);
+      b.source = 'history'; b.fromRxNo = rx.no;
+      b.doses = Math.max(1, Math.round(n(rx.j) || 1));
+      cnt++; totalItems += items.length;
+    }
+    _prevNos = [];
+    closeModal('wpPrevModal');
+    save(); renderBlocks(); recount();
+    toast('已复用 ' + cnt + ' 张药方，共 ' + totalItems + ' 味');
+  }
+  /* 兼容旧调用：直接把一张历史药方追加到指定方块（不经预览） */
   function bringHistory(bid, no){
-    var all = allRx(), rx = null;
-    for(var i=0;i<all.length;i++){ if(all[i].no === no){ rx = all[i]; break; } }
-    if(!rx){ toastErr('找不到该药方'); return; }
-    var its = parseItems(rx.m || ''); var items = [];
-    for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], curGuest()));
+    var rx = findRx(no); if(!rx){ toastErr('找不到该药方'); return; }
+    var items = rxItems(rx);
     var b = blockById(bid); if(!b) return;
-    if(b.items.length && !confirm('该药方已有药材，带入将追加到现有药材后。继续？')) return;
-    b.items = b.items.concat(items); b.source = 'history'; b.fromRxNo = no; save();
-    closeModal('wpHistModal'); renderBlocks(); recount();
-    toast('已带入 ' + items.length + ' 味');
+    b.items = b.items.concat(items); b.source = 'history'; b.fromRxNo = no;
+    b.doses = Math.max(1, Math.round(n(rx.j) || 1));
+    save(); renderBlocks(); recount();
+    closeModal('wpHistModal'); closeModal('wpPrevModal');
+    toast('已复用 ' + items.length + ' 味');
   }
 
   /* ---- 文本制表 ---- */
@@ -9446,8 +9616,12 @@ var WPlan = (function(){
     var out = [];
     for(var r=0;r<rows.length;r++){
       var nm = (rows[r][cn] || '').trim(); if(!nm) continue;
-      var qs = (cq >= 0 ? rows[r][cq] : '').trim(); var qv = parseFloat(qs); if(isNaN(qv)) qv = 0;
-      var us = (cu >= 0 ? rows[r][cu] : '').trim(); var u = normUnit(us) || '';
+      var raw = (cq >= 0 ? rows[r][cq] : '').trim();
+      var qv = parseFloat(raw); if(isNaN(qv)) qv = 0;
+      var u = (cu >= 0 ? normUnit(rows[r][cu]) : '') || 'g';
+      /* 数量列内联单位：如 0.5kg / 500g / 2千克 / 1.5公斤，识别后优先采用，不必单列单位列 */
+      var im = raw.match(/^([0-9]*\.?[0-9]+)\s*(克|千克|公斤|g|kg|ml)\s*$/i);
+      if(im){ qv = parseFloat(im[1]); var iu = normUnit(im[2]); if(iu) u = iu; }
       out.push(mk(nm, curGuest(), qv, u));
     }
     return out;
@@ -9472,7 +9646,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpTextModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -9493,8 +9667,10 @@ var WPlan = (function(){
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
     setBlockTitle: setBlockTitle, setRemark: setRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
     setItemName: setItemName, delItem: delItem, addItems: addItems, saveNow: saveNow,
-    toggleUnit: toggleUnit,
-    openHistory: openHistory, bringHistory: bringHistory, openText: openText, doText: doText,
+    toggleUnit: toggleUnit, setUnit: setUnit,
+    openHistory: openHistory, bringHistory: bringHistory,
+    prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
+    openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
     openExcel: openExcel, onExcelFile: onExcelFile, closeModal: closeModal
   };
