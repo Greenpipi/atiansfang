@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='53adfca3a8';
+  var V='6f96e44cec';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -2951,19 +2951,24 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
 .wp-in{ height:36px; min-width:160px; border:1px solid var(--neutral-3); border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-ink); font-size:var(--fs-body); padding:0 10px; }
 .wp-in[readonly]{ background:var(--neutral-1); color:var(--neutral-5); }
 .wp-blocks{ display:flex; flex-direction:column; gap:16px; }
-.wp-block{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card); box-shadow:var(--shadow-1); overflow:hidden; }
-.wp-block-head{ display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
+.wp-block{ --wp-pad-x:60px; background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card); box-shadow:var(--shadow-1); overflow:hidden; }
+.wp-block-head{ display:flex; align-items:center; gap:12px; padding:12px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
 .wp-block-title{ font-size:var(--fs-sub); font-weight:700; color:var(--neutral-title); border:none; background:transparent; border-bottom:1px dotted var(--neutral-3); padding:2px 4px; min-width:120px; }
 .wp-block-title:focus{ border-bottom-color:var(--pri); outline:none; }
 .wp-tag{ font-size:11px; color:var(--pri-h); background:var(--pri-soft); border:1px solid var(--pri-line); padding:2px 8px; border-radius:var(--r-pill); }
 .wp-sub{ font-size:var(--fs-sub); color:var(--neutral-6); font-weight:600; }
 .wp-sub b{ color:var(--pri-deep); }
 .wp-block-head .spacer{ flex:1; }
-.wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
+.wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
+.wp-tbl-wrap{ padding:0 var(--wp-pad-x) 35px; }
+/* 窄窗口时等比收窄外边距，避免备注列被挤没（正常桌面宽度仍是 60px） */
+@media (max-width:1200px){ .wp-block{ --wp-pad-x:24px; } }
+@media (max-width:1000px){ .wp-block{ --wp-pad-x:12px; } }
 .wp-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--fs-body); }
 .wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:10px 6px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
 .wp-tbl td{ padding:5px 6px!important; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
 .wp-tbl th:first-child, .wp-tbl td:first-child{ padding-left:10px!important; }
+.wp-tbl tbody tr:last-child td{ border-bottom:none; }
 /* 表格内所有输入框统一：40px 高、左右内边距 11px、文字垂直居中 */
 .wp-tbl .wp-nm, .wp-tbl .num, .wp-tbl .wp-unit-in, .wp-tbl .wp-rm-in{
   height:40px; box-sizing:border-box; width:100%; padding:0 11px;
@@ -9176,7 +9181,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<table class="wp-tbl"><colgroup><col style="width:38px"><col style="width:32%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col style="width:82px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col style="width:38px"><col style="width:32%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col style="width:82px"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
