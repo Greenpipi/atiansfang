@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='c5794108db';
+  var V='7a504499e4';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -5949,6 +5949,23 @@ SUPA.loadDrugs=function(noSave){
     });
     var brkPairs=brkMigrateList(drugsList);
     brkScheduleCleanup(brkPairs);
+    /* 归一后可能出现同名两条（云端同时存着 X{备注} 和 X[备注]）：
+       保留后出现的那条，空着的字段从另一条补过来，避免表格里出现两行一样的药。 */
+    var _ord=[], _map={};
+    for(var z=0;z<drugsList.length;z++){
+      var it=drugsList[z]; if(!it||!it.n) continue;
+      var prev=_map[it.n];
+      if(prev){
+        for(var f in prev){
+          var v=it[f], pv=prev[f];
+          var empty=(v===''||v==null||(Object.prototype.toString.call(v)==='[object Array]'&&!v.length));
+          var hasP=(pv!==''&&pv!=null&&!(Object.prototype.toString.call(pv)==='[object Array]'&&!pv.length));
+          if(empty&&hasP) it[f]=pv;
+        }
+        _ord[_ord.indexOf(prev)]=it; _map[it.n]=it;
+      }else{ _map[it.n]=it; _ord.push(it); }
+    }
+    drugsList=_ord.filter(Boolean);
     if(noSave){ buildIndex(); } else { saveDrugsLS(); }
     return drugsList.length;
   });
