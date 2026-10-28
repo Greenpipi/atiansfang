@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='2d7fe78b5f';
+  var V='449c3eb25e';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -8469,6 +8469,15 @@ function dmCommit(td,tr){
     if(f==='n'){
       var py=genPinyin(v);
       if(d.py!==py){ d.py=py; var tdPy=tr.querySelector('td[data-f="py"]'); if(tdPy) dmCellText(tdPy, py); }
+    }
+    /* 改进货价（元/kg）→ 批发价按「进货价 × 利润倍率」联动（同为元/kg，无需换算） */
+    if(f==='bp'){
+      var bpv=parseFloat(v);
+      if(!isNaN(bpv)){
+        var rr=(d.rate!=null&&!isNaN(parseFloat(d.rate)))?parseFloat(d.rate):((typeof SET!=='undefined'&&SET&&SET.rate)?SET.rate:1.5);
+        d.wp=String(Math.round(bpv*rr*1000)/1000);
+        var tdWp=tr.querySelector('td[data-f="wp"]'); if(tdWp) dmCellText(tdWp, d.wp);
+      }
     }
     saveDrugsLS();                        /* 本机落盘 + 云端（防抖整表上传） */
   }catch(err){
