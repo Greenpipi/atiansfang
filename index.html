@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='41e07ec7fd';
+  var V='fe4befab16';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -669,26 +669,58 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dmtable td input{width:100%;border:none;border-radius:0;padding:3px 5px}
 .dmtable tr:hover td{background:#f2f7ff}
 .dmtable tr.sel td{background:var(--pri-soft)}
-/* ── 药物管理：行内编辑（默认纯文本，点单元格才变输入框） ──────────────
-   ⚠ 全局有 input{border:1px solid …!important; background:…#!important}，
-     编辑框的边框/背景必须 !important 才压得住，否则会变成灰边大盒子。 */
-.dm-page .dmtable td{ padding:0!important; height:38px; text-align:left!important; }
-.dm-page .dmtable td>span{
-  display:block; padding:0 10px; line-height:37px; min-height:37px;
+/* ── 药物管理：浅灰底 + 细分隔线 + 行内编辑（默认纯文本，点单元格才变输入框） ──
+   ⚠ 全局有 td{padding:0 var(--sp2)!important} / input{border:…!important}，
+     这里所有间距、边框、背景都必须 !important 才压得住。 */
+.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:#fafbfa; min-width:720px; }
+.dm-page .dmtable thead th{
+  position:sticky; top:0; z-index:2; height:42px; padding:0 14px!important;
+  text-align:left!important; font-size:12px; font-weight:700; color:var(--neutral-6);
+  background:#f1f2ef!important; border:none!important; border-bottom:1px solid #e3e4e1!important;
+  white-space:nowrap; letter-spacing:.02em;
+}
+.dm-page .dmtable thead th.c-money{ text-align:right!important; }
+.dm-page .dmtable thead th.c-act{ text-align:right!important; }
+.dm-page .dmtable tbody td{
+  height:44px; padding:0 14px!important; border:none!important;
+  border-bottom:1px solid #eceee9!important; background:transparent;
+  white-space:nowrap; text-align:left!important; font-size:13px;
+}
+.dm-page .dmtable tbody tr:last-child td{ border-bottom:none!important; }
+.dm-page .dmtable tbody tr:hover td{ background:#f3f6f3; }
+.dm-page .dmtable tbody tr.sel td{ background:#eef7f1; }
+.dm-page .dmtable tbody td>span{
+  display:block; padding:0; line-height:43px; min-height:43px;
   text-align:left!important; font-variant-numeric:tabular-nums;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.dm-page .dmtable td.num>span{ text-align:left!important; }
-.dm-page .dmtable td.dm-editing{ padding:2px 4px!important; }
+.dm-page .dmtable tbody td.c-money{ text-align:right!important; }
+.dm-page .dmtable tbody td.c-money>span{ text-align:right!important; color:var(--neutral-title); }
+/* 编辑态：原地换成输入框 */
+.dm-page .dmtable td.dm-editing{ padding:0 8px!important; }
 .dm-page .dmtable td.dm-editing>input{
-  display:block; width:100%; height:32px; box-sizing:border-box; margin:0;
-  border:1px solid var(--pri)!important; border-radius:3px!important;
+  display:block; width:100%; height:32px; box-sizing:border-box; margin:5px 0;
+  border:1px solid var(--pri)!important; border-radius:7px!important;
   background:var(--n-white)!important; color:var(--neutral-ink)!important;
-  padding:0 8px!important; font-family:inherit; font-size:12px; font-weight:400;
+  padding:0 9px!important; font-family:inherit; font-size:13px; font-weight:400;
   text-align:left!important; outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14);
 }
+.dm-page .dmtable td.dm-editing.c-money>input{ text-align:right!important; }
 .dm-page .dmtable td.dm-editing>input:focus{ box-shadow:0 0 0 3px rgba(52,192,106,.22); }
-@keyframes dmFlashOk{ 0%{ background:#c9f2d8; } 100%{ background:transparent; } }
+/* 每行自带「详情 / 删除」 */
+.dm-page .dmtable td.c-act{ text-align:right!important; }
+.dm-page .dmtable td.c-act .dm-rowbtn{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:26px!important; min-height:0!important; padding:0 10px!important; margin-left:6px;
+  font-size:12px!important; font-weight:400!important; line-height:1;
+  color:var(--neutral-6)!important; background:var(--n-white)!important;
+  border:1px solid #dcdfd9!important; border-radius:7px!important; cursor:pointer;
+}
+.dm-page .dmtable td.c-act .dm-rowbtn:hover{ color:var(--pri-deep)!important; border-color:var(--pri-line)!important; background:#f2fbf5!important; }
+.dm-page .dmtable td.c-act .dm-rowbtn.del{ color:#c0392b!important; border-color:#e8c0b9!important; background:#fdf5f4!important; }
+.dm-page .dmtable td.c-act .dm-rowbtn.del:hover{ background:#fbe9e6!important; border-color:#dca79d!important; }
+/* 保存反馈：绿闪 / 红闪 */
+@keyframes dmFlashOk{ 0%{ background:#d7f3e1; } 100%{ background:transparent; } }
 @keyframes dmFlashErr{ 0%{ background:#fdd; } 100%{ background:transparent; } }
 .dm-page .dmtable td.dm-flash-ok{ animation:dmFlashOk .95s ease-out; }
 .dm-page .dmtable td.dm-flash-err{ animation:dmFlashErr .95s ease-out; }
@@ -3490,58 +3522,48 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
       <section class="page" data-page="drug">
         <div class="pageBody">
           <div class="dm-page">
-            <div class="wp-head">
-              <div class="wp-title">药物管理</div>
-              <div class="spacer"></div>
+            <div class="dm-top">
+              <div class="dm-title">药物管理</div>
+              <input id="dmSearch" class="dm-search" placeholder="药名 / 拼音" autocomplete="off">
+              <span class="dm-spacer"></span>
               <div class="dm-tools">
-                <input id="dmSearch" class="wp-search" placeholder="药名 / 拼音" style="flex:0 0 160px;width:160px">
-                <label class="dm-lbl">利润率</label><input id="dmRate" class="rate" value="1.25" style="width:56px">
-                <label class="dm-lbl">库存&lt;</label><input id="dmStock" class="rate" value="500" style="width:56px">
-                <button type="button" id="dmAlarm" class="mini">库存报警</button>
-                <span class="dm-sep"></span>
-                <button type="button" id="dmAdd" class="pri">添 加</button>
-                <button type="button" id="dmDetail" class="mini">详 情</button>
-                <button type="button" id="dmSave" class="pri">保 存</button>
-                <button type="button" id="dmDel" class="mini danger">删 除</button>
+                <button type="button" id="dmAdd" class="pri">+ 添加</button>
+                <button type="button" id="dmDel" class="mini">删 除</button>
                 <button type="button" id="dmExpDrug" class="mini">导出明细</button>
                 <button type="button" id="dmExpStock" class="mini">导出库存</button>
-                <button type="button" id="dmWipe" class="mini danger">清空</button>
-                <button type="button" id="dmTutorial" class="mini">教程</button>
               </div>
             </div>
-            <div class="mtabs" id="dmTabs"></div>
             <div class="dm-tablewrap">
               <table class="dmtable">
+                <colgroup><col><col style="width:84px"><col style="width:112px"><col style="width:112px"><col style="width:104px"><col style="width:132px"></colgroup>
                 <thead><tr>
-                  <th style="text-align:left">药物名称[规格/商品名]</th><th>常用量</th><th>单位</th><th>中药分类</th>
-                  <th>拼音</th><th>斗位</th><th>分类</th><th>进价</th><th>日常价</th><th>售价</th><th>库存量</th>
+                  <th class="c-nm">药物名称</th><th class="c-u">单位</th>
+                  <th class="c-money">日常价</th><th class="c-money">售价</th>
+                  <th class="c-st">库存量</th><th class="c-act">操作</th>
                 </tr></thead>
                 <tbody id="dmBody"></tbody>
               </table>
             </div>
             <div class="dm-foot">
-              <span class="redhint">可直接在表格中修改或添加药物！</span>
-              <span id="dmStat" style="font-size:11px;color:#666"></span>
-              <span class="spacer"></span>
-              <div class="wordrow" id="dmWords">
-                <span>点击插入常用词：</span>
-                <span class="w">mg</span><span class="w">g</span><span class="w">ml</span><span class="w">×</span>
-                <span class="w">粒</span><span class="w">片</span><span class="w">盒</span><span class="w">包</span><span class="w">丸</span>
-                <span class="w">贴</span><span class="w">支</span><span class="w">瓶</span>
-                <span class="w">每日3次</span><span class="w">每日2次</span><span class="w">每日1次</span><span class="w">每晚1次</span><span class="w">口服</span>
-              </div>
+              <span id="dmStat"></span>
             </div>
           </div>
         </div>
         <style>
           .dm-page{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:2px}
-          .dm-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-          .dm-lbl{font-size:12px;color:#555}
-          .dm-tools .rate{border:1px solid #c8c4ba;border-radius:4px;padding:4px 6px;font-size:13px}
-          .dm-sep{width:1px;height:20px;background:#ccc;margin:0 4px}
-          .dm-tablewrap{flex:1 1 0;min-height:0;overflow:auto;border:1px solid #c8c4ba;border-radius:3px}
-          .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
-          .dm-foot .redhint{padding:0;background:none}
+          /* 顶部：标题 + 搜索（左）/ 操作（右） */
+          .dm-top{display:flex;align-items:center;gap:12px;padding:2px 2px 10px}
+          .dm-title{font-size:15px;font-weight:700;color:var(--neutral-title);white-space:nowrap;letter-spacing:.02em}
+          .dm-search{width:210px!important;height:32px;box-sizing:border-box;flex:0 0 210px;
+            border:1px solid var(--n-3)!important;border-radius:8px!important;
+            padding:0 12px!important;font-size:12px!important;background:var(--n-white)!important}
+          .dm-search:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(22,163,74,.10)!important}
+          .dm-spacer{flex:1}
+          .dm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+          .dm-tablewrap{flex:1 1 0;min-height:0;overflow:auto;
+            border:1px solid var(--n-2);border-radius:10px;background:#fafbfa}
+          .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding-left:2px}
+          #dmStat{font-size:12px;color:#6b7280}
           .dd-name{font-size:15px;font-weight:700;margin-bottom:8px}
           .dd-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
           .dd-f{display:flex;flex-direction:column;gap:3px;flex:1 1 180px}
@@ -3550,7 +3572,7 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
           .dd-sub{font-weight:700;font-size:13px;margin:10px 0 5px;border-top:1px solid #d9d5cb;padding-top:8px}
           .dd-prices{display:flex;gap:10px;flex-wrap:wrap}
           .dd-pf{display:flex;align-items:center;gap:4px}
-          .dd-pf label{font-size:12px;color:#555;width:44px}
+          .dd-pf label{font-size:12px;color:#555;width:52px;flex:0 0 52px}
           .dd-pf input{width:90px;border:1px solid #c8c4ba;border-radius:4px;padding:5px 8px;font-size:13px;text-align:right}
           .dd-sug{margin-left:2px}
           .dd-units{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
@@ -3564,15 +3586,28 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
           .dd-costlog th,.dd-costlog td{border:1px solid #e3e0d8;padding:3px 5px}
           .dd-costlog th{background:#e8e6df;font-weight:700}
           .dd-guest{font-size:12px;color:#666}
+          .dd-empty{font-size:12px;color:#8a8f98;padding:5px 6px}
+          .dd-costlog td.num{text-align:right;font-variant-numeric:tabular-nums}
         </style>
       </section>
 
       <!-- ================= 药物详情（别名 / 产地 / 多单位 / 进货价历史 / 建议价） ================= -->
       <div class="modal" id="mDrugDetail">
-        <div class="dlg" style="width:660px">
+        <div class="dlg" style="width:720px">
           <header>药物详情<span class="spacer"></span><span class="x" data-close>✕</span></header>
           <div class="body">
             <div class="dd-name" id="ddName"></div>
+            <div class="dd-sub" style="border-top:none;margin-top:0;padding-top:0">基础信息</div>
+            <div class="dd-grid">
+              <div class="dd-f"><label>单位</label><input id="ddUnit" placeholder="g"></div>
+              <div class="dd-f"><label>常用量</label><input id="ddAmount" placeholder="如 10"></div>
+              <div class="dd-f"><label>拼音</label><input id="ddPy" placeholder="留空自动生成"></div>
+            </div>
+            <div class="dd-grid">
+              <div class="dd-f"><label>中药分类</label><input id="ddTc" placeholder="如 补虚药"></div>
+              <div class="dd-f"><label>斗位</label><input id="ddDw"></div>
+              <div class="dd-f"><label>分类</label><input id="ddCat" placeholder="中药"></div>
+            </div>
             <div class="dd-grid">
               <div class="dd-f"><label>产地</label><input id="ddOrigin" placeholder="如 安徽 / 四川"></div>
               <div class="dd-f" style="flex:1 1 100%"><label>别名（多个用空格或逗号分隔）</label><input id="ddAlias" placeholder="别名1 别名2"></div>
@@ -3588,6 +3623,10 @@ body.navCollapsed .navHead{ justify-content:center; padding:0; }
             <button type="button" class="mini" id="ddAddUnit">+ 添加单位</button>
             <div class="dd-sub">进货价历史</div>
             <div id="ddCostLog" class="dd-costlog"></div>
+            <div class="dd-sub">售价历史（本机已存处方里实际成交的单价）</div>
+            <div id="ddSaleLog" class="dd-costlog"></div>
+            <div class="dd-sub">被哪些药方引用（<span id="ddRefCnt">0</span> 条）</div>
+            <div id="ddRefs" class="dd-costlog"></div>
             <div class="dd-sub">客人专属价</div>
             <div id="ddGuest" class="dd-guest">（在「客人管理」页为客人设置专属价）</div>
           </div>
@@ -7470,13 +7509,15 @@ function genPinyin(name){
   }
   return out;
 }
+/* 表格只平铺常用核心列；常用量/分类/拼音/斗位/进价等挪到「详情」弹窗里看。 */
 var DM_COLS=[
-  {k:'n',t:'药物名称'},{k:'c',t:'常用量',num:1},{k:'u',t:'单位'},{k:'tc',t:'中药分类'},
-  {k:'py',t:'拼音'},{k:'dw',t:'斗位',num:1},{k:'cat',t:'分类'},{k:'bp',t:'进价',num:1},
-  {k:'dp',t:'日常价',num:1},{k:'p',t:'售价',num:1},{k:'st',t:'库存量',num:1}
+  {k:'n',t:'药物名称'},{k:'u',t:'单位'},
+  {k:'dp',t:'日常价',money:1},{k:'p',t:'售价',money:1},{k:'st',t:'库存量'}
 ];
 function renderTabs(){
-  /* 只保留「中药」一个分类（2026-10-07 用户要求：删除中药颗粒/穴位/西成药/收费项目/用法） */
+  /* 只保留「中药」一个分类（2026-10-07 用户要求：删除中药颗粒/穴位/西成药/收费项目/用法）
+     2026-10-28：只剩一个分类，页签本身已从页面移除 —— 容器不存在就直接跳过。 */
+  var box=$('dmTabs'); if(!box) return;
   var cats=['中药'], h='';
   for(var i=0;i<cats.length;i++) h+='<button data-tab="'+cats[i]+'" class="'+(dmCurTab===cats[i]?'on':'')+'">'+cats[i]+'</button>';
   $('dmTabs').innerHTML=h;
@@ -7528,32 +7569,103 @@ function renderDrugTable(){
     h+='<tr data-i="'+idx+'" class="'+(selDrugRow===idx?'sel':'')+'">';
     for(var c=0;c<DM_COLS.length;c++){
       var col=DM_COLS[c], v=d[col.k]; v=(v==null?'':v);
-      h+='<td data-f="'+col.k+'" class="'+(col.num?'num':'')+'"><span>'+esc(v)+'</span></td>';
+      h+='<td data-f="'+col.k+'" class="'+(col.money?'c-money':'')+'"><span>'+esc(v)+'</span></td>';
     }
-    h+='</tr>';
+    /* 每行独立的「详情 / 删除」，不用先选中再点顶部按钮 */
+    h+='<td class="c-act">'
+      +'<button type="button" class="dm-rowbtn" data-act="detail" data-i="'+idx+'">详情</button>'
+      +'<button type="button" class="dm-rowbtn del" data-act="del" data-i="'+idx+'">删除</button>'
+      +'</td></tr>';
   }
-  $('dmBody').innerHTML=h||'<tr><td colspan="10" style="padding:0;border:none">'+rxEmptyHTML(
-        '药物库是空的','点上方「添 加」录入第一味药，之后会自动划价与计价')+'</td></tr>';
-  $('dmStat').textContent=dmCurTab+'：'+rows.length+' 味 / 共 '+drugsList.length+' 味';
+  $('dmBody').innerHTML=h||'<tr><td colspan="6" style="padding:0!important;border:none!important">'+rxEmptyHTML(
+        '药物库是空的','点上方「+ 添加」录入第一味药，之后会自动划价与计价')+'</td></tr>';
+  $('dmStat').textContent='中药：'+rows.length+' 味 / 共 '+drugsList.length+' 味';
 }
 function openDrugMaint(){ navGo('drug'); }
 /* ============ 药物管理：独立页 + 详情抽屉 ============
    详情抽屉编辑：产地 / 别名 / 三档价格（含「建议价格」）/ 多单位 / 进货价历史。
    ⚠ 这些增强字段（daily_price/origin/aliases/units）依赖 supabase_new_tables.sql，
       未执行该 SQL 时云端 upsert 会因未知列报错（已被捕获提示，本机不受影响）。 */
+/* ---------- 药物详情：被哪些药方引用 / 售价历史 ----------
+   数据来源：历史处方（RX_HISTORY_SRC 5650 条）+ 本机已存处方（SAVED）。
+   两者都只存「一整串药味文字」m，所以先按 3 个以上空格切成单味，
+   再取首词以药名主体（去掉（规格）后的部分）开头的那些行。
+   SAVED 另有 px 字段（与药味一一对应的成交单价）→ 用来还原「售价历史」。 */
+function dmBaseName(name){ return String(name||'').replace(/[（(\[【{].*$/,'').trim(); }
+function dmRefScan(d){
+  var base=dmBaseName(d&&d.n);
+  if(!base) return {refs:[],sales:[]};
+  var refs=[], sales=[];
+  function take(list, isHist){
+    if(!list||!list.length) return;
+    for(var i=0;i<list.length;i++){
+      var r=list[i]; if(!r) continue;
+      var m=String(r.m||''); if(m.indexOf(base)<0) continue;
+      var parts=m.split(/\s{2,}/), at=-1, txt='';
+      for(var p=0;p<parts.length;p++){
+        var toks=parts[p].split(/\s+/);
+        if(toks.length && toks[0].indexOf(base)===0){ at=p; txt=parts[p]; break; }
+      }
+      if(at<0) continue;
+      refs.push({guest:r.n||'—', dt:String(r.tm||r.dt||''), txt:txt, hist:isHist});
+      if(!isHist && r.px){
+        var px=String(r.px).split('|');
+        if(px[at]!=null && px[at]!=='' && px[at]!=='-') sales.push({dt:String(r.tm||r.dt||''), guest:r.n||'—', p:px[at]});
+      }
+    }
+  }
+  take(HISTORY_ORIG, true);
+  take(SAVED, false);
+  return {refs:refs, sales:sales};
+}
+function ddLoadRefs(d){
+  var box=$('ddRefs'), saleBox=$('ddSaleLog'), cnt=$('ddRefCnt');
+  var r=dmRefScan(d);
+  if(cnt) cnt.textContent=r.refs.length;
+  if(saleBox){
+    if(!r.sales.length){
+      saleBox.innerHTML='<div class="dd-empty">暂无成交记录（只统计本机保存过的处方）</div>';
+    }else{
+      var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
+      var n1=Math.min(r.sales.length,20);
+      for(var i=0;i<n1;i++){ var x=r.sales[i];
+        hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
+      }
+      saleBox.innerHTML=hs+'</tbody></table>';
+    }
+  }
+  if(!box) return;
+  if(!r.refs.length){ box.innerHTML='<div class="dd-empty">还没有药方用到这味药</div>'; return; }
+  var h='<table><thead><tr><th>来源</th><th>客人</th><th>日期</th><th>药味</th></tr></thead><tbody>';
+  var n2=Math.min(r.refs.length,30);
+  for(var j=0;j<n2;j++){ var y=r.refs[j];
+    h+='<tr><td>'+(y.hist?'历史':'本机')+'</td><td>'+esc(y.guest)+'</td><td>'+esc(y.dt)+'</td><td>'+esc(y.txt)+'</td></tr>';
+  }
+  box.innerHTML=h+'</tbody></table>'
+    +(r.refs.length>30?'<div class="dd-empty">共 '+r.refs.length+' 条，仅显示前 30 条</div>':'');
+}
+
 var Drug=(function(){
   var curIdx=-1;
   function ensure(){ try{ renderTabs(); renderDrugTable(); }catch(e){ console.warn('Drug.ensure', e); } }
-  function openDetail(){
-    if(selDrugRow<0){ toastErr('先点一行选中，再点「详情」'); return; }
-    var d=drugsList[selDrugRow]; if(!d) return;
-    curIdx=selDrugRow;
+  function openDetail(idx){
+    var i=(idx==null)?selDrugRow:idx;
+    if(i<0 || !drugsList[i]){ toastErr('先点一行，再点「详情」'); return; }
+    var d=drugsList[i]; if(!d) return;
+    selDrugRow=i; curIdx=i;
     $('ddName').textContent=(d.n||'(未命名)')+'　['+(d.u||'g')+']';
+    $('ddUnit').value=d.u||'g';
+    $('ddAmount').value=d.c||'';
+    $('ddPy').value=d.py||'';
+    $('ddTc').value=d.tc||'';
+    $('ddDw').value=d.dw||'';
+    $('ddCat').value=d.cat||'中药';
     $('ddOrigin').value=d.og||'';
     $('ddAlias').value=Array.isArray(d.al)?d.al.join(' '):'';
     $('ddBp').value=d.bp||''; $('ddDp').value=d.dp||''; $('ddP').value=d.p||'';
     ddRenderUnits(d.un||[]);
     ddLoadCostLog(d.n);
+    ddLoadRefs(d);
     $('ddMsg').textContent='';
     $('mDrugDetail').classList.add('on');
   }
@@ -7602,26 +7714,43 @@ var Drug=(function(){
     var d=drugsList[curIdx]; if(!d) return;
     var cost=latestCost(d);
     if(cost==null){ toastErr('没有进货价可参考（先填进价或多单位进货价）'); return; }
-    var rate=n($('dmRate').value)||SET.rate||1.25;
+    var rate=n(SET.rate)||1.25;
     var sug=Math.round(cost*rate*1000)/1000;
     if(which==='dp'){ $('ddDp').value=sug; } else { $('ddP').value=sug; }
     toast('已按 进货价 ¥'+cost+' × 利润率 '+rate+' 建议 ¥'+sug);
   }
   function ddLoadCostLog(name){
-    var box=$('ddCostLog'); box.innerHTML='<div style="font-size:12px;color:#888;padding:4px">加载中…</div>';
-    if(!SUPA.on){ box.innerHTML='<div style="font-size:12px;color:#888;padding:4px">未连接云端，无进货价历史。</div>'; return; }
+    var box=$('ddCostLog'); box.innerHTML='<div class="dd-empty">加载中…</div>';
+    if(!SUPA.on){ box.innerHTML='<div class="dd-empty">未连接云端，无进货价历史。</div>'; return; }
+    /* 云端没响应时不要一直卡在「加载中」——8 秒后给明确提示 */
+    var done=false;
+    var killed=setTimeout(function(){
+      if(done) return; done=true;
+      box.innerHTML='<div class="dd-empty">加载超时（云端无响应），稍后再开可重试。</div>';
+    },8000);
     SUPA.loadCostLog(name).then(function(rows){
-      if(!rows||!rows.length){ box.innerHTML='<div style="font-size:12px;color:#888;padding:4px">暂无进货价历史。</div>'; return; }
+      if(done) return; done=true; clearTimeout(killed);
+      if(!rows||!rows.length){ box.innerHTML='<div class="dd-empty">暂无进货价历史。</div>'; return; }
       var h='<table><thead><tr><th>日期</th><th>数量</th><th>单位</th><th>进货单价</th><th>供应商</th><th>单号</th></tr></thead><tbody>';
       for(var i=0;i<rows.length;i++){ var r=rows[i];
         h+='<tr><td>'+esc(r.dt||'')+'</td><td class="num">'+esc(r.qty==null?'':r.qty)+'</td><td>'+esc(r.unit||'')+'</td><td class="num">'+esc(r.cost==null?'':r.cost)+'</td><td>'+esc(r.supplier||'')+'</td><td>'+esc(r.purchase_no||'')+'</td></tr>';
       }
       box.innerHTML=h+'</tbody></table>';
-    }).catch(function(e){ box.innerHTML='<div style="font-size:12px;color:#c00;padding:4px">加载失败：'+esc(e.message)+'</div>'; });
+    }).catch(function(e){
+      if(done) return; done=true; clearTimeout(killed);
+      box.innerHTML='<div class="dd-empty" style="color:#c00">加载失败：'+esc(e.message)+'</div>';
+    });
   }
   function ddSave(){
     var d=drugsList[curIdx]; if(!d) return;
     ddSyncUnits();
+    d.u=($('ddUnit').value||'g').trim()||'g';
+    d.c=$('ddAmount').value.trim();
+    d.tc=$('ddTc').value.trim();
+    d.dw=$('ddDw').value.trim();
+    d.cat=($('ddCat').value.trim())||'中药';
+    var pyIn=$('ddPy').value.trim();
+    d.py=pyIn||genPinyin(d.n||'');
     d.og=$('ddOrigin').value.trim();
     d.al=String($('ddAlias').value).split(/[\s,，、]+/).map(function(s){return s.trim();}).filter(Boolean);
     d.bp=$('ddBp').value.trim(); d.dp=$('ddDp').value.trim(); d.p=$('ddP').value.trim();
@@ -7643,6 +7772,23 @@ function dmFlash(td, ok){
   void td.offsetWidth;                    /* 强制重排：连续两次保存都能看到闪 */
   td.classList.add(ok?'dm-flash-ok':'dm-flash-err');
   setTimeout(function(){ td.classList.remove('dm-flash-ok','dm-flash-err'); }, 1000);
+}
+/* 行内「删除」：二次确认后删本行（本地 + 云端同步删） */
+function dmDelByIdx(idx){
+  if(idx==null||idx<0||!drugsList[idx]){ toastErr('先点一行，再点「删除」'); return; }
+  var d=drugsList[idx];
+  if(!confirm('确定删除「'+(d.n||'(空)')+'」？')) return;
+  var nm=String(d.n||'').trim();
+  drugsList.splice(idx,1); selDrugRow=-1;
+  /* 删除必须同步云端：否则刷新时 SUPA.loadDrugs() 会把这一味重新拉回来
+     （整表 upsert 只写不删，数据库里的行还在）。2026-10-08 一并修。 */
+  saveDrugsLS();
+  if(nm && SUPA.on){
+    SUPA.q('drugs?name=eq.'+encodeURIComponent(nm),{method:'DELETE'})
+       .catch(function(e){ console.warn('删除药价云端失败:',e.message); supaSaveFail('删除「'+nm+'」：'+e.message); });
+  }
+  renderDrugTable(); renderDrugList();
+  toast(nm?('已删除「'+nm+'」'):'已删除空行');
 }
 function dmCommit(td,tr){
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
@@ -7670,12 +7816,6 @@ function dmCommit(td,tr){
       var py=genPinyin(v);
       if(d.py!==py){ d.py=py; var tdPy=tr.querySelector('td[data-f="py"]'); if(tdPy) dmCellText(tdPy, py); }
     }
-    /* 填进价 → 按利润率顺带算出售价 */
-    if(f==='bp'&&v){
-      var rate=n($('dmRate').value)||SET.rate||1.25;
-      d.p=(Math.round(n(v)*rate*1000)/1000).toString();
-      var tdP=tr.querySelector('td[data-f="p"]'); if(tdP) dmCellText(tdP, d.p);
-    }
     saveDrugsLS();                        /* 本机落盘 + 云端（防抖整表上传） */
   }catch(err){
     d[f]=old;                             /* 内存回滚，输入框原地保留 = 保持编辑状态 */
@@ -7687,6 +7827,10 @@ function dmCommit(td,tr){
   td.classList.remove('dm-editing');
   dmCellText(td, v);
   dmFlash(td, true);                      /* 保存成功：该格短暂高亮 */
+  /* 改了目录价 → 当前处方若已划价就重算一遍（原来靠顶部「保存」按钮顺带做） */
+  if((f==='p'||f==='dp') && priced && filledCount()){
+    try{ autoPrice(); renderPriceList(); recalc(); }catch(e3){ console.warn('改价后重划失败:', e3.message); }
+  }
   /* 「添加」出来的新行：药名一填上就立刻真 INSERT 进云端（2026-10-08），
      不必等用户再点「保 存」，也不会因为关页面丢掉。 */
   if(d.__new && f==='n' && String(v).trim()){
@@ -7715,6 +7859,7 @@ function dmCaretOffset(td, x, y){
 function dmStartEdit(td,tr){
   if(!td||td.querySelector('input')) return;
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
+  if(!f) return;                          /* 操作列没有 data-f，不进入编辑 */
   var d=drugsList[idx]; if(!d) return;
   var v=d[f]; v=(v==null?'':v);
   td.__cancel=false;
@@ -8583,11 +8728,16 @@ $('btnSave').onclick=function(){
     for(var i=0;i<drugsList.length;i++){ if(drugsList[i]) delete drugsList[i].__fresh; }
     renderDrugTable();
   });
-  $('dmTabs').onclick=function(e){
-    var b=e.target.closest('button[data-tab]'); if(!b) return;
-    dmCurTab=b.getAttribute('data-tab'); selDrugRow=-1; renderTabs(); renderDrugTable();
-  };
   $('dmBody').onclick=function(e){
+    /* 每行的「详情 / 删除」按钮（优先级最高，不进入行内编辑） */
+    var btn=e.target.closest('button[data-act]');
+    if(btn){
+      e.preventDefault(); e.stopPropagation();
+      var bi=+btn.getAttribute('data-i');
+      if(btn.getAttribute('data-act')==='detail') Drug.openDetail(bi);
+      else dmDelByIdx(bi);
+      return;
+    }
     var tr=e.target.closest('tr'); if(!tr) return;
     selDrugRow=+tr.getAttribute('data-i');
     var td=e.target.closest('td');
@@ -8625,75 +8775,11 @@ $('btnSave').onclick=function(){
     toast(dmFilter?('已在 '+dmRows().length+' 条搜索结果末尾新增一行，直接输入药名')
                   :'已在全部列表末尾新增一行，直接输入药名');
   };
-  $('dmSave').onclick=function(){
-    var rate=n($('dmRate').value)||1.25;
-    for(var i=0;i<drugsList.length;i++){
-      var d=drugsList[i];
-      if(d.bp!==''&&d.bp!=null&&(d.p===''||d.p==null)) d.p=(Math.round(n(d.bp)*rate*1000)/1000).toString();
-      d.tc=d.tc||''; d.st=d.st||'';
-    }
-    saveDrugsLS(); renderDrugTable(); renderDrugList();
-    /* 改了目录价 → 当前处方若已划价，重新按新价算一遍（2026-10-07 16:55）。
-       只重算「目录价来源」的那几味；用户手动改过单价、医生专属价的保持不动。
-       否则用户改完价、清单里还是旧数字，会以为没保存成功。 */
-    try{
-      if(priced && filledCount()){
-        /* 新 autoPrice 对每一味都无条件重查目录价并覆盖（含手改过的价），
-           这里直接重划即可，不需要再"解锁"什么。 */
-        autoPrice();
-        renderPriceList(); recalc();
-      }
-    }catch(e2){ console.warn('改价后重划失败:', e2.message); }
-    /* saveDrugsLS 内部已调用 supaInsertNewDrugs()（新增药材走真 INSERT）
-       与 supaPushDrugs()（整表 upsert，debounce 1200ms）。
-       这里等新增药材的 insert 有结果再反馈，别让用户以为没存上。 */
-    if(!SUPA.on){ toastErr('已保存（本机）。未连接云端，换设备看不到'); return; }
-    supaInsertNewDrugs().then(function(k){
-      if(k) toast('已保存：新增 '+k+' 味药已写入云端数据库');
-      else toast('已保存，正在上传到云端数据库…');
-    });
-  };
-  $('dmDel').onclick=function(){
-    if(selDrugRow<0){ toastErr('先点一行选中'); return; }
-    var d=drugsList[selDrugRow];
-    if(!confirm('确定删除「'+(d.n||'(空)')+'」？')) return;
-    var nm=String(d.n||'').trim();
-    drugsList.splice(selDrugRow,1); selDrugRow=-1;
-    /* 删除必须同步云端：否则刷新时 SUPA.loadDrugs() 会把这一味重新拉回来
-       （整表 upsert 只写不删，数据库里的行还在）。2026-10-08 一并修。 */
-    saveDrugsLS();
-    if(nm && SUPA.on){
-      SUPA.q('drugs?name=eq.'+encodeURIComponent(nm),{method:'DELETE'})
-         .catch(function(e){ console.warn('删除药价云端失败:',e.message); supaSaveFail('删除「'+nm+'」：'+e.message); });
-    }
-    renderDrugTable(); renderDrugList();
-    toast(nm?('已删除「'+nm+'」'):'已删除空行');
-  };
-  $('dmWipe').onclick=function(){
-    if(!confirm('清空药物会移除全部药物目录并同步删除云端数据，且无法撤销。确定？')) return;
-    if(!confirm('再次确认：清空当前全部 '+drugsList.length+' 味药物？')) return;
-    drugsList=[]; saveDrugsLS(); renderDrugTable(); renderDrugList(); toast('已清空');
-  };
+  /* 顶部「删除」= 删掉当前选中行；行内每行也有独立的「删除」 */
+  $('dmDel').onclick=function(){ dmDelByIdx(selDrugRow); };
   $('dmExpDrug').onclick=function(){ download('药物明细.csv', toCSV(drugsList,['n','c','u','tc','py','dw','cat','bp','p','st']), 'text/csv'); };
   $('dmExpStock').onclick=function(){ download('库存.csv', toCSV(drugsList,['n','st']), 'text/csv'); };
-  $('dmAlarm').onclick=function(){
-    var lim=n($('dmStock').value)||500;
-    var hit=drugsList.filter(function(d){ return d.st!==''&&d.st!=null&&n(d.st)>0&&n(d.st)<lim; });
-    if(!hit.length){ toastErr('没有低于 '+lim+' 的库存记录（多数药物未填库存量）'); return; }
-    dmFilter=''; $('dmSearch').value='';
-    var h='';
-    for(var i=0;i<hit.length;i++) h+='<tr><td><span>'+esc(hit[i].n)+'</span></td><td class="num"><span>'+esc(hit[i].st)+'</span></td></tr>';
-    $('dmBody').innerHTML='<tr><td colspan="10" style="padding:6px;color:#c00">库存报警（低于 '+lim+'）：'+hit.length+' 味</td></tr>'+h;
-  };
-  $('dmTutorial').onclick=function(){ alert('药物管理使用说明：\n\n1. 只保留「中药」一个分类，上方搜索框按拼音/中文筛选。\n2. 表格内药名按拼音 A-Z 顺序排列。\n3. 点任意单元格即在原位置修改：回车保存、Esc 取消、点别处自动保存；点「添 加」新增一味药。\n4. 填「进价」后若售价为空，点「保 存」会按利润率自动算出售价。\n5. 「保 存」会写入本机，并上传到云端数据库——手机、电脑打开都能看到最新药价。\n6. 「导出药物明细」可导出 CSV 备份。\n7. 编辑单元格时，点下方常用词可直接插入（如 g / 每日3次）。'); };
-  $('dmWords').onclick=function(e){
-    var w=e.target.closest('.w'); if(!w) return;
-    var inp=$('dmBody').querySelector('input');
-    if(!inp){ toastErr('先点一个单元格进入编辑'); return; }
-    inp.value=inp.value+w.textContent; inp.focus();
-  };
-  /* 药物详情抽屉 */
-  $('dmDetail').onclick=function(){ Drug.openDetail(); };
+  /* 药物详情抽屉（入口只保留在每行的「详情」按钮上） */
   $('ddClose').onclick=function(){ $('mDrugDetail').classList.remove('on'); };
   $('ddSave').onclick=function(){ Drug.ddSave(); };
   $('ddAddUnit').onclick=function(){ Drug.ddAddUnit(); };
