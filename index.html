@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='964ffb729f';
+  var V='ac42e51d49';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -3566,12 +3566,12 @@ body{ --navw:0px; }
           .dd-prow-nm{flex:0 0 96px;display:flex;align-items:baseline;gap:5px;
             font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap}
           .dd-prow-nm .tag{font-style:normal;font-size:10px;font-weight:500;color:var(--neutral-4)}
-          .dd-prow .dd-pin{flex:1 1 0;min-width:0}
+          .dd-prow .dd-pin>input{flex:1 1 0;min-width:0}
           .dd-prow-rate{flex:0 0 auto;display:flex;align-items:center;gap:5px}
           .dd-prow-rate>span{font-size:var(--fs-cap);color:var(--neutral-4);white-space:nowrap}
           .dd-prow-base{flex:0 0 auto;width:186px;font-size:11px;color:var(--neutral-4);
             text-align:right;white-space:nowrap}
-          .dd-prow .dd-sug{flex:0 0 32px;align-self:center;text-align:right}
+          .dd-prow .dd-sug{flex:0 0 auto;align-self:center}
           /* ---- 重要客人价格（订单成交沉淀，价格只按最近成交价展示） ---- */
           .dd-gsec{margin-top:14px;padding-top:12px;border-top:1px dashed var(--neutral-3)}
           .dd-gsec-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:9px}
@@ -3590,42 +3590,48 @@ body{ --navw:0px; }
             overflow:hidden;text-overflow:ellipsis}
           .dd-gsrc.ord{color:var(--pri-h)}
           .dd-gsrc.mn{color:#a15c07}
-          .dd-grow .dd-pin{flex:1 1 0;min-width:0;height:32px;padding:0 10px}
-          .dd-grow .dd-pin input{font-size:14px;font-weight:600}
+          .dd-grow .dd-pin>input{flex:1 1 0;min-width:0;height:32px;font-size:14px}
           .dd-grow-rate{flex:0 0 auto;display:flex;align-items:center;gap:5px}
           .dd-grow-rate>span{font-size:11px;color:var(--neutral-4);white-space:nowrap}
-          .dd-grow .dd-rate-in{width:74px;height:28px;padding:0 6px}
-          .dd-grow .dd-rate-in input{font-size:12px}
+          .dd-grow .dd-rate-in>input{width:64px;height:28px;font-size:12px}
           .dd-gact{flex:0 0 auto;display:flex;gap:1px;opacity:.5;transition:opacity .12s}
           .dd-grow:hover .dd-gact,.dd-grow:focus-within .dd-gact{opacity:1}
           .dd-gact button{border:0;background:none;padding:2px 4px;border-radius:4px;cursor:pointer;
             font-size:11px;color:var(--neutral-4);line-height:16px}
           .dd-gact button:hover{color:var(--pri);background:var(--pri-soft)}
           .dd-gempty{font-size:var(--fs-cap);color:var(--neutral-4);padding:6px 0}
-          /* 单一清晰的价格输入框：外框即输入框，¥ 前缀内置，数字等宽右对齐 */
-          .dd-pin{display:flex;align-items:center;gap:4px;height:42px;box-sizing:border-box;
-            border:1px solid var(--neutral-3);border-radius:var(--radius-input);
-            background:var(--neutral-0);padding:0 12px 0 10px;transition:border-color .15s,box-shadow .15s}
-          .dd-pin:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
-          .dd-pin .cur{flex:0 0 auto;font-size:14px;font-weight:700;color:var(--neutral-4)}
-          .dd-pin input{flex:1 1 0;min-width:0;width:100%;border:0;outline:none;background:transparent;
-            padding:0;text-align:right;font-family:var(--font-num);font-size:17px;font-weight:700;
-            font-variant-numeric:tabular-nums;letter-spacing:.01em;color:var(--neutral-title);line-height:1}
-          .dd-pin input::placeholder{color:var(--neutral-3);font-weight:500}
-          .dd-pin.bad{border-color:#e0b070;background:#fffaf0}
-          /* 弱化「建议」按钮：与输入框右端对齐、不抢视觉焦点 */
-          .dd-sug{align-self:flex-end;border:0;background:none;padding:0;cursor:pointer;
-            font-size:11px;line-height:15px;height:15px;color:var(--neutral-4)}
-          .dd-sug:hover{color:var(--pri);text-decoration:underline}
-          /* ---- 倍率小输入框（与金额框同排，不嵌套） ---- */
-          .dd-rate-in{display:flex;align-items:center;gap:4px;height:30px;box-sizing:border-box;
-            border:1px solid var(--neutral-3);border-radius:var(--radius-input);background:var(--neutral-0);
-            padding:0 8px;width:88px}
-          .dd-rate-in:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
-          .dd-rate-in span{flex:0 0 auto;font-size:12px;color:var(--neutral-4)}
-          .dd-rate-in input{flex:1 1 0;min-width:0;border:0;outline:none;background:transparent;
-            width:100%;text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;
-            font-size:14px;font-weight:600;color:var(--neutral-title)}
+          /* ---- 统一输入框：与「药品名称」完全同款 ----
+             单层边框、无 ¥/× 前缀；.dd-pin/.dd-rate-in 仅作 JS 锚点（display:contents），
+             边框直接长在 input 上，绝无「框里套框」。 */
+          .dd-pin,.dd-rate-in{display:contents}
+          .dd-pin>input,.dd-rate-in>input{
+            height:36px;box-sizing:border-box;border:1px solid var(--neutral-3);
+            border-radius:var(--radius-input);background:var(--neutral-0);
+            padding:0 10px;min-width:0;outline:none;
+            font-family:var(--font-num);font-variant-numeric:tabular-nums;
+            font-size:var(--fs-body);font-weight:600;text-align:right;
+            color:var(--neutral-title);transition:border-color .15s,box-shadow .15s}
+          .dd-pin>input:hover,.dd-rate-in>input:hover{border-color:var(--neutral-4)}
+          .dd-pin>input:focus,.dd-rate-in>input:focus{
+            border-color:var(--pri);box-shadow:0 0 0 3px rgba(22,163,74,.10)}
+          .dd-pin>input::placeholder{color:var(--neutral-3);font-weight:500}
+          .dd-pin.bad>input{border-color:#e0b070;background:#fffaf0}
+          /* 手动输入价低于「进货价 × 倍率」的建议价 → 金额橙色高亮 */
+          .dd-pin>input.low,.dd-rate-in>input.low{color:#e07b00!important}
+          .dd-prow .dd-pin>input{flex:1 1 0}
+          .dd-prow-rate>span{font-size:var(--fs-cap);color:var(--neutral-4);white-space:nowrap}
+          .dd-rate-in>input{width:64px;text-align:right}
+          /* 「建议」= 纯文字按钮。
+             ⚠ 全站有 `button:not(.pri):not(.warn)`（0,3,0 + !important）基座，
+               这里必须用同特异性且靠后的选择器盖回。 */
+          .dd-pricecard .dd-prow .dd-sug{
+            border:0!important;background:transparent!important;padding:0 2px;cursor:pointer;
+            font-size:12px;line-height:20px;color:var(--pri-deep)!important;white-space:nowrap;
+            min-height:0!important;box-shadow:none!important;transform:none!important}
+          .dd-pricecard .dd-prow .dd-sug:hover,
+          .dd-pricecard .dd-prow .dd-sug:active{
+            background:transparent!important;border-color:transparent!important;
+            box-shadow:none!important;transform:none!important;text-decoration:underline}
           /* ---- 折叠区块 ---- */
           .dd-sec{border-top:1px solid var(--neutral-2)}
           .dd-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;height:44px;
@@ -3717,19 +3723,19 @@ body{ --navw:0px; }
                 <div class="dd-prows">
                   <div class="dd-prow">
                     <div class="dd-prow-nm">零售价<em class="tag">元/g</em></div>
-                    <div class="dd-pin"><span class="cur">¥</span><input id="ddP" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
-                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span><input id="ddRateP" class="num" inputmode="decimal" autocomplete="off"></div></div>
+                    <div class="dd-pin"><input id="ddP" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><input id="ddRateP" class="num" inputmode="decimal" autocomplete="off"></div></div>
                     <button type="button" class="dd-sug" id="ddSugP" tabindex="-1">建议</button>
                   </div>
                   <div class="dd-prow">
                     <div class="dd-prow-nm">批发价<em class="tag">元/kg</em></div>
-                    <div class="dd-pin"><span class="cur">¥</span><input id="ddWp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
-                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span><input id="ddRateWp" class="num" inputmode="decimal" autocomplete="off"></div></div>
+                    <div class="dd-pin"><input id="ddWp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+                    <div class="dd-prow-rate"><span>倍率</span><div class="dd-rate-in"><input id="ddRateWp" class="num" inputmode="decimal" autocomplete="off"></div></div>
                     <button type="button" class="dd-sug" id="ddSugWp" tabindex="-1">建议</button>
                   </div>
                   <div class="dd-prow">
                     <div class="dd-prow-nm">进货价<em class="tag">元/kg</em></div>
-                    <div class="dd-pin"><span class="cur">¥</span><input id="ddBp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+                    <div class="dd-pin"><input id="ddBp" class="num" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
                     <span class="dd-prow-base">基准价 · 各价格 = 进货价 × 各自倍率</span>
                   </div>
                 </div>
@@ -8150,6 +8156,7 @@ var Drug=(function(){
     ddLoadCostLog(d.n);
     ddLoadSaleLog(d);
     ddRenderGuest(d);
+    ddMarkLow();
     $('mDrugDetail').classList.add('on');
     var body=$('mDrugDetail').querySelector('.body'); if(body) body.scrollTop=0;
     setTimeout(function(){ try{ $('ddName').focus(); }catch(e){} },60);
@@ -8237,11 +8244,45 @@ var Drug=(function(){
       $('ddWp').value=Math.round(bp*rate*1000)/1000;
       var b2=$('ddWp').closest('.dd-pin'); if(b2) b2.classList.remove('bad');
     }
+    ddMarkLow();
   }
   /* 进货价变动 → 只按各自倍率更新对应价格，互不影响 */
   function calcWholesale(){
     if(numOrNull($('ddRateWp')&&$('ddRateWp').value)!=null) applyRate('wp');
     if(numOrNull($('ddRateP')&&$('ddRateP').value)!=null)  applyRate('p');
+  }
+  /* 某行当前的建议价 = 进货价 × 该行倍率（kind: 'p' | 'wp'）；缺进货价或倍率时返回 null */
+  function ddSugOf(kind){
+    var bp=numOrNull($('ddBp')?$('ddBp').value:null);
+    if(bp==null) return null;
+    var rEl=$(kind==='p'?'ddRateP':'ddRateWp');
+    var rate=numOrNull(rEl?rEl.value:null);
+    if(rate==null) return null;
+    return (kind==='p')?Math.round(bp*rate/1000*100000)/100000   /* 元/kg → 元/g */
+                       :Math.round(bp*rate*1000)/1000;
+  }
+  /* 手动输入价 < 建议价 → 金额橙色高亮（.low），悬浮提示建议价 */
+  function ddMarkLow(){
+    var kinds=[['p','ddP'],['wp','ddWp']];
+    for(var i=0;i<kinds.length;i++){
+      var el=$(kinds[i][1]); if(!el) continue;
+      var sug=ddSugOf(kinds[i][0]), v=numOrNull(el.value);
+      var low=(v!=null&&sug!=null&&v<sug-1e-9);
+      el.classList.toggle('low',low);
+      el.title=low?('低于建议价 '+sug):'';
+    }
+    /* 客人价格行：建议价 = 批发价 ÷ 1000（未成交时默认计入的口径） */
+    var gbox=$('ddGuest'), d=drugsList[curIdx];
+    if(!gbox||!d) return;
+    var gsug=wpPerGram();
+    var pins=gbox.querySelectorAll('input[data-gp]');
+    for(var j=0;j<pins.length;j++){
+      var inp=pins[j];
+      var v=numOrNull(inp.value);
+      var low2=(v!=null&&gsug!=null&&v<gsug-1e-9);
+      inp.classList.toggle('low',low2);
+      inp.title=low2?('低于建议价 '+gsug):'';
+    }
   }
   function ddSuggest(which){
     var d=drugsList[curIdx]; if(!d) return;
@@ -8256,6 +8297,7 @@ var Drug=(function(){
     var box=$(kind==='p'?'ddP':'ddWp'); if(!box) return;
     box.value=sug;
     var b=box.closest('.dd-pin'); if(b) b.classList.remove('bad');
+    ddMarkLow();
     toast('按 进货价 ¥'+cost+' 元/kg × 倍率 '+rate+' → ¥'+sug+(kind==='p'?' 元/g':' 元/kg'));
   }
   /* ============ 重要客人价格（客人名单 + 最近成交价沉淀） ============
@@ -8330,10 +8372,10 @@ var Drug=(function(){
       h+='<div class="dd-grow" data-doc="'+esc(doc)+'">'
         +'<div class="dd-grow-nm"><b title="'+esc(doc)+'">'+esc(doc)+'</b>'
         +'<span class="dd-gsrc '+cls+'" title="元/g · '+esc(src)+'">元/g · '+esc(src)+'</span></div>'
-        +'<div class="dd-pin"><span class="cur">¥</span>'
+        +'<div class="dd-pin">'
         +'<input data-gp="'+esc(doc)+'" class="num" inputmode="decimal" autocomplete="off" value="'+(gv==null?'':gv)+'"'
         +' placeholder="'+(wpg==null?'0.00':wpg)+'"></div>'
-        +'<div class="dd-grow-rate"><span>倍率</span><div class="dd-rate-in"><span>×</span>'
+        +'<div class="dd-grow-rate"><span>倍率</span><div class="dd-rate-in">'
         +'<input data-gr="'+esc(doc)+'" class="num" inputmode="decimal" autocomplete="off" value="'+rv+'"></div></div>'
         +'<div class="dd-gact"><button type="button" data-gren="'+esc(doc)+'">改名</button>'
         +'<button type="button" data-gdel="'+esc(doc)+'">移除</button></div>'
@@ -8401,6 +8443,7 @@ var Drug=(function(){
     }
     saveDoctors();
     ddRenderGuest(d);
+    ddMarkLow();
   }
   /* 改某客人的倍率 → 只联动该客人的价格（进货价 × 倍率，元/kg → 元/g） */
   function ddGuestRateChange(doc, el){
@@ -8420,6 +8463,7 @@ var Drug=(function(){
     }
     saveDoctors();
     ddRenderGuest(d);
+    ddMarkLow();
     toast('「'+doc+'」倍率改为 '+rate+'，价格已联动更新');
   }
   function ddLoadCostLog(name){
@@ -8514,7 +8558,8 @@ var Drug=(function(){
            ddDelUnit:ddDelUnit, ddSuggest:ddSuggest, ddSave:ddSave, calcWholesale:calcWholesale,
            applyRate:applyRate, ddRenderGuest:ddRenderGuest, ddGuestAdd:ddGuestAdd,
            ddGuestRename:ddGuestRename, ddGuestDel:ddGuestDel,
-           ddGuestPriceChange:ddGuestPriceChange, ddGuestRateChange:ddGuestRateChange };
+           ddGuestPriceChange:ddGuestPriceChange, ddGuestRateChange:ddGuestRateChange,
+           ddMarkLow:ddMarkLow };
 })();
 /* ---------- 药物管理：行内编辑（inline edit） ----------
    默认每个单元格只渲染纯文本 <span>，表格里没有常驻输入框；
@@ -9551,11 +9596,18 @@ $('btnSave').onclick=function(){
   $('ddSugWp').onclick=function(){ Drug.ddSuggest('wp'); };
   $('ddSugP').onclick=function(){ Drug.ddSuggest('p'); };
   /* 进货价变动 → 按各自倍率更新对应价格；某一行倍率变动 → 只联动该行 */
-  $('ddBp').oninput=function(){ Drug.calcWholesale(); };
-  $('ddRateWp').oninput=function(){ Drug.applyRate('wp'); };
-  $('ddRateP').oninput=function(){ Drug.applyRate('p'); };
+  $('ddBp').oninput=function(){ Drug.calcWholesale(); Drug.ddMarkLow(); };
+  $('ddRateWp').oninput=function(){ Drug.applyRate('wp'); Drug.ddMarkLow(); };
+  $('ddRateP').oninput=function(){ Drug.applyRate('p'); Drug.ddMarkLow(); };
+  /* 手动改零售/批发价 → 实时判断是否低于建议价（橙色高亮） */
+  $('ddP').oninput=function(){ Drug.ddMarkLow(); };
+  $('ddWp').oninput=function(){ Drug.ddMarkLow(); };
   /* 重要客人价格：名单增删改 + 价格/倍率编辑 */
   $('ddGuestAdd').onclick=function(){ Drug.ddGuestAdd(); };
+  /* 客人价格手动输入时实时判断是否低于建议价（失焦才落库，输入中只做高亮） */
+  $('ddGuest').addEventListener('input', function(e){
+    if(e.target.getAttribute('data-gp')){ Drug.ddMarkLow(); }
+  });
   $('ddGuest').addEventListener('change', function(e){
     var gp=e.target.getAttribute('data-gp');
     var gr=e.target.getAttribute('data-gr');
