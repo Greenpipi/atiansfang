@@ -8257,8 +8257,15 @@ var Drug=(function(){
     }
     return null;
   }
-  /* 该客人这味药的倍率（存 DOCTORS[doc].rates[药名]；缺省跟随批发倍率） */
+  /* 该客人这味药的倍率：有实际成交价时显示「实际价 ÷ 进货价」的有效倍率（与金额一致），
+     没有价格才用存过的倍率，再没有就跟随批发倍率 */
   function ddGuestRate(doc, d){
+    var bp=numOrNull($('ddBp')?$('ddBp').value:null);
+    if(bp==null) bp=numOrNull(d.bp);
+    var p=ddDocGp(doc,d);
+    if(bp && p!=null && p!=='' && !isNaN(parseFloat(p))){
+      return Math.round(parseFloat(p)*1000/bp*10000)/10000;
+    }
     var o=DOCTORS[doc], k=ddGuestKey(d);
     if(o && o.rates){ var v=numOrNull(o.rates[k]); if(v!=null) return v; }
     return rateOf('wp', d);
