@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='686a59369c';
+  var V='2976fbbeb5';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -5825,6 +5825,7 @@ var SUPA={
   key:'sb_publishable_22DqGTvSYu2QjtMq53fB4Q_QiF9wITb'
 };
 SUPA.on=true;          /* 连通后置 true */
+SUPA.drugsPulled=false; /* 云端药价是否已拉回来；true 之后才允许整表上传（防止本机旧目录冲掉云端）*/
 SUPA.hdr=function(){
   return {'apikey':SUPA.key,'Authorization':'Bearer '+SUPA.key,'Content-Type':'application/json'};
 };
@@ -6033,6 +6034,7 @@ SUPA.loadDrugs=function(noSave){
     }
     drugsList=_ord.filter(Boolean);
     if(noSave){ buildIndex(); } else { saveDrugsLS(); }
+    SUPA.drugsPulled=true;          /* 放闸：之后才允许整表上传回云端 */
     return drugsList.length;
   });
 };
@@ -7689,6 +7691,14 @@ function supaPushDrugs(){
     if(RX_DRUG_FLOOR && n<RX_DRUG_FLOOR){
       console.warn('⛔ 药价仅 '+n+' 味 < 安全下限 '+RX_DRUG_FLOOR+'，跳过整表上传（保护云端）');
       supaSaveFail('药价数量异常（'+n+' 味），已跳过上传以保护云端数据');
+      return;
+    }
+    /* 🔴 云端药价必须先拉回来，才允许整表上传（2026-10-30 加）：
+       否则一打开旧页面 / 缓存页，本机那份**没有进货价**的旧目录就会被整表 upsert 回去，
+       把云端的 cost（进货价）全冲成 null，甚至把列错位的值写进去（列定义改版时必然错位）。
+       判据：SUPA.on=true 且尚未 loadDrugs 成功 → 一律不上传，只在本机落盘。 */
+    if(SUPA.on && !SUPA.drugsPulled){
+      console.warn('⛔ 云端药价尚未拉取完成，跳过整表上传（保护云端数据）');
       return;
     }
     var doc='';
