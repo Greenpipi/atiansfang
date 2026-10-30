@@ -736,9 +736,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 }
 .dm-page .dmtable tr.dm-addrow:hover td{ background:#fafbf8; }
 .dm-page .dmtable tr.dm-addrow .dm-addspec{
+  position:sticky; left:10px;              /* 横向滚动时也贴着左边，不会被冻结的名称列挡住 */
   height:23px!important; min-height:0!important; padding:0 10px!important;
   font-size:11.5px!important; font-weight:400!important; line-height:1;
-  color:#5f8a6d!important; background:transparent!important;
+  color:#5f8a6d!important; background:#fcfcfa!important;
   border:1px dashed #cfd8cf!important; border-radius:7px!important; cursor:pointer;
 }
 .dm-page .dmtable tr.dm-addrow .dm-addspec:hover{
@@ -3846,7 +3847,8 @@ body{ --navw:0px; }
           .pur-hint{font-size:11px;line-height:1.5;margin-top:3px;color:#b5462f}
           /* 加工品（炒山药…）：进货单价下方的「带入生品进价」小按钮 */
           .pur-prod{
-            display:block;margin-top:5px;height:22px!important;min-height:0!important;padding:0 7px!important;
+            display:block;margin-top:5px;height:22px!important;min-height:0!important;padding:0 5px!important;
+            white-space:nowrap;
             font-size:11px!important;font-weight:400!important;line-height:1;
             color:var(--pri-deep,#15803d)!important;background:#f2fbf5!important;
             border:1px solid var(--pri-line,#c7e7d3)!important;border-radius:6px!important;cursor:pointer;
@@ -6443,6 +6445,9 @@ SUPA.loadDrugs=function(noSave){
       }else{ _map[it.n]=it; _ord.push(it); }
     }
     drugsList=_ord.filter(Boolean);
+    /* 一药多规格：云端没有 stock 列，库存只存在 units jsonb 里 →
+       主规格库存要从「同单位镜像」回读（dmNormalizeSpecs 里做），顺便清掉空/重复单位。 */
+    for(var q2=0;q2<drugsList.length;q2++){ if(drugsList[q2]) dmNormalizeSpecs(drugsList[q2]); }
     if(noSave){ buildIndex(); } else { saveDrugsLS(); }
     SUPA.drugsPulled=true;          /* 放闸：之后才允许整表上传回云端 */
     return drugsList.length;
@@ -8841,7 +8846,7 @@ var Drug=(function(){
         +'<input class="u-num" data-f="cost" placeholder="进货价" value="'+(u.cost==null?'':u.cost)+'">'
         +'<input class="u-num" data-f="retail" placeholder="零售价" value="'+(u.retail==null?'':u.retail)+'">'
         +'<input class="u-num" data-f="daily" placeholder="日常价" value="'+(u.daily==null?'':u.daily)+'">'
-        +'<span class="xu" data-del="'+i+'">✕</span></div>';
+        +'<span class="xu" data-del="'+i+'" data-u="'+esc(u.unit||'')+'">✕</span></div>';
     }
     $('ddUnits').innerHTML=h||'<div class="dd-empty">暂无其它规格，点下方「+ 添加单位」。</div>';
   }
@@ -8878,7 +8883,17 @@ var Drug=(function(){
     d.un=units;
   }
   function ddAddUnit(){ ddSyncUnits(); var d=drugsList[curIdx]; (d.un=d.un||[]).push({unit:'',stock:'',cost:'',retail:'',daily:''}); ddRenderUnits(d.un); }
-  function ddDelUnit(i){ ddSyncUnits(); var d=drugsList[curIdx]; if(d.un&&d.un.length>i){ d.un.splice(i,1); ddRenderUnits(d.un); } }
+  /* 按单位名删（ddSyncUnits 会把主单位镜像挪到末尾，用旧下标可能删错行） */
+  function ddDelUnit(i, unit){
+    ddSyncUnits();
+    var d=drugsList[curIdx]; if(!d||!Array.isArray(d.un)) return;
+    var k=-1;
+    if(unit!=null && unit!==''){
+      for(var q=0;q<d.un.length;q++){ if(String((d.un[q]||{}).unit||'')===String(unit)){ k=q; break; } }
+    }
+    if(k<0) k=i;
+    if(d.un&&d.un.length>k){ d.un.splice(k,1); ddRenderUnits(d.un); }
+  }
   function latestCost(d){
     /* 主单位成本优先：主价（日常价/零售价）按主单位计，应取主单位进货价。
        bp 即主单位成本；其次取与主单位同名的单位成本；都没有再退而取最高单位成本。 */
@@ -9389,9 +9404,9 @@ function dmCommit(td,tr){
     if(f==='bp' && v!==''){
       var bpv=parseFloat(v), rr=dmWpRate(d);
       var nwp=Math.round(bpv*rr*1000)/1000;
-      dmCellSet(d,'wp',s,nwp);
+      dmCellSet(d,'wp',s,String(nwp));
       var sp0=dmSpecAt(d,s);
-      if(sp0){ sp0.sg=Math.round(bpv*rr*100)/100; }   /* 子规格：快照写在自己那条上 */
+      if(sp0){ sp0.sg=String(Math.round(bpv*rr*100)/100); }   /* 子规格：快照写在自己那条上 */
       else { dmSetSuggest(d, bpv); }
       if(!d.rates||typeof d.rates!=='object') d.rates={};
       d.rates.wp=Math.round(rr*10000)/10000;
@@ -10366,7 +10381,18 @@ $('btnSave').onclick=function(){
   /* 顶部「删除」= 删掉当前选中行；行内每行也有独立的「删除」 */
   $('dmDel').onclick=function(){ dmDelByIdx(selDrugRow); };
   $('dmExpDrug').onclick=function(){ download('药物明细.csv', toCSV(drugsList,['n','c','u','tc','py','dw','cat','bp','wp','p','st']), 'text/csv'); };
-  $('dmExpStock').onclick=function(){ download('库存.csv', toCSV(drugsList,['n','st']), 'text/csv'); };
+  $('dmExpStock').onclick=function(){
+    /* 一药多规格 → 按规格逐条导出（只导 d.st 会把 盒 / 个 的库存漏掉） */
+    var rows=[];
+    for(var i=0;i<drugsList.length;i++){
+      var d=drugsList[i]; if(!d||!d.n) continue;
+      var sp=dmSpecsOf(d);
+      for(var j=0;j<sp.length;j++){
+        rows.push({n:d.n, u:sp[j].unit, st:(sp[j].st==null?'':sp[j].st), og:d.og||''});
+      }
+    }
+    download('库存.csv', toCSV(rows,['n','u','st','og']), 'text/csv');
+  };
   /* 药物详情抽屉（入口只保留在每行的「详情」按钮上） */
   $('ddClose').onclick=function(){ $('mDrugDetail').classList.remove('on'); };
   $('ddSave').onclick=function(){ Drug.ddSave(); };
@@ -10433,7 +10459,7 @@ $('btnSave').onclick=function(){
   })();
   $('ddUnits').onclick=function(e){
     var x=e.target.closest('.xu'); if(!x) return;
-    Drug.ddDelUnit(+x.getAttribute('data-del'));
+    Drug.ddDelUnit(+x.getAttribute('data-del'), x.getAttribute('data-u'));
   };
 
   /* 价格清单 */
@@ -12508,7 +12534,7 @@ var Purchase = (function(){
       uu.cost=cost;
       if(chg || uu.wp==null || uu.wp===''){
         var rr=dmWpRate(d);
-        if(isFinite(rr) && isFinite(newC)){ uu.wp=String(Math.round(newC*rr*1000)/1000); uu.sg=Math.round(newC*rr*100)/100; }
+        if(isFinite(rr) && isFinite(newC)){ uu.wp=String(Math.round(newC*rr*1000)/1000); uu.sg=String(Math.round(newC*rr*100)/100); }
       }
     }
     saveDrugsLS();
