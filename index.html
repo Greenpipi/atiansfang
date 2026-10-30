@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='9662a7ef98';
+  var V='2cd7d6c122';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -278,7 +278,7 @@ function injectActionIcons(){
        2026-07 用户嫌线条粗 → 换 imgLite / printLite 细线条专用版（见 RX_ICONS 末尾） */
     plShot:'imgLite',
     btnNew:'plus', dmAdd:'plus', docAdd:'plus',
-    dmSave:'save', setSave:'save',
+    dmSave:'save',
     plAuto:'calc',
     dmDel:'trash', dmWipe:'trash',
     plFa:'send'
@@ -3548,8 +3548,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-act button.pri{ background:var(--pri); border-color:var(--pri); color:#fff; }
 .gst-act button.danger{ color:var(--danger,#c0392b); border-color:var(--danger-line,#f0c2b8); background:var(--danger-soft,#fff2ee); }
 .gst-empty-row{ padding:34px; text-align:center; color:var(--neutral-4); font-size:13px; }
-.gst-modal-actions{ margin-top:18px; display:flex; justify-content:flex-end; gap:10px; }
-.gst-modal-actions .btn{ min-height:36px; }
 @media (max-width:980px){
   .gst-wrap{ flex-direction:column; }
   .gst-left{ flex:0 0 260px; width:auto; }
@@ -4104,8 +4102,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <div class="wp-mh">粘贴药方文本制表 <button class="x" type="button" onclick="WPlan.closeModal('wpTextModal')">×</button></div>
             <div class="wp-mb">
               <textarea id="wpText" class="wp-ta" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别药名 / 数量 / 单位 / 煎煮法"></textarea>
-              <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">生成表格行</button></div>
             </div>
+            <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">生成表格行</button></div>
           </div>
         </div>
         <!-- 批量结款：生成的结款明细图片（可复制 / 下载，发客户核对付款） -->
@@ -4758,10 +4756,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           </select>
         </div>
       </div>
-      <div class="gst-modal-actions">
-        <button class="btn" type="button" data-close>取消</button>
-        <button class="btn pri" type="button" onclick="Guest.createCustomer()">保存并打开</button>
-      </div>
+    </div>
+    <div class="foot">
+      <button class="btn" type="button" data-close>取消</button>
+      <button class="btn pri" type="button" onclick="Guest.createCustomer()">保存并打开</button>
     </div>
   </div>
 </div>
@@ -4778,10 +4776,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <div class="gst-hint" id="gstCfHint">保存后可在「常用方」中一键复用，自动跳转到药方打印页。</div>
         </div>
       </div>
-      <div class="gst-modal-actions">
-        <button class="btn" type="button" data-close>取消</button>
-        <button class="btn pri" type="button" onclick="Guest.saveCommon()">保存常用方</button>
-      </div>
+    </div>
+    <div class="foot">
+      <button class="btn" type="button" data-close>取消</button>
+      <button class="btn pri" type="button" onclick="Guest.saveCommon()">保存常用方</button>
     </div>
   </div>
 </div>
@@ -4912,14 +4910,21 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
   padding:24px 60px!important;
   flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important;
 }
-/* 底部操作条：左右与内容区对齐，按钮靠右 */
+/* 底部操作条：全站弹窗统一一套（基准 =「设置」弹窗）
+   浅灰底 + 上分隔线 + 左右 60px 边距；按钮一律靠右、纯文字
+   三种弹窗外壳（.dlg / .wp-mw / .pur-mw）的 footer 都走这一条规则 */
 .modal>.dlg>.foot,
+.modal>.wp-mw>.wp-mb-actions,
 .modal>.pur-mw>.pur-ma{
+  margin:0!important;
   padding:16px 60px!important;flex:0 0 auto;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;
   background:var(--neutral-1)!important;border-top:1px solid var(--neutral-2)!important;
 }
-.modal>.wp-mw>.wp-mb>.wp-mb-actions{padding:0!important;margin-top:16px}
+/* footer 操作按钮只留纯文字：注入的图标一律不显示 */
+.modal>.dlg>.foot button .rxi,
+.modal>.wp-mw>.wp-mb-actions button .rxi,
+.modal>.pur-mw>.pur-ma button .rxi{display:none!important}
 /* 头部：60px 高、17px 标题、浅色底 —— 三种弹窗外壳统一成一套 */
 .modal>.dlg>header,
 .modal>.wp-mw>.wp-mh,
