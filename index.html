@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='700215dbf5';
+  var V='38a478e145';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -701,10 +701,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
   background:#f1f2ef!important; border:none!important; border-bottom:1px solid #e3e4e1!important;
   white-space:nowrap; letter-spacing:.02em;
 }
-.dm-page .dmtable thead th.c-money{ text-align:right!important; }
-.dm-page .dmtable thead th.c-st{ text-align:right!important; }
-.dm-page .dmtable tbody td.c-st{ text-align:right!important; }
-.dm-page .dmtable tbody td.c-st>span{ text-align:right!important; }
+/* 表头：除「药物名称」（靠左）/「操作」（靠右）外，其余列一律水平居中（2026-10-30 用户要求） */
+.dm-page .dmtable thead th.c-amt,
+.dm-page .dmtable thead th.c-u,
+.dm-page .dmtable thead th.c-money,
+.dm-page .dmtable thead th.c-st,
+.dm-page .dmtable thead th.c-og{ text-align:center!important; }
 .dm-page .dmtable thead th.c-act{ text-align:right!important; }
 .dm-page .dmtable tbody td{
   height:44px; padding:0 14px!important; border:none!important;
@@ -720,8 +722,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
   text-align:left!important; font-variant-numeric:tabular-nums;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.dm-page .dmtable tbody td.c-money{ text-align:right!important; }
-.dm-page .dmtable tbody td.c-money>span{ text-align:right!important; color:var(--neutral-title); }
+/* 数据单元格：与表头同列同向 —— 名称靠左、操作靠右，其余（常用量 / 单位规格 / 三个价 / 建议价 / 库存 / 产地）居中。
+   列表里的单价属于「同类数值按列对齐」，居中后纵向依然成列，可读性靠等宽数字保证。 */
+.dm-page .dmtable tbody td.c-amt,
+.dm-page .dmtable tbody td.c-u,
+.dm-page .dmtable tbody td.c-money,
+.dm-page .dmtable tbody td.c-st,
+.dm-page .dmtable tbody td.c-og{ text-align:center!important; }
+.dm-page .dmtable tbody td.c-amt>span,
+.dm-page .dmtable tbody td.c-u>span,
+.dm-page .dmtable tbody td.c-money>span,
+.dm-page .dmtable tbody td.c-st>span,
+.dm-page .dmtable tbody td.c-og>span{ text-align:center!important; }
+.dm-page .dmtable tbody td.c-money>span{ color:var(--neutral-title); }
 /* 零售价 / 批发价 加粗显示（最重要的两个成交价）；批发价低于建议价 → 橙色加粗提醒 */
 .dm-page .dmtable tbody td.c-bold>span{ font-weight:700; }
 .dm-page .dmtable tbody td.c-low>span{ color:#e07b00!important; font-weight:700; }
@@ -734,7 +747,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
   padding:0 9px!important; font-family:inherit; font-size:13px; font-weight:400;
   text-align:left!important; outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14);
 }
-.dm-page .dmtable td.dm-editing.c-money>input{ text-align:right!important; }
+/* 编辑态输入框跟随该列对齐方式，避免「显示居中、一点就变靠右」的跳变 */
+.dm-page .dmtable td.dm-editing.c-money>input,
+.dm-page .dmtable td.dm-editing.c-amt>input,
+.dm-page .dmtable td.dm-editing.c-st>input,
+.dm-page .dmtable td.dm-editing.c-og>input{ text-align:center!important; }
 .dm-page .dmtable td.dm-editing>input:focus{ box-shadow:0 0 0 3px rgba(52,192,106,.22); }
 /* 每行自带「详情 / 删除」 */
 .dm-page .dmtable td.c-act{ text-align:right!important; }
@@ -765,11 +782,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dm-page .dmtable tbody tr.dm-hov td.c-nm{ background:#f3f6f3; }
 .dm-page .dmtable tbody tr.sel td,
 .dm-page .dmtable tbody tr.sel td.c-nm{ background:var(--n-white); }
-/* 单位列：子规格缩进 + 悬停出现「×删这个规格」 */
-.dm-page .dmtable td.c-u>span{ display:flex; align-items:center; gap:4px; }
-.dm-page .dmtable tr.dm-subrow td.c-u>span{ padding-left:9px; }
+/* 单位列：水平居中；子规格不再左侧缩进（居中后缩进会整体偏右，反而变歪）。
+   「× 删这个规格」改成绝对定位贴在格子右边缘，这样悬停出现/消失时单位文字不会左右跳。 */
+.dm-page .dmtable td.c-u>span{ display:flex; align-items:center; justify-content:center; gap:4px; position:relative; }
+.dm-page .dmtable tr.dm-subrow td.c-u>span{ padding-left:0; }
 .dm-page .dmtable td.c-u .dm-specdel{
-  display:none; flex:0 0 auto; width:14px; height:14px; line-height:12px; text-align:center;
+  display:none; position:absolute; right:0; top:50%; transform:translateY(-50%);
+  width:14px; height:14px; line-height:12px; text-align:center;
   font-size:11px; font-weight:400; color:#b0442f; background:#fdf0ed;
   border:1px solid #eccbc2; border-radius:50%; cursor:pointer;
 }
