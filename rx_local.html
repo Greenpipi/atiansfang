@@ -3303,6 +3303,38 @@ body{ --navw:0px; }
 .wp-c-dish .sub{ display:block; font-size:11px; color:var(--neutral-4); font-weight:400; }
 .wp-c-act button{ margin-left:6px; }
 .wp-c-act button:first-child{ margin-left:0; }
+/* ===== 2026-10-31 分段控制器 / 搜索清除 / 小订单加工配送 ===== */
+.wp-seg{ position:relative; display:inline-flex; padding:3px; background:var(--neutral-1);
+  border:1px solid var(--neutral-2); border-radius:var(--r-pill); }
+.wp-seg-thumb{ position:absolute; top:3px; left:3px; bottom:3px;
+  width:calc((100% - 6px) / var(--seg-n,2)); border-radius:var(--r-pill);
+  background:var(--n-white); border:1px solid var(--pri-line);
+  box-shadow:0 1px 3px rgba(21,163,74,.18);
+  transform:translateX(calc(var(--seg-i,0) * 100%));
+  transition:transform .24s cubic-bezier(.4,0,.2,1); }
+.wp-seg-btn{ position:relative; z-index:1; flex:1 1 0; min-width:76px; height:30px; padding:0 14px;
+  border:none; background:transparent; color:var(--neutral-6); font-size:13px; font-family:inherit;
+  border-radius:var(--r-pill); cursor:pointer; transition:color .18s; white-space:nowrap; }
+.wp-seg-btn.on{ color:var(--pri-deep); font-weight:700; }
+.wp-seg-btn:hover{ color:var(--pri-h); }
+.wp-list-bar .wp-view-tabs{ margin-left:2px; }
+/* 搜索框清除按钮：红色圆形 X */
+.sch-wrap{ position:relative; display:flex; align-items:center; min-width:0; }
+.sch-wrap>input{ flex:1 1 auto; min-width:0; padding-right:32px!important; }
+.sch-x{ position:absolute; right:7px; top:50%; transform:translateY(-50%); width:18px; height:18px;
+  padding:0; border:none; border-radius:50%; background:#e34d59; color:#fff; display:none;
+  align-items:center; justify-content:center; cursor:pointer; box-shadow:0 1px 2px rgba(227,77,89,.35); }
+.sch-wrap.has .sch-x{ display:flex; }
+.sch-x svg{ width:8px; height:8px; display:block; }
+/* 小订单独立配置 */
+.wp-block-head{ flex-wrap:wrap; }
+.wp-bi{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--neutral-5); white-space:nowrap; }
+.wp-bi .bi-in{ height:26px; box-sizing:border-box; border:1px solid var(--neutral-3);
+  border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-title);
+  font-size:12px; padding:0 8px; }
+.wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:4px; cursor:pointer; }
+.wp-bi input.bi-in{ width:126px; }
+.wp-field-dish .wp-in{ min-width:260px; width:280px; }
 /* 计划分组 */
 .wp-plan-row{ display:grid; grid-template-columns:1fr 96px 120px 96px; align-items:center; gap:12px;
   padding:12px 16px; border-bottom:1px solid var(--neutral-2); cursor:pointer; }
@@ -3335,6 +3367,53 @@ body{ --navw:0px; }
 .wp-pay-body{ display:flex; align-items:center; justify-content:center; padding:12px;
   background:var(--neutral-1); border-radius:12px; min-height:180px; }
 .wp-pay-body img{ display:block; max-width:100%; height:auto; box-shadow:var(--shadow-1); border-radius:6px; }
+/* ===== 自建日历（2026-10-31：全站替换浏览器原生日期控件，品牌绿） ===== */
+.cal-input{ cursor:pointer; caret-color:transparent; }
+.cal-input[readonly]{ background:var(--n-white)!important; color:var(--neutral-title)!important; }
+.cal-input:hover{ border-color:var(--pri)!important; }
+.cal-pop{ position:fixed; z-index:2100; width:312px; max-width:calc(100vw - 20px);
+  animation:calIn .18s ease; font-family:var(--font-ui,"PingFang SC","Microsoft YaHei",sans-serif); }
+@keyframes calIn{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.cal-card{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:14px; padding:13px 13px 9px;
+  box-shadow:0 12px 32px rgba(15,23,42,.16); }
+.cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+.cal-title{ font-weight:800; font-size:15.5px; color:var(--neutral-title); letter-spacing:.2px;
+  background:transparent; border:0; padding:4px 8px; border-radius:9px; cursor:pointer;
+  transition:background .12s,color .12s; font-family:inherit; }
+.cal-title:hover{ background:var(--pri-soft); color:var(--pri-deep); }
+.cal-title-static{ cursor:default; }
+.cal-title-static:hover{ background:transparent; color:var(--neutral-title); }
+.cal-nav{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  color:var(--neutral-5); border:0; background:transparent; cursor:pointer; padding:0; }
+.cal-nav:hover{ background:var(--pri-soft); color:var(--pri-deep); }
+.cal-nav svg{ width:17px; height:17px; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+.cal-wd{ font-size:11.5px; font-weight:700; color:var(--neutral-6); text-align:center; padding:3px 0 6px; }
+.cal-cell{ height:35px; border:1px solid var(--neutral-2); border-radius:8px; background:var(--n-white);
+  font-size:12.5px; font-weight:600; color:var(--neutral-6); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums;
+  font-family:inherit; padding:0;
+  transition:border-color .12s,background .12s,color .12s; }
+.cal-cell:hover{ border-color:var(--pri); color:var(--pri-deep); }
+.cal-cell.out{ color:var(--neutral-4); font-weight:500; }
+.cal-cell.today{ background:var(--pri); border-color:var(--pri); color:#fff; }
+.cal-cell.sel{ background:var(--pri); border-color:var(--pri); color:#fff; box-shadow:0 0 0 2px rgba(21,163,74,.25); }
+.cal-mgrid,.cal-ygrid{ display:grid; gap:6px; }
+.cal-mgrid{ grid-template-columns:repeat(3,1fr); }
+.cal-ygrid{ grid-template-columns:repeat(4,1fr); }
+.cal-mcell,.cal-ycell{ border:1px solid var(--neutral-2); border-radius:9px; background:var(--n-white);
+  font-size:13px; font-weight:600; color:var(--neutral-6); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-family:inherit; padding:0;
+  transition:border-color .12s,background .12s,color .12s; }
+.cal-mcell{ height:42px; }
+.cal-ycell{ height:38px; font-size:12.5px; font-variant-numeric:tabular-nums; }
+.cal-mcell:hover,.cal-ycell:hover{ border-color:var(--pri); color:var(--pri-deep); background:var(--pri-soft); }
+.cal-mcell.sel,.cal-ycell.sel{ background:var(--pri); border-color:var(--pri); color:#fff; box-shadow:0 0 0 2px rgba(21,163,74,.25); }
+.cal-foot{ display:flex; justify-content:center; gap:6px; padding-top:7px; }
+.cal-today-btn{ font-size:12px; font-weight:700; color:var(--pri-deep); background:transparent; border:0;
+  padding:4px 12px; border-radius:999px; cursor:pointer; font-family:inherit;
+  transition:background .12s; }
+.cal-today-btn:hover{ background:var(--pri-soft); }
 /* 卡片式列表条目（进货单列表用；原来只有 class 没有样式，是裸文本） */
 .wp-card{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card);
   padding:12px 16px; margin-bottom:10px; box-shadow:var(--shadow-1);
@@ -3363,10 +3442,11 @@ body{ --navw:0px; }
   border-radius:10px; padding:0 34px 0 12px; font-size:13px; font-family:inherit;
   background:var(--n-white); color:var(--neutral-title); }
 .gst-search input:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
-.gst-clear{ position:absolute; right:6px; top:50%; transform:translateY(-50%); width:24px; height:24px;
-  border:none; border-radius:50%; background:transparent; color:var(--neutral-4); font-size:16px;
-  line-height:22px; text-align:center; padding:0; cursor:pointer; display:none; }
-.gst-clear:hover{ background:var(--neutral-1); color:var(--neutral-6); }
+.gst-clear{ position:absolute; right:8px; top:50%; transform:translateY(-50%); width:18px; height:18px;
+  border:none; border-radius:50%; background:#e34d59; color:#fff; font-size:11px; font-weight:700;
+  line-height:18px; text-align:center; padding:0; cursor:pointer; display:none;
+  box-shadow:0 1px 2px rgba(227,77,89,.35); }
+.gst-clear:hover{ background:#d13b46; color:#fff; }
 .gst-search.has-val .gst-clear{ display:block; }
 .gst-add-btn{ width:100%; height:38px; }
 .gst-list{ flex:1 1 auto; min-height:0; overflow:auto; padding:8px; }
@@ -3828,15 +3908,17 @@ body{ --navw:0px; }
             <div class="wp-subpane" id="wpSubList">
               <div class="wp-list">
                 <div class="wp-list-bar">
-                  <input id="wpListSearch" class="wp-search" placeholder="搜索 客人 / 药膳名 / 时间 / 状态" oninput="WPlan.setSearch(this.value)">
-                  <div class="wp-tabs">
-                    <button class="wp-tab on" type="button" data-f="all" onclick="WPlan.setFilter('all')">全部</button>
-                    <button class="wp-tab" type="button" data-f="done" onclick="WPlan.setFilter('done')">已发</button>
-                    <button class="wp-tab" type="button" data-f="undone" onclick="WPlan.setFilter('undone')">未发</button>
+                  <input id="wpListSearch" class="wp-search sch" placeholder="搜索 客人 / 订单名称 / 时间 / 状态" oninput="WPlan.setSearch(this.value)">
+                  <div class="wp-seg" id="wpSegStatus">
+                    <span class="wp-seg-thumb"></span>
+                    <button class="wp-seg-btn on" type="button" data-f="all" onclick="WPlan.setFilter('all')">全部状态</button>
+                    <button class="wp-seg-btn" type="button" data-f="done" onclick="WPlan.setFilter('done')">已发药</button>
+                    <button class="wp-seg-btn" type="button" data-f="undone" onclick="WPlan.setFilter('undone')">未发药</button>
                   </div>
-                  <div class="wp-tabs wp-view-tabs">
-                    <button class="wp-tab on" type="button" data-v="flat" onclick="WPlan.setView('flat')">全部单据</button>
-                    <button class="wp-tab" type="button" data-v="plan" onclick="WPlan.setView('plan')">按计划分组</button>
+                  <div class="wp-seg wp-view-tabs" id="wpSegView">
+                    <span class="wp-seg-thumb"></span>
+                    <button class="wp-seg-btn on" type="button" data-v="flat" onclick="WPlan.setView('flat')">全部单据</button>
+                    <button class="wp-seg-btn" type="button" data-v="plan" onclick="WPlan.setView('plan')">按计划分组</button>
                   </div>
                   <span class="wp-list-count" id="wpListCount"></span>
                 </div>
@@ -3853,14 +3935,14 @@ body{ --navw:0px; }
                 <b class="wp-detail-title" id="wpDetailTitle">订单详情</b>
                 <span class="wp-detail-no" id="wpDetailNo"></span>
                 <span class="spacer"></span>
-                <label class="wp-ck"><input type="checkbox" id="wpSaveCommon" onchange="WPlan.setSaveCommon(this.checked)">存为常用方</label>
+                <button class="btn" type="button" onclick="WPlan.exportOrderImage()">生成表格图片</button>
                 <button class="btn" type="button" onclick="WPlan.printCur()">打印本单</button>
                 <button class="btn danger" type="button" onclick="WPlan.delOrder()">删除本单</button>
               </div>
               <div class="wp-detail-body">
                 <div class="wp-order">
                   <div class="wp-order-row">
-                    <div class="wp-field wp-req"><label>药膳名字 *</label><input id="wpDish" class="wp-in" placeholder="必填，如 四物汤 / 水丸" oninput="WPlan.setDish(this.value)"></div>
+                    <div class="wp-field wp-req wp-field-dish"><label>订单名称 *</label><input id="wpDish" class="wp-in" placeholder="必填，如 四物汤 / 水丸" oninput="WPlan.setDish(this.value)"></div>
                     <div class="wp-field wp-req"><label>日期 *</label><input id="wpDate" class="wp-in" type="date" onchange="WPlan.setDate(this.value)"></div>
                     <div class="wp-field wp-req"><label>付数 *</label><input id="wpDoses" class="wp-in wp-in-num" type="number" min="1" step="1" value="1" oninput="WPlan.setOrderDoses(this.value)"></div>
                     <div class="wp-field"><label>客人 / 医生</label><input id="wpGuest" class="wp-in" list="wpGuestList" placeholder="选择或输入客人" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
@@ -4038,7 +4120,7 @@ body{ --navw:0px; }
             <div class="wp-subpane" id="purSubList">
               <div class="wp-list">
                 <div class="wp-list-bar">
-                  <input id="purSearch" class="wp-search" placeholder="搜索 单号 / 供应商 / 日期" oninput="Purchase.setSearch(this.value)">
+                  <input id="purSearch" class="wp-search sch" placeholder="搜索 单号 / 供应商 / 日期" oninput="Purchase.setSearch(this.value)">
                 </div>
                 <div id="purList" class="wp-list-body"></div>
               </div>
@@ -4592,7 +4674,7 @@ body{ --navw:0px; }
                   <div class="gst-pane" id="gstPaneCommon" style="display:none">
                     <div class="gst-pane-tools">
                       <button class="btn pri" type="button" onclick="Guest.newCommon()">+ 新建常用方</button>
-                      <input class="gst-mini-search" id="gstCommonSearch" placeholder="搜索方名 / 药名" oninput="Guest.renderCommon()">
+                      <input class="gst-mini-search sch" id="gstCommonSearch" placeholder="搜索方名 / 药名" oninput="Guest.renderCommon()">
                       <span class="gst-tool-hint" id="gstCommonCount"></span>
                     </div>
                     <div class="gst-table-wrap" id="gstCommonList"></div>
@@ -4750,6 +4832,17 @@ body{ --navw:0px; }
         <div class="set-sfxlist" id="setSfxList"></div>
       </section>
 
+      <!-- 加工方式：订单详情里每个小订单的下拉直接读这一份，单价 × 数量计入总价 -->
+      <section class="set-sec">
+        <div class="set-hd">
+          <span class="set-t">加工方式</span>
+          <span class="set-hint">名称 / 规格 / 单价 / 数量（下单选择后自动计入总价）</span>
+          <span class="spacer"></span>
+          <button type="button" class="mini" id="setProcAdd">＋ 添加加工方式</button>
+        </div>
+        <div class="set-proclist" id="setProcList"></div>
+      </section>
+
     </div>
     <div class="foot">
       <span class="set-hint">数据存云端，换设备打开同一链接即可，无需本地备份</span>
@@ -4887,6 +4980,23 @@ body{ --navw:0px; }
 .set-sfxrow .s-del:hover{color:var(--danger)!important;border-color:var(--danger-line)!important;
   background:var(--danger-soft)!important}
 .set-sfxempty{font-size:var(--fs-cap);color:var(--neutral-4);padding:6px 0}
+/* 加工方式配置（2026-10-31） */
+.set-proclist{display:flex;flex-direction:column;gap:8px}
+.set-procrow{display:flex;align-items:center;gap:8px}
+.set-procrow input{height:34px;box-sizing:border-box;
+  border:1px solid var(--neutral-3);border-radius:var(--radius-input);padding:0 10px;
+  font-family:var(--font-ui);font-size:var(--fs-cap);color:var(--neutral-ink);
+  background:var(--neutral-0);outline:none;min-width:0}
+.set-procrow input:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(21,163,74,.10)!important}
+.set-procrow .p-n{flex:1 1 0}
+.set-procrow .p-s{flex:0 0 110px;width:110px}
+.set-procrow .p-p,.set-procrow .p-q{flex:0 0 84px;width:84px;text-align:center;font-variant-numeric:tabular-nums}
+.set-procrow .p-del{flex:0 0 auto;width:28px;height:28px!important;min-height:0!important;
+  padding:0!important;font-size:11px!important;line-height:1;
+  border:1px solid var(--neutral-2)!important;border-radius:6px!important;
+  background:var(--neutral-0)!important;color:var(--neutral-4)!important;cursor:pointer}
+.set-procrow .p-del:hover{color:var(--danger)!important;border-color:var(--danger-line)!important;
+  background:var(--danger-soft)!important}
 
 /* ---------------- ③ 滚动条：2px 主题绿，滚动时显现 ---------------- */
 ::-webkit-scrollbar{width:2px!important;height:2px!important}
@@ -10851,6 +10961,7 @@ function loadSet(){
   if(SET.rxBold===undefined) SET.rxBold=false;
   if(SET.rxLh==null||!(n(SET.rxLh)>0)) SET.rxLh=1.6;
   if(SET.showPrice===undefined) SET.showPrice=true;
+  if(!Array.isArray(SET.proc)) SET.proc=[];
 }
 /* 打开设置面板（原顶栏「设置」按钮，2026-10-28 导航上移后统一由顶部导航调用） */
 /* ===== 设置 · 后缀管理 =====
@@ -10898,6 +11009,48 @@ function bindSetSfx(){
     if(py && !py.value.trim() && inp.value.trim()) py.value=pyByChar(inp.value.trim());
   },true);
 }
+/* ===== 设置 · 加工方式管理（2026-10-31） =====
+   编辑副本 _setProc，只有点「保存设置」才写入 SET.proc（rx_set_v3，随云端同步）。 */
+var _setProc=[];
+function setProcRead(){
+  var box=$('setProcList'); if(!box) return;
+  var rows=box.querySelectorAll('.set-procrow'), out=[];
+  for(var i=0;i<rows.length;i++){
+    out.push({
+      name:String(rows[i].querySelector('.p-n').value||'').trim(),
+      spec:String(rows[i].querySelector('.p-s').value||'').trim(),
+      price:n(rows[i].querySelector('.p-p').value),
+      qty:n(rows[i].querySelector('.p-q').value)
+    });
+  }
+  _setProc=out;
+}
+function renderSetProc(){
+  var box=$('setProcList'); if(!box) return;
+  var h='';
+  if(!_setProc.length) h='<div class="set-sfxempty">还没有加工方式，点右上「＋ 添加加工方式」新增</div>';
+  for(var i=0;i<_setProc.length;i++){
+    var p=_setProc[i]||{};
+    h+='<div class="set-procrow">'
+      +'<input class="p-n" value="'+esc(p.name||'')+'" placeholder="名称，如 打粉 / 水丸" autocomplete="off">'
+      +'<input class="p-s" value="'+esc(p.spec||'')+'" placeholder="规格，如 60g" autocomplete="off">'
+      +'<input class="p-p" type="number" min="0" step="0.01" value="'+(p.price==null||p.price===''?'':p.price)+'" placeholder="单价">'
+      +'<input class="p-q" type="number" min="0" step="1" value="'+(p.qty==null||p.qty===''?'':p.qty)+'" placeholder="数量">'
+      +'<button type="button" class="p-del" data-i="'+i+'" title="删除这个加工方式">✕</button>'
+      +'</div>';
+  }
+  box.innerHTML=h;
+}
+function bindSetProc(){
+  var box=$('setProcList'); if(!box || box.__bound) return;
+  box.__bound=1;
+  box.addEventListener('click',function(e){
+    var b=e.target.closest('.p-del'); if(!b) return;
+    setProcRead();
+    _setProc.splice(+b.getAttribute('data-i'),1);
+    renderSetProc();
+  });
+}
 function openSettings(){
   $('setRcptFs').value=SET.rcptFs||'';
   $('setRcptBold').checked=!!SET.rcptBold; $('setRcptLh').value=(SET.rcptLh==null?'':SET.rcptLh);
@@ -10913,6 +11066,12 @@ function openSettings(){
   /* 后缀管理：每次打开都以已保存的清单为准（编辑副本，取消不影响） */
   _setSfx=SFX_ITEMS.map(function(o){ return {n:o.n, py:o.py}; });
   renderSetSfx(); bindSetSfx();
+  /* 加工方式：同样以已保存的清单为准 */
+  _setProc=(Array.isArray(SET.proc)?SET.proc:[]).map(function(p){
+    return {name:String((p&&p.name)||''), spec:String((p&&p.spec)||''),
+            price:(p&&p.price!=null?p.price:''), qty:(p&&p.qty!=null?p.qty:'')};
+  });
+  renderSetProc(); bindSetProc();
   $('mSet').classList.add('on');
 }
 function bind(){
@@ -10928,6 +11087,17 @@ function bind(){
     var _rlh=n($('setRxLh').value);
     SET.rxLh=(_rlh>0)?_rlh:1.6;
     SET.showPrice=$('setShowPrice').checked; SET.showClinic=$('setShowClinic').checked;
+    /* ---- 加工方式：和设置一起保存（名称为空的忽略，同名去重） ---- */
+    setProcRead();
+    var procOut=[], procSeen={};
+    for(var pi=0;pi<_setProc.length;pi++){
+      var pn=String(_setProc[pi].name||'').trim();
+      if(!pn || procSeen[pn]) continue;
+      procSeen[pn]=1;
+      procOut.push({name:pn, spec:String(_setProc[pi].spec||'').trim(),
+                    price:n(_setProc[pi].price), qty:n(_setProc[pi].qty)});
+    }
+    SET.proc=procOut;
     localStorage.setItem(LS_SET,JSON.stringify(SET)); autoBackup();
     if(typeof applySheetFont==='function') applySheetFont();
     /* ---- 后缀管理：和设置一起保存 ---- */
@@ -10954,6 +11124,16 @@ function bind(){
     var rows=$('setSfxList').querySelectorAll('.set-sfxrow');
     var last=rows[rows.length-1];
     if(last){ var inp=last.querySelector('.s-n'); inp.focus(); try{ inp.setSelectionRange(0,0); }catch(e){} }
+  };
+  /* 加工方式：新增一行空记录，聚焦到名称框 */
+  var _procAdd=$('setProcAdd');
+  if(_procAdd) _procAdd.onclick=function(){
+    setProcRead();
+    _setProc.push({name:'', spec:'', price:'', qty:''});
+    renderSetProc();
+    var rows=$('setProcList').querySelectorAll('.set-procrow');
+    var last=rows[rows.length-1];
+    if(last){ var inp=last.querySelector('.p-n'); inp.focus(); try{ inp.setSelectionRange(0,0); }catch(e){} }
   };
   /* 备份相关设置已移除（纯云端，无需本地备份） */
   /* 弹窗关闭：右上角 × / 点遮罩 / 按 Esc，三条路都要通。
@@ -12250,6 +12430,7 @@ var WPlan = (function(){
   var _view = 'flat';         /* 列表视图：flat=全部单据，plan=按客户+月份分组 */
   var _planKey = '';          /* 当前展开的计划汇总 */
   var _payBlob = null;        /* 批量结款图片 blob */
+  var _imgName = '';          /* 下载图片的文件名 */
   var _ac = null;             /* 药名内联检索：{ bid, i, el, list:[], idx } */
   var _acSilent = false;      /* 选药后聚焦回填时，抑制下一次聚焦自动弹层 */
   /* ---- 医生注册表：只收录在打印页输入/选过的医生，无预置 ----
@@ -12291,8 +12472,14 @@ var WPlan = (function(){
     if(o.commonId == null) o.commonId = '';
     if(o.paid == null) o.paid = '';
     for(var i=0;i<o.blocks.length;i++){
-      if(!o.blocks[i].items) o.blocks[i].items = [];
-      if(!(n(o.blocks[i].doses) >= 1)) o.blocks[i].doses = o.doses;
+      var b = o.blocks[i];
+      if(!b.items) b.items = [];
+      if(!(n(b.doses) >= 1)) b.doses = o.doses;
+      if(b.date == null) b.date = '';
+      if(b.proc == null) b.proc = '';
+      if(b.ship == null) b.ship = '';
+      if(b.saveCommon == null) b.saveCommon = false;
+      if(b.commonId == null) b.commonId = '';
     }
   }
   function load(){
@@ -12324,7 +12511,8 @@ var WPlan = (function(){
   function blankBlock(){
     var d = S.cur ? (n(S.cur.doses) || 1) : 1;
     var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
-    return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d };
+    return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d,
+             date: (S.cur && S.cur.date) || '', proc: '', ship: '', saveCommon: false, commonId: '' };
   }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
@@ -12384,7 +12572,44 @@ var WPlan = (function(){
   function amountOf(it){ if(!it || it.zibei) return 0; return (it.price == null ? 0 : n(it.price)) * n(it.qty); }
   function blockSub(b){ var s = 0; for(var i=0;i<b.items.length;i++) s += amountOf(b.items[i]); return s; }
   /* 单付价 × 付数 = 该药方总价 */
-  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1); }
+  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1) + procFee(b); }
+  /* 加工方式：配置在【设置 → 加工方式】（SET.proc），费用 = 单价 × 数量 */
+  function procList(){
+    try{ return (typeof SET !== 'undefined' && Array.isArray(SET.proc)) ? SET.proc : []; }catch(e){ return []; }
+  }
+  function procRec(name){
+    if(!name) return null;
+    var l = procList();
+    for(var i=0;i<l.length;i++){ if(l[i] && String(l[i].name || '') === String(name)) return l[i]; }
+    return null;
+  }
+  function procFee(b){
+    var r = procRec(b && b.proc); if(!r) return 0;
+    return n(r.price) * (n(r.qty) || 0);
+  }
+  function procLabel(b){
+    var r = procRec(b && b.proc);
+    if(!r) return String((b && b.proc) || '');
+    return String(r.name || '') + (r.spec ? '(' + r.spec + ')' : '');
+  }
+  function procOptions(cur){
+    var l = procList(), h = '<option value="">无</option>', found = false;
+    for(var i=0;i<l.length;i++){
+      var p = l[i], nm = String((p && p.name) || '').trim(); if(!nm) continue;
+      if(nm === cur) found = true;
+      h += '<option value="' + esc(nm) + '"' + (nm === cur ? ' selected' : '') + '>' + esc(nm + (p.spec ? (' ' + p.spec) : '')) + '</option>';
+    }
+    if(cur && !found) h += '<option value="' + esc(cur) + '" selected>' + esc(cur) + '</option>';
+    return h;
+  }
+  var SHIP_LIST = ['自取', '快递', '同城配送', '送货上门'];
+  function shipOptions(cur){
+    var h = '<option value="">无</option>';
+    for(var i=0;i<SHIP_LIST.length;i++) h += '<option value="' + SHIP_LIST[i] + '"' + (SHIP_LIST[i] === cur ? ' selected' : '') + '>' + SHIP_LIST[i] + '</option>';
+    if(cur && SHIP_LIST.indexOf(cur) < 0) h += '<option value="' + esc(cur) + '" selected>' + esc(cur) + '</option>';
+    return h;
+  }
+  function blockDate(o, b){ return String((b && b.date) || (o && o.date) || ''); }
   /* 该药方总重（克）：各药按 du 换算到克再 × 付数；非 g/kg 单位不计重 */
   function blockWeight(b){
     var g = 0;
@@ -12402,7 +12627,10 @@ var WPlan = (function(){
   function dispQty(it){ var du = it.du || it.unit || 'g'; return n(it.qty) * uCoef(it.unit || du, du); }
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
-    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockTotal(b)) + '</b>'
+    var fee = procFee(b);
+    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockSub(b) * d) + '</b>'
+      + (fee > 0 ? ' + 加工 <b>¥' + money(fee) + '</b>' : '')
+      + ' → 小计 <b>¥' + money(blockTotal(b)) + '</b>'
       + (blockWeight(b) > 0 ? ' · 总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g' : '');
   }
 
@@ -12479,14 +12707,20 @@ var WPlan = (function(){
     }
     return list;
   }
-  function applyFilterUI(){
-    var tabs = document.querySelectorAll('.wp-tab[data-f]');
-    for(var i=0;i<tabs.length;i++){ var t=tabs[i]; if(t.getAttribute('data-f')===_filter) t.classList.add('on'); else t.classList.remove('on'); }
+  function applySegUI(boxSel, attr, val){
+    var box = document.querySelector(boxSel); if(!box) return;
+    var btns = box.querySelectorAll('.wp-seg-btn'), idx = 0, cnt = 0;
+    for(var i=0;i<btns.length;i++){
+      var on = btns[i].getAttribute(attr) === val;
+      btns[i].classList.toggle('on', on);
+      if(on) idx = cnt;
+      cnt++;
+    }
+    box.style.setProperty('--seg-n', cnt);
+    box.style.setProperty('--seg-i', idx);
   }
-  function applyViewUI(){
-    var tabs = document.querySelectorAll('.wp-tab[data-v]');
-    for(var i=0;i<tabs.length;i++){ var t=tabs[i]; if(t.getAttribute('data-v')===_view) t.classList.add('on'); else t.classList.remove('on'); }
-  }
+  function applyFilterUI(){ applySegUI('#wpSegStatus', 'data-f', _filter); }
+  function applyViewUI(){ applySegUI('#wpSegView', 'data-v', _view); }
   function setFilter(f){
     _filter = f; renderList();
   }
@@ -12538,7 +12772,7 @@ var WPlan = (function(){
     for(var a=0;a<list.length;a++){ if(!_sel[list[a].id]){ allSel = false; break; } }
     var h = '<div class="wp-row head"><div class="wp-c-ck"><input type="checkbox"' + (allSel ? ' checked' : '') +
       ' title="全选当前列表" onchange="WPlan.toggleSelAll(this.checked)"></div>' +
-      '<div>订单时间</div><div>客人</div><div>药膳名字</div><div>方数</div><div>总价</div><div>状态</div><div>操作</div></div>';
+      '<div>订单时间</div><div>客人</div><div>订单名称</div><div>方数</div><div>总价</div><div>状态</div><div>操作</div></div>';
     for(var i=0;i<list.length;i++){
       var o = list[i];
       var total = orderTotal(o);
@@ -12639,17 +12873,21 @@ var WPlan = (function(){
     box.innerHTML = h;
   }
   function blockHTML(b){
-    var srcLabel = ({ manual:'手动', text:'文本', excel:'Excel', history:'历史', common:'常用方' })[b.source] || '手动';
     var rows = '';
     if(!b.items.length){ rows = rowHTML(b.id, 0, BLANK_ITEM()); }
     else { for(var i=0;i<b.items.length;i++) rows += rowHTML(b.id, i, b.items[i]); }
+    var bd = String(b.date || '');
     return '<div class="wp-block" id="wpBlock-' + b.id + '">'
       + '<div class="wp-block-head">'
       + '<input class="wp-block-title" value="' + esc(b.title || '') + '" oninput="WPlan.setBlockTitle(\'' + b.id + '\',this.value)">'
-      + '<span class="wp-tag">' + srcLabel + '</span>'
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
+      + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
+      + '<label class="wp-bi">加工 <select class="bi-in" onchange="WPlan.setBlockProc(\'' + b.id + '\',this.value)">' + procOptions(b.proc) + '</select></label>'
+      + '<label class="wp-bi">配送 <select class="bi-in" onchange="WPlan.setBlockShip(\'' + b.id + '\',this.value)">' + shipOptions(b.ship) + '</select></label>'
       + '<span class="wp-sub" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
       + '<span class="spacer"></span>'
+      + '<label class="wp-ck"><input type="checkbox"' + (b.saveCommon ? ' checked' : '') + ' onchange="WPlan.setBlockSaveCommon(\'' + b.id + '\',this.checked)">存为药方</label>'
+      + '<button class="btn sm" type="button" onclick="WPlan.exportBlockImage(\'' + b.id + '\')">导图</button>'
       + '<button class="btn danger sm" type="button" onclick="WPlan.delBlock(\'' + b.id + '\')">删除药方</button>'
       + '</div>'
       + '<div class="wp-block-tools">'
@@ -12765,7 +13003,7 @@ var WPlan = (function(){
   function validateOrder(o){
     if(!o){ toastErr('请先新建或选择订单'); return false; }
     if(!String(o.dish || '').trim()){
-      toastErr('请填写药膳名字（必填）'); var e = document.getElementById('wpDish'); if(e) e.focus(); return false;
+      toastErr('请填写订单名称（必填）'); var e = document.getElementById('wpDish'); if(e) e.focus(); return false;
     }
     if(!o.date){
       toastErr('请选择日期（必填）'); var d = document.getElementById('wpDate'); if(d) d.focus(); return false;
@@ -12775,32 +13013,42 @@ var WPlan = (function(){
     }
     return true;
   }
-  /* 把当前订单存成「常用方」，供客人管理里的常用方 Tab 使用（与 rx_gcommon_v1 同一份数据） */
+  /* 把勾了「存为药方」的小订单逐个存成常用方（与客人管理的 rx_gcommon_v1 同一份数据） */
   function saveCommonFromOrder(o){
-    if(!o || !o.saveCommon) return true;
+    if(!o || !o.blocks || !o.blocks.length) return true;
+    var need = false, i;
+    for(i=0;i<o.blocks.length;i++){ if(o.blocks[i].saveCommon) need = true; }
+    if(!need) return true;
     /* 没进过客人页时 GST_CF 可能是空的，先读回已保存的常用方，避免覆盖旧数据 */
     if(typeof gstLoadCf === 'function'){ try{ gstLoadCf(); }catch(e){} }
-    if(!String(o.guest || '').trim()){ toastErr('存为常用方需要先填写客人 / 医生'); return false; }
-    var bs = o.blocks || [], src = null;
-    for(var i=0;i<bs.length;i++){ if((bs[i].items || []).length){ src = bs[i]; break; } }
-    if(!src){ toastErr('药方为空，无法存为常用方'); return false; }
     if(typeof GST_CF === 'undefined' || typeof gstCfPersist !== 'function') return true;
-    var id = o.commonId || ('CF' + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
-    var rec = {
-      id: id, guest: String(o.guest || '').trim(), name: String(o.dish || src.title || '未命名常用方').trim(),
-      doses: n(o.doses) || 1, items: JSON.parse(JSON.stringify(src.items || [])),
-      updatedAt: nowStr()
-    };
-    var found = null;
-    for(var k=0;k<GST_CF.length;k++){ if(GST_CF[k] && GST_CF[k].id === id){ found = GST_CF[k]; break; } }
-    if(found){
-      found.guest = rec.guest; found.name = rec.name; found.doses = rec.doses; found.items = rec.items; found.updatedAt = rec.updatedAt;
-    }else{
-      rec.createdAt = nowStr();
-      GST_CF.unshift(rec);
+    if(!String(o.guest || '').trim()){ toastErr('存为药方需要先填写客人 / 医生'); return false; }
+    var names = [], any = false;
+    for(i=0;i<o.blocks.length;i++){
+      var b = o.blocks[i];
+      if(!b.saveCommon) continue;
+      if(!(b.items || []).length){ toastErr('「' + (b.title || ('药方' + (i+1))) + '」为空，未保存'); continue; }
+      var id = b.commonId || ('CF' + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
+      var rec = {
+        id: id, guest: String(o.guest || '').trim(), name: String(b.title || o.dish || '未命名药方').trim(),
+        doses: n(b.doses) || 1, items: JSON.parse(JSON.stringify(b.items || [])),
+        updatedAt: nowStr()
+      };
+      var found = null;
+      for(var k=0;k<GST_CF.length;k++){ if(GST_CF[k] && GST_CF[k].id === id){ found = GST_CF[k]; break; } }
+      if(found){
+        found.guest = rec.guest; found.name = rec.name; found.doses = rec.doses; found.items = rec.items; found.updatedAt = rec.updatedAt;
+      }else{
+        rec.createdAt = nowStr();
+        GST_CF.unshift(rec);
+      }
+      b.commonId = id; b.saveCommon = false;
+      names.push(rec.name); any = true;
     }
-    gstCfPersist();
-    o.commonId = id;
+    if(any){
+      gstCfPersist();
+      toast('已存为药方：' + names.join('、'));
+    }
     return true;
   }
   function saveNow(){
@@ -12811,7 +13059,7 @@ var WPlan = (function(){
     save(); renderAll();
     var st = document.getElementById('wpSaveState');
     if(st) st.textContent = '已保存 · ' + nowHM();
-    toast(o.saveCommon ? '已保存，并同步到常用方' : '已保存');
+    toast('已保存');
     return true;
   }
   function saveAndBack(){
@@ -12821,8 +13069,10 @@ var WPlan = (function(){
   }
   function backToList(){
     var o = curOrder();
-    /* 只是返回列表不强制补全；勾了「存为常用方」才校验必填字段 */
-    if(o && o.saveCommon){
+    /* 只是返回列表不强制补全；有小订单勾了「存为药方」才校验必填字段 */
+    var need = false;
+    if(o){ for(var i=0;i<(o.blocks || []).length;i++){ if(o.blocks[i].saveCommon){ need = true; break; } } }
+    if(o && need){
       if(!validateOrder(o)) return;
       if(!saveCommonFromOrder(o)) return;
     }
@@ -12891,7 +13141,7 @@ var WPlan = (function(){
       + '.foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
     var inner = '<div class="wrap"><div class="ttl">结款明细</div>'
       + '<div class="sub">客户：' + esc(info.guests.join('、')) + '　｜　期间：' + esc(info.range) + '　｜　共 ' + info.count + ' 单</div>'
-      + '<table><thead><tr><th>时间</th><th style="width:120px">客人</th><th>药膳名字</th><th style="width:110px;text-align:right">金额(元)</th></tr></thead><tbody>'
+      + '<table><thead><tr><th>时间</th><th style="width:120px">客人</th><th>订单名称</th><th style="width:110px;text-align:right">金额(元)</th></tr></thead><tbody>'
       + rows
       + '<tr class="sum"><td colspan="3">合计</td><td style="text-align:right">¥' + money(info.total) + '</td></tr>'
       + '</tbody></table>'
@@ -12919,6 +13169,7 @@ var WPlan = (function(){
     var list = selectedOrders();
     if(!list.length){ toastErr('请先勾选要结款的单据'); return; }
     _payBlob = null;
+    _imgName = '';
     var body = document.getElementById('wpPayBody');
     if(body) body.innerHTML = '<div class="wp-empty">正在生成结款图片…</div>';
     openModal('wpPayModal');
@@ -12942,10 +13193,112 @@ var WPlan = (function(){
     if(!_payBlob){ toastErr('结款图片还在生成，请稍候'); return; }
     var a = document.createElement('a');
     a.href = URL.createObjectURL(_payBlob);
-    a.download = '结款明细_' + nowStr().slice(0,10).replace(/-/g, '') + '.png';
+    a.download = _imgName || ('结款明细_' + nowStr().slice(0,10).replace(/-/g, '') + '.png');
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-    toast('已下载结款图片');
+    toast('已下载图片');
+  }
+
+  /* ---- 订单详情 / 单方「生成表格图片」（含明细与加工费） ---- */
+  function genOrderImage(o, blocks, cb){
+    var W = 840, shown = blocks || (o.blocks || []);
+    var items = 0, i, j;
+    for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
+    var H = 112 + shown.length * 106 + items * 22 + 80;
+    var total = 0, body = '';
+    for(i=0;i<shown.length;i++){
+      var b = shown[i], d = n(b.doses) || 1;
+      var sub = blockSub(b) * d, fee = procFee(b), amt = sub + fee;
+      total += amt;
+      var rs = '';
+      if(!(b.items || []).length) rs = '<tr><td colspan="4" style="color:#999">（药方为空）</td></tr>';
+      for(j=0;j<(b.items || []).length;j++){
+        var it = b.items[j];
+        if(!it) continue;
+        var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
+        rs += '<tr><td>' + esc(it.name || '') + '</td><td>' + esc(qty) + '</td>'
+          + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
+          + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
+      }
+      body += '<div class="bk">'
+        + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
+        + '<span class="bd">日期 ' + esc(blockDate(o, b) || '—') + '</span>'
+        + '<span class="bd">付数 ' + d + '</span>'
+        + (b.proc ? '<span class="bd">加工 ' + esc(procLabel(b)) + '</span>' : '')
+        + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
+        + '<span class="ba">¥' + money(amt) + '</span></div>'
+        + '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th style="width:16%;text-align:right">单价</th><th style="width:16%;text-align:right">金额</th></tr></thead><tbody>'
+        + rs + '</tbody></table>'
+        + '<div class="bf">药费 ¥' + money(sub) + (fee > 0 ? ('　加工 ¥' + money(fee)) : '')
+        + '　小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
+        + '</div>';
+    }
+    var css = ''
+      + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
+      + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:24px 28px;background:#fff}'
+      + '.ttl{font-size:21px;font-weight:700;letter-spacing:1px}'
+      + '.sub{margin-top:7px;font-size:12px;color:#666}'
+      + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:14px;overflow:hidden}'
+      + '.bh{display:flex;align-items:center;gap:14px;padding:9px 12px;background:#f2f4f6;font-size:13px}'
+      + '.bn{font-weight:700;font-size:14px}'
+      + '.bd{color:#555}'
+      + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
+      + 'table{width:100%;border-collapse:collapse;font-size:12px}'
+      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:5px 10px;text-align:left}'
+      + 'th{background:#fafbfc;font-weight:600;color:#333}'
+      + '.bf{padding:7px 12px;font-size:12px;color:#555}'
+      + '.bf b{color:#12693a}'
+      + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:14px}'
+      + '.sum b{font-size:19px;color:#12693a}'
+      + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
+    var inner = '<div class="wrap"><div class="ttl">订单明细</div>'
+      + '<div class="sub">客户：' + esc(String(o.guest || '').trim() || '—') + '　｜　单据：' + esc(o.no || '—')
+      + '　｜　日期：' + esc(o.date || '—') + '　｜　共 ' + shown.length + ' 个药方</div>'
+      + body
+      + '<div class="sum"><span>合计金额</span><b>¥' + money(total) + '</b></div>'
+      + '<div class="foot"><span>制表日期：' + esc(nowStr().slice(0,10)) + '</span><span>明细以药方打印单为准</span></div></div>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">'
+      + '<foreignObject x="0" y="0" width="100%" height="100%">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml"><style>' + css + '</style>' + inner + '</div>'
+      + '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try{
+        var cv = document.createElement('canvas');
+        cv.width = W * 2; cv.height = H * 2;
+        var g = cv.getContext('2d');
+        g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+        g.drawImage(img, 0, 0, cv.width, cv.height);
+        var data = cv.toDataURL('image/png');
+        cv.toBlob(function(blob){ cb(null, data, blob); }, 'image/png');
+      }catch(e){ cb(e, null, null); }
+    };
+    img.onerror = function(){ cb(new Error('当前浏览器不支持生成图片'), null, null); };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  function showOrderImage(o, blocks){
+    if(!o) return;
+    if(!(o.blocks || []).length){ toastErr('本单还没有药方'); return; }
+    _payBlob = null;
+    _imgName = safeFile((dishOf(o) || '订单') + '_' + ((blocks && blocks.length === 1) ? (blocks[0].title || '单方') : '整单') + '.png');
+    var body = document.getElementById('wpPayBody');
+    if(body) body.innerHTML = '<div class="wp-empty">正在生成表格图片…</div>';
+    openModal('wpPayModal');
+    genOrderImage(o, blocks || null, function(err, data, blob){
+      if(err){ if(body) body.innerHTML = '<div class="wp-empty">生成失败：' + esc(err.message) + '</div>'; return; }
+      _payBlob = blob || null;
+      if(body) body.innerHTML = '<img src="' + data + '" alt="订单明细">';
+    });
+  }
+  function exportOrderImage(){
+    var o = curOrder(); if(!o){ toastErr('请先选择单据'); return; }
+    showOrderImage(o, null);
+  }
+  function exportBlockImage(bid){
+    var o = curOrder(), b = blockById(bid);
+    if(!o || !b){ toastErr('找不到该药方'); return; }
+    if(!(b.items || []).length){ toastErr('该药方为空，无法生成图片'); return; }
+    showOrderImage(o, [b]);
   }
 
   /* ---- 计划单 Word 导出：只汇总，不替代单张打印 ---- */
@@ -12954,26 +13307,66 @@ var WPlan = (function(){
     var groups = planGroups(filtered()), g = null;
     for(var i=0;i<groups.length;i++){ if(groups[i].key === _planKey){ g = groups[i]; break; } }
     if(!g){ toastErr('请先打开一个计划汇总'); return; }
-    var rows = '', total = 0;
-    for(var k=0;k<g.orders.length;k++){
+    var rows = '', detail = '', total = 0, k, bi;
+    for(k=0;k<g.orders.length;k++){
       var o = g.orders[k], amt = orderTotal(o); total += amt;
-      rows += '<tr><td>' + (k+1) + '</td><td>' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
-        + '<td>' + esc(dishOf(o)) + '</td><td>' + (n(o.doses) || 1) + '</td>'
-        + '<td style="text-align:right">' + money(amt) + '</td></tr>';
+      var bs = o.blocks || [], procs = [], seen = {};
+      for(bi=0;bi<bs.length;bi++){
+        if(bs[bi].proc){ var lb = procLabel(bs[bi]); if(!seen[lb]){ seen[lb] = 1; procs.push(lb); } }
+      }
+      rows += '<tr><td style="width:34pt;text-align:center">' + (k+1) + '</td>'
+        + '<td style="width:92pt">' + esc(o.date || '') + '</td>'
+        + '<td class="nm">' + esc(dishOf(o)) + '</td>'
+        + '<td>' + esc(procs.join('、') || '—') + '</td>'
+        + '<td style="width:44pt;text-align:center">' + (n(o.doses) || 1) + '</td>'
+        + '<td style="width:76pt;text-align:right">' + money(amt) + '</td></tr>';
+      for(bi=0;bi<bs.length;bi++){
+        var b = bs[bi], d = n(b.doses) || 1, items = '';
+        for(var j=0;j<(b.items || []).length;j++){
+          var it = b.items[j]; if(!it) continue;
+          var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
+          items += '<tr><td>' + esc(it.name || '') + '</td><td>' + esc(qty) + '</td>'
+            + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
+            + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
+        }
+        if(!items) items = '<tr><td colspan="4" style="color:#888">（药方为空）</td></tr>';
+        var fee = procFee(b);
+        detail += '<div class="det"><h3>' + (k+1) + '.' + (bi+1) + '　' + esc(b.title || ('药方' + (bi+1)))
+          + '<span class="dh">' + esc(blockDate(o, b) || '') + '　' + d + '付'
+          + (b.proc ? ('　加工 ' + esc(procLabel(b))) : '')
+          + (b.ship ? ('　配送 ' + esc(b.ship)) : '') + '</span></h3>'
+          + '<table class="dt"><thead><tr><th style="width:40%">药名</th><th>克数 / 单位</th>'
+          + '<th style="width:15%;text-align:right">单价</th><th style="width:15%;text-align:right">金额</th></tr></thead><tbody>'
+          + items + '</tbody></table>'
+          + '<div class="detf">药费 ¥' + money(blockSub(b) * d) + (fee > 0 ? ('　加工 ¥' + money(fee)) : '')
+          + '　小计 <b>¥' + money(blockTotal(b)) + '</b></div></div>';
+      }
     }
     var title = g.label + ' · 汇总账单';
     var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
       + '<head><meta charset="utf-8"><title>' + esc(title) + '</title>'
       + '<style>@page{size:A4;margin:18mm}body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
-      + 'h1{font-size:20pt;margin:0 0 6pt}.meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
+      + 'h1{font-size:20pt;margin:0 0 6pt}h2{font-size:13pt;margin:18pt 0 6pt}'
+      + '.meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
       + 'table{border-collapse:collapse;width:100%;font-size:10.5pt}th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
-      + 'th{background:#f2f4f6}.tot{margin-top:14pt;font-size:12pt}.tot b{font-size:16pt}</style></head><body>'
+      + 'th{background:#f2f4f6}td.nm{font-weight:600}'
+      + '.tot{margin-top:14pt;font-size:12pt}.tot b{font-size:16pt}'
+      + '.det{page-break-inside:avoid}.det h3{font-size:11pt;margin:12pt 0 4pt}'
+      + '.det h3 .dh{font-weight:400;color:#666;font-size:9.5pt;margin-left:6pt}'
+      + '.dt{font-size:10pt}.dt th,.dt td{padding:4pt 6pt}'
+      + '.detf{font-size:9.5pt;color:#444;margin-top:3pt}.detf b{color:#12693a}'
+      + '</style></head><body>'
       + '<h1>' + esc(g.label) + '</h1>'
       + '<div class="meta">客户：' + esc(g.guest) + '　｜　月份：' + esc(g.mm ? (g.ym) : '未定') + '　｜　单据数：' + g.count + '</div>'
-      + '<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:90pt">金额(元)</th></tr></thead><tbody>'
+      + '<table><thead><tr><th style="width:34pt;text-align:center">序号</th><th style="width:92pt">日期</th>'
+      + '<th>订单名称</th><th style="width:110pt">加工方式</th>'
+      + '<th style="width:44pt;text-align:center">付数</th><th style="width:76pt;text-align:right">金额(元)</th></tr></thead><tbody>'
       + rows + '</tbody></table>'
       + '<div class="tot">计划汇总金额：<b>¥' + money(total) + '</b></div>'
-      + '<div class="meta" style="margin-top:10pt">本账单仅用于客户对账，具体药方以单张打印单据为准。</div>'
+      + '<div style="page-break-before:always"></div>'
+      + '<h2>药方明细</h2>'
+      + detail
+      + '<div class="meta" style="margin-top:14pt">本账单仅用于客户对账，具体药方以单张打印单据为准。</div>'
       + '</body></html>';
     var blob = new Blob(['\ufeff' + html], {type: 'application/msword'});
     var a = document.createElement('a');
@@ -12981,7 +13374,7 @@ var WPlan = (function(){
     a.download = safeFile(g.label + '_汇总账单') + '.doc';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-    toast('已导出 Word 汇总账单');
+    toast('已导出 Word 汇总账单（含明细）');
   }
 
   /* 按"当前医生"重算所有非手动改价的药材单价（专属价优先，其次目录价） */
@@ -13019,6 +13412,26 @@ var WPlan = (function(){
     o.blocks = o.blocks.filter(function(b){ return b.id !== bid; }); save(); renderBlocks(); recount();
   }
   function setBlockTitle(bid, v){ var b = blockById(bid); if(!b) return; b.title = v; saveDebounced(); }
+  function setBlockDate(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.date = String(v || '');
+    saveDebounced();
+  }
+  function setBlockProc(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.proc = String(v || '');
+    saveDebounced(); recount(); renderFoot();
+  }
+  function setBlockShip(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.ship = String(v || '');
+    saveDebounced();
+  }
+  function setBlockSaveCommon(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.saveCommon = !!v;
+    saveDebounced(); renderFoot();
+  }
   function setRemark(bid, v){ var b = blockById(bid); if(!b) return; b.remark = v; saveDebounced(); }
   function setItemRemark(bid, i, v){
     var b = blockById(bid); if(!b) return;
@@ -13541,6 +13954,8 @@ var WPlan = (function(){
     toggleSel: toggleSel, toggleSelAll: toggleSelAll,
     openPlan: openPlan, closePlan: closePlan, exportPlanWord: exportPlanWord,
     openPay: openPay, copyPay: copyPay, downloadPay: downloadPay,
+    exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
+    setBlockDate: setBlockDate, setBlockProc: setBlockProc, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
     setDish: setDish, setOrderDoses: setOrderDoses, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
@@ -14483,6 +14898,240 @@ var Purchase = (function(){
   return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, delItem:delItem,
     saveOrder:saveOrder, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
+})();
+
+/* =====================================================================
+   📅 自建日历（2026-10-31，移植自阿田财务，配色改为药方品牌绿）
+   - 全站 date / month 输入框统一转为只读文本框 + 自绘日历
+   - 日 / 月 / 年三级联动；日视图带「今天 / 昨天 / 前天」
+   - 浮层挂在 body，避免被 overflow 容器裁切
+   ===================================================================== */
+var RxCal=(function(){
+  var _c=null, _outside=null, _key=null, _repos=null;
+  function pad2(x){ x=String(x); return x.length<2?'0'+x:x; }
+  function dstr(y,m,d){ return y+'-'+pad2(m)+'-'+pad2(d); }
+  function mkDate(y,m,d){ var dt=new Date(y,m-1,d); return dstr(dt.getFullYear(),dt.getMonth()+1,dt.getDate()); }
+  function todayKey(){ try{ return today(); }catch(e){ var d=new Date(); return dstr(d.getFullYear(),d.getMonth()+1,d.getDate()); } }
+  function popEl(){ return document.getElementById('cal-pop'); }
+  function close(){
+    var p=popEl(); if(p && p.parentNode) p.parentNode.removeChild(p);
+    if(_outside){ document.removeEventListener('mousedown',_outside,true); _outside=null; }
+    if(_key){ document.removeEventListener('keydown',_key,true); _key=null; }
+    if(_repos){ window.removeEventListener('resize',_repos); window.removeEventListener('scroll',_repos,true); _repos=null; }
+    _c=null;
+  }
+  function prepare(){
+    var list=document.querySelectorAll('input[type="date"],input[type="month"]');
+    for(var i=0;i<list.length;i++){
+      var inp=list[i], mode=(inp.getAttribute('type')==='month')?'month':'day';
+      inp.type='text';
+      inp.readOnly=true;
+      inp.classList.add('cal-input');
+      inp.setAttribute('data-cal-mode',mode);
+      inp.setAttribute('autocomplete','off');
+      inp.setAttribute('spellcheck','false');
+    }
+  }
+  function open(inp,mode){
+    if(!inp) return;
+    mode=mode||inp.getAttribute('data-cal-mode')||'day';
+    if(_c && _c.inp===inp){ close(); return; }
+    close();
+    var now=new Date();
+    var c={ inp:inp, mode:mode, view:(mode==='day'?'day':(mode==='month'?'month':'year')),
+      y:now.getFullYear(), m:now.getMonth()+1, selY:now.getFullYear(), selM:now.getMonth()+1, selD:now.getDate(), yBase:2000 };
+    var attr=(mode==='day'?'data-date':(mode==='month'?'data-month':'data-year'));
+    var raw=String(inp.value||'').trim() || String(inp.getAttribute(attr)||'').trim();
+    var p=raw.split('-');
+    var py=parseInt(p[0],10), pm=parseInt(p[1],10), pd=parseInt(p[2],10);
+    if(py){ c.selY=py; c.y=py; }
+    if(pm){ c.selM=pm; c.m=pm; }
+    if(pd) c.selD=pd;
+    c.yBase=2000+Math.floor((c.y-2000)/12)*12;
+    _c=c;
+    var pop=document.createElement('div');
+    pop.className='cal-pop'; pop.id='cal-pop';
+    document.body.appendChild(pop);
+    render(); position();
+    _outside=function(e){ if(pop.contains(e.target) || e.target===inp) return; close(); };
+    _key=function(e){ if(e.key==='Escape') close(); };
+    _repos=function(){ if(_c) position(); };
+    setTimeout(function(){
+      document.addEventListener('mousedown',_outside,true);
+      document.addEventListener('keydown',_key,true);
+      window.addEventListener('resize',_repos);
+      window.addEventListener('scroll',_repos,true);
+    },0);
+  }
+  function position(){
+    var pop=popEl(); if(!pop || !_c) return;
+    var r=_c.inp.getBoundingClientRect();
+    var pw=pop.offsetWidth, ph=pop.offsetHeight;
+    var left=Math.min(Math.max(8,r.left),window.innerWidth-pw-8);
+    var top=r.bottom+8;
+    if(top+ph>window.innerHeight-8) top=Math.max(8,r.top-ph-8);
+    pop.style.left=left+'px'; pop.style.top=top+'px';
+  }
+  function commit(kind,val){
+    if(!_c) return;
+    var inp=_c.inp;
+    inp.value=val;
+    inp.setAttribute(kind==='day'?'data-date':(kind==='month'?'data-month':'data-year'),val);
+    try{ inp.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+    close();
+  }
+  function render(){
+    var pop=popEl(); if(!pop || !_c) return;
+    var c=_c, tk=todayKey();
+    var chev=function(d){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'
+        +(d<0?'<path d="m15 5-7 7 7 7"/>':'<path d="m9 5 7 7-7 7"/>')+'</svg>';
+    };
+    var head='', body='';
+    if(c.view==='day'){
+      head='<button type="button" class="cal-nav" data-nav="-1">'+chev(-1)+'</button>'
+        +'<button type="button" class="cal-title" data-goto="month">'+c.y+' 年 '+c.m+' 月</button>'
+        +'<button type="button" class="cal-nav" data-nav="1">'+chev(1)+'</button>';
+      var startDow=(new Date(c.y,c.m-1,1).getDay()+6)%7;
+      var dim=new Date(c.y,c.m,0).getDate();
+      var prevDim=new Date(c.y,c.m-1,0).getDate();
+      var selKey=mkDate(c.selY,c.selM,c.selD);
+      var cells='', i, dd, key, out;
+      for(i=0;i<42;i++){
+        dd=i-startDow+1; out=false;
+        if(dd<1){ dd=prevDim+dd; out=true; key=mkDate(c.y,c.m-1,dd); }
+        else if(dd>dim){ dd=dd-dim; out=true; key=mkDate(c.y,c.m+1,dd); }
+        else { key=mkDate(c.y,c.m,dd); }
+        cells+='<button type="button" class="cal-cell'+(out?' out':'')+(key===tk?' today':'')+(key===selKey?' sel':'')+'" data-key="'+key+'">'+dd+'</button>';
+      }
+      body='<div class="cal-grid"><div class="cal-wd">一</div><div class="cal-wd">二</div><div class="cal-wd">三</div><div class="cal-wd">四</div><div class="cal-wd">五</div><div class="cal-wd">六</div><div class="cal-wd">日</div>'+cells+'</div>'
+        +'<div class="cal-foot"><button type="button" class="cal-today-btn" data-quick="0">今天</button><button type="button" class="cal-today-btn" data-quick="1">昨天</button><button type="button" class="cal-today-btn" data-quick="2">前天</button></div>';
+    } else if(c.view==='month'){
+      head='<button type="button" class="cal-nav" data-nav="-1">'+chev(-1)+'</button>'
+        +'<button type="button" class="cal-title" data-goto="year">'+c.y+' 年</button>'
+        +'<button type="button" class="cal-nav" data-nav="1">'+chev(1)+'</button>';
+      var mc='';
+      for(var m=1;m<=12;m++){
+        var on=(c.selY===c.y && c.selM===m);
+        mc+='<button type="button" class="cal-cell cal-mcell'+(on?' sel':'')+'" data-mon="'+m+'">'+m+' 月</button>';
+      }
+      body='<div class="cal-mgrid">'+mc+'</div><div class="cal-foot"><button type="button" class="cal-today-btn" data-gomon="1">本月</button></div>';
+    } else {
+      head='<button type="button" class="cal-nav" data-nav="-1">'+chev(-1)+'</button>'
+        +'<div class="cal-title cal-title-static">'+c.yBase+' - '+(c.yBase+11)+'</div>'
+        +'<button type="button" class="cal-nav" data-nav="1">'+chev(1)+'</button>';
+      var yc='';
+      for(var y=0;y<12;y++){
+        var yy=c.yBase+y, onY=(c.selY===yy);
+        yc+='<button type="button" class="cal-cell cal-ycell'+(onY?' sel':'')+'" data-year="'+yy+'">'+yy+'</button>';
+      }
+      body='<div class="cal-ygrid">'+yc+'</div><div class="cal-foot"><button type="button" class="cal-today-btn" data-goyear="1">今年</button></div>';
+    }
+    pop.innerHTML='<div class="cal-card"><div class="cal-head">'+head+'</div>'+body+'</div>';
+    var btns=pop.querySelectorAll('[data-nav]');
+    for(var b=0;b<btns.length;b++){
+      btns[b].onclick=function(){
+        var d=Number(this.getAttribute('data-nav')), cc=_c;
+        if(cc.view==='day'){
+          var dt=new Date(cc.y,cc.m-1+d,1); cc.y=dt.getFullYear(); cc.m=dt.getMonth()+1;
+        } else if(cc.view==='month'){ cc.y+=d; }
+        else { cc.yBase+=d*12; cc.y=cc.yBase; }
+        render();
+      };
+    }
+    var gt=pop.querySelectorAll('[data-goto]');
+    for(var g=0;g<gt.length;g++){
+      gt[g].onclick=function(){ _c.view=this.getAttribute('data-goto'); render(); };
+    }
+    var ks=pop.querySelectorAll('[data-key]');
+    for(var k=0;k<ks.length;k++){
+      ks[k].onclick=function(){ commit('day',this.getAttribute('data-key')); };
+    }
+    var ms=pop.querySelectorAll('[data-mon]');
+    for(var mi=0;mi<ms.length;mi++){
+      ms[mi].onclick=function(){
+        var mm=Number(this.getAttribute('data-mon')), cc=_c;
+        if(cc.mode==='month'){ commit('month', cc.y+'-'+pad2(mm)); return; }
+        cc.selY=cc.y; cc.selM=mm; cc.m=mm; cc.view='day'; render();
+      };
+    }
+    var ys=pop.querySelectorAll('[data-year]');
+    for(var yi=0;yi<ys.length;yi++){
+      ys[yi].onclick=function(){
+        var yy=Number(this.getAttribute('data-year')), cc=_c;
+        if(cc.mode==='year'){ commit('year',String(yy)); return; }
+        cc.selY=yy; cc.y=yy; cc.view='month'; render();
+      };
+    }
+    var qs=pop.querySelectorAll('[data-quick]');
+    for(var qi=0;qi<qs.length;qi++){
+      qs[qi].onclick=function(){
+        var d=new Date(); d.setDate(d.getDate()-Number(this.getAttribute('data-quick')));
+        commit('day', dstr(d.getFullYear(),d.getMonth()+1,d.getDate()));
+      };
+    }
+    var gm=pop.querySelector('[data-gomon]');
+    if(gm) gm.onclick=function(){
+      var cc=_c, now=new Date();
+      if(cc.mode==='month'){ commit('month', now.getFullYear()+'-'+pad2(now.getMonth()+1)); return; }
+      cc.selY=now.getFullYear(); cc.selM=now.getMonth()+1; cc.y=cc.selY; cc.m=cc.selM; cc.view='day'; render();
+    };
+    var gy=pop.querySelector('[data-goyear]');
+    if(gy) gy.onclick=function(){
+      var cc=_c, now=new Date().getFullYear();
+      if(cc.mode==='year'){ commit('year',String(now)); return; }
+      cc.selY=now; cc.y=now; cc.view='month'; render();
+    };
+  }
+  /* 所有日期框统一走自绘日历（点击 / 回车 / 空格打开） */
+  document.addEventListener('click',function(e){
+    var inp=e.target && e.target.closest ? e.target.closest('input.cal-input') : null;
+    if(inp){ e.preventDefault(); open(inp); }
+  });
+  document.addEventListener('keydown',function(e){
+    var inp=e.target;
+    if(inp && inp.classList && inp.classList.contains('cal-input') && (e.key==='Enter'||e.key===' ')){
+      e.preventDefault(); open(inp);
+    }
+  });
+  return { prepare:prepare, open:open, close:close };
+})();
+
+try{ RxCal.prepare(); }catch(e){ console.warn('Calendar prepare', e); }
+
+/* 全站搜索框：输入内容后右侧出现红色圆形 X，点击清空并触发原列表重置 */
+(function(){
+  function wrapOne(inp){
+    if(!inp || inp.__schWrap) return;
+    var wrap=document.createElement('span');
+    wrap.className='sch-wrap';
+    if(inp.classList.contains('wp-search')){ wrap.style.flex='1 1 220px'; wrap.style.minWidth='160px'; }
+    else if(inp.classList.contains('gst-mini-search')){ wrap.style.flex='0 0 auto'; }
+    inp.parentNode.insertBefore(wrap, inp);
+    wrap.appendChild(inp);
+    var btn=document.createElement('button');
+    btn.type='button'; btn.className='sch-x'; btn.setAttribute('aria-label','清空搜索词');
+    btn.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 2.2l7.6 7.6M9.8 2.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    wrap.appendChild(btn);
+    inp.__schWrap=wrap;
+    function sync(){ wrap.classList.toggle('has', !!inp.value); }
+    inp.addEventListener('input', sync);
+    inp.addEventListener('change', sync);
+    btn.addEventListener('click', function(){
+      inp.value='';
+      inp.dispatchEvent(new Event('input', {bubbles:true}));
+      inp.dispatchEvent(new Event('change', {bubbles:true}));
+      inp.focus();
+      sync();
+    });
+    sync();
+  }
+  function initSch(){
+    var ins=document.querySelectorAll('input.sch');
+    for(var i=0;i<ins.length;i++) wrapOne(ins[i]);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initSch);
+  else initSch();
 })();
 
 init();
