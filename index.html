@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='bb0ac1e020';
+  var V='f30a90bd1e';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -638,7 +638,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 #acBox .ai .nm2{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #acBox .ai .un{flex:0 0 auto;min-width:26px;text-align:center;font-size:11px;color:#666;border:1px solid #ccc;border-radius:2px;padding:0 3px}
 #acBox .ai .pr{flex:0 0 auto;min-width:52px;text-align:right;font-weight:700;color:var(--pri-deep)}
-#acBox .ai .py{flex:0 0 auto;color:#999;font-size:11px;min-width:44px;text-align:right}
 /* 候选里的后缀胶囊：与处方笺上的绿色标签同一视觉语言 */
 #acBox .ai .sfxtag{
   flex:0 0 auto;font-size:11px;line-height:1.6;font-weight:600;padding:0 7px;border-radius:999px;
@@ -647,7 +646,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 #acBox .ai.on .sfxtag{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.38)}
 #acBox .ai.on .un{color:var(--pri-soft);border-color:var(--n-4)}
 #acBox .ai.on .pr{color:#fff}
-#acBox .ai.on .py{color:var(--pri-soft)}
 #acBox .grp{flex:0 0 100%;font-size:11px;color:#888;padding:2px 9px;background:#f4f4f0}
 
 .modal{position:fixed;inset:0;background:rgba(30,30,30,.32);display:none;align-items:center;justify-content:center;z-index:60}
@@ -696,7 +694,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 }
 .dm-page .dmtable tbody tr:last-child td{ border-bottom:none!important; }
 .dm-page .dmtable tbody tr:hover td{ background:#f3f6f3; }
-.dm-page .dmtable tbody tr.sel td{ background:#eef7f1; }
+/* 点选某行不再整行染绿（用户要求与普通单规格药一致），只保留悬停高亮 */
+.dm-page .dmtable tbody tr.sel td{ background:transparent; }
 .dm-page .dmtable tbody td>span{
   display:block; padding:0; line-height:43px; min-height:43px;
   text-align:left!important; font-variant-numeric:tabular-nums;
@@ -736,9 +735,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dm-page .dmtable tbody td.c-nm{
   position:sticky; left:0; z-index:2; background:var(--n-white);
   box-shadow:1px 0 0 #e3e4e1;
+  /* 药名格跨整组（rowspan），内容必须贴顶：否则默认 vertical-align:middle 会让
+     药名和「＋ 添加规格」浮在整组中间，和第一行规格错开半格（2026-10-30 用户指出） */
+  vertical-align:top!important;
 }
 .dm-page .dmtable tbody tr:hover td.c-nm{ background:#f3f6f3; }
-.dm-page .dmtable tbody tr.sel td.c-nm{ background:#eef7f1; }
+/* 悬停整味药：同 data-i 的所有规格行一起高亮（JS 挂 .dm-hov，CSS 跨行做不到）。
+   选中行（.sel）不再染绿底，与普通单规格药保持一致。 */
+.dm-page .dmtable tbody tr.dm-hov td{ background:#f3f6f3; }
+.dm-page .dmtable tbody tr.dm-hov td.c-nm{ background:#f3f6f3; }
+.dm-page .dmtable tbody tr.sel td,
+.dm-page .dmtable tbody tr.sel td.c-nm{ background:var(--n-white); }
 /* 单位列：子规格缩进 + 悬停出现「×删这个规格」 */
 .dm-page .dmtable td.c-u>span{ display:flex; align-items:center; gap:4px; }
 .dm-page .dmtable tr.dm-subrow td.c-u>span{ padding-left:9px; }
@@ -751,10 +758,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dm-page .dmtable td.c-u .dm-specdel:hover{ background:#f8dcd5; }
 /* 「＋ 添加规格」：平时完全不占位（宽 0 / 透明），鼠标停在药名格上才从右侧浮现，
    表格保持整洁；名称过长时自动省略，不会把按钮挤出去。 */
-.dm-page .dmtable tbody td.c-nm>div.dm-nmrow{ display:flex; align-items:center; gap:6px; height:43px; }
+.dm-page .dmtable tbody td.c-nm>div.dm-nmrow{ display:flex; align-items:center; gap:6px; height:43px; overflow:hidden; }
 .dm-page .dmtable tbody td.c-nm>div.dm-nmrow>span{
-  flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   line-height:43px;
+}
+/* 「多规格」橙胶囊：紧贴药名右侧，一眼看出这味药有几条规格 */
+.dm-page .dmtable .dm-multi{
+  flex:0 0 auto; height:17px; line-height:17px; padding:0 6px;
+  font-size:10.5px; font-style:normal; font-weight:600; letter-spacing:.02em;
+  color:#c2700a; background:#fff4e4; border:1px solid #f2d2a2; border-radius:999px;
 }
 .dm-page .dmtable .dm-addspec{
   flex:0 0 auto; width:0; opacity:0; overflow:hidden; pointer-events:none;
@@ -5122,7 +5135,9 @@ function sfxListFor(nm){
   for(var i=0;i<SFX_RULES.length;i++){ if(SFX_RULES[i][0].test(s)) return SFX_RULES[i][1].slice(0,2); }
   return ['先煎','后下'];
 }
-/* 药名自动提示：按目录顺序过滤（基础命中，不含后缀变体） */
+/* 药名自动提示：按目录顺序过滤（基础命中，不含后缀变体）
+   ★ 一药多规格：主规格之后紧跟该药的其它规格（盒 / 个 / 瓶…），
+     这样药物管理里新加的规格不用做任何同步，下次打单立刻能选到。 */
 function acSearchBase(q){
   q=String(q||'').trim();
   if(!q) return [];
@@ -5131,6 +5146,15 @@ function acSearchBase(q){
     if(!d) return;
     var k=d.n+'|'+d.u+'|'+d.p;
     if(seen[k]) return; seen[k]=1; out.push(d);
+    /* 该药的子规格（s≥1），一行一条，带各自的单位 / 零售价 / 常用量 */
+    var sp=(typeof dmSpecsOf==='function')?dmSpecsOf(d):[];
+    for(var j=1;j<sp.length;j++){
+      var x=sp[j]; if(!x || !x.unit) continue;
+      var k2=d.n+'|'+x.unit+'|'+x.p;
+      if(seen[k2]) continue; seen[k2]=1;
+      out.push({ n:d.n, u:x.unit, p:x.p, c:x.amt, py:d.py, cat:d.cat,
+                 al:d.al, og:d.og, __spec:1 });
+    }
   }
   /* 精确/前缀命中优先：把同名不同单位、不同价格的条目全部列出，让用户按需选 */
   var first=[], mid=[];
@@ -5144,7 +5168,7 @@ function acSearchBase(q){
     (nm.indexOf(q)===0 ? first : mid).push(d);
   }
   first.concat(mid).forEach(push);
-  return out.slice(0,24);
+  return out.slice(0,30);
 }
 /* 候选 = 基础命中 + 动态后缀变体。
    · 正常输入（ajfp）：主名在前，前 3 条各补 1~2 个后缀变体；
@@ -5168,18 +5192,27 @@ function acSearch(q){
     for(var j=0;j<ss.length;j++){
       if(vn>=8) return;
       var nn=d.n+'['+ss[j]+']';
-      if(seen[nn]) continue;
-      seen[nn]=1; vn++;
+      if(seen['S|'+nn]) continue;
+      seen['S|'+nn]=1; vn++;
       out.push({n:nn, u:d.u, p:d.p, c:d.c, py:String(d.py||'')+pyOfSfx(ss[j]),
                 __sfx:1, base:d.n, sfx:ss[j]});
     }
   }
   for(i=0;i<base.length && out.length<30;i++){
     var d=base[i];
-    if(seen[d.n]) continue;
-    seen[d.n]=1;
-    if(onlyVar){ pushVar(d); out.push(d); }      /* 按后缀码搜：带后缀的排前面 */
-    else { out.push(d); if(i<3) pushVar(d); }    /* 普通搜：主名在前 */
+    /* 药库里还残留「阿胶福牌[烊化]」这类独立后缀条目：统一转成「主名 + 后缀胶囊」的形态，
+       与下面动态生成的变体同名去重，列表里只出现一次（药库干净时走不到这里）。 */
+    if(!d.__sfx && /[\[［{][^\]］}]+[\]］}]\s*$/.test(String(d.n||''))){
+      var sp0=splitSfx(d.n);
+      d={ n:d.n, base:sp0.nm, sfx:sfxText(sp0.sfx), u:d.u, p:d.p, c:d.c, py:d.py, __sfx:1 };
+    }
+    /* 去重：后缀条目按全名，主条目按「药名 + 单位」——
+       同一味药的 g / 盒 / 个 是不同选项，不能互相吞掉 */
+    var dk=d.__sfx ? ('S|'+d.n) : ('M|'+String(d.n)+'|'+String(d.u||''));
+    if(seen[dk]) continue;
+    seen[dk]=1;
+    if(onlyVar){ if(!d.__spec && !d.__sfx) pushVar(d); out.push(d); }   /* 按后缀码搜：带后缀的排前面 */
+    else { out.push(d); if(i<3 && !d.__spec && !d.__sfx) pushVar(d); }  /* 普通搜：主名在前 */
   }
   return out.slice(0,30);
 }
@@ -5697,14 +5730,34 @@ function unitCoef(from,to){
 }
 /* 计价单位：用户显式选定的候选单位(du)优先，其次剂量框里的单位(unit)，最后 g */
 function priceUnit(it){ return String((it&&(it.du||it.unit))||'g'); }
+/* 子规格（盒 / 个 / 瓶…）不占顶层条目，价格挂在药物的 units 里。
+   这里把「药名 + 单位」摊成一条可计价的虚拟条目，让划价能认出「1 盒 = 400 元」。 */
+function specEntryOf(name, want){
+  var w=String(want||'').toLowerCase();
+  if(!w) return null;
+  var all=findDrugAll(name);
+  for(var i=0;i<all.length;i++){
+    var sp=(typeof dmSpecsOf==='function')?dmSpecsOf(all[i]):[];
+    for(var j=1;j<sp.length;j++){
+      var x=sp[j];
+      if(String(x.unit||'').toLowerCase()!==w) continue;
+      return { n:all[i].n, u:x.unit, p:x.p, c:x.amt, cat:all[i].cat, py:all[i].py, __sub:1 };
+    }
+  }
+  return null;
+}
 /* 选中这味药应该用目录里**哪一条**（autoPrice 与 priceOf 共用，保证两边口径一致）：
-   ① 计价单位(du→unit→g)精确匹配；② 没有匹配 → g 条目优先；
+   ① 计价单位(du→unit→g)精确匹配；①' 命中「一药多规格」里的子规格；② 没有匹配 → g 条目优先；
    ③ 再没有 → 用户选定的候选 / 同名第一条。 */
 function pickDrugEntry(it){
   if(!it||!it.name) return null;
   var want=priceUnit(it).toLowerCase(), all=findDrugAll(it.name), d=null;
   for(var k=0;k<all.length;k++){
     if(String(all[k].u||'g').toLowerCase()===want){ d=all[k]; break; }
+  }
+  if(!d && want!=='g'){
+    var sub=specEntryOf(it.name, want);
+    if(sub) return sub;
   }
   if(!d){
     for(var k2=0;k2<all.length;k2++){
@@ -8675,6 +8728,7 @@ function renderDrugTable(){
       if(s===0){
         h+='<td class="c-nm" data-f="n" rowspan="'+n+'"><div class="dm-nmrow">'
           +'<span>'+esc(d.n||'')+'</span>'
+          +(n>1?'<i class="dm-multi" title="这味药有 '+n+' 个规格">多规格</i>':'')
           +'<button type="button" class="dm-addspec" data-i="'+idx+'" title="为这味药再加一个规格（盒 / 个 / 斤…）">＋ 添加规格</button>'
           +'</div></td>';
       }
@@ -8703,6 +8757,7 @@ function renderDrugTable(){
   var nspec=0;
   for(var q=0;q<rows.length;q++){ nspec+=dmSpecsOf(rows[q].d).length; }
   $('dmStat').textContent='中药：'+rows.length+' 味 / '+nspec+' 个规格 / 共 '+drugsList.length+' 味';
+  if(window.__dmHoverReset) window.__dmHoverReset();   /* 重绘后行元素全换了，悬停缓存要清掉 */
 }
 /* 组尾「＋ 添加新规格」：在当前药下加一个空规格行，并直接进入单位编辑 */
 function dmAddSpec(idx){
@@ -9459,7 +9514,9 @@ function dmFillCell(td, d){
   /* 药名格是「名称 + 悬停浮现的＋添加规格」组合，改完名要整块重建，否则按钮会丢 */
   if(f==='n'){
     var tr0=td.closest('tr'), i0=tr0?tr0.getAttribute('data-i'):'';
+    var multi=(dmSpecsOf(d).length>1);
     td.innerHTML='<div class="dm-nmrow"><span>'+esc(d.n||'')+'</span>'
+      +(multi?'<i class="dm-multi" title="这味药有多个规格">多规格</i>':'')
       +'<button type="button" class="dm-addspec" data-i="'+esc(i0)+'"'
       +' title="为这味药再加一个规格（盒 / 个 / 斤…）">＋ 添加规格</button></div>';
     return;
@@ -9652,12 +9709,11 @@ function acShow(inp,list){
   var h='';
   for(var i=0;i<list.length;i++){
     var d=list[i];
-    /* 一行看清：药名 · 后缀胶囊 · 常用量单位 · 单价（元/该单位） · 拼音 */
+    /* 一行看清：药名 · 后缀胶囊 · 规格（单位） · 价格。助记码不显示，但底层照样能拼音搜 */
     h+='<div class="ai'+(i===0?' on':'')+'" data-i="'+i+'"><span class="nm2">'+esc(d.__sfx?(d.base||d.n):d.n)+'</span>'
       +(d.__sfx?'<span class="sfxtag">'+esc(d.sfx)+'</span>':'')
       +'<span class="un">'+(d.u?esc(d.u):'g')+'</span>'
-      +'<span class="pr">'+(d.p!=null&&d.p!==''?esc(d.p):'—')+'</span>'
-      +'<span class="py">'+esc(d.py||'')+'</span></div>';
+      +'<span class="pr">'+(d.p!=null&&d.p!==''?esc(d.p):'—')+'</span></div>';
   }
   b.innerHTML=h;
   b.style.display='block';
@@ -9707,8 +9763,11 @@ function acAccept(idx){
     inp.value=inp.value.slice(0,tk.start)+d.n+inp.value.slice(tk.end);
   }
   var dsIn=cell?cell.querySelector('.ds'):null;
-  if(dsIn && !dsIn.value.trim() && d.c!=null && d.c!==''){
-    dsIn.value=(+d.c)+(d.u||'g');
+  if(dsIn && !dsIn.value.trim() && d.c!=null && String(d.c).trim()!==''){
+    /* 常用量原样带出：纯数字才补单位（「10」→「10g」），已经是「10g」「1盒」就直接用，
+       否则子规格会拼成「10g盒」 */
+    var cv0=String(d.c).trim();
+    dsIn.value=/^\d+(\.\d+)?$/.test(cv0) ? (cv0+(d.u||'g')) : cv0;
     cell.classList.remove('zibei');
   }
   /* 记住用户选中的那条（单位 + 该单位的价格），后续计价按它算。
@@ -10613,6 +10672,24 @@ $('btnSave').onclick=function(){
       if(inp){ try{ inp.setSelectionRange(off,off); }catch(e2){} }
     }
   };
+  /* 悬停整味药：同一 data-i 的所有规格行一起高亮（CSS 的 :hover 只能命中一行）。
+     选中行不再染绿，这里的 .dm-hov 就是唯一的行高亮来源。 */
+  var _dmHovIdx=null;
+  window.__dmHoverReset=function(){ _dmHovIdx=null; };
+  window.dmHoverGroup=function(i){
+    var on=$('dmBody').querySelectorAll('tr.dm-hov');
+    if(i===_dmHovIdx && (on.length || i==null)) return;
+    for(var q=0;q<on.length;q++) on[q].classList.remove('dm-hov');
+    _dmHovIdx=i;
+    if(i==null) return;
+    var mine=$('dmBody').querySelectorAll('tr[data-i="'+i+'"]');
+    for(var w=0;w<mine.length;w++) mine[w].classList.add('dm-hov');
+  };
+  $('dmBody').addEventListener('mouseover',function(e){
+    var tr=e.target.closest('tr[data-i]');
+    if(tr) window.dmHoverGroup(tr.getAttribute('data-i'));
+  });
+  $('dmBody').addEventListener('mouseleave',function(){ window.dmHoverGroup(null); });
   /* 表格渲染时用不到 data-i，所以插入/定位都靠它 */
   $('dmAdd').onclick=function(){
     /* 「添加」= 在目录末尾**新增一条真正的空记录**，绝不复用任何已有行的编辑逻辑。
