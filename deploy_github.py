@@ -79,7 +79,7 @@ def main():
     # 源码也一起推：否则线上被改、仓库源码还是旧的，另一台机器 pull 下来会把改动盖掉
     # （2026-10-30 踩过：新药物详情是从旧 rx_local.html 改的，把打印模板整块覆盖没了）
     SRCS = ["rx_local.html", "build_portable.py", "deploy_github.py", "publish.sh",
-            "supa_client.js", "drugs_data.js"]
+            "supa_client.js", "drugs_data.js", "clean_drug_suffix.js"]
     for name in SRCS:
         fp = os.path.join(HERE, name)
         if os.path.exists(fp) and os.path.getsize(fp) < 2 * 1024 * 1024:
