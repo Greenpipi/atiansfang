@@ -33,7 +33,7 @@
   function getPass(){try{return new URLSearchParams(location.search).get('k')||'';}catch(e){return '';}}
   var RX_PASS=getPass();
   var SYNC_ON=(CLOUD_OK && !!RX_PASS && (typeof crypto!=='undefined') && !!crypto.subtle);
-  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1'];
+  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1','rx_sfx_v1'];
   var _cpromise=null;
   function deriveKey(pass){
     if(_cpromise) return _cpromise;
@@ -617,22 +617,41 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dtable td.un{text-align:center;color:#555;font-size:12px}
 .dtable td.un:not(:empty):not(:nth-child(2)){color:var(--aux);font-weight:700}
 
-#acBox{position:fixed;z-index:200;background:#fff;border:1px solid var(--n-4);box-shadow:0 4px 12px rgba(0,0,0,.22);max-height:240px;overflow:auto;display:none;min-width:230px;font-size:12px;border-radius:2px}
-#acBox .ai{display:flex;align-items:center;gap:6px;padding:3px 9px;white-space:nowrap;cursor:pointer;border-bottom:1px dotted #ececec}
-#acBox .ai:last-child{border-bottom:none}
-#acBox .ai.on{background:var(--pri-deep);color:#fff}
-#acBox .ai .nm2{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
-#acBox .ai .un{flex:0 0 auto;min-width:26px;text-align:center;font-size:11px;color:#666;border:1px solid #ccc;border-radius:2px;padding:0 3px}
-#acBox .ai .pr{flex:0 0 auto;min-width:52px;text-align:right;font-weight:700;color:var(--pri-deep)}
+/* 药名候选框：与「后缀备选」浮层（#sfxPick）同一套视觉语言 ——
+   干净白底、10px 圆角、单一细边、无分隔线，选中/悬停用浅绿底而不是深色反白。
+   （2026-10-30 用户要求两处下拉框风格统一） */
+#acBox{
+  position:fixed;z-index:200;display:none;min-width:236px;max-height:262px;overflow:auto;
+  padding:4px;background:var(--neutral-0);
+  border:1px solid var(--neutral-2);border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  font-family:var(--font-ui);
+}
+#acBox .ai{
+  display:flex;align-items:center;gap:8px;height:28px;padding:0 10px;
+  border:none;border-radius:7px;white-space:nowrap;cursor:pointer;
+  font-size:12.5px;color:var(--neutral-ink);background:transparent;
+}
+#acBox .ai:hover{background:var(--pri-soft)}
+#acBox .ai.on{background:var(--pri-soft);color:var(--pri-h)}
+#acBox .ai .nm2{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:var(--neutral-title)}
+#acBox .ai .un{
+  flex:0 0 auto;min-width:24px;text-align:center;font-size:11px;line-height:17px;
+  color:var(--neutral-5);background:var(--neutral-1);border:none;border-radius:6px;padding:0 6px;
+}
+#acBox .ai .pr{
+  flex:0 0 auto;min-width:52px;text-align:right;font-weight:700;
+  color:var(--pri-deep);font-variant-numeric:tabular-nums;
+}
 /* 候选里的后缀胶囊：与处方笺上的绿色标签同一视觉语言 */
 #acBox .ai .sfxtag{
-  flex:0 0 auto;font-size:11px;line-height:1.6;font-weight:600;padding:0 7px;border-radius:999px;
+  flex:0 0 auto;font-size:11px;line-height:17px;font-weight:600;padding:0 8px;border-radius:999px;
   background:var(--pri-soft);color:var(--pri-h);border:1px solid var(--pri-line);
 }
-#acBox .ai.on .sfxtag{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.38)}
-#acBox .ai.on .un{color:var(--pri-soft);border-color:var(--n-4)}
-#acBox .ai.on .pr{color:#fff}
-#acBox .grp{flex:0 0 100%;font-size:11px;color:#888;padding:2px 9px;background:#f4f4f0}
+#acBox .ai.on .sfxtag{background:var(--pri);color:#fff;border-color:var(--pri)}
+#acBox .ai.on .un{background:#fff;color:var(--pri-h)}
+#acBox .ai.on .pr{color:var(--pri-deep)}
+#acBox .grp{flex:0 0 100%;font-size:11px;color:var(--neutral-4);padding:2px 10px}
 
 .modal{position:fixed;inset:0;background:rgba(30,30,30,.32);display:none;align-items:center;justify-content:center;z-index:60}
 .modal.on{display:flex}
@@ -2055,16 +2074,17 @@ tbody tr:last-child td{border-bottom:none!important}
 .sheetwrap .cell:has(.sfx:not(:empty)) .sfxq{display:none}
 .sheetwrap .cell.empty .sfxq{display:none}
 .sheetwrap .cell .sfx:not(:empty){cursor:pointer}
-/* 后缀浮层（点「后缀」按钮或点已有胶囊弹出） */
+/* 后缀浮层（点「后缀」按钮或点已有胶囊弹出）
+   2026-10-30：圆角/内边距/行高与药名候选框 #acBox 完全对齐（10px 外壳 / 7px 行） */
 #sfxPick{
   position:fixed;z-index:210;display:none;min-width:118px;padding:4px;
-  background:var(--neutral-0);border:1px solid var(--line);border-radius:9px;
+  background:var(--neutral-0);border:1px solid var(--neutral-2);border-radius:10px;
   box-shadow:0 8px 24px rgba(0,0,0,.16);
 }
 #sfxPick .sp{
   display:block;width:100%;height:26px!important;min-height:0!important;padding:0 10px!important;
-  text-align:left!important;font-size:12px!important;font-weight:400!important;line-height:26px!important;
-  color:var(--neutral-6)!important;background:transparent!important;border:none!important;border-radius:6px!important;
+  text-align:left!important;font-size:12.5px!important;font-weight:400!important;line-height:26px!important;
+  color:var(--neutral-6)!important;background:transparent!important;border:none!important;border-radius:7px!important;
   cursor:pointer;white-space:nowrap;
 }
 #sfxPick .sp:hover{background:var(--pri-soft)!important;color:var(--pri-h)!important}
@@ -4303,35 +4323,35 @@ body{ --navw:0px; }
 <!-- ================= 药物维护 ================= -->
 <!-- ================= 重要客人 ================= -->
 <div class="modal" id="mDocs">
-  <div class="dlg" style="width:820px">
+  <div class="dlg">
     <header>重要客人<span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
       <div id="gListView">
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <div class="dlg-toolbar">
           <input id="gSearch" placeholder="搜客人姓名" style="flex:1">
           <button type="button" class="pri" id="gAdd">新增客人</button>
         </div>
         <div id="gList"></div>
       </div>
       <div id="gHomeView" style="display:none">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <div class="dlg-toolbar">
           <button type="button" class="mini" id="gBack">← 返回</button>
-          <b id="gHomeName" style="font-size:15px"></b>
-          <span id="gHomeSub" style="font-size:11px;color:#666"></span>
+          <b id="gHomeName" class="dlg-hd-name"></b>
+          <span id="gHomeSub" class="dlg-hint"></span>
           <span class="spacer" style="flex:1"></span>
           <button type="button" class="mini" id="gEdit">编辑折扣</button>
           <button type="button" class="mini danger" id="gDel">删除</button>
         </div>
-        <div id="gHomeInfo" style="font-size:12px;color:#444;margin-bottom:6px"></div>
-        <div style="font-weight:700;font-size:12px;margin:6px 0 3px">关联药方（<span id="gRxCount">0</span>）　<span style="font-weight:400;color:#888">置顶最多 3 张，标星不限</span></div>
-        <div id="gRxList" style="max-height:340px;overflow:auto;border:1px solid #c6c2b8"></div>
+        <div id="gHomeInfo" class="dlg-hint" style="margin-bottom:10px"></div>
+        <div class="dlg-sec-hd">关联药方（<span id="gRxCount">0</span>）<span class="dlg-hint">置顶最多 3 张，标星不限</span></div>
+        <div id="gRxList" class="dlg-box"></div>
       </div>
     </div>
   </div>
 </div>
 <!-- 处方预览 -->
 <div class="modal" id="mRxPreview">
-  <div class="dlg" style="width:520px">
+  <div class="dlg">
     <header>处方预览<span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body" id="rxPreviewBody"></div>
   </div>
@@ -4339,49 +4359,74 @@ body{ --navw:0px; }
 
 <!-- ================= 盈利统计 ================= -->
 <div class="modal" id="mStat">
-  <div class="dlg" style="width:600px">
+  <div class="dlg">
     <header>盈利统计<span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
       <div id="stCards"></div>
-      <div style="margin-top:10px;border-top:1px solid #cfcbc1;padding-top:8px">
-        <div style="font-weight:700;margin-bottom:4px">明细</div>
-        <div id="stTableWrap" style="max-height:300px;overflow:auto;border:1px solid #c6c2b8"></div>
-      </div>
+      <div class="dlg-sec-hd" style="margin-top:18px">明细</div>
+      <div id="stTableWrap" class="dlg-box"></div>
     </div>
   </div>
 </div>
 
 <!-- ================= 设置 ================= -->
 <div class="modal" id="mSet">
-  <div class="dlg" style="width:460px">
+  <div class="dlg set-dlg">
     <header>设置<span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
-      <div class="hrow"><label style="width:96px;flex:0 0 96px">处方字号</label>
-        <input id="setRxFs" type="number" min="8" max="30" step="0.5" style="flex:0 0 74px;width:74px" placeholder="14">
-        <label style="width:auto;flex:0 0 auto;margin-left:12px"><input type="checkbox" id="setRxBold">加粗</label>
-        <label style="width:auto;flex:0 0 auto;margin-left:12px">行距</label>
-        <input id="setRxLh" type="number" min="1" max="2.5" step="0.05" style="flex:0 0 62px;width:62px" placeholder="1.6">
-      </div>
-      <div class="hrow"><label style="width:96px;flex:0 0 96px">小票字号</label>
-        <input id="setRcptFs" type="number" min="8" max="40" step="0.5" style="flex:0 0 74px;width:74px" placeholder="自动">
-        <label style="width:auto;flex:0 0 auto;margin-left:12px"><input type="checkbox" id="setRcptBold">加粗</label>
-        <label style="width:auto;flex:0 0 auto;margin-left:12px">行距</label>
-        <input id="setRcptLh" type="number" min="1" max="2.5" step="0.05" style="flex:0 0 62px;width:62px" placeholder="1.0">
-      </div>
-      <div style="border-top:1px solid #cfcbc1;margin-top:6px;padding-top:8px">
-        <div style="font-weight:700;margin-bottom:4px">静默打印（直接出纸，不弹打印窗口）</div>
-        <div class="hrow"><label style="width:96px;flex:0 0 96px">A5 打印机</label><select id="setPrinterA5" style="flex:1"></select></div>
+
+      <section class="set-sec">
+        <div class="set-hd"><span class="set-t">处方笺</span><span class="set-hint">字号 / 加粗 / 行距</span></div>
+        <div class="set-row">
+          <label class="set-lb">处方字号</label>
+          <input id="setRxFs" class="set-in num" type="number" min="8" max="30" step="0.5" placeholder="14">
+          <label class="set-ck"><input type="checkbox" id="setRxBold">加粗</label>
+          <label class="set-lb set-lb2">行距</label>
+          <input id="setRxLh" class="set-in num" type="number" min="1" max="2.5" step="0.05" placeholder="1.6">
+        </div>
+        <div class="set-row">
+          <label class="set-lb">小票字号</label>
+          <input id="setRcptFs" class="set-in num" type="number" min="8" max="40" step="0.5" placeholder="自动">
+          <label class="set-ck"><input type="checkbox" id="setRcptBold">加粗</label>
+          <label class="set-lb set-lb2">行距</label>
+          <input id="setRcptLh" class="set-in num" type="number" min="1" max="2.5" step="0.05" placeholder="1.0">
+        </div>
+        <div class="set-row">
+          <label class="set-ck"><input type="checkbox" id="setShowPrice">打印处方笺时显示金额</label>
+        </div>
+        <div class="set-row">
+          <label class="set-ck"><input type="checkbox" id="setShowClinic">打印处方笺顶部显示诊所名称</label>
+        </div>
+      </section>
+
+      <section class="set-sec">
+        <div class="set-hd"><span class="set-t">静默打印</span><span class="set-hint">直接出纸，不弹打印窗口</span></div>
+        <div class="set-row">
+          <label class="set-lb">A5 打印机</label>
+          <select id="setPrinterA5" class="set-in set-sel"></select>
+        </div>
         <!-- 2026-10-08 移除「打印小票」后，小票打印机选择器一并去掉；上面的小票字号/加粗/行距仍作用于「复制小票」 -->
-        <div style="font-size:11px;color:#666;line-height:1.6">助手状态：<b id="agentState">检测中…</b><br>
-          需先双击桌面「启动打印助手」；助手没运行时会自动改用浏览器打印窗口。</div>
-      </div>
-      <div style="margin:6px 0"><label><input type="checkbox" id="setShowPrice"> 打印处方笺时显示金额</label></div>
-      <div style="margin:6px 0"><label><input type="checkbox" id="setShowClinic"> 打印处方笺顶部显示诊所名称</label></div>
+        <div class="set-note">助手状态：<b id="agentState">检测中…</b>　需先双击桌面「启动打印助手」；助手没运行时会自动改用浏览器打印窗口。</div>
+      </section>
 
+      <!-- 后缀管理：日常药方打印的「后缀」快捷框与候选里的后缀变体都读这一份 -->
+      <section class="set-sec">
+        <div class="set-hd">
+          <span class="set-t">后缀管理</span>
+          <span class="set-hint">先煎 / 后下 / 烊化…（编码用于助记码，如 xj、hx）</span>
+          <span class="spacer"></span>
+          <button type="button" class="mini" id="setSfxAdd">＋ 添加后缀</button>
+        </div>
+        <div class="set-sfxlist" id="setSfxList"></div>
+      </section>
 
-      <div style="font-size:11px;color:#666;margin-top:8px">处方笺按所选纸张直接打印；数据统一存 Supabase 云端，换设备打开同一链接即可，无需本地备份。</div>
     </div>
-    <div class="foot"><button id="setSave" class="pri">保存设置</button></div>
+    <div class="foot">
+      <span class="set-hint">数据存云端，换设备打开同一链接即可，无需本地备份</span>
+      <span class="spacer"></span>
+      <button type="button" class="mini" data-close>关闭</button>
+      <button id="setSave" class="pri">保存设置</button>
+    </div>
   </div>
 </div>
 
@@ -4392,6 +4437,138 @@ body{ --navw:0px; }
 <!-- 药方打印（计划药单）专用打印区：每次打印时按模板重建，与制表数据分离 -->
 <div id="wpPrintArea"></div>
 <style id="wpPrintPageCss"></style>
+
+<style>
+/* =====================================================================
+   全局规范（2026-10-30）
+   ① 弹窗统一：800 × 800，内容区左右 60px（上下沿用 24px）
+   ② 设置页的区块样式（与「药物详情」同款标签/间距）
+   ③ 滚动条：2px 主题绿，平时隐藏，滚动时显现
+   ===================================================================== */
+
+/* ---------------- ① 弹窗统一 ---------------- */
+.modal>.dlg,
+.modal>.wp-mw,
+.modal>.pur-mw{
+  width:800px!important;height:800px!important;
+  max-width:96vw!important;max-height:92vh!important;
+  background:var(--neutral-0)!important;
+  border-radius:var(--radius-card)!important;
+  box-shadow:var(--shadow-pop)!important;
+  display:flex!important;flex-direction:column!important;overflow:hidden!important;
+  margin:auto;
+}
+/* 内容区：左右 60px，上下 24px（与药物详情一致） */
+.modal>.dlg>.body,
+.modal>.wp-mw>.wp-mb,
+.modal>.pur-mw>.pur-mb{
+  padding:24px 60px!important;
+  flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important;
+}
+/* 底部操作条：左右与内容区对齐，按钮靠右 */
+.modal>.dlg>.foot,
+.modal>.pur-mw>.pur-ma{
+  padding:16px 60px!important;flex:0 0 auto;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--neutral-1)!important;border-top:1px solid var(--neutral-2)!important;
+}
+.modal>.wp-mw>.wp-mb>.wp-mb-actions{padding:0!important;margin-top:16px}
+/* 头部：60px 高、17px 标题、浅色底 —— 三种弹窗外壳统一成一套 */
+.modal>.dlg>header,
+.modal>.wp-mw>.wp-mh,
+.modal>.pur-mw>.pur-mh{
+  flex:0 0 auto;height:60px;min-height:60px!important;
+  padding:0 24px!important;gap:8px;
+  display:flex!important;align-items:center!important;
+  font-size:var(--fs-title)!important;font-weight:700!important;
+  color:var(--neutral-title)!important;background:var(--neutral-0)!important;
+  border-bottom:1px solid var(--neutral-2)!important;border-radius:0!important;
+}
+.modal>.wp-mw>.wp-mh>.x,
+.modal>.pur-mw>.pur-mh>.x{
+  margin-left:auto;border:0!important;background:transparent!important;
+  color:var(--neutral-4)!important;font-size:20px!important;line-height:1!important;
+  min-height:0!important;height:auto!important;padding:4px 10px!important;
+  border-radius:var(--radius-item)!important;cursor:pointer;
+}
+.modal>.wp-mw>.wp-mh>.x:hover,
+.modal>.pur-mw>.pur-mh>.x:hover{background:var(--danger-soft)!important;color:var(--danger)!important}
+/* 窄屏：内容区左右收到 24px，别把内容挤没 */
+@media (max-width:900px){
+  .modal>.dlg>.body,
+  .modal>.wp-mw>.wp-mb,
+  .modal>.pur-mw>.pur-mb{padding:16px 24px!important}
+  .modal>.dlg>.foot,
+  .modal>.pur-mw>.pur-ma{padding:14px 24px!important}
+}
+
+/* ---------------- ② 弹窗内通用块（客人 / 统计 / 处方预览统一到同一套） ---------------- */
+.dlg-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.dlg-hd-name{font-size:var(--fs-sub);font-weight:700;color:var(--neutral-title)}
+.dlg-hint{font-size:var(--fs-cap);color:var(--neutral-4);font-weight:400}
+.dlg-sec-hd{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;
+  font-size:var(--fs-cap);font-weight:700;color:var(--neutral-6);letter-spacing:.04em}
+.dlg-box{border:1px solid var(--neutral-2);border-radius:var(--radius-input);
+  background:var(--neutral-0);overflow:auto;max-height:440px}
+#gRxList{max-height:420px}
+#stTableWrap{max-height:480px}
+.dlg-box:empty{display:none}
+/* 弹窗里的老表格（.pltable）收到同一套字号/字色 */
+.modal .dlg .pltable{font-size:var(--fs-cap)!important}
+.modal .dlg .pltable th{color:var(--neutral-5)!important;font-weight:600!important}
+.modal .dlg .pltable td{color:var(--neutral-ink)!important}
+
+/* ---------------- ③ 设置页 ---------------- */
+.set-dlg>.body{display:flex!important;flex-direction:column;gap:20px}
+.set-sec{border:1px solid var(--neutral-2);border-radius:var(--radius-item);
+  background:var(--neutral-0);padding:14px 16px 16px}
+.set-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.set-t{font-size:var(--fs-cap);font-weight:700;color:var(--neutral-6);letter-spacing:.04em}
+.set-hint{font-size:11px;color:var(--neutral-4)}
+.set-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:38px}
+.set-row+.set-row{margin-top:2px}
+.set-lb{flex:0 0 72px;font-size:var(--fs-cap);color:var(--neutral-5);white-space:nowrap}
+.set-lb2{flex:0 0 auto;margin-left:10px}
+.set-in{height:36px;box-sizing:border-box;flex:0 0 96px;width:96px;
+  border:1px solid var(--neutral-3);border-radius:var(--radius-input);padding:0 10px;
+  font-family:var(--font-ui);font-size:var(--fs-body);color:var(--neutral-ink);
+  background:var(--neutral-0);outline:none}
+.set-in.num{flex:0 0 76px;width:76px;text-align:right;font-weight:600;
+  font-variant-numeric:tabular-nums}
+.set-sel{flex:1 1 auto!important;width:auto!important;max-width:none}
+.set-in:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(21,163,74,.10)!important}
+.set-ck{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-size:var(--fs-cap);color:var(--neutral-6)}
+.set-note{font-size:11px;line-height:1.75;color:var(--neutral-4);margin-top:8px}
+.set-sfxlist{display:flex;flex-direction:column;gap:8px}
+.set-sfxrow{display:flex;align-items:center;gap:8px}
+.set-sfxrow input{height:34px;box-sizing:border-box;
+  border:1px solid var(--neutral-3);border-radius:var(--radius-input);padding:0 10px;
+  font-family:var(--font-ui);font-size:var(--fs-cap);color:var(--neutral-ink);
+  background:var(--neutral-0);outline:none;min-width:0}
+.set-sfxrow input:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(21,163,74,.10)!important}
+.set-sfxrow .s-n{flex:1 1 0}
+.set-sfxrow .s-p{flex:0 0 104px;width:104px;text-align:center;color:var(--neutral-5);
+  font-variant-numeric:tabular-nums}
+.set-sfxrow .s-del{flex:0 0 auto;width:28px;height:28px!important;min-height:0!important;
+  padding:0!important;font-size:11px!important;line-height:1;
+  border:1px solid var(--neutral-2)!important;border-radius:6px!important;
+  background:var(--neutral-0)!important;color:var(--neutral-4)!important;cursor:pointer}
+.set-sfxrow .s-del:hover{color:var(--danger)!important;border-color:var(--danger-line)!important;
+  background:var(--danger-soft)!important}
+.set-sfxempty{font-size:var(--fs-cap);color:var(--neutral-4);padding:6px 0}
+
+/* ---------------- ③ 滚动条：2px 主题绿，滚动时显现 ---------------- */
+::-webkit-scrollbar{width:2px!important;height:2px!important}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent!important}
+/* 平时完全透明（不占视觉、不出灰条）；旧规则里有 background:#c9ddd1!important，必须同样 !important 盖掉 */
+::-webkit-scrollbar-thumb{
+  background:transparent!important;border:0!important;border-radius:999px!important;
+}
+/* JS 在滚动时给被滚元素加 .sc-on（html 也算），停手 800ms 自动去掉 */
+.sc-on::-webkit-scrollbar-thumb{background:var(--pri)!important}
+html.sc-on::-webkit-scrollbar-thumb{background:var(--pri)!important}
+</style>
 
 <script src="drugs_data.js"></script>
 <script src="history_data.js"></script>
@@ -5089,15 +5266,71 @@ function drugNameByAlias(nm){
    · 录入时按药性挑 1~2 个相关后缀，动态拼成候选（阿胶福牌 → 阿胶福牌[烊化]）；
    · 每格右侧还有下拉框，不用盲打也能选。
    ========================================================= */
-var SFX_LIB=['先煎','后下','包煎','另煎','烊化','冲服','研粉冲服','煎汤代水','打碎','另包'];
+/* 常用后缀的默认清单（首次使用 / 用户清空后的兜底）。
+   2026-10-30 起真正生效的清单存在 rx_sfx_v1，由【设置 → 后缀管理】维护，
+   这里只是出厂默认值。 */
+var SFX_DEFAULT=['先煎','后下','包煎','另煎','烊化','冲服','研粉冲服','煎汤代水','打碎','另包'];
+var LS_SFX='rx_sfx_v1';
+var SFX_ITEMS=[];          /* [{n:'先煎',py:'xj'}] —— 带编码，编码用于助记码（ajfp + yh） */
+var SFX_LIB=[];            /* 只取名字，历史代码直接遍历它 */
 /* 后缀 → 拼音首字母（拼在药名助记码后面，ajfp + 烊化(yh) = ajfpyh） */
 var SFX_PY={'先':'x','煎':'j','后':'h','下':'x','包':'b','另':'l','烊':'y','化':'h',
-            '冲':'c','服':'f','研':'y','粉':'f','汤':'t','代':'d','水':'s','打':'d','碎':'s'};
-function pyOfSfx(s){
-  var out='', t=String(s||'');
-  for(var i=0;i<t.length;i++){ var p=SFX_PY[t[i]]; if(!p) return ''; out+=p; }
+            '冲':'c','服':'f','研':'y','粉':'f','汤':'t','代':'d','水':'s','打':'d','碎':'s',
+            '泡':'p','炖':'d','焗':'j','调':'t','含':'h','嚼':'j','温':'w','冷':'l',
+            '饭':'f','前':'q','睡':'s','觉':'j','外':'w','用':'y','洗':'x','熏':'x',
+            '汁':'z','榨':'z','末':'m','茶':'c','饮':'y','兑':'d','入':'r','蒸':'z'};
+/* 只按字表拼（不看用户覆盖）—— 设置里填了编码才用用户那份 */
+function pyByChar(s){
+  var out='', t=String(s||'').trim();
+  for(var j=0;j<t.length;j++){ var p=SFX_PY[t[j]]; if(!p) return ''; out+=p; }
   return out;
 }
+function pyOfSfx(s){
+  var t=String(s||'').trim();
+  /* 用户自定义过编码的，以设置为准 */
+  for(var i=0;i<SFX_ITEMS.length;i++){
+    if(SFX_ITEMS[i] && SFX_ITEMS[i].n===t && SFX_ITEMS[i].py) return SFX_ITEMS[i].py;
+  }
+  return pyByChar(t);
+}
+function sfxApply(list){
+  SFX_ITEMS=list.slice();
+  SFX_LIB.length=0;
+  for(var i=0;i<SFX_ITEMS.length;i++) SFX_LIB.push(SFX_ITEMS[i].n);
+}
+function sfxLoad(){
+  var raw=null;
+  try{ raw=JSON.parse(localStorage.getItem(LS_SFX)||'null'); }catch(e){ raw=null; }
+  var arr=[], seen={};
+  if(raw && raw.length){
+    for(var i=0;i<raw.length;i++){
+      var x=raw[i];
+      var n=String((typeof x==='string')?x:((x&&x.n)||'')).trim();
+      if(!n || seen[n]) continue;
+      seen[n]=1;
+      var py=String((x&&typeof x==='object'&&x.py)||'').trim().toLowerCase();
+      arr.push({n:n, py:py||pyByChar(n)||''});
+    }
+  }
+  if(!arr.length){
+    for(var j=0;j<SFX_DEFAULT.length;j++) arr.push({n:SFX_DEFAULT[j], py:pyByChar(SFX_DEFAULT[j])||''});
+  }
+  sfxApply(arr);
+}
+function sfxSave(list){
+  var out=[], seen={};
+  for(var i=0;i<(list||[]).length;i++){
+    var n=String(list[i].n||'').trim();
+    if(!n || seen[n]) continue;
+    seen[n]=1;
+    var py=String(list[i].py||'').trim().toLowerCase();
+    out.push({n:n, py:py||pyByChar(n)||''});
+  }
+  sfxApply(out);
+  try{ localStorage.setItem(LS_SFX, JSON.stringify(out)); }catch(e){}
+  return out;
+}
+sfxLoad();
 /* 按药性给这味药挑后缀（只挑 1~2 个，候选列表不会被撑爆） */
 var SFX_RULES=[
   [/(阿胶|鹿角胶|龟甲胶|鳖甲胶|黄明胶|阿胶珠|鹿胎胶)/, ['烊化','另包']],
@@ -5108,9 +5341,14 @@ var SFX_RULES=[
   [/粉$/, ['冲服','包煎']]
 ];
 function sfxListFor(nm){
-  var s=String(nm||'');
-  for(var i=0;i<SFX_RULES.length;i++){ if(SFX_RULES[i][0].test(s)) return SFX_RULES[i][1].slice(0,2); }
-  return ['先煎','后下'];
+  var s=String(nm||''), r=null;
+  for(var i=0;i<SFX_RULES.length;i++){ if(SFX_RULES[i][0].test(s)){ r=SFX_RULES[i][1]; break; } }
+  if(!r) r=['先煎','后下'];
+  /* 只保留「设置 → 后缀管理」里还在的（用户删掉的后缀不再自动冒出来） */
+  var out=[];
+  for(var j=0;j<r.length;j++){ if(SFX_LIB.indexOf(r[j])>=0) out.push(r[j]); }
+  if(!out.length) out=SFX_LIB.slice(0,2);
+  return out.slice(0,2);
 }
 /* 药名自动提示：按目录顺序过滤（基础命中，不含后缀变体）
    ★ 一药多规格：主规格之后紧跟该药的其它规格（盒 / 个 / 瓶…），
@@ -9869,6 +10107,51 @@ function loadSet(){
   if(SET.showPrice===undefined) SET.showPrice=true;
 }
 /* 打开设置面板（原顶栏「设置」按钮，2026-10-28 导航上移后统一由顶部导航调用） */
+/* ===== 设置 · 后缀管理 =====
+   编辑副本 _setSfx，只有点「保存设置」才落库（rx_sfx_v1，随云端同步）。 */
+var _setSfx=[];
+function setSfxRead(){
+  var box=$('setSfxList'); if(!box) return;
+  var rows=box.querySelectorAll('.set-sfxrow'), out=[];
+  for(var i=0;i<rows.length;i++){
+    var n=rows[i].querySelector('.s-n').value;
+    var p=rows[i].querySelector('.s-p').value;
+    out.push({n:n, py:p});
+  }
+  _setSfx=out;
+}
+function renderSetSfx(){
+  var box=$('setSfxList'); if(!box) return;
+  var h='';
+  if(!_setSfx.length) h='<div class="set-sfxempty">还没有后缀，点右上「＋ 添加后缀」新增</div>';
+  for(var i=0;i<_setSfx.length;i++){
+    h+='<div class="set-sfxrow">'
+      +'<input class="s-n" value="'+esc(_setSfx[i].n||'')+'" placeholder="后缀名，如 先煎" autocomplete="off">'
+      +'<input class="s-p" value="'+esc(_setSfx[i].py||'')+'" placeholder="编码" autocomplete="off" spellcheck="false">'
+      +'<button type="button" class="s-del" data-i="'+i+'" title="删除这个后缀">✕</button>'
+      +'</div>';
+  }
+  box.innerHTML=h;
+}
+function bindSetSfx(){
+  var box=$('setSfxList'); if(!box || box.__bound) return;
+  box.__bound=1;
+  box.addEventListener('click',function(e){
+    var b=e.target.closest('.s-del'); if(!b) return;
+    setSfxRead();
+    var i=+b.getAttribute('data-i');
+    _setSfx.splice(i,1);
+    renderSetSfx();
+  });
+  /* 填了后缀名但没填编码 → 自动补一个（中文按字表，其余留空由保存时再补） */
+  box.addEventListener('blur',function(e){
+    var inp=e.target;
+    if(!inp.classList || !inp.classList.contains('s-n')) return;
+    var row=inp.closest('.set-sfxrow'); if(!row) return;
+    var py=row.querySelector('.s-p');
+    if(py && !py.value.trim() && inp.value.trim()) py.value=pyByChar(inp.value.trim());
+  },true);
+}
 function openSettings(){
   $('setRcptFs').value=SET.rcptFs||'';
   $('setRcptBold').checked=!!SET.rcptBold; $('setRcptLh').value=(SET.rcptLh==null?'':SET.rcptLh);
@@ -9881,6 +10164,9 @@ function openSettings(){
   $('setShowPrice').checked=SET.showPrice!==false; $('setShowClinic').checked=!!SET.showClinic;
   refreshStorageStat();
   loadPrinterList();
+  /* 后缀管理：每次打开都以已保存的清单为准（编辑副本，取消不影响） */
+  _setSfx=SFX_ITEMS.map(function(o){ return {n:o.n, py:o.py}; });
+  renderSetSfx(); bindSetSfx();
   $('mSet').classList.add('on');
 }
 function bind(){
@@ -9898,7 +10184,30 @@ function bind(){
     SET.showPrice=$('setShowPrice').checked; SET.showClinic=$('setShowClinic').checked;
     localStorage.setItem(LS_SET,JSON.stringify(SET)); autoBackup();
     if(typeof applySheetFont==='function') applySheetFont();
+    /* ---- 后缀管理：和设置一起保存 ---- */
+    setSfxRead();
+    var sfxOut=[], sfxSeen={};
+    for(var si=0;si<_setSfx.length;si++){
+      var sn=String(_setSfx[si].n||'').replace(/[\s\u3000\[\]［］{}｛｝]/g,'');
+      if(!sn) continue;
+      if(sfxSeen[sn]) continue;
+      sfxSeen[sn]=1;
+      sfxOut.push({n:sn, py:String(_setSfx[si].py||'').trim().toLowerCase()});
+    }
+    if(!sfxOut.length){ toastErr('后缀至少要保留一个'); return; }
+    var saved=sfxSave(sfxOut);
+    _setSfx=saved.map(function(o){ return {n:o.n, py:o.py}; });
     $('mSet').classList.remove('on'); toast('设置已保存');
+  };
+  /* 后缀管理：新增一行空后缀，聚焦到名字框 */
+  var _sfxAdd=$('setSfxAdd');
+  if(_sfxAdd) _sfxAdd.onclick=function(){
+    setSfxRead();
+    _setSfx.push({n:'', py:''});
+    renderSetSfx();
+    var rows=$('setSfxList').querySelectorAll('.set-sfxrow');
+    var last=rows[rows.length-1];
+    if(last){ var inp=last.querySelector('.s-n'); inp.focus(); try{ inp.setSelectionRange(0,0); }catch(e){} }
   };
   /* 备份相关设置已移除（纯云端，无需本地备份） */
   /* 弹窗关闭：右上角 × / 点遮罩 / 按 Esc，三条路都要通。
@@ -12985,6 +13294,24 @@ var Purchase = (function(){
 })();
 
 init();
+
+/* ===================================================================
+   滚动条：只为「正在滚」的元素显示 2px 主题绿滚动条，停手 800ms 隐去。
+   scroll 事件不冒泡，用捕获阶段接；document 级别的滚动落到 <html> 上。
+   =================================================================== */
+(function(){
+  document.addEventListener('scroll',function(e){
+    var el=e.target;
+    if(!el || el.nodeType!==1) el=document.scrollingElement||document.documentElement;
+    if(!el || !el.classList) return;
+    if(el.classList.contains('sc-on')){
+      clearTimeout(el.__scT);
+    }else{
+      el.classList.add('sc-on');
+    }
+    el.__scT=setTimeout(function(){ el.classList.remove('sc-on'); },800);
+  },true);
+})();
 </script>
 </body>
 </html>
