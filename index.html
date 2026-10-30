@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='38a478e145';
+  var V='6f0603e5a3';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -7403,6 +7403,30 @@ function purgeTestGuests(){
     try{ console.info('[清理测试客人] '+hit.join('、')); }catch(e){}
   }
 }
+/* ---------- 一次性清理：药物管理里验证/试录留下的测试药 ----------
+   验证划价或排版时往药物目录加过「测试新药 / 测试药甲 / 艾草黄试」这类假药，
+   它们不是真实药价，必须随正式版本清掉，否则打开「药物管理」还能搜到。
+   命中后：本机 drugsList 过滤 + 云端 drugs 表按药名硬删，幂等、不碰真实药。 */
+var PURGE_DRUG_KEY='rx_purge_testdrugs_20261030';
+function purgeTestDrugs(){
+  var re=/^测试|艾草黄试/;
+  var before=drugsList.length, hit=[];
+  drugsList=drugsList.filter(function(d){
+    var nm=String(d&&d.n||'').trim();
+    if(re.test(nm)){ hit.push(nm); return false; }
+    return true;
+  });
+  if(drugsList.length!==before){ try{ saveDrugsLS(); }catch(e){} }   /* 本机落盘 + 整目录回推云端（已不含测试药） */
+  if(!hit.length) return;
+  var done=false;
+  try{ done=!!localStorage.getItem(PURGE_DRUG_KEY); }catch(e){}
+  if(done || !SUPA.on) return;   /* 已清过 / 云端还没连上 → 跳过（连上后下次还会跑） */
+  hit.forEach(function(nm){
+    try{ SUPA.q('drugs?name=eq.'+encodeURIComponent(nm),{method:'DELETE'}).catch(function(){}); }catch(e){}
+  });
+  try{ localStorage.setItem(PURGE_DRUG_KEY,'1'); }catch(e){}
+  try{ console.info('[清理测试药] '+hit.join('、')); }catch(e){}
+}
 function saveDoctors(){
   try{
     localStorage.setItem(LS_DOCTORS, JSON.stringify(DOCTORS)); autoBackup();
@@ -11410,6 +11434,8 @@ function readCsvFile(file, cb){
 function init(){
   loadSet();
   loadDrugs();
+  /* 本机先把验证留下的测试药过滤掉（云端连接建立前也能清本地，连上后再清云端） */
+  try{ purgeTestDrugs(); }catch(e){}
   /* localStorage 里的 rx_saved_v3 可能不是数组（早期版本写入过 {}，
      或被外部改坏）。一旦SAVED 变成对象，后面 SAVED.slice()/forEach 就抛
      TypeError，历史处方列表整个渲染不出来，且不报错。必须校验类型。 */
@@ -11482,6 +11508,8 @@ function supaBoot(){
     ]);
   }).then(function(){
     renderHistory(); renderDrugList(); renderPriceList(); loadDoctors();
+    /* 云端药价（含测试药）已拉回本机，这里按药名把测试药从本机 + 云端 drugs 表一起清掉 */
+    try{ purgeTestDrugs(); }catch(e){}
     /* 药物管理页（#drug）是并行渲染的：navInit 早就用本机缓存画完了，
        云端药价回来后必须重画一次，否则进货价/云端零售价要切走再切回才看得到。 */
     try{
