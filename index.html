@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='669539f137';
+  var V='700215dbf5';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -4041,18 +4041,23 @@ body{ --navw:0px; }
              ⚠ 全站 button{…!important} 基座规则会带边框/渐变底/34px 最小高，
                还有 button:not(.pri):not(.warn){background:var(--n-white)!important}（优先级 0,2,1）
                会盖掉红底 —— 所以这里一律用 #id 提权 + !important 压回去。 */
-          .dm-searchbox #dmSearchClear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+          /* 居中不能用 transform 位移：全站 button:hover/:active 带
+             transform:translateY(-1px)/translateY(0)，按下瞬间会把居中的位移清掉 → 圆点下坠。
+             改用 margin-top:-6px（高 12px）做垂直居中，并对所有状态锁死 transform。 */
+          .dm-searchbox #dmSearchClear{position:absolute;right:8px;top:50%;transform:none!important;
             appearance:none;-webkit-appearance:none;
             width:12px!important;height:12px!important;min-height:0!important;max-height:12px!important;
-            padding:0!important;margin:0!important;
+            padding:0!important;margin:-6px 0 0!important;
             border:0!important;border-radius:50%!important;
             background:#e5484d!important;background-color:#e5484d!important;color:#fff!important;
             display:none;align-items:center;justify-content:center;
             line-height:0!important;cursor:pointer;box-shadow:none!important}
           /* 视觉只有 12px（比输入文字略小），热区用伪元素外扩到 24px，点着不费劲 */
           .dm-searchbox #dmSearchClear::before{content:'';position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px}
-          .dm-searchbox #dmSearchClear:hover,.dm-searchbox #dmSearchClear:focus{
-            background:#cf3b40!important;background-color:#cf3b40!important;border-color:transparent!important;color:#fff!important}
+          .dm-searchbox #dmSearchClear:hover,.dm-searchbox #dmSearchClear:focus,
+          .dm-searchbox #dmSearchClear:active{
+            background:#cf3b40!important;background-color:#cf3b40!important;border-color:transparent!important;
+            color:#fff!important;transform:none!important;box-shadow:none!important}
           .dm-searchbox #dmSearchClear svg{width:7px!important;height:7px!important;display:block;color:#fff!important}
           .dm-searchbox.has #dmSearchClear{display:flex!important}
           .dm-spacer{flex:1}
