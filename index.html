@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='cda345ff58';
+  var V='2e5f4eeeaa';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -2102,6 +2102,12 @@ tbody tr:last-child td{border-bottom:none!important}
   cursor:pointer;white-space:nowrap;
 }
 #sfxPick .sp:hover{background:var(--pri-soft)!important;color:var(--pri-h)!important}
+/* 这味药历史用过的后缀：右上角一个小点，跟其余后缀区分开（不改变排序之外的信息） */
+#sfxPick .sp.own{color:var(--pri-h)!important;font-weight:600!important;position:relative}
+#sfxPick .sp.own:after{
+  content:'';position:absolute;right:7px;top:50%;width:5px;height:5px;margin-top:-2.5px;
+  border-radius:50%;background:var(--pri);opacity:.75;
+}
 #sfxPick .sp.del{color:var(--danger)!important}
 #sfxPick .sp.del:hover{background:#fdf1ee!important}
 /* 历史列表 */
@@ -5286,8 +5292,9 @@ function drugNameByAlias(nm){
 /* =========================================================
    常用煎服法后缀库（2026-10-30）
    · 药库里**不建**「阿胶[烊化]」这种条目，保持药库纯净；
-   · 录入时按药性挑 1~2 个相关后缀，动态拼成候选（阿胶福牌 → 阿胶福牌[烊化]）；
-   · 每格右侧还有下拉框，不用盲打也能选。
+   · 候选里的后缀变体**只按这味药的历史使用记录生成**（见下方「后缀使用记忆」），
+     不再按药性给所有药硬塞后缀；
+   · 每格右侧还有下拉框，不用盲打也能选；选过的会自动进记忆。
    ========================================================= */
 /* 常用后缀的默认清单（首次使用 / 用户清空后的兜底）。
    2026-10-30 起真正生效的清单存在 rx_sfx_v1，由【设置 → 后缀管理】维护，
@@ -5354,24 +5361,103 @@ function sfxSave(list){
   return out;
 }
 sfxLoad();
-/* 按药性给这味药挑后缀（只挑 1~2 个，候选列表不会被撑爆） */
-var SFX_RULES=[
-  [/(阿胶|鹿角胶|龟甲胶|鳖甲胶|黄明胶|阿胶珠|鹿胎胶)/, ['烊化','另包']],
-  [/(石决明|珍珠母|牡蛎|龙骨|龙齿|磁石|代赭石|赭石|石膏|寒水石|紫石英|白石英|赤石脂|龟甲|龟板|鳖甲|穿山甲|水牛角|羚羊角|鹿角|阳起石|禹余粮|自然铜|钟乳石|花蕊石|青礞石|金礞石|浮石)/, ['先煎','打碎']],
-  [/(薄荷|荆芥|紫苏叶|砂仁|白豆蔻|豆蔻|草豆蔻|沉香|木香|钩藤|大黄|番泻叶|青蒿|藿香|佩兰|香薷)/, ['后下']],
-  [/(蒲黄|车前子|葶苈子|辛夷|辛夷花|旋覆花|海金沙|滑石|枇杷叶|马勃|蚕沙|蚕砂|夜明砂|青黛|六一散)/, ['包煎']],
-  [/(人参|西洋参|红参|高丽参|鹿茸|三七|琥珀|朱砂|牛黄|麝香|紫河车|冬虫夏草|海马|蛤蚧)/, ['另煎','冲服']],
-  [/粉$/, ['冲服','包煎']]
-];
-function sfxListFor(nm){
-  var s=String(nm||''), r=null;
-  for(var i=0;i<SFX_RULES.length;i++){ if(SFX_RULES[i][0].test(s)){ r=SFX_RULES[i][1]; break; } }
-  if(!r) r=['先煎','后下'];
-  /* 只保留「设置 → 后缀管理」里还在的（用户删掉的后缀不再自动冒出来） */
-  var out=[];
-  for(var j=0;j<r.length;j++){ if(SFX_LIB.indexOf(r[j])>=0) out.push(r[j]); }
-  if(!out.length) out=SFX_LIB.slice(0,2);
-  return out.slice(0,2);
+/* =========================================================
+   后缀「使用记忆」（2026-10-30 第八轮）
+   用户要求：不要再按药性给每味药无脑塞「先煎 / 后下」，只有**这味药真的用过**
+   的后缀才出现在备选里（好蘄 → 好蘄[打碎]、好蘄[先煎]）。
+   · 数据来源 = 处方本身（云端 prescriptions 表的 items / 本机 SAVED 的 m 字段），
+     不新增表、不新增列；每次保存后自动重算，换设备也跟着处方一起同步；
+   · 每味药只留「用过次数最多的前 3 个」后缀，数据不会无限膨胀；
+   · 只认「设置 → 后缀管理」里还在的后缀：用户删掉的后缀，历史用过也不再冒出来。
+   ========================================================= */
+var SFXMEM={}, SFXMEM_TOPN=3, _sfxMemSig='';
+/* 处方 m 形如「砂仁[后下] 10g     人参 5g」→ 抓「药名 + 后缀」 */
+var RE_SFXMEM=/([\u4e00-\u9fa5A-Za-z0-9（）\.]{1,12})\s*[\[［]\s*([^\]］]{1,8}?)\s*[\]］]/g;
+function sfxMemKey(nm){
+  var sp=splitSfx(String(nm||''));
+  return String(sp.nm||nm||'').trim();
+}
+/* 只留前 SFXMEM_TOPN 名（次数降序，同次数按名字稳定排序） */
+function sfxMemPrune(o){
+  var arr=[], k;
+  for(k in o) if(o[k]>0) arr.push([k,o[k]]);
+  arr.sort(function(a,b){ return b[1]-a[1] || (a[0]<b[0]?-1:1); });
+  var out={};
+  for(var i=0;i<arr.length && i<SFXMEM_TOPN;i++) out[arr[i][0]]=arr[i][1];
+  return out;
+}
+function sfxMemSig(){
+  var h=(typeof HISTORY_ORIG!=='undefined'&&HISTORY_ORIG)||[];
+  var s=(typeof SAVED!=='undefined'&&SAVED)||[];
+  function fp(a){
+    if(!a.length) return '';
+    var f=a[0]||{}, l=a[a.length-1]||{};
+    return String(f.no||f.n||'')+'~'+String(l.no||l.n||'');
+  }
+  return h.length+'/'+fp(h)+'|'+s.length+'/'+fp(s)+'|'+SFX_LIB.join(',');
+}
+function sfxMemRebuild(){
+  var mem={}, src=[], i;
+  if(typeof HISTORY_ORIG!=='undefined'&&HISTORY_ORIG) for(i=0;i<HISTORY_ORIG.length;i++) src.push(HISTORY_ORIG[i]);
+  if(typeof SAVED!=='undefined'&&SAVED) for(i=0;i<SAVED.length;i++) src.push(SAVED[i]);
+  for(i=0;i<src.length;i++){
+    var s=String((src[i]&&src[i].m)||'');
+    if(s.indexOf('[')<0 && s.indexOf('［')<0) continue;   /* 大多数处方没有后缀，直接跳过 */
+    var mm; RE_SFXMEM.lastIndex=0;
+    while((mm=RE_SFXMEM.exec(s))!==null){
+      var nm=String(mm[1]||'').replace(/^[0-9.]+/,'').trim();
+      var sf=String(mm[2]||'').trim();
+      if(!nm||!sf) continue;
+      if(SFX_LIB.indexOf(sf)<0) continue;
+      var o=mem[nm]||(mem[nm]={});
+      o[sf]=(o[sf]||0)+1;
+    }
+  }
+  var out={};
+  for(var k in mem) out[k]=sfxMemPrune(mem[k]);
+  SFXMEM=out; _sfxMemSig=sfxMemSig();
+  return out;
+}
+function sfxMemEnsure(){
+  if(!_sfxMemSig || _sfxMemSig!==sfxMemSig()) sfxMemRebuild();
+}
+function sfxMemInvalidate(){ _sfxMemSig=''; }
+/* 这味药用过的后缀（次数降序，最多 3 个）；从没用过 → 空数组（备选里就只有基础名） */
+function sfxMemFor(nm){
+  var key=sfxMemKey(nm);
+  if(!key) return [];
+  sfxMemEnsure();
+  var o=SFXMEM[key];
+  if(!o) return [];
+  var arr=[];
+  for(var s in o) arr.push([s,o[s]]);
+  arr.sort(function(a,b){ return b[1]-a[1] || (a[0]<b[0]?-1:1); });
+  return arr.map(function(x){ return x[0]; });
+}
+/* 手动在格尾下拉里选了一个「这味药没用过」的后缀 → 立刻进记忆（保存后由处方本身固化） */
+function sfxMemAdd(nm, sfx, inc){
+  var key=sfxMemKey(nm), s=String(sfx||'').trim();
+  if(!key || !s || SFX_LIB.indexOf(s)<0) return false;
+  sfxMemEnsure();
+  var o=SFXMEM[key]||(SFXMEM[key]={});
+  o[s]=(o[s]||0)+(inc==null?1:inc);
+  SFXMEM[key]=sfxMemPrune(o);
+  return true;
+}
+/* 药库里没有、但历史上用过的药名（用户自定义名，如「好蘄」）：
+   按前缀 / 包含匹配给出候选，价格未知（显示 —），由用户自己填。 */
+function sfxMemNames(q, limit){
+  var s=String(q||'').trim();
+  if(!s) return [];
+  sfxMemEnsure();
+  var pre=[], mid=[], k;
+  for(k in SFXMEM){
+    if(!SFXMEM[k]) continue;
+    if(k.indexOf(s)===0) pre.push(k);
+    else if(k.indexOf(s)>=0) mid.push(k);
+  }
+  var arr=pre.concat(mid).slice(0, limit||5);
+  return arr.map(function(x){ return { n:x, u:'g', p:null, c:'', py:'', __memonly:1 }; });
 }
 /* 药名自动提示：按目录顺序过滤（基础命中，不含后缀变体）
    ★ 一药多规格：主规格之后紧跟该药的其它规格（盒 / 个 / 瓶…），
@@ -5408,11 +5494,12 @@ function acSearchBase(q){
   first.concat(mid).forEach(push);
   return out.slice(0,30);
 }
-/* 候选 = 基础命中 + 动态后缀变体。
-   · 正常输入（ajfp）：主名在前，前 3 条各补 1~2 个后缀变体；
-   · 只打了后缀码（ajfpyh）：识别出结尾的 yh=烊化，把带「烊化」的选项排在最前。 */
+/* 候选 = 基础命中 + **历史用过的**后缀变体（不再按药性硬塞）。
+   · 正常输入（ajfp）：主名在前；前 3 条若这味药有后缀记忆，各补上记忆里的后缀变体；
+   · 只打了后缀码（ajfpyh）：识别结尾的 yh，把记忆里对得上的后缀排到最前。
+   从未用过后缀的药（如甘草）→ 只出现基础名，不会冒出「先煎 / 后下」。 */
 function acSearch(q){
-  var base=acSearchBase(q), onlyVar=false, z, i;
+  var base=acSearchBase(q), onlyVar=false, wantPy='', z, i;
   if(!base.length){
     var qs=String(q||'');
     for(z=0;z<SFX_LIB.length;z++){
@@ -5420,13 +5507,20 @@ function acSearch(q){
       if(!pz || qs.length<=pz.length) continue;
       if(qs.toLowerCase().slice(-pz.length)!==pz) continue;
       var b2=acSearchBase(qs.slice(0,qs.length-pz.length));
-      if(b2.length){ base=b2; onlyVar=true; break; }
+      if(b2.length){ base=b2; onlyVar=true; wantPy=pz; break; }
     }
   }
+  /* 药库里查不到（用户自定义名，如「好蘄」）→ 退回按历史记忆里的药名给候选 */
+  if(!base.length) base=sfxMemNames(q, 5);
   if(!base.length) return base;
   var out=[], seen={}, vn=0;
   function pushVar(d){
-    var ss=sfxListFor(d.n);
+    var ss=sfxMemFor(d.n);            /* 只取这味药历史上用过的后缀（最多 3 个） */
+    if(!ss.length) return;
+    if(wantPy){
+      /* 打了后缀码 → 对得上的排前面（其余仍列在后面，方便直接改选） */
+      ss=ss.slice().sort(function(a,b){ return (pyOfSfx(b)===wantPy?1:0)-(pyOfSfx(a)===wantPy?1:0); });
+    }
     for(var j=0;j<ss.length;j++){
       if(vn>=8) return;
       var nn=d.n+'['+ss[j]+']';
@@ -7568,6 +7662,8 @@ function saveRx(){
   if(isUpdate && curRec && curRec.__contNew){ rec.__contFrom=curRec.__contFrom||''; }
   rec.__contNew=0;
   persistCur(rec, rec.fy);
+  /* 这张单里用过的「药名[后缀]」要进后缀记忆：作废缓存，下次搜药时按处方重算 */
+  sfxMemInvalidate();
   if(isHistEdit){
     /* 更新内存中的显示副本（保持 __hi 标记，便于后续继续就地编辑） */
     var hi=curSrcRx.__hi;
@@ -10054,9 +10150,15 @@ function openSfxPick(k, anchor){
   }
   var cell=cellEl(k); if(!cell) return;
   var cur=sfxText((cell.querySelector('.sfx')||{}).textContent||'');
+  /* 这味药用过的后缀排在最前（记忆优先），其余按「设置 → 后缀管理」的顺序跟在后面 */
+  var nmv=((cell.querySelector('.nm')||{}).value||'');
+  var mem=sfxMemFor(nmv), ord=[];
+  for(var i=0;i<mem.length;i++) ord.push(mem[i]);
+  for(var i=0;i<SFX_LIB.length;i++){ if(ord.indexOf(SFX_LIB[i])<0) ord.push(SFX_LIB[i]); }
   var h='';
-  for(var i=0;i<SFX_LIB.length;i++){
-    h+='<button type="button" class="sp'+(SFX_LIB[i]===cur?' on':'')+'" data-v="'+esc(SFX_LIB[i])+'">'+esc(SFX_LIB[i])+'</button>';
+  for(var i=0;i<ord.length;i++){
+    var own=(mem.indexOf(ord[i])>=0)?' own':'';
+    h+='<button type="button" class="sp'+(ord[i]===cur?' on':'')+own+'" data-v="'+esc(ord[i])+'">'+esc(ord[i])+'</button>';
   }
   if(cur) h+='<button type="button" class="sp del" data-v="">清除后缀</button>';
   m.innerHTML=h;
@@ -10081,6 +10183,11 @@ function setCellSfx(k, txt){
   var it0=items[k], du0=it0?it0.du:'', dp0=it0?it0.dp:null;
   readCell(k);
   if(items[k]&&!items[k].zibei){ items[k].du=du0||items[k].du; items[k].dp=(dp0==null?items[k].dp:dp0); }
+  /* 手动选的后缀 → 进这味药的后缀记忆（下次搜这味药就会带出来）。
+     保存时会整段重算一次，所以这里只补「新后缀」，不会重复计数。 */
+  if(t && nmIn.value.trim() && SFX_LIB.indexOf(t)>=0 && sfxMemFor(nmIn.value).indexOf(t)<0){
+    sfxMemAdd(nmIn.value, t, 1);
+  }
   cell.classList.toggle('empty', !nmIn.value.trim() && !cell.querySelector('.ds').value.trim() && !t);
   fitCell(k); recalc();
   return true;
