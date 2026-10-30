@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='6f0603e5a3';
+  var V='b3fd1858dc';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -47,7 +47,7 @@
   function getPass(){try{return new URLSearchParams(location.search).get('k')||'';}catch(e){return '';}}
   var RX_PASS=getPass();
   var SYNC_ON=(CLOUD_OK && !!RX_PASS && (typeof crypto!=='undefined') && !!crypto.subtle);
-  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1','rx_sfx_v1'];
+  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1','rx_sfx_v1','rx_gcommon_v1'];
   var _cpromise=null;
   function deriveKey(pass){
     if(_cpromise) return _cpromise;
@@ -3296,6 +3296,59 @@ body{ --navw:0px; }
 .wp-ac .r .pr{ color:var(--aux); font-size:12px; white-space:nowrap; }
 .wp-nm-wrap .wp-nm{ flex:1 1 auto; min-width:0; }
 .wp-subpane{ margin-top:14px; }
+/* ===== 2026-10-31 订单列表 / 订单详情分离 ===== */
+.wp-detail{ position:fixed; inset:0; z-index:800; display:none; flex-direction:column; background:var(--neutral-1); }
+.wp-detail.on{ display:flex; }
+.wp-detail-head{ flex:0 0 auto; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:12px 24px; background:var(--n-white); border-bottom:1px solid var(--neutral-2); box-shadow:var(--shadow-1); }
+.wp-detail-head .spacer{ flex:1; }
+.wp-detail-title{ font-size:var(--fs-title); color:var(--neutral-title); }
+.wp-detail-no{ font-size:12px; color:var(--neutral-4); }
+.wp-detail-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:22px 26px 44px; }
+.wp-ck{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--neutral-6);
+  cursor:pointer; user-select:none; white-space:nowrap; }
+.wp-ck input{ width:16px; height:16px; accent-color:var(--pri); cursor:pointer; }
+.wp-in-num{ min-width:96px; width:96px; }
+.wp-list-bar .wp-view-tabs{ margin-left:2px; }
+.wp-row{ grid-template-columns:30px 150px 0.9fr 1.1fr 60px 108px 70px 88px; }
+.wp-c-ck{ display:flex; align-items:center; justify-content:center; }
+.wp-c-ck input{ width:16px; height:16px; accent-color:var(--pri); cursor:pointer; }
+.wp-c-dish{ color:var(--neutral-title); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wp-c-dish .sub{ display:block; font-size:11px; color:var(--neutral-4); font-weight:400; }
+.wp-c-act button{ margin-left:6px; }
+.wp-c-act button:first-child{ margin-left:0; }
+/* 计划分组 */
+.wp-plan-row{ display:grid; grid-template-columns:1fr 96px 120px 96px; align-items:center; gap:12px;
+  padding:12px 16px; border-bottom:1px solid var(--neutral-2); cursor:pointer; }
+.wp-plan-row:hover{ background:var(--pri-soft); }
+.wp-plan-row.on{ background:var(--pri-soft); box-shadow:inset 3px 0 0 var(--pri); }
+.wp-plan-name{ font-size:14px; font-weight:700; color:var(--neutral-title); }
+.wp-plan-sub{ font-size:11px; color:var(--neutral-4); margin-top:2px; }
+.wp-plan-num{ font-size:12px; color:var(--neutral-6); text-align:right; font-variant-numeric:tabular-nums; }
+.wp-plan-amt{ font-size:15px; font-weight:700; color:var(--pri-deep); text-align:right; font-variant-numeric:tabular-nums; }
+.wp-plan-act{ text-align:right; }
+/* 底部汇总面板 */
+.wp-summary{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card);
+  box-shadow:var(--shadow-1); overflow:hidden; margin-bottom:18px; }
+.wp-sum-head{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px;
+  background:var(--neutral-0); border-bottom:1px solid var(--neutral-2); }
+.wp-sum-head b{ font-size:15px; color:var(--neutral-title); }
+.wp-sum-head .meta{ font-size:12px; color:var(--neutral-4); }
+.wp-sum-head .spacer{ flex:1; }
+.wp-sum-tbl{ width:100%; border-collapse:collapse; font-size:13px; }
+.wp-sum-tbl th{ text-align:left; font-size:11px; color:var(--neutral-5); font-weight:600;
+  padding:9px 14px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
+.wp-sum-tbl td{ padding:9px 14px; border-bottom:1px solid var(--neutral-2); color:var(--neutral-6); }
+.wp-sum-tbl tbody tr:last-child td{ border-bottom:none; }
+.wp-sum-tbl td.num,.wp-sum-tbl th.num{ text-align:right; font-variant-numeric:tabular-nums; }
+.wp-sum-tbl td.money{ text-align:right; font-weight:700; color:var(--neutral-title); }
+.wp-sum-tbl td.act{ text-align:right; white-space:nowrap; }
+.wp-sum-tbl td.act button{ margin-left:6px; }
+/* 批量结款图片弹窗 */
+.wp-pay-mw{ width:min(840px,94vw); }
+.wp-pay-body{ display:flex; align-items:center; justify-content:center; padding:12px;
+  background:var(--neutral-1); border-radius:12px; min-height:180px; }
+.wp-pay-body img{ display:block; max-width:100%; height:auto; box-shadow:var(--shadow-1); border-radius:6px; }
 /* 卡片式列表条目（进货单列表用；原来只有 class 没有样式，是裸文本） */
 .wp-card{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card);
   padding:12px 16px; margin-bottom:10px; box-shadow:var(--shadow-1);
@@ -3310,6 +3363,109 @@ body{ --navw:0px; }
 .wp-card-meta a{ color:var(--pri-deep); text-decoration:none; }
 .wp-card-meta a:hover{ text-decoration:underline; }
 .wp-card-meta a.pur-del{ color:var(--danger,#c0392b); }
+/* =====================================================================
+   👤 客人管理（2026-10-30 重写：左客户列表 / 右客户详情，两栏独立滚动）
+   ===================================================================== */
+.gst-wrap{ display:flex; gap:16px; padding:16px; height:100%; min-height:0; box-sizing:border-box; background:var(--neutral-1); }
+.gst-card{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card);
+  box-shadow:var(--shadow-1); display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.gst-left{ flex:0 0 300px; width:300px; }
+.gst-right{ flex:1 1 auto; min-width:0; }
+.gst-left-head{ flex:0 0 auto; padding:14px; border-bottom:1px solid var(--neutral-2); display:flex; flex-direction:column; gap:10px; background:var(--neutral-0); }
+.gst-search{ position:relative; }
+.gst-search input{ width:100%; height:38px; box-sizing:border-box; border:1px solid var(--neutral-3);
+  border-radius:10px; padding:0 34px 0 12px; font-size:13px; font-family:inherit;
+  background:var(--n-white); color:var(--neutral-title); }
+.gst-search input:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
+.gst-clear{ position:absolute; right:6px; top:50%; transform:translateY(-50%); width:24px; height:24px;
+  border:none; border-radius:50%; background:transparent; color:var(--neutral-4); font-size:16px;
+  line-height:22px; text-align:center; padding:0; cursor:pointer; display:none; }
+.gst-clear:hover{ background:var(--neutral-1); color:var(--neutral-6); }
+.gst-search.has-val .gst-clear{ display:block; }
+.gst-add-btn{ width:100%; height:38px; }
+.gst-list{ flex:1 1 auto; min-height:0; overflow:auto; padding:8px; }
+.gst-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
+  border:1px solid transparent; cursor:pointer; margin-bottom:6px; transition:background-color .15s ease,border-color .15s ease; }
+.gst-item:hover{ background:var(--neutral-1); }
+.gst-item.on{ background:var(--pri-soft); border-color:var(--pri-line); box-shadow:inset 3px 0 0 var(--pri); }
+.gst-ava{ flex:0 0 34px; width:34px; height:34px; border-radius:50%; background:var(--pri-soft);
+  color:var(--pri-deep); font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.gst-item-main{ flex:1 1 auto; min-width:0; }
+.gst-item-main b{ display:block; font-size:14px; color:var(--neutral-title); font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gst-item-main span{ display:block; margin-top:2px; font-size:11px; color:var(--neutral-4);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gst-debt{ flex:0 0 auto; font-size:11px; padding:2px 8px; border-radius:var(--r-pill); white-space:nowrap;
+  color:var(--aux,#b5462f); background:#fff3ef; border:1px solid #f3d4c8; }
+.gst-debt.ok{ color:var(--neutral-5); background:var(--neutral-1); border-color:var(--neutral-3); }
+.gst-empty{ flex:1 1 auto; display:flex; align-items:center; justify-content:center;
+  color:var(--neutral-4); font-size:14px; padding:40px; }
+.gst-detail{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+.gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:16px 20px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
+.gst-dt{ min-width:0; }
+.gst-dt b{ font-size:18px; color:var(--neutral-title); font-weight:700; margin-right:10px; }
+.gst-dt span{ font-size:12px; color:var(--neutral-4); }
+.gst-tabs{ display:flex; gap:6px; margin-left:auto; }
+.gst-tab{ min-height:32px; padding:5px 16px; border:1px solid var(--neutral-3); background:var(--n-white);
+  color:var(--neutral-6); border-radius:var(--r-pill); font-size:13px; font-weight:600;
+  font-family:inherit; cursor:pointer; }
+.gst-tab:hover{ background:var(--neutral-1); }
+.gst-tab.on{ background:var(--pri); border-color:var(--pri); color:#fff; box-shadow:0 1px 2px rgba(21,163,74,.22); }
+.gst-detail-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:18px 20px; }
+.gst-pane{ min-height:100%; box-sizing:border-box; }
+.gst-form{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 16px; }
+.gst-form-dlg{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.gst-f{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+.gst-f.gst-full{ grid-column:1 / -1; }
+.gst-f label{ font-size:12px; color:var(--neutral-5); font-weight:600; }
+.gst-f input, .gst-f select, .gst-f textarea{ width:100%; box-sizing:border-box; min-height:38px;
+  border:1px solid var(--neutral-3); border-radius:10px; padding:8px 12px; font-size:13px;
+  font-family:inherit; background:var(--n-white); color:var(--neutral-title); }
+.gst-f textarea{ resize:vertical; line-height:1.6; }
+.gst-f input:focus, .gst-f select:focus, .gst-f textarea:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
+.gst-form-foot{ margin-top:18px; display:flex; align-items:center; gap:12px; }
+.gst-hint{ font-size:11px; color:var(--neutral-4); line-height:1.6; }
+.gst-pane-tools{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.gst-mini-search{ height:32px; width:200px; box-sizing:border-box; border:1px solid var(--neutral-3);
+  border-radius:var(--r-pill); padding:0 12px; font-size:12px; font-family:inherit; }
+.gst-mini-search:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
+.gst-tool-hint{ font-size:11px; color:var(--neutral-4); }
+.gst-tool-lb{ font-size:12px; color:var(--neutral-5); font-weight:600; }
+.gst-month{ height:32px; border:1px solid var(--neutral-3); border-radius:var(--r-pill);
+  padding:0 12px; font-size:12px; font-family:inherit; background:var(--n-white); }
+.gst-spacer{ flex:1; }
+.gst-table-wrap{ overflow:auto; }
+.gst-tbl{ width:100%; border-collapse:collapse; font-size:13px; }
+.gst-tbl th{ text-align:left; font-size:11px; color:var(--neutral-5); font-weight:600;
+  padding:10px 10px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
+.gst-tbl td{ padding:10px; border-bottom:1px solid var(--neutral-2); color:var(--neutral-6); vertical-align:middle; }
+.gst-tbl tbody tr:hover{ background:var(--pri-soft); }
+.gst-tbl td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+.gst-tbl td.money{ text-align:right; font-weight:700; color:var(--neutral-title); font-variant-numeric:tabular-nums; }
+.gst-tbl .nm{ font-weight:700; color:var(--neutral-title); }
+.gst-st{ display:inline-block; font-size:11px; padding:2px 9px; border-radius:var(--r-pill); cursor:pointer; white-space:nowrap;
+  font-family:inherit; line-height:1.5; min-height:0; }
+.gst-st.paid{ color:var(--pri-deep); background:var(--pri-soft); border:1px solid var(--pri-line); }
+.gst-st.unpaid{ color:var(--aux,#b5462f); background:#fff3ef; border:1px solid #f3d4c8; }
+.gst-act{ text-align:right; white-space:nowrap; }
+.gst-act button{ font-size:11px; min-height:26px; padding:2px 9px; margin-left:6px;
+  border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6);
+  border-radius:var(--r-pill); font-family:inherit; cursor:pointer; font-weight:600; }
+.gst-act button:hover{ background:var(--neutral-1); }
+.gst-act button.pri{ background:var(--pri); border-color:var(--pri); color:#fff; }
+.gst-act button.danger{ color:var(--danger,#c0392b); border-color:var(--danger-line,#f0c2b8); background:var(--danger-soft,#fff2ee); }
+.gst-empty-row{ padding:34px; text-align:center; color:var(--neutral-4); font-size:13px; }
+.gst-modal-actions{ margin-top:18px; display:flex; justify-content:flex-end; gap:10px; }
+.gst-modal-actions .btn{ min-height:36px; }
+@media (max-width:980px){
+  .gst-wrap{ flex-direction:column; }
+  .gst-left{ flex:0 0 260px; width:auto; }
+  .gst-right{ min-height:360px; }
+  .gst-form{ grid-template-columns:1fr; }
+  .gst-tabs{ margin-left:0; }
+}
+
 /* =====================================================================
    🖨 打印模板配置 + 实时预览（2026-10-29）
    制表数据里不存店名/地址，全部由模板在「渲染时」注入 → 一份药单可出
@@ -3676,12 +3832,9 @@ body{ --navw:0px; }
         <div class="pageBody">
           <div class="wplan" id="wplanRoot">
             <div class="wp-head">
-              <div class="wp-title">药方打印 · 批发计划药单</div>
+              <div class="wp-title">药方打印 · 订单列表</div>
               <div class="spacer"></div>
-              <div class="wp-subnav">
-                <button class="wp-sub on" type="button" data-sub="list" onclick="WPlan.showSub('list')">订单列表</button>
-                <button class="wp-sub" type="button" data-sub="edit" onclick="WPlan.showSub('edit')">制表 / 详情</button>
-              </div>
+              <button class="btn" type="button" id="wpBatchBtn" onclick="WPlan.openPay()" disabled>批量结款</button>
               <button class="btn" type="button" id="wpPrintSetBtn" onclick="WPrint.open()">打印设置</button>
               <button class="btn pri" type="button" onclick="WPlan.newOrder()">新建订单</button>
             </div>
@@ -3689,35 +3842,54 @@ body{ --navw:0px; }
             <div class="wp-subpane" id="wpSubList">
               <div class="wp-list">
                 <div class="wp-list-bar">
-                  <input id="wpListSearch" class="wp-search" placeholder="搜索 客人 / 时间 / 状态" oninput="WPlan.setSearch(this.value)">
+                  <input id="wpListSearch" class="wp-search" placeholder="搜索 客人 / 药膳名 / 时间 / 状态" oninput="WPlan.setSearch(this.value)">
                   <div class="wp-tabs">
                     <button class="wp-tab on" type="button" data-f="all" onclick="WPlan.setFilter('all')">全部</button>
                     <button class="wp-tab" type="button" data-f="done" onclick="WPlan.setFilter('done')">已发</button>
                     <button class="wp-tab" type="button" data-f="undone" onclick="WPlan.setFilter('undone')">未发</button>
                   </div>
+                  <div class="wp-tabs wp-view-tabs">
+                    <button class="wp-tab on" type="button" data-v="flat" onclick="WPlan.setView('flat')">全部单据</button>
+                    <button class="wp-tab" type="button" data-v="plan" onclick="WPlan.setView('plan')">按计划分组</button>
+                  </div>
                   <span class="wp-list-count" id="wpListCount"></span>
                 </div>
                 <div class="wp-list-body" id="wpList"></div>
               </div>
+              <!-- 计划汇总面板：点击「客户+月份」计划后显示在列表底部 -->
+              <div class="wp-summary" id="wpSummary" style="display:none"></div>
             </div>
 
-            <div class="wp-subpane" id="wpSubEdit" style="display:none">
-              <div class="wp-order">
-                <div class="wp-order-row">
-                  <div class="wp-field"><label>医生</label><input id="wpGuest" class="wp-in" list="wpGuestList" placeholder="选择或输入医生" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
-                  <div class="wp-field"><label>日期</label><input id="wpDate" class="wp-in" type="date" onchange="WPlan.setDate(this.value)"></div>
-                  <div class="wp-field"><label>单据编号</label><input id="wpNo" class="wp-in" readonly></div>
-                  <div class="wp-field wp-fy"><label>&nbsp;</label><button id="wpFyBtn" class="btn" type="button" onclick="WPlan.toggleFy()">标记发药</button></div>
-                  <div class="wp-field wp-fy"><label>&nbsp;</label><button class="btn danger" type="button" onclick="WPlan.delOrder()">删除本单</button></div>
-                </div>
+            <!-- 订单详情 / 制表：独立全屏页，列表页只负责展示与入口 -->
+            <div class="wp-detail" id="wpSubEdit">
+              <div class="wp-detail-head">
+                <button class="btn" type="button" onclick="WPlan.backToList()">← 返回列表</button>
+                <b class="wp-detail-title" id="wpDetailTitle">订单详情</b>
+                <span class="wp-detail-no" id="wpDetailNo"></span>
+                <span class="spacer"></span>
+                <label class="wp-ck"><input type="checkbox" id="wpSaveCommon" onchange="WPlan.setSaveCommon(this.checked)">存为常用方</label>
+                <button class="btn" type="button" onclick="WPlan.printCur()">打印本单</button>
+                <button class="btn danger" type="button" onclick="WPlan.delOrder()">删除本单</button>
               </div>
+              <div class="wp-detail-body">
+                <div class="wp-order">
+                  <div class="wp-order-row">
+                    <div class="wp-field wp-req"><label>药膳名字 *</label><input id="wpDish" class="wp-in" placeholder="必填，如 四物汤 / 水丸" oninput="WPlan.setDish(this.value)"></div>
+                    <div class="wp-field wp-req"><label>日期 *</label><input id="wpDate" class="wp-in" type="date" onchange="WPlan.setDate(this.value)"></div>
+                    <div class="wp-field wp-req"><label>付数 *</label><input id="wpDoses" class="wp-in wp-in-num" type="number" min="1" step="1" value="1" oninput="WPlan.setOrderDoses(this.value)"></div>
+                    <div class="wp-field"><label>客人 / 医生</label><input id="wpGuest" class="wp-in" list="wpGuestList" placeholder="选择或输入客人" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
+                    <div class="wp-field"><label>单据编号</label><input id="wpNo" class="wp-in" readonly></div>
+                    <div class="wp-field wp-fy"><label>&nbsp;</label><button id="wpFyBtn" class="btn" type="button" onclick="WPlan.toggleFy()">标记发药</button></div>
+                  </div>
+                </div>
 
-              <div class="wp-blocks" id="wpBlocks"></div>
+                <div class="wp-blocks" id="wpBlocks"></div>
 
-              <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
+                <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
 
-              <div class="wp-foot" id="wpFoot"></div>
-              <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
+                <div class="wp-foot" id="wpFoot"></div>
+                <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
+              </div>
             </div>
           </div>
         </div>
@@ -3841,6 +4013,18 @@ body{ --navw:0px; }
             <div class="wp-mb">
               <textarea id="wpText" class="wp-ta" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别药名 / 数量 / 单位 / 煎煮法"></textarea>
               <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">生成表格行</button></div>
+            </div>
+          </div>
+        </div>
+        <!-- 批量结款：生成的结款明细图片（可复制 / 下载，发客户核对付款） -->
+        <div class="modal" id="wpPayModal">
+          <div class="wp-mw wp-pay-mw">
+            <div class="wp-mh">批量结款 · 结款明细 <button class="x" type="button" onclick="WPlan.closeModal('wpPayModal')">×</button></div>
+            <div class="wp-mb"><div class="wp-pay-body" id="wpPayBody"><div class="wp-empty">正在生成…</div></div></div>
+            <div class="wp-mb-actions">
+              <button class="btn" type="button" onclick="WPlan.closeModal('wpPayModal')">关闭</button>
+              <button class="btn" type="button" onclick="WPlan.copyPay()">复制图片</button>
+              <button class="btn pri" type="button" onclick="WPlan.downloadPay()">下载 PNG</button>
             </div>
           </div>
         </div>
@@ -4367,7 +4551,83 @@ body{ --navw:0px; }
 
       <section class="page" data-page="guest">
         <div class="pageBody">
-          <div class="pageEmpty" id="pgEmpty_guest"></div>
+          <div class="gst-wrap">
+            <!-- 左：客户列表（独立滚动） -->
+            <aside class="gst-card gst-left">
+              <div class="gst-left-head">
+                <div class="gst-search">
+                  <input id="gstSearch" placeholder="搜索 姓名 / 电话 / 备注" autocomplete="off" oninput="Guest.setSearch(this.value)">
+                  <button class="gst-clear" id="gstClear" type="button" title="清除搜索" onclick="Guest.clearSearch()">×</button>
+                </div>
+                <button class="btn pri gst-add-btn" type="button" onclick="Guest.newCustomer()">+ 新增客户</button>
+              </div>
+              <div class="gst-list" id="gstList"></div>
+            </aside>
+
+            <!-- 右：客户详情（独立滚动） -->
+            <main class="gst-card gst-right">
+              <div class="gst-empty" id="gstEmpty">从左侧选择一位客户，查看 360° 档案</div>
+              <div class="gst-detail" id="gstDetail" style="display:none">
+                <div class="gst-detail-head">
+                  <div class="gst-dt">
+                    <b id="gstName">—</b>
+                    <span id="gstMeta"></span>
+                  </div>
+                  <div class="gst-tabs">
+                    <button class="gst-tab on" type="button" data-t="info" onclick="Guest.tab('info')">基础信息</button>
+                    <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
+                    <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
+                  </div>
+                </div>
+                <div class="gst-detail-body">
+                  <!-- 基础信息 -->
+                  <div class="gst-pane" id="gstPaneInfo">
+                    <div class="gst-form">
+                      <div class="gst-f"><label>姓名</label><input id="gstFName" placeholder="客户姓名"></div>
+                      <div class="gst-f"><label>电话</label><input id="gstFPhone" placeholder="手机 / 微信同号"></div>
+                      <div class="gst-f gst-full"><label>地址</label><input id="gstFAddr" placeholder="收货 / 配送地址"></div>
+                      <div class="gst-f">
+                        <label>客户类型</label>
+                        <select id="gstFType">
+                          <option value="散客">散客</option>
+                          <option value="批发">批发</option>
+                          <option value="月结">月结</option>
+                        </select>
+                      </div>
+                      <div class="gst-f gst-full"><label>备注</label><textarea id="gstFNote" rows="4" placeholder="口味偏好 / 忌口 / 结算习惯…"></textarea></div>
+                    </div>
+                    <div class="gst-form-foot">
+                      <button class="btn pri" type="button" onclick="Guest.saveInfo()">保存信息</button>
+                      <span class="gst-hint" id="gstSaveHint"></span>
+                    </div>
+                  </div>
+
+                  <!-- 常用方 -->
+                  <div class="gst-pane" id="gstPaneCommon" style="display:none">
+                    <div class="gst-pane-tools">
+                      <button class="btn pri" type="button" onclick="Guest.newCommon()">+ 新建常用方</button>
+                      <input class="gst-mini-search" id="gstCommonSearch" placeholder="搜索方名 / 药名" oninput="Guest.renderCommon()">
+                      <span class="gst-tool-hint" id="gstCommonCount"></span>
+                    </div>
+                    <div class="gst-table-wrap" id="gstCommonList"></div>
+                  </div>
+
+                  <!-- 历史订单 -->
+                  <div class="gst-pane" id="gstPaneHistory" style="display:none">
+                    <div class="gst-pane-tools">
+                      <label class="gst-tool-lb">年月</label>
+                      <input class="gst-month" id="gstMon" type="month" onchange="Guest.setMonth(this.value)">
+                      <button class="btn sm" type="button" onclick="Guest.clearMonth()">全部</button>
+                      <span class="gst-tool-hint" id="gstHistCount"></span>
+                      <span class="gst-spacer"></span>
+                      <button class="btn" type="button" onclick="Guest.exportBill()">导出历史账单</button>
+                    </div>
+                    <div class="gst-table-wrap" id="gstHistoryList"></div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
       </section>
 
@@ -4389,30 +4649,46 @@ body{ --navw:0px; }
 <div id="acBox"></div>
 
 <!-- ================= 药物维护 ================= -->
-<!-- ================= 重要客人 ================= -->
-<div class="modal" id="mDocs">
-  <div class="dlg">
-    <header>重要客人<span class="spacer"></span><span class="x" data-close>✕</span></header>
+<!-- ================= 新增客户 ================= -->
+<div class="modal" id="gstNewModal">
+  <div class="dlg" style="width:440px">
+    <header>新增客户<span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
-      <div id="gListView">
-        <div class="dlg-toolbar">
-          <input id="gSearch" placeholder="搜客人姓名" style="flex:1">
-          <button type="button" class="pri" id="gAdd">新增客人</button>
+      <div class="gst-form gst-form-dlg">
+        <div class="gst-f gst-full"><label>姓名 *</label><input id="gstNewName" placeholder="客户姓名"></div>
+        <div class="gst-f"><label>电话</label><input id="gstNewPhone" placeholder="手机 / 微信同号"></div>
+        <div class="gst-f">
+          <label>客户类型</label>
+          <select id="gstNewType">
+            <option value="散客">散客</option>
+            <option value="批发">批发</option>
+            <option value="月结">月结</option>
+          </select>
         </div>
-        <div id="gList"></div>
       </div>
-      <div id="gHomeView" style="display:none">
-        <div class="dlg-toolbar">
-          <button type="button" class="mini" id="gBack">← 返回</button>
-          <b id="gHomeName" class="dlg-hd-name"></b>
-          <span id="gHomeSub" class="dlg-hint"></span>
-          <span class="spacer" style="flex:1"></span>
-          <button type="button" class="mini" id="gEdit">编辑折扣</button>
-          <button type="button" class="mini danger" id="gDel">删除</button>
+      <div class="gst-modal-actions">
+        <button class="btn" type="button" data-close>取消</button>
+        <button class="btn pri" type="button" onclick="Guest.createCustomer()">保存并打开</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 新建 / 编辑常用方 ================= -->
+<div class="modal" id="gstCfModal">
+  <div class="dlg" style="width:620px">
+    <header><span id="gstCfTitle">新建常用方</span><span class="spacer"></span><span class="x" data-close>✕</span></header>
+    <div class="body">
+      <div class="gst-form gst-form-dlg">
+        <div class="gst-f"><label>方名 *</label><input id="gstCfName" placeholder="如 四物汤 / 祛湿茶"></div>
+        <div class="gst-f"><label>付数 *</label><input id="gstCfDoses" class="num" type="number" min="1" step="1" value="1"></div>
+        <div class="gst-f gst-full"><label>药方内容 *</label><textarea id="gstCfItems" rows="8" placeholder="例如：桂枝 10g 白芍 10g 甘草 5g（空格或换行分隔，自动带出单价）"></textarea>
+          <div class="gst-hint" id="gstCfHint">保存后可在「常用方」中一键复用，自动跳转到药方打印页。</div>
         </div>
-        <div id="gHomeInfo" class="dlg-hint" style="margin-bottom:10px"></div>
-        <div class="dlg-sec-hd">关联药方（<span id="gRxCount">0</span>）<span class="dlg-hint">置顶最多 3 张，标星不限</span></div>
-        <div id="gRxList" class="dlg-box"></div>
+      </div>
+      <div class="gst-modal-actions">
+        <button class="btn" type="button" data-close>取消</button>
+        <button class="btn pri" type="button" onclick="Guest.saveCommon()">保存常用方</button>
       </div>
     </div>
   </div>
@@ -6377,49 +6653,66 @@ function collectRecord(no){
     b:$('fNote').value, fy:'', c:'中医'
   };
 }
-/* ================= 重要客人管理 =================
-   2026-10-14 重做：原「医生档案」改为「重要客人管理」。
-   模块一 客人列表（主页）：姓名 / 处方数 / 已发药 / 总金额 / 专属折扣，支持搜索、新增、修改、删除。
-   模块二 客人主页：基本信息 + 关联药方（按姓名匹配历史处方），每张方支持 预览 / 复用 / 置顶(≤3) / 标星(不限)。
-   模块三 数据隔离：客人页的置顶/标星/预览/复用 不影响主界面处方数据（只改 GUESTS 内存 + 云端，不动 SAVED/HISTORY）。
-   模块四（数据）：客人档案与置顶/标星状态全部存 Supabase（doctors 表，prices 字段承载全部状态），不依赖 localStorage。 */
+/* ================= 客人管理（2026-10-30 重写） =================
+   布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
+   数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
+        常用方  → localStorage rx_gcommon_v1（随 RX_CLOUD 同步）
+        历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
+var GUESTS={};
+var GUEST_CUR='';
+var GST_CF_LS='rx_gcommon_v1';
+var GST_CF=[];
+var GST_CF_EDIT='';
 
-var GUESTS={};          /* 内存中的客人档案：name → {name, discount, note, pins:[], stars:{}} */
-var GUEST_CUR='';       /* 当前查看的客人 */
-
-/* ---------- Supabase 数据层（复用 doctors 表，prices jsonb 承载全部客人状态）---------- */
+/* ---------- 客户档案数据层（沿用 doctors 表，prices jsonb 承载档案字段） ---------- */
 function guestRowOf(g){
-  /* prices 里还存着各味药的「重要客人价格」（药名 → 单价）和各药倍率（__rates），
-     写客人档案时必须保留，否则在「重要客人」页改一次折扣就会把药价整片抹掉。 */
+  /* prices 里还存着各味药的「重要客人价格」和倍率，写档案时必须保留 */
   var keep={}, o=(typeof DOCTORS!=='undefined'&&DOCTORS[g.name])||{};
   var src=o.price||{};
   for(var k in src){ if(Object.prototype.hasOwnProperty.call(src,k)) keep[k]=src[k]; }
   if(o.rates) keep.__rates=o.rates;
-  keep.discount=g.discount||0; keep.note=g.note||'';
-  keep.pins=(g.pins||[]).slice(0,3); keep.stars=(g.stars||{});
+  keep.discount=g.discount||0;
+  keep.note=g.note||'';
+  keep.phone=g.phone||'';
+  keep.addr=g.addr||'';
+  keep.ctype=g.ctype||'散客';
+  keep.pins=(g.pins||[]).slice(0,3);
+  keep.stars=(g.stars||{});
   return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
   var p=(r&&r.prices)||{};
   return {name:r.name, discount:p.discount||0, note:p.note||'',
+          phone:p.phone||'', addr:p.addr||'', ctype:p.ctype||'散客',
           pins:(p.pins||[]).slice(0,3), stars:(p.stars||{})};
 }
+function gstCacheSave(){
+  try{ localStorage.setItem('rx_guests_cache_v1', JSON.stringify(GUESTS)); }catch(e){}
+}
 function guestSave(g){
-  GUESTS[g.name]=g;
+  GUESTS[g.name]=g; gstCacheSave();
+  if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?on_conflict=name',{method:'POST',body:guestRowOf(g)})
-    .catch(function(e){ toastErr('客人数据写库失败：'+e.message); });
+    .catch(function(e){ toastErr('客户资料写库失败：'+e.message); });
 }
 function guestLoadAll(){
-  if(!SUPA.on) return Promise.resolve();
+  /* 先用本机缓存秒开，再用云端覆盖（换设备时云端才是最新的） */
+  try{
+    var c=JSON.parse(localStorage.getItem('rx_guests_cache_v1')||'null');
+    if(c && typeof c==='object') GUESTS=c;
+  }catch(e){}
+  if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?select=name,prices').then(function(rows){
     GUESTS={};
-    (rows||[]).forEach(function(r){ GUESTS[r.name]=guestFromRow(r); });
+    (rows||[]).forEach(function(r){ if(r && r.name) GUESTS[r.name]=guestFromRow(r); });
+    gstCacheSave();
     /* 同一张表里 prices 还存着「药名 → 重要客人价格」，另外捞一份给 DOCTORS 用 */
     CLOUD_DOC_PRICES={}; CLOUD_DOC_RATES={};
     (rows||[]).forEach(function(r){
       var p=r.prices||{}, dp={}, has=false;
       for(var k in p){
-        if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates') continue;
+        if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates'||
+           k==='phone'||k==='addr'||k==='ctype') continue;
         if(p[k]==null || p[k]==='') continue;
         dp[k]=p[k]; has=true;
       }
@@ -6427,246 +6720,517 @@ function guestLoadAll(){
       if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
     });
     try{ purgeTestGuests(); }catch(e){}
-  }).catch(function(e){ console.warn('重要客人数据拉取失败:',e.message); });
+  }).catch(function(e){ console.warn('客户资料拉取失败:',e.message); });
 }
 function guestDelete(name){
-  delete GUESTS[name];
+  delete GUESTS[name]; gstCacheSave();
+  if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?name=eq.'+encodeURIComponent(name),{method:'DELETE'})
     .catch(function(e){ toastErr('删除失败：'+e.message); });
 }
 
-/* ---------- 关联药方（按精确姓名匹配历史处方，只读，不改动源数据）---------- */
-function guestRxs(name){
-  var out=[], list=allRx();
-  for(var i=0;i<list.length;i++){
-    var r=list[i], nm=String(r.n||'').trim();
-    if(nm!==name) continue;   /* 精确匹配客人姓名（重要客人是具体个人，同名方才关联） */
-    var a=statAmount(r);
-    out.push({dt:r.dt||'', tm:r.tm||'', name:r.n||'', no:r.no||'', fy:r.fy||'',
-              j:a.j, total:a.total, src:(idxOfSaved(r.no)>=0)?'本机':'历史'});
+/* ---------- 常用方数据层 ---------- */
+function gstLoadCf(){
+  try{ var a=JSON.parse(localStorage.getItem(GST_CF_LS)||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
+}
+function gstCfPersist(){
+  try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
+  if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push(GST_CF_LS); }catch(e){} }
+}
+function gstCfId(){ return 'CF'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function gstCfFor(guest){
+  var out=[];
+  for(var i=0;i<GST_CF.length;i++){ if(GST_CF[i] && GST_CF[i].guest===guest) out.push(GST_CF[i]); }
+  out.sort(function(a,b){ return String(b.createdAt||'').localeCompare(String(a.createdAt||'')); });
+  return out;
+}
+function gstCfFind(id){
+  for(var i=0;i<GST_CF.length;i++){ if(GST_CF[i] && GST_CF[i].id===id) return GST_CF[i]; }
+  return null;
+}
+function gstItemAmt(it){
+  if(!it || it.zibei) return 0;
+  return n(it.price)*n(it.qty);
+}
+function gstCfAmount(c){
+  var per=0, its=(c&&c.items)||[];
+  for(var i=0;i<its.length;i++) per+=gstItemAmt(its[i]);
+  return per*(n(c&&c.doses)||1);
+}
+function gstItemsText(items){
+  var out=[];
+  for(var i=0;i<(items||[]).length;i++){
+    var it=items[i];
+    out.push(it.zibei ? (it.name+' 自备') : (it.name+' '+n(it.qty)+(it.unit||it.du||'g')));
   }
-  out.sort(function(x,y){ return (x.dt+x.tm)>(y.dt+y.tm)?-1:1; });
+  return out.join('  ');
+}
+function gstPriceFor(guest, name, du){
+  var dp=docPrice(guest, name);
+  if(dp!=null) return dp;
+  var all=findDrugAll(name)||[];
+  var d=null, i;
+  for(i=0;i<all.length;i++){ if(String(all[i].u||'g').toLowerCase()===String(du||'g').toLowerCase()){ d=all[i]; break; } }
+  if(!d) d=all[0];
+  if(!d || d.p==null || d.p==='') return null;
+  return n(d.p)*unitCoef(String(d.u||'g'), du||'g');
+}
+function gstBuildItems(text, guest){
+  var parsed=parseItems(text), out=[], i;
+  for(i=0;i<parsed.length;i++){
+    var p=parsed[i]; if(!p || !p.name) continue;
+    if(p.zibei){ out.push({name:p.name,qty:0,unit:'',du:'',price:0,manual:false,zibei:true,sfx:'',rm:''}); continue; }
+    var u=normUnit(p.unit||'g')||'g';
+    var sp=splitSfx(p.name), nm=sp.nm;
+    var all=findDrugAll(nm)||[], d=all[0]||null;
+    var du=d?String(d.u||'g'):u;
+    var q=n(p.qty);
+    if(u!==du) q=q*unitCoef(du,u);
+    out.push({name:nm,qty:q,unit:du,du:du,price:gstPriceFor(guest,nm,du),
+              manual:false,zibei:false,sfx:sp.sfx,rm:''});
+  }
   return out;
 }
 
-/* ---------- 模块一：客人列表 ---------- */
-function guestStat(g){
-  var rxs=guestRxs(g.name), all=0, fa=0;
-  for(var i=0;i<rxs.length;i++){ all+=rxs[i].total; if(rxs[i].fy) fa++; }
-  return {count:rxs.length, total:Math.round(all*100)/100, fa:fa, discount:g.discount||0};
+/* ---------- 药方打印订单（只读汇总 + 已结/未结标记） ---------- */
+function gstOrdersRaw(){
+  try{
+    var raw=JSON.parse(localStorage.getItem('rx_wplan_v1')||'[]');
+    if(Array.isArray(raw)) return raw;
+    if(raw && Array.isArray(raw.orders)) return raw.orders;
+  }catch(e){}
+  return [];
 }
-function guestDiscountText(g){ return g.discount?(Math.round(g.discount*100)/10).toFixed(1)+'折':'—'; }
-function guestRenderList(){
-  var kw=String($('gSearch').value||'').trim().toLowerCase();
-  var names=Object.keys(GUESTS).filter(function(n){ return !kw || n.toLowerCase().indexOf(kw)>=0; }).sort();
-  var box=$('gList');
-  if(!names.length){
-    box.innerHTML='<div style="padding:14px;color:#888;text-align:center">'
-      +'还没有重要客人。在上面输入姓名点「新增客人」。'
-      +(kw?('（没搜到「'+esc(kw)+'」）'):'')+'</div>';
-    return;
+function gstOrdersWrite(arr){
+  try{ localStorage.setItem('rx_wplan_v1', JSON.stringify(arr)); }catch(e){}
+  if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push('rx_wplan_v1'); }catch(e){} }
+}
+function gstIsPaid(o){ return !!(o && (o.paid==='1' || o.paid===true || o.paid==='paid')); }
+function gstOrderAmount(o){
+  var total=0, bs=(o&&o.blocks)||[], i, j;
+  for(i=0;i<bs.length;i++){
+    var b=bs[i], sub=0, its=(b&&b.items)||[];
+    for(j=0;j<its.length;j++) sub+=gstItemAmt(its[j]);
+    total += sub*(n(b&&b.doses)||1);
   }
-  var h='<table class="pltable" style="font-size:12px"><thead><tr>'
-    +'<th style="text-align:left">客人</th>'
-    +'<th style="width:60px">处方数</th>'
-    +'<th style="width:60px">已发药</th>'
-    +'<th style="width:90px">总金额(元)</th>'
-    +'<th style="width:70px">专属折扣</th>'
-    +'<th style="width:52px"></th></tr></thead><tbody>';
-  for(var i=0;i<names.length;i++){
-    var s=guestStat(GUESTS[names[i]]);
-    h+='<tr data-g="'+esc(names[i])+'">'
-      +'<td style="text-align:left"><b>'+esc(names[i])+'</b></td>'
-      +'<td style="text-align:center">'+s.count+'</td>'
-      +'<td style="text-align:center">'+s.fa+'</td>'
-      +'<td style="text-align:center;font-weight:700">'+money(s.total)+'</td>'
-      +'<td style="text-align:center">'+guestDiscountText(GUESTS[names[i]])+'</td>'
-      +'<td><button type="button" class="mini" data-open="1">主页</button></td></tr>';
+  return total;
+}
+function gstOrderName(o){
+  if(o && o.dish) return String(o.dish);
+  var bs=(o&&o.blocks)||[];
+  if(bs.length===1) return String(bs[0].title||'未命名药方');
+  if(bs.length>1){
+    var names=[];
+    for(var i=0;i<bs.length;i++) names.push(String(bs[i].title||('药方'+(i+1))));
+    return names.join('、');
   }
-  h+='</tbody></table>';
-  box.innerHTML=h;
-  var trs=box.querySelectorAll('tr[data-g]');
-  for(var j=0;j<trs.length;j++){
-    trs[j].onclick=(function(d){ return function(){ GUEST_CUR=d; guestOpenHome(); }; })(trs[j].getAttribute('data-g'));
+  return '未命名单';
+}
+function gstOrderDoses(o){
+  if(o && o.doses!=null && n(o.doses)>0) return n(o.doses);
+  var bs=(o&&o.blocks)||[];
+  if(bs.length) return n(bs[0].doses)||1;
+  return 1;
+}
+function gstFmtTime(s){
+  if(!s) return '';
+  var d=new Date(s);
+  if(isNaN(d.getTime())) return String(s);
+  function p2(x){ x=String(x); return x.length<2?'0'+x:x; }
+  return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes());
+}
+function gstGuestOrders(guest){
+  var all=gstOrdersRaw(), out=[];
+  guest=String(guest||'').trim();
+  for(var i=0;i<all.length;i++){
+    if(String((all[i]&&all[i].guest)||'').trim()===guest) out.push(all[i]);
   }
-}
-
-/* ---------- 模块二：客人主页 ---------- */
-function guestOpenHome(){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  $('gListView').style.display='none';
-  $('gHomeView').style.display='';
-  $('gHomeName').textContent=g.name;
-  var s=guestStat(g);
-  $('gHomeSub').textContent=s.count+' 张处方 ｜ 已发药 '+s.fa+' 张 ｜ 累计 '+money(s.total)+' 元'
-    +' ｜ 专属 '+guestDiscountText(g);
-  var info='';
-  if(g.note) info+='<div>备注：'+esc(g.note)+'</div>';
-  info+='<div style="color:#888">专属折扣：'+guestDiscountText(g)+'（点「编辑折扣」可改；开方时按此折扣计价）</div>';
-  $('gHomeInfo').innerHTML=info;
-  guestRenderRxList();
-}
-function guestBack(){
-  $('gHomeView').style.display='none';
-  $('gListView').style.display='';
-  GUEST_CUR='';
-  guestRenderList();
-}
-function guestEdit(){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  var dis=prompt('专属折扣（0~1 的小数，例如 0.9 表示 9 折；留空或 0 表示不打折）', g.discount?String(g.discount):'');
-  if(dis===null) return;
-  var dv=parseFloat(dis);
-  if(dis.trim()===''){ dv=0; }
-  else if(isNaN(dv)||dv<=0||dv>1){ toastErr('折扣必须是 0~1 之间的数'); return; }
-  var note=prompt('备注（选填）', g.note||'');
-  if(note===null) return;
-  g.discount=dv; g.note=note.trim();
-  guestSave(g).then(function(){ guestOpenHome(); toast('已保存「'+g.name+'」'); });
-}
-function guestDel(){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  if(!confirm('确定删除客人「'+g.name+'」？\n（关联的历史处方不会被删除，只是不再标记为重要客人）')) return;
-  guestDelete(g.name).then(function(){
-    GUEST_CUR=''; guestBack();
-    toast('已删除「'+g.name+'」');
+  out.sort(function(a,b){
+    var x=String((a.date||'')+' '+(a.createdAt||''));
+    var y=String((b.date||'')+' '+(b.createdAt||''));
+    return x>y?-1:1;
   });
+  return out;
 }
 
-/* ---------- 关联药方列表（置顶 / 标星 / 预览 / 复用）---------- */
-function guestRenderRxList(){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  var rxs=guestRxs(g.name);
-  $('gRxCount').textContent=rxs.length;
-  var box=$('gRxList');
-  if(!rxs.length){
-    box.innerHTML='<div style="padding:14px;color:#888;text-align:center">'
-      +'还没有与「'+esc(g.name)+'」关联的处方。</div>';
-    return;
+/* ---------- 客人管理页面模块 ---------- */
+var Guest=(function(){
+  var _tab='info', _search='', _month='';
+
+  function ensure(){
+    if(!$('gstList')) return;
+    gstLoadCf();
+    renderList();
+    if(GUEST_CUR && GUESTS[GUEST_CUR]) renderDetail(true);
+    guestLoadAll().then(function(){
+      renderList();
+      if(GUEST_CUR && GUESTS[GUEST_CUR]) renderDetail(false);
+    });
   }
-  var pins=(g.pins||[]);
-  function rank(r){ var pi=pins.indexOf(r.no); return pi>=0?(-1000+pi):0; }
-  rxs.sort(function(a,b){ return rank(a)-rank(b) || ((a.dt+a.tm)>(b.dt+b.tm)?-1:1); });
-  var h='<table class="pltable" style="font-size:12px"><thead><tr>'
-    +'<th style="width:34px">置顶</th>'
-    +'<th style="width:92px">日期</th>'
-    +'<th style="width:50px">剂数</th>'
-    +'<th style="width:84px">金额(元)</th>'
-    +'<th style="width:40px">发药</th>'
-    +'<th style="width:38px">星</th>'
-    +'<th style="width:176px"></th></tr></thead><tbody>';
-  for(var i=0;i<rxs.length;i++){
-    var r=rxs[i], pinned=pins.indexOf(r.no)>=0, starred=!!(g.stars&&g.stars[r.no]);
-    h+='<tr data-no="'+esc(r.no)+'">'
-      +'<td style="text-align:center;color:#c0392b;font-weight:700">'+(pinned?'置顶':'')+'</td>'
-      +'<td style="text-align:left">'+esc(r.dt)+(r.tm?(' '+r.tm):'')+'</td>'
-      +'<td style="text-align:center">'+r.j+'</td>'
-      +'<td style="text-align:center;font-weight:700">'+money(r.total)+'</td>'
-      +'<td style="text-align:center">'+(r.fy?'已发':'—')+'</td>'
-      +'<td style="text-align:center;cursor:pointer;color:#e6a700" data-star="1" title="标星/取消">'+(starred?'★':'☆')+'</td>'
-      +'<td style="white-space:nowrap">'
-      +'<button type="button" class="mini" data-prev="1">预览</button>'
-      +'<button type="button" class="mini" data-reuse="1">复用</button>'
-      +'<button type="button" class="mini" data-pin="1">'+(pinned?'取消置顶':'置顶')+'</button>'
-      +'</td></tr>';
+  function setSearch(v){
+    _search=String(v||'').trim().toLowerCase();
+    var box=$('gstSearch');
+    if(box && box.parentNode) box.parentNode.classList.toggle('has-val', !!String(v||'').trim());
+    renderList();
   }
-  h+='</tbody></table>';
-  box.innerHTML=h;
-  box.querySelectorAll('tr[data-no]').forEach(function(tr){
-    var no=tr.getAttribute('data-no');
-    var r=rxs.filter(function(x){ return x.no===no; })[0];
-    var prev=tr.querySelector('[data-prev]'); if(prev) prev.onclick=function(e){ e.stopPropagation(); guestPreview(r); };
-    var reuse=tr.querySelector('[data-reuse]'); if(reuse) reuse.onclick=function(e){ e.stopPropagation(); guestReuse(r); };
-    var pin=tr.querySelector('[data-pin]'); if(pin) pin.onclick=function(e){ e.stopPropagation(); guestTogglePin(no); };
-    var star=tr.querySelector('[data-star]'); if(star) star.onclick=function(e){ e.stopPropagation(); guestToggleStar(no); };
-  });
-}
-function guestTogglePin(no){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  if(!g.pins) g.pins=[];
-  var k=g.pins.indexOf(no);
-  if(k>=0) g.pins.splice(k,1);
-  else { if(g.pins.length>=3){ toastErr('最多置顶 3 张'); return; } g.pins.push(no); }
-  guestSave(g).then(function(){ guestRenderRxList(); });
-}
-function guestToggleStar(no){
-  var g=GUESTS[GUEST_CUR]; if(!g) return;
-  if(!g.stars) g.stars={};
-  if(g.stars[no]) delete g.stars[no]; else g.stars[no]=1;
-  guestSave(g).then(function(){ guestRenderRxList(); });
-}
-/* 复用：把该方载入当前笺并立即转为「当日新单」，保存即新建，原方不动（数据隔离） */
-function guestReuse(r){
-  var list=allRx(), found=null;
-  for(var i=0;i<list.length;i++){ if(list[i].no===r.no){ found=list[i]; break; } }
-  if(!found){ toastErr('找不到这条处方'); return; }
-  loadRx(found);
-  copyRx();
-  $('mDocs').classList.remove('on');
-  toast('已复用「'+r.name+'」的处方，已生成当日新单，可直接保存');
-}
-
-/* ---------- 预览 ---------- */
-function guestPreview(r){
-  var list=allRx(), found=null;
-  for(var i=0;i<list.length;i++){ if(list[i].no===r.no){ found=list[i]; break; } }
-  if(!found){ toastErr('找不到这条处方'); return; }
-  var a=statAmount(found);
-  var items=parseItems(found.m||'');
-  var h='<div style="font-size:12px;color:#444;margin-bottom:8px">'
-    +'<b style="font-size:14px">'+esc(found.n||'')+'</b>'
-    +'　<span style="color:#666">'+esc(found.dt||'')+(found.tm?(' '+found.tm):'')+' ｜ 剂数 '+a.j+' ｜ '+(found.fy?'已发药':'未发药')+'</span></div>';
-  h+='<div style="border:1px solid #c6c2b8;border-radius:6px;max-height:300px;overflow:auto">'
-    +'<table class="pltable" style="font-size:12px"><thead><tr>'
-    +'<th style="text-align:left">药名</th><th style="width:80px">用量</th>'
-    +'<th style="width:90px">单价(元/g)</th><th style="width:90px">小计(元)</th></tr></thead><tbody>';
-  var tot=0;
-  for(var i=0;i<items.length;i++){
-    var it=items[i];
-    if(!it||!it.name) continue;
-    var d=findDrug(it.name), p=d?n(d.p):null;
-    if(p==null){ var all=findDrugAll(it.name); for(var k=0;k<all.length;k++){ if(String(all[k].u||'g')===String(it.unit||'g')){ p=n(all[k].p); break; } } }
-    var q=n(it.qty)||0, sub=p?p*q:0; tot+=sub;
-    h+='<tr><td style="text-align:left">'+esc(it.name)+(it.zibei?'（自备）':'')+'</td>'
-      +'<td style="text-align:center">'+esc(doseText(it))+'</td>'
-      +'<td style="text-align:center">'+(p!=null?e3(p):'—')+'</td>'
-      +'<td style="text-align:center">'+(p!=null?money(sub):'—')+'</td></tr>';
+  function clearSearch(){
+    var box=$('gstSearch'); if(box){ box.value=''; if(box.parentNode) box.parentNode.classList.remove('has-val'); }
+    _search=''; renderList(); if(box) box.focus();
   }
-  h+='</tbody></table></div>';
-  h+='<div style="margin-top:8px;font-size:12px">'
-    +'<div>单剂药费：<b>'+money(a.per)+'</b> 元</div>'
-    +'<div>剂数：'+a.j+'　合计：<b style="font-size:15px">'+money(a.total)+'</b> 元</div>'
-    +(a.ex?'<div style="color:#666">其他费用：'+esc(a.ex)+'</div>':'')
-    +'<div style="color:#888;margin-top:4px">处方号：'+esc(found.no||'')+'</div></div>';
-  $('rxPreviewBody').innerHTML=h;
-  $('mRxPreview').classList.add('on');
-}
+  function namesFiltered(){
+    var kw=_search, out=[];
+    for(var nm in GUESTS){
+      if(!Object.prototype.hasOwnProperty.call(GUESTS,nm)) continue;
+      var g=GUESTS[nm]||{};
+      var hay=(nm+' '+(g.phone||'')+' '+(g.note||'')+' '+(g.ctype||'')).toLowerCase();
+      if(!kw || hay.indexOf(kw)>=0) out.push(nm);
+    }
+    out.sort(function(a,b){ return a<b?-1:(a>b?1:0); });
+    return out;
+  }
+  function debtOf(guest){
+    var os=gstGuestOrders(guest), sum=0;
+    for(var i=0;i<os.length;i++){ if(!gstIsPaid(os[i])) sum+=gstOrderAmount(os[i]); }
+    return Math.round(sum*100)/100;
+  }
+  function renderList(){
+    var box=$('gstList'); if(!box) return;
+    var names=namesFiltered();
+    if(!names.length){
+      box.innerHTML='<div class="gst-empty-row">'+(_search?'没有匹配「'+esc(_search)+'」的客户':'还没有客户，点上方「+ 新增客户」开始')+'</div>';
+      return;
+    }
+    var h='';
+    for(var i=0;i<names.length;i++){
+      var nm=names[i], g=GUESTS[nm]||{};
+      var unpaid=debtOf(nm);
+      var sub=g.phone?g.phone:(g.note?g.note:(g.ctype||'散客'));
+      h+='<div class="gst-item'+(nm===GUEST_CUR?' on':'')+'" data-n="'+esc(nm)+'" onclick="Guest.pick(this.getAttribute(\'data-n\'))">'
+        + '<span class="gst-ava">'+esc(String(nm).slice(0,1)||'?')+'</span>'
+        + '<div class="gst-item-main"><b>'+esc(nm)+'</b><span>'+esc(sub)+'</span></div>'
+        + '<span class="gst-debt'+(unpaid>0?'':' ok')+'">'+(unpaid>0?'未结 ¥'+money(unpaid):'已结清')+'</span>'
+        + '</div>';
+    }
+    box.innerHTML=h;
+  }
+  function pick(name){
+    if(!GUESTS[name]) return;
+    GUEST_CUR=name; _tab='info';
+    renderList(); renderDetail(true);
+    var body=$('gstDetail') && $('gstDetail').querySelector('.gst-detail-body');
+    if(body) body.scrollTop=0;
+  }
+  function metaText(g){
+    var os=gstGuestOrders(g.name), unpaid=0;
+    for(var i=0;i<os.length;i++){ if(!gstIsPaid(os[i])) unpaid+=gstOrderAmount(os[i]); }
+    return (g.ctype||'散客')+' · '+os.length+' 单 · 未结 ¥'+money(unpaid)+(g.phone?(' · '+g.phone):'');
+  }
+  function fillForm(g){
+    if(!g) return;
+    if($('gstFName')) $('gstFName').value=g.name||'';
+    if($('gstFPhone')) $('gstFPhone').value=g.phone||'';
+    if($('gstFAddr')) $('gstFAddr').value=g.addr||'';
+    if($('gstFType')) $('gstFType').value=g.ctype||'散客';
+    if($('gstFNote')) $('gstFNote').value=g.note||'';
+  }
+  function renderDetail(fill){
+    var g=GUESTS[GUEST_CUR];
+    var e=$('gstEmpty'), d=$('gstDetail');
+    if(!g){
+      if(e) e.style.display='flex';
+      if(d) d.style.display='none';
+      return;
+    }
+    if(e) e.style.display='none';
+    if(d) d.style.display='flex';
+    if($('gstName')) $('gstName').textContent=g.name;
+    if($('gstMeta')) $('gstMeta').textContent=metaText(g);
+    if(fill) fillForm(g);
+    var panes={info:'gstPaneInfo',common:'gstPaneCommon',history:'gstPaneHistory'};
+    for(var k in panes){ if($(panes[k])) $(panes[k]).style.display=(k===_tab?'':'none'); }
+    var tabs=document.querySelectorAll('.gst-tab');
+    for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-t')===_tab); }
+    if(_tab==='common') renderCommon();
+    if(_tab==='history') renderHistory();
+  }
+  function tab(t){ _tab=t||'info'; renderDetail(false); }
+  function saveInfo(){
+    var g=GUESTS[GUEST_CUR];
+    if(!g){ toastErr('请先选择客户'); return; }
+    var nm=String($('gstFName').value||'').trim();
+    if(!nm){ toastErr('姓名不能为空'); $('gstFName').focus(); return; }
+    var old=g.name;
+    if(nm!==old){
+      if(GUESTS[nm]){ toastErr('客户「'+nm+'」已存在'); $('gstFName').focus(); return; }
+      /* 医生专属价是按姓名索引的，改名时一并迁移，避免改个名字就把药价丢掉 */
+      var oldDoc=(typeof DOCTORS!=='undefined' && DOCTORS[old])?DOCTORS[old]:null;
+      delete GUESTS[old];
+      g.name=nm;
+      GUEST_CUR=nm;
+      if(oldDoc){
+        if(typeof DOCTORS!=='undefined' && !DOCTORS[nm]){ DOCTORS[nm]=oldDoc; }
+        try{ DOCTORS[nm].n=nm; delete DOCTORS[old]; if(typeof saveDoctors==='function') saveDoctors(); }catch(e){}
+      }
+      /* 历史订单和常用方同步改名，避免档案与单据脱节 */
+      var os=gstOrdersRaw(), changed=false;
+      for(var i=0;i<os.length;i++){ if(String((os[i].guest||'')).trim()===old){ os[i].guest=nm; changed=true; } }
+      if(changed) gstOrdersWrite(os);
+      var cfChanged=false;
+      for(var j=0;j<GST_CF.length;j++){ if(GST_CF[j] && GST_CF[j].guest===old){ GST_CF[j].guest=nm; cfChanged=true; } }
+      if(cfChanged) gstCfPersist();
+      if(window.SUPA && SUPA.on){
+        SUPA.q('doctors?name=eq.'+encodeURIComponent(old),{method:'DELETE'}).catch(function(){});
+      }
+    }
+    g.phone=String($('gstFPhone').value||'').trim();
+    g.addr=String($('gstFAddr').value||'').trim();
+    g.ctype=$('gstFType').value||'散客';
+    g.note=String($('gstFNote').value||'').trim();
+    guestSave(g).then(function(){
+      renderList(); renderDetail(true);
+      if($('gstSaveHint')) $('gstSaveHint').textContent='已保存 · '+nowStr();
+      toast('已保存「'+g.name+'」的资料');
+    });
+  }
+  function newCustomer(){
+    if($('gstNewName')) $('gstNewName').value='';
+    if($('gstNewPhone')) $('gstNewPhone').value='';
+    if($('gstNewType')) $('gstNewType').value='散客';
+    var m=$('gstNewModal'); if(m) m.classList.add('on');
+    setTimeout(function(){ if($('gstNewName')) $('gstNewName').focus(); },50);
+  }
+  function createCustomer(){
+    var nm=String($('gstNewName').value||'').trim();
+    if(!nm){ toastErr('请填写客户姓名'); $('gstNewName').focus(); return; }
+    if(GUESTS[nm]){ toastErr('客户「'+nm+'」已存在'); return; }
+    var g={name:nm, phone:String($('gstNewPhone') ? $('gstNewPhone').value : '').trim(),
+           ctype:$('gstNewType') ? ($('gstNewType').value||'散客') : '散客',
+           addr:'', note:'', discount:0, pins:[], stars:{}};
+    guestSave(g).then(function(){
+      var m=$('gstNewModal'); if(m) m.classList.remove('on');
+      GUEST_CUR=nm; _tab='info';
+      renderList(); renderDetail(true);
+      toast('已新增客户「'+nm+'」');
+    });
+  }
+  function renderCommon(){
+    var box=$('gstCommonList'); if(!box) return;
+    if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
+    var kw=String(($('gstCommonSearch')&&$('gstCommonSearch').value)||'').trim().toLowerCase();
+    var list=gstCfFor(GUEST_CUR), shown=[];
+    for(var i=0;i<list.length;i++){
+      var c=list[i], hay=String(c.name||'').toLowerCase();
+      var its=c.items||[];
+      for(var j=0;j<its.length;j++) hay+=' '+String(its[j].name||'').toLowerCase();
+      if(!kw || hay.indexOf(kw)>=0) shown.push(c);
+    }
+    if($('gstCommonCount')) $('gstCommonCount').textContent='共 '+shown.length+' 个常用方';
+    if(!shown.length){
+      box.innerHTML='<div class="gst-empty-row">'+(kw?'没有匹配的常用方':'还没有常用方，点「+ 新建常用方」保存一张')+'</div>';
+      return;
+    }
+    var h='<table class="gst-tbl"><thead><tr><th>方名</th><th>付数</th><th>金额</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead><tbody>';
+    for(var k=0;k<shown.length;k++){
+      var cc=shown[k];
+      h+='<tr>'
+        +'<td class="nm">'+esc(cc.name||'未命名常用方')+'</td>'
+        +'<td class="num">'+(n(cc.doses)||1)+' 付</td>'
+        +'<td class="money">¥'+money(gstCfAmount(cc))+'</td>'
+        +'<td>'+esc(cc.createdAt||'')+'</td>'
+        +'<td class="gst-act">'
+        +'<button type="button" onclick="Guest.previewCommon(\''+esc(cc.id)+'\')">预览</button>'
+        +'<button type="button" class="pri" onclick="Guest.reuseCommon(\''+esc(cc.id)+'\')">一键复用</button>'
+        +'<button type="button" onclick="Guest.editCommon(\''+esc(cc.id)+'\')">编辑</button>'
+        +'<button type="button" class="danger" onclick="Guest.delCommon(\''+esc(cc.id)+'\')">删除</button>'
+        +'</td></tr>';
+    }
+    h+='</tbody></table>';
+    box.innerHTML=h;
+  }
+  function newCommon(){
+    if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
+    GST_CF_EDIT='';
+    if($('gstCfTitle')) $('gstCfTitle').textContent='新建常用方 · '+GUEST_CUR;
+    if($('gstCfName')) $('gstCfName').value='';
+    if($('gstCfDoses')) $('gstCfDoses').value=1;
+    if($('gstCfItems')) $('gstCfItems').value='';
+    var m=$('gstCfModal'); if(m) m.classList.add('on');
+    setTimeout(function(){ if($('gstCfName')) $('gstCfName').focus(); },50);
+  }
+  function editCommon(id){
+    var c=gstCfFind(id); if(!c) return;
+    GST_CF_EDIT=id;
+    if($('gstCfTitle')) $('gstCfTitle').textContent='编辑常用方 · '+GUEST_CUR;
+    if($('gstCfName')) $('gstCfName').value=c.name||'';
+    if($('gstCfDoses')) $('gstCfDoses').value=n(c.doses)||1;
+    if($('gstCfItems')) $('gstCfItems').value=gstItemsText(c.items);
+    var m=$('gstCfModal'); if(m) m.classList.add('on');
+  }
+  function saveCommon(){
+    if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
+    var nm=String($('gstCfName').value||'').trim();
+    if(!nm){ toastErr('请填写方名'); $('gstCfName').focus(); return; }
+    var doses=Math.max(1, Math.round(n($('gstCfDoses') ? $('gstCfDoses').value : 1)||1));
+    var items=gstBuildItems(String($('gstCfItems').value||''), GUEST_CUR);
+    if(!items.length){ toastErr('药方内容没有识别到药材，请按「药名 克数」填写'); $('gstCfItems').focus(); return; }
+    var now=nowStr();
+    if(GST_CF_EDIT){
+      var c=gstCfFind(GST_CF_EDIT);
+      if(!c){ toastErr('常用方不存在'); return; }
+      c.name=nm; c.doses=doses; c.items=items; c.updatedAt=now;
+    }else{
+      GST_CF.unshift({id:gstCfId(), guest:GUEST_CUR, name:nm, doses:doses, items:items, createdAt:now, updatedAt:now});
+    }
+    gstCfPersist();
+    var m=$('gstCfModal'); if(m) m.classList.remove('on');
+    renderCommon();
+    toast(GST_CF_EDIT?'常用方已更新':'已保存常用方「'+nm+'」');
+    GST_CF_EDIT='';
+  }
+  function previewCommon(id){
+    var c=gstCfFind(id); if(!c){ toastErr('常用方不存在'); return; }
+    var its=c.items||[], per=0, rows='';
+    for(var i=0;i<its.length;i++){
+      var it=its[i], amt=gstItemAmt(it); per+=amt;
+      rows+='<tr><td>'+esc(it.name||'')+(it.sfx?' <span style="color:#b8860b">'+esc(it.sfx)+'</span>':'')+'</td>'
+        +'<td class="num">'+((it.zibei)?'自备':n(it.qty))+'</td>'
+        +'<td>'+((it.zibei)?'':esc(it.unit||it.du||'g'))+'</td>'
+        +'<td class="num">'+((it.zibei)?'':money(it.price))+'</td>'
+        +'<td class="num">'+((it.zibei)?'':money(amt))+'</td></tr>';
+    }
+    var doses=n(c.doses)||1;
+    var h='<div style="font-size:13px;color:#444;margin-bottom:10px">'
+      +'<b style="font-size:16px">'+esc(c.name||'')+'</b>'
+      +'　<span style="color:#888">'+esc(c.guest||'')+' ｜ '+doses+' 付 ｜ 创建 '+esc(c.createdAt||'')+'</span></div>'
+      +'<div style="border:1px solid #e5e6e8;border-radius:10px;max-height:60vh;overflow:auto">'
+      +'<table class="gst-tbl"><thead><tr><th>药名</th><th>数量</th><th>单位</th><th>单价</th><th>金额</th></tr></thead><tbody>'
+      +(rows||'<tr><td colspan="5">（无药材）</td></tr>')+'</tbody></table></div>'
+      +'<div style="margin-top:12px;font-size:13px;color:#333">单付 <b>¥'+money(per)+'</b> × '+doses+' 付 = <b style="color:var(--pri-deep);font-size:16px">¥'+money(per*doses)+'</b></div>';
+    if($('rxPreviewBody')) $('rxPreviewBody').innerHTML=h;
+    var m=$('mRxPreview'); if(m) m.classList.add('on');
+  }
+  function gstPad3(x){ x=String(x); while(x.length<3) x='0'+x; return x; }
+  function reuseCommon(id){
+    var c=gstCfFind(id); if(!c){ toastErr('常用方不存在'); return; }
+    var os=gstOrdersRaw(), date=today(), now=nowStr();
+    var io={ id:'WP'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+             no:'WP-'+date.replace(/-/g,'')+'-'+gstPad3(os.length+1),
+             guest:c.guest||'', dish:c.name||'', doses:n(c.doses)||1, date:date, fy:'',
+             saveCommon:false, commonId:c.id||'', paid:'',
+             blocks:[{ id:'B'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+                       title:c.name||'常用方', source:'common', fromRxNo:'', remark:'',
+                       items:JSON.parse(JSON.stringify(c.items||[])), fy:'', doses:n(c.doses)||1 }],
+             createdAt:now, updatedAt:now };
+    os.unshift(io);
+    gstOrdersWrite(os);
+    if(typeof navGo==='function') navGo('print');
+    try{ if(window.WPlan){ WPlan.ensure(); WPlan.selectOrder(io.id); } }catch(e){}
+    toast('已带入常用方「'+(c.name||'')+'」，可直接修改并保存');
+  }
+  function delCommon(id){
+    var c=gstCfFind(id); if(!c) return;
+    if(!confirm('确定删除常用方「'+(c.name||'')+'」？')) return;
+    GST_CF=GST_CF.filter(function(x){ return x.id!==id; });
+    gstCfPersist(); renderCommon(); toast('已删除');
+  }
+  function filteredHistory(){
+    var os=gstGuestOrders(GUEST_CUR);
+    if(_month){
+      var out=[];
+      for(var i=0;i<os.length;i++){
+        var s=String(os[i].date||os[i].createdAt||'');
+        if(s.indexOf(_month)===0) out.push(os[i]);
+      }
+      return out;
+    }
+    return os;
+  }
+  function renderHistory(){
+    var box=$('gstHistoryList'); if(!box) return;
+    if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
+    var os=filteredHistory();
+    if($('gstHistCount')) $('gstHistCount').textContent='共 '+os.length+' 单' + (_month?('（'+_month+'）'):'');
+    var h='<table class="gst-tbl"><thead><tr><th>时间</th><th>单名</th><th>付数</th><th>总金额</th><th style="text-align:right">状态</th></tr></thead><tbody>';
+    if(!os.length){
+      h+='<tr><td colspan="5" class="gst-empty-row">'+(_month?'该年月没有单据':'该客户还没有历史订单')+'</td></tr>';
+    }
+    for(var i=0;i<os.length;i++){
+      var o=os[i], paid=gstIsPaid(o), key=o.id||o.no||'';
+      h+='<tr>'
+        +'<td>'+esc(gstFmtTime(o.createdAt||o.date))+'</td>'
+        +'<td class="nm">'+esc(gstOrderName(o))+'</td>'
+        +'<td class="num">'+gstOrderDoses(o)+' 付</td>'
+        +'<td class="money">¥'+money(gstOrderAmount(o))+'</td>'
+        +'<td style="text-align:right"><button type="button" class="gst-st '+(paid?'paid':'unpaid')+'" title="点击切换已结/未结" onclick="Guest.togglePaid(\''+esc(key)+'\')">'+(paid?'已结':'未结')+'</button></td>'
+        +'</tr>';
+    }
+    h+='</tbody></table>';
+    box.innerHTML=h;
+  }
+  function togglePaid(key){
+    var os=gstOrdersRaw(), found=null;
+    for(var i=0;i<os.length;i++){ if((os[i].id||os[i].no)===key){ found=os[i]; break; } }
+    if(!found){ toastErr('找不到该单据'); return; }
+    found.paid = gstIsPaid(found) ? '' : '1';
+    found.updatedAt=nowStr();
+    gstOrdersWrite(os);
+    renderHistory(); renderList();
+    if(GUEST_CUR && GUESTS[GUEST_CUR]){ if($('gstMeta')) $('gstMeta').textContent=metaText(GUESTS[GUEST_CUR]); }
+    toast(gstIsPaid(found)?'已标记为已结':'已标记为未结');
+  }
+  function setMonth(v){ _month=String(v||''); renderHistory(); }
+  function clearMonth(){
+    _month=''; if($('gstMon')) $('gstMon').value=''; renderHistory();
+  }
+  function safeFile(s){ return String(s||'').replace(/[\\/:*?"<>|]/g,'_'); }
+  function exportBill(){
+    if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
+    var g=GUESTS[GUEST_CUR], os=filteredHistory();
+    if(!os.length){ toastErr('没有可导出的单据'); return; }
+    var total=0, unpaid=0, rows='';
+    for(var i=0;i<os.length;i++){
+      var o=os[i], amt=gstOrderAmount(o), paid=gstIsPaid(o);
+      total+=amt; if(!paid) unpaid+=amt;
+      rows+='<tr><td>'+(i+1)+'</td><td>'+esc(gstFmtTime(o.createdAt||o.date))+'</td>'
+        +'<td>'+esc(gstOrderName(o))+'</td><td>'+gstOrderDoses(o)+'</td>'
+        +'<td style="text-align:right">'+money(amt)+'</td><td>'+(paid?'已结':'未结')+'</td></tr>';
+    }
+    var title=(_month?_month+' ':'')+(g.name||'')+' 历史账单';
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+      +'<head><meta charset="utf-8"><title>'+esc(title)+'</title>'
+      +'<style>@page{size:A4;margin:18mm} body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
+      +'h1{font-size:20pt;margin:0 0 6pt} .meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
+      +'table{border-collapse:collapse;width:100%;font-size:10.5pt} th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
+      +'th{background:#f2f4f6} .tot{margin-top:14pt;font-size:12pt} .tot b{font-size:15pt}</style></head><body>'
+      +'<h1>'+esc(title)+'</h1>'
+      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')+'　类型：'+esc(g.ctype||'散客')
+      +'　导出时间：'+esc(nowStr())+'</div>'
+      +'<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:86pt">总金额(元)</th><th style="width:52pt">状态</th></tr></thead><tbody>'
+      +rows+'</tbody></table>'
+      +'<div class="tot">本页合计：<b>¥'+money(total)+'</b>　未结：¥'+money(unpaid)+'</div>'
+      +'</body></html>';
+    var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=safeFile((_month?_month+'_':'')+(g.name||'客户')+'_历史账单')+'.doc';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
+    toast('已导出 Word 账单');
+  }
 
-/* ---------- 新增客人 ---------- */
-function guestAdd(){
-  var v=prompt('输入客人姓名');
-  if(!v) return;
-  v=String(v).trim(); if(!v) return;
-  if(GUESTS[v]){ GUEST_CUR=v; guestOpenHome(); toast('「'+v+'」已存在，打开其主页'); return; }
-  var g={name:v, discount:0, note:'', pins:[], stars:{}};
-  guestSave(g).then(function(){ GUEST_CUR=v; guestOpenHome(); toast('已新增客人「'+v+'」'); });
-}
+  return {
+    ensure:ensure, setSearch:setSearch, clearSearch:clearSearch, pick:pick, tab:tab,
+    saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
+    renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
+    previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
+    renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
+    exportBill:exportBill, togglePaid:togglePaid
+  };
+})();
 
-/* ---------- 入口 ---------- */
-function openGuest(){
-  guestLoadAll().then(function(){
-    $('gHomeView').style.display='none';
-    $('gListView').style.display='';
-    $('gSearch').value='';
-    $('gAdd').onclick=guestAdd;
-    $('gSearch').oninput=function(){ guestRenderList(); };
-    $('gBack').onclick=guestBack;
-    $('gEdit').onclick=guestEdit;
-    $('gDel').onclick=guestDel;
-    guestRenderList();
-    $('mDocs').classList.add('on');
-  });
-}
+/* 兼容旧入口（导航 / NAV_EXIST 仍可能调用） */
+function openGuest(){ if(typeof navGo==='function') navGo('guest'); }
+
 
 /* ================= 盈利统计（当日 / 当周 / 当月） =================
    只统计**已发药**的处方。
@@ -11664,6 +12228,7 @@ function navGo(key, pushHash){
     }
   }
   /* 切回日常页时，四栏宽度要按新容器宽度重算一次（拖拽分栏依赖它） */
+  if(key==='guest'){ try{ Guest.ensure(); }catch(e){ console.warn('Guest', e); } }
   if(key==='print'){ try{ WPlan.ensure(); }catch(e){ console.warn('WPlan', e); } }
   if(key==='purchase'){ try{ Purchase.ensure(); }catch(e){ console.warn('Purchase', e); } }
   if(key==='drug'){ try{ Drug.ensure(); }catch(e){ console.warn('Drug', e); } }
@@ -11704,6 +12269,10 @@ var WPlan = (function(){
   var _filter = 'all';        /* 列表发药状态筛选：all / done / undone */
   var _sub = 'list';          /* 子页面：list=订单列表，edit=制表/详情 */
   var _search = '';           /* 列表搜索关键字 */
+  var _sel = {};              /* 多选结款：order id → 1 */
+  var _view = 'flat';         /* 列表视图：flat=全部单据，plan=按客户+月份分组 */
+  var _planKey = '';          /* 当前展开的计划汇总 */
+  var _payBlob = null;        /* 批量结款图片 blob */
   var _ac = null;             /* 药名内联检索：{ bid, i, el, list:[], idx } */
   var _acSilent = false;      /* 选药后聚焦回填时，抑制下一次聚焦自动弹层 */
   /* ---- 医生注册表：只收录在打印页输入/选过的医生，无预置 ----
@@ -11736,12 +12305,28 @@ var WPlan = (function(){
     pushDocEntity(nm);
   }
 
+  function normalizeOrder(o){
+    if(!o) return;
+    o.blocks = Array.isArray(o.blocks) ? o.blocks : [];
+    if(o.dish == null) o.dish = '';
+    if(!(n(o.doses) >= 1)) o.doses = n(o.blocks[0] && o.blocks[0].doses) || 1;
+    if(o.saveCommon == null) o.saveCommon = false;
+    if(o.commonId == null) o.commonId = '';
+    if(o.paid == null) o.paid = '';
+    for(var i=0;i<o.blocks.length;i++){
+      if(!o.blocks[i].items) o.blocks[i].items = [];
+      if(!(n(o.blocks[i].doses) >= 1)) o.blocks[i].doses = o.doses;
+    }
+  }
   function load(){
     try{ var s = localStorage.getItem(LS); S.orders = s ? (JSON.parse(s) || []) : []; }catch(e){ S.orders = []; }
-    if(!S.orders.length){
-      var o = blankOrder(); o.guest = ''; S.orders.push(o); S.cur = o; save(true);
-    }
-    if(!S.cur) S.cur = S.orders[0] || null;
+    if(!Array.isArray(S.orders)) S.orders = [];
+    S.orders.forEach(normalizeOrder);
+    var curId = S.cur && S.cur.id;
+    S.cur = curId ? findOrder(curId) : null;
+    if(!S.cur) _sub = 'list';
+    _sel = {};
+    _planKey = '';
     loadDocs();
   }
   function save(silent){
@@ -11752,14 +12337,17 @@ var WPlan = (function(){
   function uid(){ return 'WP' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
   function pad3(x){ x = String(x); while(x.length < 3) x = '0' + x; return x; }
   function blankOrder(){
-    return { id: uid(), no: genNo(), guest: '', date: today(), fy: '', blocks: [], createdAt: nowStr(), updatedAt: nowStr() };
+    return { id: uid(), no: genNo(), guest: '', dish: '', doses: 1, date: today(), fy: '',
+             paid: '', saveCommon: false, commonId: '', blocks: [], createdAt: nowStr(), updatedAt: nowStr() };
   }
   function genNo(){
     var d = (today() || '').replace(/-/g, '');
     return 'WP-' + d + '-' + pad3(S.orders.length + 1);
   }
   function blankBlock(){
-    return { id: uid(), title: '药方 ' + (curBlocks().length + 1), source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: 1 };
+    var d = S.cur ? (n(S.cur.doses) || 1) : 1;
+    var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
+    return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d };
   }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
@@ -11843,7 +12431,53 @@ var WPlan = (function(){
 
   /* ---- 渲染 ---- */
   function renderAll(){
-    renderList(); renderOrderHead(); renderGuestList(); renderBlocks(); renderFoot(); renderSub();
+    renderList(); renderOrderHead(); renderGuestList(); renderBlocks(); renderFoot(); renderSub(); renderSummary();
+  }
+  function dishOf(o){
+    var d = String((o && o.dish) || '').trim();
+    if(d) return d;
+    var bs = (o && o.blocks) || [];
+    if(bs.length === 1) return String(bs[0].title || '未命名药方');
+    if(bs.length > 1){
+      var names = [];
+      for(var i=0;i<bs.length;i++) names.push(String(bs[i].title || ('药方' + (i+1))));
+      return names.join('、');
+    }
+    return '未命名单';
+  }
+  function monthOf(o){
+    var s = String((o && (o.date || o.createdAt)) || '');
+    var m = s.match(/^(\d{4})-(\d{2})/);
+    if(m) return { ym: m[1] + '-' + m[2], mm: m[2], year: m[1] };
+    return { ym: '0000-00', mm: '', year: '' };
+  }
+  function planGroups(list){
+    var map = {}, out = [], i;
+    for(i=0;i<list.length;i++){
+      var o = list[i], guest = String(o.guest || '').trim() || '未命名客人', mo = monthOf(o);
+      var key = guest + '|' + mo.ym;
+      if(!map[key]){
+        map[key] = { key: key, guest: guest, ym: mo.ym, mm: mo.mm, orders: [], total: 0 };
+        out.push(map[key]);
+      }
+      map[key].orders.push(o);
+      map[key].total += orderTotal(o);
+    }
+    for(i=0;i<out.length;i++){
+      var g = out[i];
+      g.count = g.orders.length;
+      g.label = g.guest + '-' + (g.mm ? (parseInt(g.mm, 10) + '月计划') : '未定月份计划');
+      g.orders.sort(function(a,b){
+        var x = String((a.date || '') + ' ' + (a.createdAt || ''));
+        var y = String((b.date || '') + ' ' + (b.createdAt || ''));
+        return x > y ? 1 : -1;
+      });
+    }
+    out.sort(function(a,b){
+      if(a.ym !== b.ym) return a.ym > b.ym ? -1 : 1;
+      return a.guest < b.guest ? -1 : 1;
+    });
+    return out;
   }
   /* ---- 历史订单 / 药单列表 ---- */
   function orderTotal(o){ var t=0; for(var i=0;i<o.blocks.length;i++) t+=blockTotal(o.blocks[i]); return t; }
@@ -11860,65 +12494,155 @@ var WPlan = (function(){
     else if(_filter==='undone') list = list.filter(function(o){ return !o.fy; });
     if(_search){
       list = list.filter(function(o){
-        var g = String(o.guest || '未命名客人').toLowerCase();
-        var t = fmtTime(o.createdAt || o.date).toLowerCase();
-        var st = o.fy ? '已发' : '未发';
-        return g.indexOf(_search) >= 0 || t.indexOf(_search) >= 0 || st.indexOf(_search) >= 0;
+        var hay = (String(o.guest || '未命名客人') + ' ' + dishOf(o) + ' ' +
+                   fmtTime(o.createdAt || o.date) + ' ' + (o.fy ? '已发' : '未发') + ' ' +
+                   (o.paid ? '已结' : '未结')).toLowerCase();
+        return hay.indexOf(_search) >= 0;
       });
     }
     return list;
   }
   function applyFilterUI(){
-    var tabs = document.querySelectorAll('.wp-tab');
+    var tabs = document.querySelectorAll('.wp-tab[data-f]');
     for(var i=0;i<tabs.length;i++){ var t=tabs[i]; if(t.getAttribute('data-f')===_filter) t.classList.add('on'); else t.classList.remove('on'); }
+  }
+  function applyViewUI(){
+    var tabs = document.querySelectorAll('.wp-tab[data-v]');
+    for(var i=0;i<tabs.length;i++){ var t=tabs[i]; if(t.getAttribute('data-v')===_view) t.classList.add('on'); else t.classList.remove('on'); }
   }
   function setFilter(f){
     _filter = f; renderList();
+  }
+  function setView(v){
+    _view = (v === 'plan') ? 'plan' : 'flat';
+    if(_view !== 'plan') _planKey = '';
+    renderList();
   }
   function showSub(s){
     _sub = s;
     var l = document.getElementById('wpSubList'), e = document.getElementById('wpSubEdit');
     if(l) l.style.display = (s==='list') ? '' : 'none';
-    if(e) e.style.display = (s==='edit') ? '' : 'none';
-    var tabs = document.querySelectorAll('.wp-sub');
-    for(var i=0;i<tabs.length;i++){ var t=tabs[i]; if(t.getAttribute('data-sub')===s) t.classList.add('on'); else t.classList.remove('on'); }
-    if(s==='list' && document.activeElement && document.activeElement.id==='wpListSearch'){ /* 保留焦点 */ }
+    if(e) e.classList.toggle('on', s==='edit');
   }
   function renderSub(){ showSub(_sub); }
   function setSearch(v){ _search = String(v || '').trim().toLowerCase(); renderList(); }
+  function selCount(){ var n2 = 0, k; for(k in _sel){ if(_sel.hasOwnProperty(k)) n2++; } return n2; }
+  function selectedOrders(){ var out = []; for(var i=0;i<S.orders.length;i++){ if(_sel[S.orders[i].id]) out.push(S.orders[i]); } return out; }
+  function updateBatchBtn(){
+    var b = document.getElementById('wpBatchBtn'); if(!b) return;
+    var n2 = selCount();
+    b.disabled = !n2;
+    b.textContent = n2 ? ('批量结款 (' + n2 + ')') : '批量结款';
+  }
+  function toggleSel(id, on){
+    if(on) _sel[id] = 1; else delete _sel[id];
+    renderList();
+  }
+  function toggleSelAll(on){
+    var list = filtered();
+    for(var i=0;i<list.length;i++){
+      if(on) _sel[list[i].id] = 1; else delete _sel[list[i].id];
+    }
+    renderList();
+  }
   function renderList(){
     var box = document.getElementById('wpList'); if(!box) return;
-    applyFilterUI();
+    applyFilterUI(); applyViewUI(); updateBatchBtn();
     var list = filtered();
     var cEl = document.getElementById('wpListCount');
-    if(cEl) cEl.textContent = '共 ' + list.length + ' 单';
+    if(cEl) cEl.textContent = (_view==='plan' ? '共 ' + planGroups(list).length + ' 个计划' : '共 ' + list.length + ' 单')
+      + (selCount() ? (' · 已选 ' + selCount() + ' 单') : '');
     if(!list.length){
       box.innerHTML = '<div class="wp-list-empty">' + (_filter==='all' ? '暂无药单，点右上「新建订单」开始' : '该筛选下暂无药单') + '</div>';
-      return;
+      renderSummary(); return;
     }
-    var h = '<div class="wp-row head"><div>订单时间</div><div>客人</div><div>药方数</div><div>总价</div><div>状态</div><div>操作</div></div>';
+    if(_view === 'plan'){ renderPlanList(list); renderSummary(); return; }
+    var allSel = true;
+    for(var a=0;a<list.length;a++){ if(!_sel[list[a].id]){ allSel = false; break; } }
+    var h = '<div class="wp-row head"><div class="wp-c-ck"><input type="checkbox"' + (allSel ? ' checked' : '') +
+      ' title="全选当前列表" onchange="WPlan.toggleSelAll(this.checked)"></div>' +
+      '<div>订单时间</div><div>客人</div><div>药膳名字</div><div>方数</div><div>总价</div><div>状态</div><div>操作</div></div>';
     for(var i=0;i<list.length;i++){
       var o = list[i];
       var total = orderTotal(o);
-      var isCur = (S.cur && S.cur.id === o.id);
+      var isCur = (S.cur && S.cur.id === o.id && _sub === 'edit');
       var fyCls = o.fy ? 'done' : 'undone';
       var fyTxt = o.fy ? '已发' : '未发';
       h += '<div class="wp-row' + (isCur?' on':'') + '" onclick="WPlan.selectOrder(\'' + o.id + '\')">'
+        + '<div class="wp-c-ck"><input type="checkbox"' + (_sel[o.id] ? ' checked' : '') +
+          ' onclick="event.stopPropagation()" onchange="WPlan.toggleSel(\'' + o.id + '\',this.checked)"></div>'
         + '<div class="wp-c-time">' + esc(fmtTime(o.createdAt || o.date)) + '</div>'
         + '<div class="wp-c-guest">' + esc(o.guest || '未命名客人') + '</div>'
+        + '<div class="wp-c-dish" title="' + esc(dishOf(o)) + '">' + esc(dishOf(o)) +
+          '<span class="sub">付数 ' + (n(o.doses) || 1) + '</span></div>'
         + '<div class="wp-c-cnt">' + o.blocks.length + ' 方</div>'
         + '<div class="wp-c-total">¥' + money(total) + '</div>'
         + '<div class="wp-c-status"><span class="tag ' + fyCls + '">' + fyTxt + '</span></div>'
-        + '<div class="wp-c-act"><button class="btn danger sm" type="button" onclick="WPlan.delOrderById(\'' + o.id + '\',event)">删除</button></div>'
+        + '<div class="wp-c-act"><button class="btn sm" type="button" onclick="event.stopPropagation();WPlan.printOrder(\'' + o.id + '\')">打印</button></div>'
         + '</div>';
     }
     box.innerHTML = h;
+    renderSummary();
+  }
+  function renderPlanList(list){
+    var box = document.getElementById('wpList'); if(!box) return;
+    var groups = planGroups(list);
+    if(!groups.length){
+      box.innerHTML = '<div class="wp-list-empty">暂无计划，点右上「新建订单」开始</div>';
+      return;
+    }
+    var h = '';
+    for(var i=0;i<groups.length;i++){
+      var g = groups[i];
+      h += '<div class="wp-plan-row' + (g.key===_planKey ? ' on' : '') + '" data-key="' + esc(g.key) +
+        '" onclick="WPlan.openPlan(this.getAttribute(\'data-key\'))">'
+        + '<div><div class="wp-plan-name">' + esc(g.label) + '</div>'
+        + '<div class="wp-plan-sub">' + esc(g.guest) + ' · ' + (g.mm ? (g.ym + ' ') : '') + g.count + ' 张单据</div></div>'
+        + '<div class="wp-plan-num">' + g.count + ' 单</div>'
+        + '<div class="wp-plan-amt">¥' + money(g.total) + '</div>'
+        + '<div class="wp-plan-act"><button class="btn sm" type="button" onclick="event.stopPropagation();WPlan.openPlan(this.getAttribute(\'data-key\'))" data-key="' + esc(g.key) + '">查看汇总</button></div>'
+        + '</div>';
+    }
+    box.innerHTML = h;
+  }
+  function openPlan(key){
+    _planKey = (_planKey === key) ? '' : key;
+    renderList();
+  }
+  function closePlan(){ _planKey = ''; renderList(); }
+  function renderSummary(){
+    var box = document.getElementById('wpSummary'); if(!box) return;
+    if(_view !== 'plan' || !_planKey){ box.style.display = 'none'; box.innerHTML = ''; return; }
+    var groups = planGroups(filtered()), g = null;
+    for(var i=0;i<groups.length;i++){ if(groups[i].key === _planKey){ g = groups[i]; break; } }
+    if(!g){ _planKey = ''; box.style.display = 'none'; box.innerHTML = ''; return; }
+    var rows = '';
+    for(var k=0;k<g.orders.length;k++){
+      var o = g.orders[k];
+      rows += '<tr><td>' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
+        + '<td class="nm">' + esc(dishOf(o)) + '</td>'
+        + '<td class="num">' + (n(o.doses) || 1) + ' 付</td>'
+        + '<td class="money">¥' + money(orderTotal(o)) + '</td>'
+        + '<td class="act"><button class="btn sm" type="button" onclick="event.stopPropagation();WPlan.printOrder(\'' + o.id + '\')">打印</button></td></tr>';
+    }
+    box.innerHTML = '<div class="wp-sum-head"><b>' + esc(g.label) + '</b>'
+      + '<span class="meta">' + g.count + ' 单 · 合计 ¥' + money(g.total) + '</span><span class="spacer"></span>'
+      + '<button class="btn" type="button" onclick="WPlan.exportPlanWord()">导出 Word 账单</button>'
+      + '<button class="btn" type="button" onclick="WPlan.closePlan()">关闭</button></div>'
+      + '<table class="wp-sum-tbl"><thead><tr><th>时间</th><th>单名</th><th class="num">付数</th><th class="num">总金额</th><th style="text-align:right">操作</th></tr></thead><tbody>'
+      + rows + '</tbody></table>';
+    box.style.display = '';
   }
   function renderOrderHead(){
     var o = curOrder(); if(!o) return;
     var gi = document.getElementById('wpGuest'); if(gi && document.activeElement !== gi) gi.value = o.guest || '';
     var di = document.getElementById('wpDate'); if(di) di.value = o.date || today();
+    var din = document.getElementById('wpDish'); if(din && document.activeElement !== din) din.value = o.dish || '';
+    var dse = document.getElementById('wpDoses'); if(dse && document.activeElement !== dse) dse.value = n(o.doses) || 1;
     var ni = document.getElementById('wpNo'); if(ni) ni.value = o.no || '';
+    var sc = document.getElementById('wpSaveCommon'); if(sc) sc.checked = !!o.saveCommon;
+    var dt = document.getElementById('wpDetailTitle'); if(dt) dt.textContent = String(o.dish || '').trim() || '订单详情';
+    var dn = document.getElementById('wpDetailNo'); if(dn) dn.textContent = o.no || '';
     var fb = document.getElementById('wpFyBtn');
     if(fb){ if(o.fy){ fb.textContent = '取消发药'; fb.className = 'btn danger'; } else { fb.textContent = '标记发药'; fb.className = 'btn'; } }
   }
@@ -11938,7 +12662,7 @@ var WPlan = (function(){
     box.innerHTML = h;
   }
   function blockHTML(b){
-    var srcLabel = ({ manual:'手动', text:'文本', excel:'Excel', history:'历史' })[b.source] || '手动';
+    var srcLabel = ({ manual:'手动', text:'文本', excel:'Excel', history:'历史', common:'常用方' })[b.source] || '手动';
     var rows = '';
     if(!b.items.length){ rows = rowHTML(b.id, 0, BLANK_ITEM()); }
     else { for(var i=0;i<b.items.length;i++) rows += rowHTML(b.id, i, b.items[i]); }
@@ -11983,10 +12707,12 @@ var WPlan = (function(){
     }
     if(!o.blocks.length) lines = '<div class="wp-line"><span>合计</span><b>¥0.00</b></div>';
     var fyTag = o.fy ? '（已发药）' : '';
+    var commonTag = o.saveCommon ? ' · 将存为常用方' : '';
     box.innerHTML = '<div class="wp-totals">' + lines
-      + '<div class="wp-line wp-grand"><span>合计总价 ' + fyTag + '</span><b id="wpGrand">¥' + money(total) + '</b></div></div>'
+      + '<div class="wp-line wp-grand"><span>合计总价 ' + fyTag + commonTag + '</span><b id="wpGrand">¥' + money(total) + '</b></div></div>'
       + '<div class="wp-foot-actions">'
-      + '<button class="btn pri" type="button" onclick="WPlan.saveNow()">保存到云端</button>'
+      + '<button class="btn pri" type="button" onclick="WPlan.saveNow()">保存</button>'
+      + '<button class="btn pri" type="button" onclick="WPlan.saveAndBack()">保存并返回列表</button>'
       + '<button class="btn ' + (o.fy ? 'danger' : '') + '" type="button" onclick="WPlan.toggleFy()">' + (o.fy ? '取消发药' : '标记发药') + '</button>'
       + '<span id="wpSaveState" class="wp-hint"></span>'
       + '</div>';
@@ -12006,29 +12732,281 @@ var WPlan = (function(){
   }
 
   /* ---- 操作 ---- */
-  function selectOrder(id){ S.cur = findOrder(id); renderAll(); showSub('edit'); }
+  function selectOrder(id){
+    var o = findOrder(id); if(!o) return;
+    S.cur = o; renderAll(); showSub('edit');
+    var body = document.querySelector('#wpSubEdit .wp-detail-body'); if(body) body.scrollTop = 0;
+  }
+  function setCurrent(id){ var o = findOrder(id); if(o){ S.cur = o; renderAll(); } return o; }
   function newOrder(){
     if(_filter==='done'){ _filter='all'; }
     var o = blankOrder(); S.orders.unshift(o); S.cur = o; save(); renderAll(); showSub('edit');
+    setTimeout(function(){ var el = document.getElementById('wpDish'); if(el) el.focus(); }, 60);
     toast('已新建订单 ' + o.no);
   }
   function delOrder(){
     var o = curOrder(); if(!o) return;
-    if(!confirm('确定删除当前计划单「' + o.no + '」？此操作不可恢复。')) return;
+    if(!confirm('确定删除单据「' + (dishOf(o) || o.no) + '」？此操作不可恢复。')) return;
+    delete _sel[o.id];
     S.orders = S.orders.filter(function(x){ return x.id !== o.id; });
-    S.cur = S.orders[0] || null; save(); renderAll();
+    S.cur = null; save(); renderAll(); showSub('list');
     toast('已删除');
   }
   function delOrderById(id, e){
     if(e && e.stopPropagation) e.stopPropagation();
     var o = findOrder(id); if(!o) return;
     if(!confirm('确定删除药单「' + (o.no || '') + '」？此操作不可恢复。')) return;
+    delete _sel[id];
     S.orders = S.orders.filter(function(x){ return x.id !== id; });
-    if(S.cur && S.cur.id === id) S.cur = S.orders[0] || null;
+    if(S.cur && S.cur.id === id) S.cur = null;
     save(); renderAll();
     toast('已删除');
   }
   function setGuest(v){ var o = curOrder(); if(!o) return; o.guest = String(v || '').trim(); saveDebounced(); }
+  /* 顶部必填项：药膳名字 / 日期 / 付数 */
+  function setDish(v){
+    var o = curOrder(); if(!o) return;
+    o.dish = String(v || '').trim();
+    var bs = o.blocks || [];
+    if(bs.length && /^药方\s*\d*$/.test(String(bs[0].title || ''))) bs[0].title = o.dish || bs[0].title;
+    var dt = document.getElementById('wpDetailTitle');
+    if(dt) dt.textContent = o.dish || '订单详情';
+    saveDebounced(); renderFoot();
+  }
+  function setOrderDoses(v){
+    var o = curOrder(); if(!o) return;
+    var d = Math.max(0, Math.round(n(v)));
+    o.doses = d;
+    for(var i=0;i<(o.blocks || []).length;i++) o.blocks[i].doses = d || 1;
+    saveDebounced(); recount(); renderFoot();
+  }
+  function setSaveCommon(v){
+    var o = curOrder(); if(!o) return;
+    o.saveCommon = !!v;
+    saveDebounced(); renderFoot();
+  }
+  function validateOrder(o){
+    if(!o){ toastErr('请先新建或选择订单'); return false; }
+    if(!String(o.dish || '').trim()){
+      toastErr('请填写药膳名字（必填）'); var e = document.getElementById('wpDish'); if(e) e.focus(); return false;
+    }
+    if(!o.date){
+      toastErr('请选择日期（必填）'); var d = document.getElementById('wpDate'); if(d) d.focus(); return false;
+    }
+    if(!(n(o.doses) >= 1)){
+      toastErr('付数必须 ≥ 1'); var s = document.getElementById('wpDoses'); if(s) s.focus(); return false;
+    }
+    return true;
+  }
+  /* 把当前订单存成「常用方」，供客人管理里的常用方 Tab 使用（与 rx_gcommon_v1 同一份数据） */
+  function saveCommonFromOrder(o){
+    if(!o || !o.saveCommon) return true;
+    /* 没进过客人页时 GST_CF 可能是空的，先读回已保存的常用方，避免覆盖旧数据 */
+    if(typeof gstLoadCf === 'function'){ try{ gstLoadCf(); }catch(e){} }
+    if(!String(o.guest || '').trim()){ toastErr('存为常用方需要先填写客人 / 医生'); return false; }
+    var bs = o.blocks || [], src = null;
+    for(var i=0;i<bs.length;i++){ if((bs[i].items || []).length){ src = bs[i]; break; } }
+    if(!src){ toastErr('药方为空，无法存为常用方'); return false; }
+    if(typeof GST_CF === 'undefined' || typeof gstCfPersist !== 'function') return true;
+    var id = o.commonId || ('CF' + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
+    var rec = {
+      id: id, guest: String(o.guest || '').trim(), name: String(o.dish || src.title || '未命名常用方').trim(),
+      doses: n(o.doses) || 1, items: JSON.parse(JSON.stringify(src.items || [])),
+      updatedAt: nowStr()
+    };
+    var found = null;
+    for(var k=0;k<GST_CF.length;k++){ if(GST_CF[k] && GST_CF[k].id === id){ found = GST_CF[k]; break; } }
+    if(found){
+      found.guest = rec.guest; found.name = rec.name; found.doses = rec.doses; found.items = rec.items; found.updatedAt = rec.updatedAt;
+    }else{
+      rec.createdAt = nowStr();
+      GST_CF.unshift(rec);
+    }
+    gstCfPersist();
+    o.commonId = id;
+    return true;
+  }
+  function saveNow(){
+    var o = curOrder(); if(!o) return false;
+    if(!validateOrder(o)) return false;
+    if(!saveCommonFromOrder(o)) return false;
+    o.updatedAt = nowStr();
+    save(); renderAll();
+    var st = document.getElementById('wpSaveState');
+    if(st) st.textContent = '已保存 · ' + nowHM();
+    toast(o.saveCommon ? '已保存，并同步到常用方' : '已保存');
+    return true;
+  }
+  function saveAndBack(){
+    if(!saveNow()) return;
+    showSub('list'); renderList();
+    toast('已保存，已返回订单列表');
+  }
+  function backToList(){
+    var o = curOrder();
+    /* 只是返回列表不强制补全；勾了「存为常用方」才校验必填字段 */
+    if(o && o.saveCommon){
+      if(!validateOrder(o)) return;
+      if(!saveCommonFromOrder(o)) return;
+    }
+    if(o){ o.updatedAt = nowStr(); save(); }
+    showSub('list'); renderList();
+  }
+  function printCur(){
+    var o = curOrder(); if(!o){ toastErr('请先选择单据'); return; }
+    try{ WPrint.open(); }catch(e){ toastErr('打印面板打开失败：' + e.message); }
+  }
+  function printOrder(id){
+    var o = setCurrent(id); if(!o){ toastErr('找不到单据'); return; }
+    try{ WPrint.open(); }catch(e){ toastErr('打印面板打开失败：' + e.message); }
+  }
+
+  /* ---- 批量结款：把勾选的多张单据生成一张高清表格图片 ---- */
+  function paySorted(list){
+    return list.slice().sort(function(a,b){
+      var x = String((a.date || '') + ' ' + (a.createdAt || ''));
+      var y = String((b.date || '') + ' ' + (b.createdAt || ''));
+      return x > y ? 1 : -1;
+    });
+  }
+  function paySummary(list){
+    var guests = [], seen = {}, total = 0, i;
+    for(i=0;i<list.length;i++){
+      var g = String(list[i].guest || '').trim() || '未命名客人';
+      if(!seen[g]){ seen[g] = 1; guests.push(g); }
+      total += orderTotal(list[i]);
+    }
+    var dates = [];
+    for(i=0;i<list.length;i++){
+      var s = String(list[i].date || list[i].createdAt || '');
+      var m = s.match(/^\d{4}-\d{2}-\d{2}/);
+      if(m) dates.push(m[0]);
+    }
+    dates.sort();
+    var range = dates.length ? (dates[0] + (dates.length > 1 && dates[0] !== dates[dates.length-1] ? (' ~ ' + dates[dates.length-1]) : '')) : nowStr().slice(0,10);
+    return { guests: guests, total: total, range: range, count: list.length };
+  }
+  function genPayImage(list, cb){
+    list = paySorted(list);
+    var info = paySummary(list);
+    var W = 760, rowH = 36, headH = 116, footH = 88;
+    var H = headH + 38 + list.length * rowH + footH;
+    var rows = '';
+    for(var i=0;i<list.length;i++){
+      var o = list[i];
+      rows += '<tr>'
+        + '<td style="width:150px">' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
+        + '<td>' + esc(String(o.guest || '').trim() || '未命名客人') + '</td>'
+        + '<td>' + esc(dishOf(o)) + '</td>'
+        + '<td style="width:110px;text-align:right">¥' + money(orderTotal(o)) + '</td>'
+        + '</tr>';
+    }
+    var css = ''
+      + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
+      + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:26px 28px;background:#fff}'
+      + '.ttl{font-size:22px;font-weight:700;letter-spacing:1px}'
+      + '.sub{margin-top:7px;font-size:12px;color:#666}'
+      + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}'
+      + 'th,td{border:1px solid #d5d8dc;padding:8px 10px;text-align:left}'
+      + 'th{background:#f2f4f6;font-weight:700;color:#333}'
+      + 'tr:nth-child(even) td{background:#fafbfc}'
+      + '.sum td{background:#eef7f1!important;font-weight:700;font-size:15px}'
+      + '.foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
+    var inner = '<div class="wrap"><div class="ttl">结款明细</div>'
+      + '<div class="sub">客户：' + esc(info.guests.join('、')) + '　｜　期间：' + esc(info.range) + '　｜　共 ' + info.count + ' 单</div>'
+      + '<table><thead><tr><th>时间</th><th style="width:120px">客人</th><th>药膳名字</th><th style="width:110px;text-align:right">金额(元)</th></tr></thead><tbody>'
+      + rows
+      + '<tr class="sum"><td colspan="3">合计</td><td style="text-align:right">¥' + money(info.total) + '</td></tr>'
+      + '</tbody></table>'
+      + '<div class="foot"><span>制表日期：' + esc(nowStr().slice(0,10)) + '</span><span>请核对无误后付款</span></div></div>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">'
+      + '<foreignObject x="0" y="0" width="100%" height="100%">'
+      + '<div xmlns="http://www.w3.org/1999/xhtml"><style>' + css + '</style>' + inner + '</div>'
+      + '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try{
+        var cv = document.createElement('canvas');
+        cv.width = W * 2; cv.height = H * 2;
+        var g = cv.getContext('2d');
+        g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+        g.drawImage(img, 0, 0, cv.width, cv.height);
+        var data = cv.toDataURL('image/png');
+        cv.toBlob(function(blob){ cb(null, data, blob); }, 'image/png');
+      }catch(e){ cb(e, null, null); }
+    };
+    img.onerror = function(){ cb(new Error('当前浏览器不支持生成图片'), null, null); };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  function openPay(){
+    var list = selectedOrders();
+    if(!list.length){ toastErr('请先勾选要结款的单据'); return; }
+    _payBlob = null;
+    var body = document.getElementById('wpPayBody');
+    if(body) body.innerHTML = '<div class="wp-empty">正在生成结款图片…</div>';
+    openModal('wpPayModal');
+    genPayImage(list, function(err, data, blob){
+      if(err){ if(body) body.innerHTML = '<div class="wp-empty">生成失败：' + esc(err.message) + '</div>'; return; }
+      _payBlob = blob || null;
+      if(body) body.innerHTML = '<img src="' + data + '" alt="结款明细">';
+    });
+  }
+  function copyPay(){
+    if(!_payBlob){ toastErr('结款图片还在生成，请稍候'); return; }
+    if(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png': _payBlob})])
+        .then(function(){ toast('结款图片已复制，可直接粘贴发给客户'); })
+        .catch(function(){ downloadPay(); });
+    }else{
+      downloadPay();
+    }
+  }
+  function downloadPay(){
+    if(!_payBlob){ toastErr('结款图片还在生成，请稍候'); return; }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(_payBlob);
+    a.download = '结款明细_' + nowStr().slice(0,10).replace(/-/g, '') + '.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    toast('已下载结款图片');
+  }
+
+  /* ---- 计划单 Word 导出：只汇总，不替代单张打印 ---- */
+  function safeFile(s){ return String(s || '').replace(/[\\/:*?"<>|]/g, '_'); }
+  function exportPlanWord(){
+    var groups = planGroups(filtered()), g = null;
+    for(var i=0;i<groups.length;i++){ if(groups[i].key === _planKey){ g = groups[i]; break; } }
+    if(!g){ toastErr('请先打开一个计划汇总'); return; }
+    var rows = '', total = 0;
+    for(var k=0;k<g.orders.length;k++){
+      var o = g.orders[k], amt = orderTotal(o); total += amt;
+      rows += '<tr><td>' + (k+1) + '</td><td>' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
+        + '<td>' + esc(dishOf(o)) + '</td><td>' + (n(o.doses) || 1) + '</td>'
+        + '<td style="text-align:right">' + money(amt) + '</td></tr>';
+    }
+    var title = g.label + ' · 汇总账单';
+    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+      + '<head><meta charset="utf-8"><title>' + esc(title) + '</title>'
+      + '<style>@page{size:A4;margin:18mm}body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
+      + 'h1{font-size:20pt;margin:0 0 6pt}.meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
+      + 'table{border-collapse:collapse;width:100%;font-size:10.5pt}th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
+      + 'th{background:#f2f4f6}.tot{margin-top:14pt;font-size:12pt}.tot b{font-size:16pt}</style></head><body>'
+      + '<h1>' + esc(g.label) + '</h1>'
+      + '<div class="meta">客户：' + esc(g.guest) + '　｜　月份：' + esc(g.mm ? (g.ym) : '未定') + '　｜　单据数：' + g.count + '</div>'
+      + '<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:90pt">金额(元)</th></tr></thead><tbody>'
+      + rows + '</tbody></table>'
+      + '<div class="tot">计划汇总金额：<b>¥' + money(total) + '</b></div>'
+      + '<div class="meta" style="margin-top:10pt">本账单仅用于客户对账，具体药方以单张打印单据为准。</div>'
+      + '</body></html>';
+    var blob = new Blob(['\ufeff' + html], {type: 'application/msword'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = safeFile(g.label + '_汇总账单') + '.doc';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    toast('已导出 Word 汇总账单');
+  }
+
   /* 按"当前医生"重算所有非手动改价的药材单价（专属价优先，其次目录价） */
   function repriceAll(){
     var g = curGuest(), bs = curBlocks(), i, j;
@@ -12272,9 +13250,10 @@ var WPlan = (function(){
       b.doses = Math.max(1, Math.round(n(rx.j) || 1));
       cnt++; totalItems += items.length;
     }
+    if(o.blocks.length === 1) o.doses = n(o.blocks[0].doses) || o.doses;
     _prevNos = [];
     closeModal('wpPrevModal');
-    save(); renderBlocks(); recount();
+    save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
     toast('已复用 ' + cnt + ' 张药方，共 ' + totalItems + ' 味');
   }
   /* 兼容旧调用：直接把一张历史药方追加到指定方块（不经预览） */
@@ -12562,7 +13541,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpPrevModal','wpTextModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -12572,18 +13551,25 @@ var WPlan = (function(){
   }
 
   function ensure(){
+    if(typeof gstLoadCf === 'function'){ try{ gstLoadCf(); }catch(e){} }
     load();
     bindBackdrops();
     renderAll();
   }
 
   return {
-    ensure: ensure, renderAll: renderAll, selectOrder: selectOrder, newOrder: newOrder, delOrder: delOrder,
-    setFilter: setFilter, delOrderById: delOrderById,
-    showSub: showSub, setSearch: setSearch,
+    ensure: ensure, renderAll: renderAll, selectOrder: selectOrder, setCurrent: setCurrent,
+    newOrder: newOrder, delOrder: delOrder, delOrderById: delOrderById,
+    setFilter: setFilter, setView: setView, showSub: showSub, setSearch: setSearch,
+    toggleSel: toggleSel, toggleSelAll: toggleSelAll,
+    openPlan: openPlan, closePlan: closePlan, exportPlanWord: exportPlanWord,
+    openPay: openPay, copyPay: copyPay, downloadPay: downloadPay,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
+    setDish: setDish, setOrderDoses: setOrderDoses, setSaveCommon: setSaveCommon,
+    saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
+    printCur: printCur, printOrder: printOrder,
     setBlockTitle: setBlockTitle, setRemark: setRemark, setItemRemark: setItemRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
-    setItemName: setItemName, delItem: delItem, addItems: addItems, saveNow: saveNow,
+    setItemName: setItemName, delItem: delItem, addItems: addItems,
     toggleUnit: toggleUnit, setUnit: setUnit,
     openHistory: openHistory, bringHistory: bringHistory,
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
@@ -12762,10 +13748,10 @@ var WPrint=(function(){
     if(!o){
       var list=[];
       try{ list=WPlan.ordersList()||[]; }catch(e){ list=[]; }
-      if(list.length){ try{ WPlan.selectOrder(list[0].id); o=WPlan.getCur(); }catch(e){} }
+      if(list.length){ try{ WPlan.setCurrent(list[0].id); o=WPlan.getCur(); }catch(e){} }
     }
     if(!o && WPlan && WPlan.ensure){ try{ WPlan.ensure(); o=WPlan.getCur(); }catch(e){} }
-    if(!o){ toast('先在「制表 / 详情」里点开一张订单'); return; }
+    if(!o){ toast('先在订单列表里点开一张单据'); return; }
     load();
     S.order=o;
     var sh=$('wpsSheet'); if(!sh) return;
