@@ -3506,12 +3506,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-empty{ flex:1 1 auto; display:flex; align-items:center; justify-content:center;
   color:var(--neutral-4); font-size:14px; padding:40px; }
 .gst-detail{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
-.gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+.gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   padding:16px 20px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
 .gst-dt{ min-width:0; }
-.gst-dt b{ font-size:18px; color:var(--neutral-title); font-weight:700; margin-right:10px; }
-.gst-dt span{ font-size:12px; color:var(--neutral-4); }
-.gst-tabs{ display:flex; gap:6px; margin-left:auto; }
+.gst-dt b{ font-size:20px; color:var(--neutral-title); font-weight:700; }
+.gst-head-right{ display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-left:auto; }
+.gst-meta{ font-size:12px; color:var(--neutral-4); white-space:nowrap; }
+.gst-tabs{ display:flex; gap:6px; }
 .gst-tab{ min-height:32px; padding:5px 16px; border:1px solid var(--neutral-3); background:var(--n-white);
   color:var(--neutral-6); border-radius:var(--r-pill); font-size:13px; font-weight:600;
   font-family:inherit; cursor:pointer; }
@@ -4695,31 +4696,22 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="gst-empty" id="gstEmpty">从左侧选择一位客户，查看 360° 档案</div>
               <div class="gst-detail" id="gstDetail" style="display:none">
                 <div class="gst-detail-head">
-                  <div class="gst-dt">
-                    <b id="gstName">—</b>
-                    <span id="gstMeta"></span>
-                  </div>
-                  <div class="gst-tabs">
-                    <button class="gst-tab on" type="button" data-t="info" onclick="Guest.tab('info')">基础信息</button>
-                    <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
-                    <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
+                  <div class="gst-dt"><b id="gstName">—</b></div>
+                  <div class="gst-head-right">
+                    <span class="gst-meta" id="gstMeta"></span>
+                    <div class="gst-tabs">
+                      <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
+                      <button class="gst-tab" type="button" data-t="rx" onclick="Guest.tab('rx')">日常处方</button>
+                      <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
+                    </div>
                   </div>
                 </div>
                 <div class="gst-detail-body">
-                  <!-- 基础信息 -->
                   <div class="gst-pane" id="gstPaneInfo">
                     <div class="gst-form">
                       <div class="gst-f"><label>姓名</label><input id="gstFName" placeholder="客户姓名"></div>
                       <div class="gst-f"><label>电话</label><input id="gstFPhone" placeholder="手机 / 微信同号"></div>
                       <div class="gst-f gst-full"><label>地址</label><input id="gstFAddr" placeholder="收货 / 配送地址"></div>
-                      <div class="gst-f">
-                        <label>客户类型</label>
-                        <select id="gstFType">
-                          <option value="散客">散客</option>
-                          <option value="批发">批发</option>
-                          <option value="月结">月结</option>
-                        </select>
-                      </div>
                       <div class="gst-f gst-full"><label>备注</label><textarea id="gstFNote" rows="4" placeholder="口味偏好 / 忌口 / 结算习惯…"></textarea></div>
                     </div>
                     <div class="gst-form-foot">
@@ -4738,6 +4730,16 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                       <span class="gst-tool-hint" id="gstCommonCount"></span>
                     </div>
                     <div class="gst-table-wrap" id="gstCommonList"></div>
+                  </div>
+
+                  <!-- 日常处方 -->
+                  <div class="gst-pane" id="gstPaneRx" style="display:none">
+                    <div class="gst-pane-tools">
+                      <span class="gst-tool-hint" id="gstRxCount"></span>
+                      <span class="gst-spacer"></span>
+                      <span class="gst-tool-hint">数据来自「日常药方打印」；点「打开」可载入该处方继续修改</span>
+                    </div>
+                    <div class="gst-table-wrap" id="gstRxList"></div>
                   </div>
 
                   <!-- 历史订单 -->
@@ -4784,15 +4786,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
     <div class="body">
       <div class="gst-form gst-form-dlg">
         <div class="gst-f gst-full"><label>姓名 *</label><input id="gstNewName" placeholder="客户姓名"></div>
-        <div class="gst-f"><label>电话</label><input id="gstNewPhone" placeholder="手机 / 微信同号"></div>
-        <div class="gst-f">
-          <label>客户类型</label>
-          <select id="gstNewType">
-            <option value="散客">散客</option>
-            <option value="批发">批发</option>
-            <option value="月结">月结</option>
-          </select>
-        </div>
+        <div class="gst-f gst-full"><label>电话</label><input id="gstNewPhone" placeholder="手机 / 微信同号"></div>
       </div>
     </div>
     <div class="foot">
@@ -6837,7 +6831,7 @@ function collectRecord(no){
 }
 /* ================= 客人管理（2026-10-30 重写） =================
    布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
-   数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
+   数据：客户档案 → Supabase doctors.prices（phone / addr 一并存）
         常用方  → localStorage rx_gcommon_v1（随 RX_CLOUD 同步）
         历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
 var GUESTS={};
@@ -6866,7 +6860,6 @@ function guestRowOf(g, cf){
   keep.note=g.note||'';
   keep.phone=g.phone||'';
   keep.addr=g.addr||'';
-  keep.ctype=g.ctype||'散客';
   keep.pins=(g.pins||[]).slice(0,3);
   keep.stars=(g.stars||{});
   /* 常用方也挂在这个客人的 prices 里（__gcommon），换设备/清缓存后能还原。
@@ -6879,7 +6872,7 @@ function guestRowOf(g, cf){
 function guestFromRow(r){
   var p=(r&&r.prices)||{};
   return {name:r.name, discount:p.discount||0, note:p.note||'',
-          phone:p.phone||'', addr:p.addr||'', ctype:p.ctype||'散客',
+          phone:p.phone||'', addr:p.addr||'',
           pins:(p.pins||[]).slice(0,3), stars:(p.stars||{}),
           common:Array.isArray(p.__gcommon)?p.__gcommon:[]};
 }
@@ -6923,7 +6916,7 @@ function guestLoadAll(){
       var p=r.prices||{}, dp={}, has=false;
       for(var k in p){
         if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates'||
-           k==='__gcommon'||k==='phone'||k==='addr'||k==='ctype') continue;
+           k==='__gcommon'||k==='phone'||k==='addr') continue;
         if(p[k]==null || p[k]==='') continue;
         dp[k]=p[k]; has=true;
       }
@@ -7163,7 +7156,7 @@ var Guest=(function(){
     for(var nm in GUESTS){
       if(!Object.prototype.hasOwnProperty.call(GUESTS,nm)) continue;
       var g=GUESTS[nm]||{};
-      var hay=(nm+' '+(g.phone||'')+' '+(g.note||'')+' '+(g.ctype||'')).toLowerCase();
+      var hay=(nm+' '+(g.phone||'')+' '+(g.note||'')).toLowerCase();
       if(!kw || hay.indexOf(kw)>=0) out.push(nm);
     }
     out.sort(function(a,b){ return a<b?-1:(a>b?1:0); });
@@ -7185,7 +7178,7 @@ var Guest=(function(){
     for(var i=0;i<names.length;i++){
       var nm=names[i], g=GUESTS[nm]||{};
       var unpaid=debtOf(nm);
-      var sub=g.phone?g.phone:(g.note?g.note:(g.ctype||'散客'));
+      var sub=g.phone||g.note||'';
       h+='<div class="gst-item'+(nm===GUEST_CUR?' on':'')+'" data-n="'+esc(nm)+'" onclick="Guest.pick(this.getAttribute(\'data-n\'))">'
         + '<span class="gst-ava">'+esc(String(nm).slice(0,1)||'?')+'</span>'
         + '<div class="gst-item-main"><b>'+esc(nm)+'</b><span>'+esc(sub)+'</span></div>'
@@ -7204,14 +7197,13 @@ var Guest=(function(){
   function metaText(g){
     var os=gstGuestOrders(g.name), unpaid=0;
     for(var i=0;i<os.length;i++){ if(!gstIsPaid(os[i])) unpaid+=gstOrderAmount(os[i]); }
-    return (g.ctype||'散客')+' · '+os.length+' 单 · 未结 ¥'+money(unpaid)+(g.phone?(' · '+g.phone):'');
+    return os.length+' 单 · 未结 ¥'+money(unpaid);
   }
   function fillForm(g){
     if(!g) return;
     if($('gstFName')) $('gstFName').value=g.name||'';
     if($('gstFPhone')) $('gstFPhone').value=g.phone||'';
     if($('gstFAddr')) $('gstFAddr').value=g.addr||'';
-    if($('gstFType')) $('gstFType').value=g.ctype||'散客';
     if($('gstFNote')) $('gstFNote').value=g.note||'';
   }
   function renderDetail(fill){
@@ -7227,11 +7219,12 @@ var Guest=(function(){
     if($('gstName')) $('gstName').textContent=g.name;
     if($('gstMeta')) $('gstMeta').textContent=metaText(g);
     if(fill) fillForm(g);
-    var panes={info:'gstPaneInfo',common:'gstPaneCommon',history:'gstPaneHistory'};
+    var panes={info:'gstPaneInfo',common:'gstPaneCommon',rx:'gstPaneRx',history:'gstPaneHistory'};
     for(var k in panes){ if($(panes[k])) $(panes[k]).style.display=(k===_tab?'':'none'); }
     var tabs=document.querySelectorAll('.gst-tab');
     for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-t')===_tab); }
     if(_tab==='common') renderCommon();
+    if(_tab==='rx') renderRx();
     if(_tab==='history') renderHistory();
   }
   function tab(t){ _tab=t||'info'; renderDetail(false); }
@@ -7265,7 +7258,6 @@ var Guest=(function(){
     }
     g.phone=String($('gstFPhone').value||'').trim();
     g.addr=String($('gstFAddr').value||'').trim();
-    g.ctype=$('gstFType').value||'散客';
     g.note=String($('gstFNote').value||'').trim();
     guestSave(g).then(function(){
       renderList(); renderDetail(true);
@@ -7276,7 +7268,6 @@ var Guest=(function(){
   function newCustomer(){
     if($('gstNewName')) $('gstNewName').value='';
     if($('gstNewPhone')) $('gstNewPhone').value='';
-    if($('gstNewType')) $('gstNewType').value='散客';
     var m=$('gstNewModal'); if(m) m.classList.add('on');
     setTimeout(function(){ if($('gstNewName')) $('gstNewName').focus(); },50);
   }
@@ -7285,7 +7276,6 @@ var Guest=(function(){
     if(!nm){ toastErr('请填写客户姓名'); $('gstNewName').focus(); return; }
     if(GUESTS[nm]){ toastErr('客户「'+nm+'」已存在'); return; }
     var g={name:nm, phone:String($('gstNewPhone') ? $('gstNewPhone').value : '').trim(),
-           ctype:$('gstNewType') ? ($('gstNewType').value||'散客') : '散客',
            addr:'', note:'', discount:0, pins:[], stars:{}};
     guestSave(g).then(function(){
       var m=$('gstNewModal'); if(m) m.classList.remove('on');
@@ -7578,6 +7568,39 @@ var Guest=(function(){
     GST_CF=GST_CF.filter(function(x){ return x.id!==id; });
     gstCfPersist(delGuest); renderCommon(); toast('已删除');
   }
+  /* 日常处方：直接复用「日常药方打印」的数据（本机保存 + 书剑历史都算关联处方） */
+  function renderRx(){
+    var box=$('gstRxList'); if(!box) return;
+    if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
+    var list=doctorRxs(GUEST_CUR);
+    if($('gstRxCount')) $('gstRxCount').textContent='共 '+list.length+' 张日常处方';
+    var h='<table class="gst-tbl"><thead><tr><th>时间</th><th>处方号</th><th>付数</th><th>总金额</th><th>状态</th><th>来源</th><th style="text-align:right">操作</th></tr></thead><tbody>';
+    if(!list.length){
+      h+='<tr><td colspan="7" class="gst-empty-row">该客户还没有日常处方；在「日常药方打印」保存处方后会出现在这里</td></tr>';
+    }
+    for(var i=0;i<list.length;i++){
+      var r=list[i];
+      h+='<tr>'
+        +'<td>'+esc(gstFmtTime((r.dt||'')+(r.tm?(' '+r.tm):'')))+'</td>'
+        +'<td>'+esc(r.no||'—')+'</td>'
+        +'<td class="num">'+(n(r.j)||1)+' 付</td>'
+        +'<td class="money">¥'+money(r.total)+'</td>'
+        +'<td>'+(r.fy?'已发':'未发')+'</td>'
+        +'<td>'+esc(r.src||'')+'</td>'
+        +'<td class="gst-act"><button type="button" class="pri" onclick="Guest.openRx(\''+esc(r.no)+'\')">打开</button></td>'
+        +'</tr>';
+    }
+    h+='</tbody></table>';
+    box.innerHTML=h;
+  }
+  function openRx(no){
+    var list=allRx(), found=null;
+    for(var i=0;i<list.length;i++){ if(list[i].no===no){ found=list[i]; break; } }
+    if(!found){ toastErr('找不到该处方'); return; }
+    if(typeof loadRx==='function') loadRx(found);
+    if(typeof navGo==='function') navGo('print');
+    toast('已打开 '+(found.n||'')+' 的日常处方');
+  }
   function filteredHistory(){
     var os=gstGuestOrders(GUEST_CUR);
     if(_month){
@@ -7648,7 +7671,7 @@ var Guest=(function(){
       +'table{border-collapse:collapse;width:100%;font-size:10.5pt} th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
       +'th{background:#f2f4f6} .tot{margin-top:14pt;font-size:12pt} .tot b{font-size:15pt}</style></head><body>'
       +'<h1>'+esc(title)+'</h1>'
-      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')+'　类型：'+esc(g.ctype||'散客')
+      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')
       +'　导出时间：'+esc(nowStr())+'</div>'
       +'<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:86pt">总金额(元)</th><th style="width:52pt">状态</th></tr></thead><tbody>'
       +rows+'</tbody></table>'
@@ -7953,7 +7976,7 @@ var Guest=(function(){
     for(i=0;i<rows.length;i++){
       r=rows[i];
       if(!GUESTS[r.guest]){
-        guestSave({name:r.guest, phone:'', addr:'', ctype:'散客', note:'',
+        guestSave({name:r.guest, phone:'', addr:'', note:'',
                    discount:0, pins:[], stars:{}});
         made++;
       }
@@ -7996,6 +8019,7 @@ var Guest=(function(){
     cfAddRow:cfAddRow, cfDelRow:cfDelRow, cfNameInput:cfNameInput, cfNameFocus:cfNameFocus,
     cfNameKey:cfNameKey, cfQty:cfQty, cfUnit:cfUnit, cfPrice:cfPrice, cfRm:cfRm, cfDoses:cfDoses,
     previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
+    renderRx:renderRx, openRx:openRx,
     importExcelPick:importExcelPick, importExcelFile:importExcelFile,
     importSelect:importSelect, importSelectAll:importSelectAll, importExcelCommit:importExcelCommit,
     renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
