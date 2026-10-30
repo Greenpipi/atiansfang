@@ -3322,14 +3322,19 @@ body{ --navw:0px; }
   background:#fff!important; color:var(--pri-deep)!important; }
 #wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active{ transform:scale(.97); }
 .wp-list-bar .wp-view-tabs{ margin-left:2px; }
-/* 搜索框清除按钮：红色圆形 X */
+/* 搜索框清除按钮：红色圆形 X（全站 button:not(.pri):not(.warn) 规则权重更高，这里加双类 + !important 压过） */
 .sch-wrap{ position:relative; display:flex; align-items:center; min-width:0; }
 .sch-wrap>input{ flex:1 1 auto; min-width:0; padding-right:32px!important; }
-.sch-x{ position:absolute; right:7px; top:50%; transform:translateY(-50%); width:18px; height:18px;
-  padding:0; border:none; border-radius:50%; background:#e34d59; color:#fff; display:none;
-  align-items:center; justify-content:center; cursor:pointer; box-shadow:0 1px 2px rgba(227,77,89,.35); }
-.sch-wrap.has .sch-x{ display:flex; }
-.sch-x svg{ width:8px; height:8px; display:block; }
+button.sch-x.sch-x.sch-x{ position:absolute; right:7px; top:50%; transform:translateY(-50%);
+  width:18px!important; height:18px!important; min-height:0!important; max-height:18px!important;
+  padding:0!important; margin:0!important; border:0!important; border-radius:50%!important;
+  background:#e34d59!important; color:#fff!important; display:none; align-items:center; justify-content:center;
+  line-height:0!important; cursor:pointer; box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
+button.sch-x.sch-x.sch-x:hover, button.sch-x.sch-x.sch-x:active{
+  background:#d13b46!important; color:#fff!important; border-color:transparent!important;
+  transform:translateY(-50%)!important; box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
+.sch-wrap.has button.sch-x.sch-x.sch-x{ display:flex; }
+button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; }
 /* 小订单独立配置 */
 .wp-block-head{ flex-wrap:wrap; }
 .wp-bi{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--neutral-5); white-space:nowrap; }
@@ -3446,12 +3451,15 @@ body{ --navw:0px; }
   border-radius:10px; padding:0 34px 0 12px; font-size:13px; font-family:inherit;
   background:var(--n-white); color:var(--neutral-title); }
 .gst-search input:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
-.gst-clear{ position:absolute; right:8px; top:50%; transform:translateY(-50%); width:18px; height:18px;
-  border:none; border-radius:50%; background:#e34d59; color:#fff; font-size:11px; font-weight:700;
-  line-height:18px; text-align:center; padding:0; cursor:pointer; display:none;
-  box-shadow:0 1px 2px rgba(227,77,89,.35); }
-.gst-clear:hover{ background:#d13b46; color:#fff; }
-.gst-search.has-val .gst-clear{ display:block; }
+#gstClear{ position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:18px!important; height:18px!important; min-height:0!important; max-height:18px!important;
+  border:0!important; border-radius:50%!important; background:#e34d59!important; color:#fff!important;
+  font-size:11px; font-weight:700; line-height:0!important; text-align:center; padding:0!important; margin:0!important;
+  cursor:pointer; display:none; align-items:center; justify-content:center;
+  box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
+#gstClear:hover, #gstClear:active{ background:#d13b46!important; color:#fff!important;
+  transform:translateY(-50%)!important; box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
+.gst-search.has-val #gstClear{ display:flex; }
 .gst-add-btn{ width:100%; height:38px; }
 .gst-list{ flex:1 1 auto; min-height:0; overflow:auto; padding:8px; }
 .gst-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
@@ -3879,7 +3887,7 @@ body{ --navw:0px; }
       <h3>药品目录 <span>双击插入</span></h3>
       <div class="pbody">
         <div class="dsearch">
-          <input id="dSearch" placeholder="输入药名，如 阿胶" autocomplete="off">
+          <input id="dSearch" class="sch" placeholder="输入药名，如 阿胶" autocomplete="off">
           <input id="dDose" style="flex:0 0 52px" placeholder="克数" autocomplete="off">
         </div>
         <div class="dhint">输入药名 → 回车跳到「克数」→ 填克数 → <b>双击</b>下方词条插入处方（仅中药）</div>
@@ -15104,6 +15112,7 @@ try{ RxCal.prepare(); }catch(e){ console.warn('Calendar prepare', e); }
     wrap.className='sch-wrap';
     if(inp.classList.contains('wp-search')){ wrap.style.flex='1 1 220px'; wrap.style.minWidth='160px'; }
     else if(inp.classList.contains('gst-mini-search')){ wrap.style.flex='0 0 auto'; }
+    else if(inp.id==='dSearch'){ wrap.style.flex='1 1 auto'; wrap.style.minWidth='0'; }
     inp.parentNode.insertBefore(wrap, inp);
     wrap.appendChild(inp);
     var btn=document.createElement('button');
@@ -15127,8 +15136,9 @@ try{ RxCal.prepare(); }catch(e){ console.warn('Calendar prepare', e); }
     var ins=document.querySelectorAll('input.sch');
     for(var i=0;i<ins.length;i++) wrapOne(ins[i]);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initSch);
-  else initSch();
+  /* 主脚本位于页面末尾，搜索框此时已解析完，直接执行；再挂一次 DOMContentLoaded 兜底（重复无害） */
+  try{ initSch(); }catch(e){ console.warn('Search clear init', e); }
+  document.addEventListener('DOMContentLoaded', function(){ try{ initSch(); }catch(e){} });
 })();
 
 init();
