@@ -3303,20 +3303,24 @@ body{ --navw:0px; }
 .wp-c-dish .sub{ display:block; font-size:11px; color:var(--neutral-4); font-weight:400; }
 .wp-c-act button{ margin-left:6px; }
 .wp-c-act button:first-child{ margin-left:0; }
-/* ===== 2026-10-31 分段控制器 / 搜索清除 / 小订单加工配送 ===== */
-.wp-seg{ position:relative; display:inline-flex; padding:3px; background:var(--neutral-1);
-  border:1px solid var(--neutral-2); border-radius:var(--r-pill); }
-.wp-seg-thumb{ position:absolute; top:3px; left:3px; bottom:3px;
-  width:calc((100% - 6px) / var(--seg-n,2)); border-radius:var(--r-pill);
-  background:var(--n-white); border:1px solid var(--pri-line);
-  box-shadow:0 1px 3px rgba(21,163,74,.18);
-  transform:translateX(calc(var(--seg-i,0) * 100%));
-  transition:transform .24s cubic-bezier(.4,0,.2,1); }
-.wp-seg-btn{ position:relative; z-index:1; flex:1 1 0; min-width:76px; height:30px; padding:0 14px;
-  border:none; background:transparent; color:var(--neutral-6); font-size:13px; font-family:inherit;
-  border-radius:var(--r-pill); cursor:pointer; transition:color .18s; white-space:nowrap; }
-.wp-seg-btn.on{ color:var(--pri-deep); font-weight:700; }
-.wp-seg-btn:hover{ color:var(--pri-h); }
+/* ===== 2026-10-31 分段控制器（按图1：浅灰胶囊 + 选中白色浮起）/ 搜索清除 / 小订单加工配送 ===== */
+.wp-seg{ display:inline-flex; align-items:center; padding:4px; background:#f2f3f5;
+  border:1px solid rgba(0,0,0,.04); border-radius:999px; }
+/* 全站 button:not(.pri):not(.warn){background:!important} 权重更高，这里用 ID 选择器压过它 */
+#wpSegStatus .wp-seg-btn, #wpSegView .wp-seg-btn{
+  -webkit-appearance:none; appearance:none; flex:0 0 auto; height:32px; min-height:0!important;
+  padding:0 18px; margin:0; border:none!important; background:transparent!important; box-shadow:none!important;
+  color:#8a8f98!important; font-size:13.5px; font-weight:500; font-family:var(--font-ui); line-height:32px;
+  border-radius:999px; cursor:pointer; white-space:nowrap;
+  transition:background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .12s ease; }
+#wpSegStatus .wp-seg-btn:hover, #wpSegView .wp-seg-btn:hover{
+  background:transparent!important; border-color:transparent!important; color:var(--neutral-title)!important; }
+#wpSegStatus .wp-seg-btn.on, #wpSegView .wp-seg-btn.on{
+  background:#fff!important; border-color:transparent!important; color:var(--pri-deep)!important; font-weight:700;
+  box-shadow:0 1px 3px rgba(0,0,0,.10), 0 0 0 .5px rgba(0,0,0,.05)!important; }
+#wpSegStatus .wp-seg-btn.on:hover, #wpSegView .wp-seg-btn.on:hover{
+  background:#fff!important; color:var(--pri-deep)!important; }
+#wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active{ transform:scale(.97); }
 .wp-list-bar .wp-view-tabs{ margin-left:2px; }
 /* 搜索框清除按钮：红色圆形 X */
 .sch-wrap{ position:relative; display:flex; align-items:center; min-width:0; }
@@ -3910,13 +3914,11 @@ body{ --navw:0px; }
                 <div class="wp-list-bar">
                   <input id="wpListSearch" class="wp-search sch" placeholder="搜索 客人 / 订单名称 / 时间 / 状态" oninput="WPlan.setSearch(this.value)">
                   <div class="wp-seg" id="wpSegStatus">
-                    <span class="wp-seg-thumb"></span>
                     <button class="wp-seg-btn on" type="button" data-f="all" onclick="WPlan.setFilter('all')">全部状态</button>
                     <button class="wp-seg-btn" type="button" data-f="done" onclick="WPlan.setFilter('done')">已发药</button>
                     <button class="wp-seg-btn" type="button" data-f="undone" onclick="WPlan.setFilter('undone')">未发药</button>
                   </div>
                   <div class="wp-seg wp-view-tabs" id="wpSegView">
-                    <span class="wp-seg-thumb"></span>
                     <button class="wp-seg-btn on" type="button" data-v="flat" onclick="WPlan.setView('flat')">全部单据</button>
                     <button class="wp-seg-btn" type="button" data-v="plan" onclick="WPlan.setView('plan')">按计划分组</button>
                   </div>
@@ -12709,15 +12711,10 @@ var WPlan = (function(){
   }
   function applySegUI(boxSel, attr, val){
     var box = document.querySelector(boxSel); if(!box) return;
-    var btns = box.querySelectorAll('.wp-seg-btn'), idx = 0, cnt = 0;
+    var btns = box.querySelectorAll('.wp-seg-btn');
     for(var i=0;i<btns.length;i++){
-      var on = btns[i].getAttribute(attr) === val;
-      btns[i].classList.toggle('on', on);
-      if(on) idx = cnt;
-      cnt++;
+      btns[i].classList.toggle('on', btns[i].getAttribute(attr) === val);
     }
-    box.style.setProperty('--seg-n', cnt);
-    box.style.setProperty('--seg-i', idx);
   }
   function applyFilterUI(){ applySegUI('#wpSegStatus', 'data-f', _filter); }
   function applyViewUI(){ applySegUI('#wpSegView', 'data-v', _view); }
