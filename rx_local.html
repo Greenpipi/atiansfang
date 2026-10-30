@@ -3971,7 +3971,12 @@ body{ --navw:0px; }
           <div class="dm-page">
             <div class="dm-top">
               <div class="dm-title">药物管理</div>
-              <input id="dmSearch" class="dm-search" placeholder="药名 / 拼音 / 别名 / 产地" autocomplete="off">
+              <span class="dm-searchbox" id="dmSearchBox">
+                <input id="dmSearch" class="dm-search" placeholder="药名 / 拼音 / 别名 / 产地" autocomplete="off">
+                <button type="button" id="dmSearchClear" class="dm-sclear" tabindex="-1" aria-label="清空搜索词">
+                  <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.9 2.9l6.2 6.2M9.1 2.9l-6.2 6.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                </button>
+              </span>
               <span class="dm-spacer"></span>
               <div class="dm-tools">
                 <button type="button" id="dmAdd" class="pri">添加</button>
@@ -4013,10 +4018,29 @@ body{ --navw:0px; }
           /* 顶部：标题 + 搜索（左）/ 操作（右） */
           .dm-top{display:flex;align-items:center;gap:12px;padding:0 0 16px}
           .dm-title{font-size:var(--fs-title);font-weight:700;color:var(--neutral-title);white-space:nowrap;letter-spacing:.02em}
-          .dm-search{width:210px!important;height:32px;box-sizing:border-box;flex:0 0 210px;
+          .dm-searchbox{position:relative;flex:0 0 210px;width:210px;display:flex;align-items:center}
+          .dm-search{width:100%!important;height:32px;box-sizing:border-box;flex:1 1 auto;
             border:1px solid var(--n-3)!important;border-radius:8px!important;
-            padding:0 12px!important;font-size:12px!important;background:var(--n-white)!important}
+            padding:0 26px 0 12px!important;font-size:12px!important;background:var(--n-white)!important}
           .dm-search:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(22,163,74,.10)!important}
+          /* 框内右侧「一键清空」：红色实心圆 + 白色 ×，有输入才出现
+             ⚠ 全站 button{…!important} 基座规则会带边框/渐变底/34px 最小高，
+               还有 button:not(.pri):not(.warn){background:var(--n-white)!important}（优先级 0,2,1）
+               会盖掉红底 —— 所以这里一律用 #id 提权 + !important 压回去。 */
+          .dm-searchbox #dmSearchClear{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+            appearance:none;-webkit-appearance:none;
+            width:12px!important;height:12px!important;min-height:0!important;max-height:12px!important;
+            padding:0!important;margin:0!important;
+            border:0!important;border-radius:50%!important;
+            background:#e5484d!important;background-color:#e5484d!important;color:#fff!important;
+            display:none;align-items:center;justify-content:center;
+            line-height:0!important;cursor:pointer;box-shadow:none!important}
+          /* 视觉只有 12px（比输入文字略小），热区用伪元素外扩到 24px，点着不费劲 */
+          .dm-searchbox #dmSearchClear::before{content:'';position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px}
+          .dm-searchbox #dmSearchClear:hover,.dm-searchbox #dmSearchClear:focus{
+            background:#cf3b40!important;background-color:#cf3b40!important;border-color:transparent!important;color:#fff!important}
+          .dm-searchbox #dmSearchClear svg{width:7px!important;height:7px!important;display:block;color:#fff!important}
+          .dm-searchbox.has #dmSearchClear{display:flex!important}
           .dm-spacer{flex:1}
           .dm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
           .dm-page .dmtable td.c-ro span{color:#8a8f98}
@@ -6963,6 +6987,9 @@ SUPA.loadDrugs=function(noSave){
        主规格库存要从「同单位镜像」回读（dmNormalizeSpecs 里做），顺便清掉空/重复单位。 */
     for(var q2=0;q2<drugsList.length;q2++){ if(drugsList[q2]) dmNormalizeSpecs(drugsList[q2]); }
     if(noSave){ buildIndex(); } else { saveDrugsLS(); }
+    /* 云端数据已经覆盖本机目录 → 启动时按「本机旧缓存」排的旧药名迁移队列作废。
+       否则 8 秒后那次 upsert 会把本机残留的旧条目（如 田七{20头}）重新插回云端。 */
+    _brkPending=[]; if(_brkTimer){ clearTimeout(_brkTimer); _brkTimer=null; }
     SUPA.drugsPulled=true;          /* 放闸：之后才允许整表上传回云端 */
     return drugsList.length;
   });
@@ -11027,11 +11054,31 @@ $('btnSave').onclick=function(){
   });
 
   /* 药物维护 */
+  /* 搜索框右侧清除按钮：有内容才出现（.has），点一下清空 + 重新过滤 + 光标留在框内 */
+  var _dmSBox=$('dmSearchBox'), _dmSInput=$('dmSearch'), _dmSClear=$('dmSearchClear');
+  function dmSyncClearBtn(){
+    if(!_dmSBox) return;
+    if(_dmSInput.value) _dmSBox.classList.add('has'); else _dmSBox.classList.remove('has');
+  }
+  if(_dmSClear){
+    /* mousedown 阻止默认，避免先失焦再 focus 造成闪烁 */
+    _dmSClear.addEventListener('mousedown',function(e){ e.preventDefault(); });
+    _dmSClear.addEventListener('click',function(e){
+      e.preventDefault(); e.stopPropagation();
+      _dmSInput.value=''; dmFilter='';
+      for(var i=0;i<drugsList.length;i++){ if(drugsList[i]) delete drugsList[i].__fresh; }
+      dmSyncClearBtn();
+      renderDrugTable();
+      try{ _dmSInput.focus({preventScroll:true}); }catch(err){ _dmSInput.focus(); }
+    });
+  }
+  dmSyncClearBtn();
   $('dmSearch').addEventListener('input',function(){
     dmFilter=this.value;
     /* 用户主动改搜索词了 → 之前靠 __fresh 强行留在列表里的新行不再特权，
        按新搜索词正常过滤（该出现就出现、该消失就消失）。 */
     for(var i=0;i<drugsList.length;i++){ if(drugsList[i]) delete drugsList[i].__fresh; }
+    dmSyncClearBtn();
     renderDrugTable();
   });
   $('dmBody').onclick=function(e){
