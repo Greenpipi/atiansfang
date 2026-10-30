@@ -657,7 +657,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 /* ── 药物管理：浅灰底 + 细分隔线 + 行内编辑（默认纯文本，点单元格才变输入框） ──
    ⚠ 全局有 td{padding:0 var(--sp2)!important} / input{border:…!important}，
      这里所有间距、边框、背景都必须 !important 才压得住。 */
-.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:transparent; min-width:720px; }
+.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:transparent; min-width:1046px; }
 .dm-page .dmtable thead th{
   position:sticky; top:0; z-index:2; height:42px; padding:0 14px!important;
   text-align:left!important; font-size:12px; font-weight:700; color:var(--neutral-6);
@@ -665,6 +665,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
   white-space:nowrap; letter-spacing:.02em;
 }
 .dm-page .dmtable thead th.c-money{ text-align:right!important; }
+.dm-page .dmtable thead th.c-st{ text-align:right!important; }
+.dm-page .dmtable tbody td.c-st{ text-align:right!important; }
+.dm-page .dmtable tbody td.c-st>span{ text-align:right!important; }
 .dm-page .dmtable thead th.c-act{ text-align:right!important; }
 .dm-page .dmtable tbody td{
   height:44px; padding:0 14px!important; border:none!important;
@@ -707,6 +710,40 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 .dm-page .dmtable td.c-act .dm-rowbtn:hover{ color:var(--pri-deep)!important; border-color:var(--pri-line)!important; background:#f2fbf5!important; }
 .dm-page .dmtable td.c-act .dm-rowbtn.del{ color:#c0392b!important; border-color:#e8c0b9!important; background:#fdf5f4!important; }
 .dm-page .dmtable td.c-act .dm-rowbtn.del:hover{ background:#fbe9e6!important; border-color:#dca79d!important; }
+/* ── 一药多规格（主表 + 子表）：冻结名称列 / 子规格行 / 添加规格行 ──
+   冻结列必须给不透明底色，否则横向滚动时内容会从格子底下穿过去。 */
+.dm-page .dmtable thead th.c-nm{ position:sticky; left:0; z-index:5; background:#f1f2ef!important; }
+.dm-page .dmtable tbody td.c-nm{
+  position:sticky; left:0; z-index:2; background:var(--n-white);
+  box-shadow:1px 0 0 #e3e4e1;
+}
+.dm-page .dmtable tbody tr:hover td.c-nm{ background:#f3f6f3; }
+.dm-page .dmtable tbody tr.sel td.c-nm{ background:#eef7f1; }
+/* 单位列：子规格缩进 + 悬停出现「×删这个规格」 */
+.dm-page .dmtable td.c-u>span{ display:flex; align-items:center; gap:4px; }
+.dm-page .dmtable tr.dm-subrow td.c-u>span{ padding-left:9px; }
+.dm-page .dmtable td.c-u .dm-specdel{
+  display:none; flex:0 0 auto; width:14px; height:14px; line-height:12px; text-align:center;
+  font-size:11px; font-weight:400; color:#b0442f; background:#fdf0ed;
+  border:1px solid #eccbc2; border-radius:50%; cursor:pointer;
+}
+.dm-page .dmtable tr.dm-subrow:hover td.c-u .dm-specdel{ display:block; }
+.dm-page .dmtable td.c-u .dm-specdel:hover{ background:#f8dcd5; }
+/* 每组末尾的「＋ 添加新规格」细条：浅底当分隔，按钮虚线弱化 */
+.dm-page .dmtable tr.dm-addrow td{
+  height:30px!important; padding:0 10px!important; background:#fcfcfa;
+  border-bottom:1px solid #e6e8e2!important;
+}
+.dm-page .dmtable tr.dm-addrow:hover td{ background:#fafbf8; }
+.dm-page .dmtable tr.dm-addrow .dm-addspec{
+  height:23px!important; min-height:0!important; padding:0 10px!important;
+  font-size:11.5px!important; font-weight:400!important; line-height:1;
+  color:#5f8a6d!important; background:transparent!important;
+  border:1px dashed #cfd8cf!important; border-radius:7px!important; cursor:pointer;
+}
+.dm-page .dmtable tr.dm-addrow .dm-addspec:hover{
+  color:var(--pri-deep)!important; border-color:var(--pri)!important; background:#f3fbf6!important;
+}
 /* 保存反馈：绿闪 / 红闪 */
 @keyframes dmFlashOk{ 0%{ background:#d7f3e1; } 100%{ background:transparent; } }
 @keyframes dmFlashErr{ 0%{ background:#fdd; } 100%{ background:transparent; } }
@@ -3714,7 +3751,7 @@ body{ --navw:0px; }
                     <thead><tr>
                       <th style="text-align:left">药材名称</th>
                       <th style="width:96px">数量</th><th style="width:78px">单位</th>
-                      <th style="width:108px">进货单价</th><th style="width:104px">金额</th><th style="width:60px"></th>
+                      <th style="width:132px">进货单价</th><th style="width:104px">金额</th><th style="width:60px"></th>
                     </tr></thead>
                     <tbody id="purItems"></tbody>
                   </table>
@@ -3807,6 +3844,14 @@ body{ --navw:0px; }
           .pur-table td input.num{text-align:right!important}
           .pur-btns{display:flex;gap:8px;align-items:center;margin-top:12px}
           .pur-hint{font-size:11px;line-height:1.5;margin-top:3px;color:#b5462f}
+          /* 加工品（炒山药…）：进货单价下方的「带入生品进价」小按钮 */
+          .pur-prod{
+            display:block;margin-top:5px;height:22px!important;min-height:0!important;padding:0 7px!important;
+            font-size:11px!important;font-weight:400!important;line-height:1;
+            color:var(--pri-deep,#15803d)!important;background:#f2fbf5!important;
+            border:1px solid var(--pri-line,#c7e7d3)!important;border-radius:6px!important;cursor:pointer;
+          }
+          .pur-prod:hover{background:#e7f7ee!important}
           #purMsg:empty{display:none}
           .pur-hint.ok{color:#5b8c5a}
           .pur-del{color:var(--danger,#c0392b)}
@@ -3832,16 +3877,21 @@ body{ --navw:0px; }
             </div>
             <div class="dm-tablewrap">
               <table class="dmtable">
-                <colgroup><col><col style="width:112px"><col style="width:112px"><col style="width:112px"><col style="width:100px"><col style="width:88px"><col style="width:104px"><col style="width:76px"><col style="width:112px"></colgroup>
+                <colgroup>
+                  <col style="width:172px"><col style="width:78px"><col style="width:70px">
+                  <col style="width:104px"><col style="width:104px"><col style="width:104px"><col style="width:104px">
+                  <col style="width:78px"><col style="width:96px"><col style="width:136px">
+                </colgroup>
                 <thead><tr>
                   <th class="c-nm">药物名称</th>
-                  <th class="c-money">零售价<span class="tu">元/g</span></th>
+                  <th class="c-amt">常用量</th>
+                  <th class="c-u">单位</th>
+                  <th class="c-money">零售价</th>
                   <th class="c-money">批发价<span class="tu">元/kg</span></th>
                   <th class="c-money">进货价<span class="tu">元/kg</span></th>
                   <th class="c-money c-ro">建议价<span class="tu">元/kg</span></th>
                   <th class="c-st">库存量</th>
                   <th class="c-og">产地</th>
-                  <th class="c-amt">常用量</th>
                   <th class="c-act">操作</th>
                 </tr></thead>
                 <tbody id="dmBody"></tbody>
@@ -7676,7 +7726,7 @@ function rcptCSS(){
   +'.rcpt .ritem.full{white-space:normal;word-break:break-all;overflow-wrap:anywhere}'
   +'.rcpt .rnote{margin-top:1em;white-space:pre-wrap;word-break:break-all}'
   +'.rcpt .rfee{margin-top:1em}'
-  +'.rcpt .rfloor{margin-top:1.3em;white-space:nowrap}';
+  +'.rcpt .rfloor{margin-top:1.3em;white-space:normal;word-break:break-word;overflow-wrap:anywhere}';
 }
 function receiptHTML(){
   readAllCells();
@@ -8066,6 +8116,8 @@ function loadDrugs(){
     try{ localStorage.setItem(LS_DRUGS,JSON.stringify(drugsList)); }catch(e){}
     brkScheduleCleanup(brkPairs);
   }
+  /* 一药多规格归一：主单位的镜像条目并回 d.st 后丢掉（否则列表出现两行「g」） */
+  for(var m=0;m<drugsList.length;m++){ if(drugsList[m]) dmNormalizeSpecs(drugsList[m]); }
   buildIndex();
 }
 /* 药价目录有变动 → 整目录 upsert 回数据库。
@@ -8241,14 +8293,143 @@ function dmSuggestOf(d){
   try{ if(typeof Purchase!=='undefined' && Purchase.latestCost) cost=Purchase.latestCost(d.n); }catch(e){ cost=null; }
   if(cost==null){ var b=parseFloat(d.bp); if(isFinite(b)) cost=b; }
   if(cost==null || !isFinite(cost)) return '';
-  var r=null;
-  if(rs.wp!=null && isFinite(parseFloat(rs.wp))) r=parseFloat(rs.wp);
-  if(r==null){
-    var bp0=parseFloat(d.bp), wp0=parseFloat(d.wp);
-    if(isFinite(bp0) && bp0 && isFinite(wp0)) r=wp0/bp0;
+  return Math.round(cost*dmWpRate(d)*100)/100;
+}
+/* 批发倍率：优先 d.rates.wp；老数据按「批发价 ÷ 进货价」反推；都没有用默认 1.25。
+   主规格和子规格共用同一个倍率（同一味药，加价策略一致）。 */
+function dmWpRate(d){
+  var rs=(d&&d.rates&&typeof d.rates==='object')?d.rates:{};
+  var r=parseFloat(rs.wp);
+  if(isFinite(r) && r>0) return r;
+  var bp0=parseFloat(d&&d.bp), wp0=parseFloat(d&&d.wp);
+  if(isFinite(bp0) && bp0 && isFinite(wp0)) return wp0/bp0;
+  return (typeof DEF_RATE!=='undefined' && DEF_RATE)?DEF_RATE:1.25;
+}
+/* ================= 一药多规格：主表 + 子表 =================
+   主表（drugs 表一行）：药名 n / 别名 al / 产地 og / 常用量 c
+   子表（units jsonb）：规格数组，一条一个「单位」，各自带 零售价 / 批发价 / 进货价 / 库存
+   ⚠ 兼容做法：规格 #0 仍是主字段（d.u / d.p / d.wp / d.bp / d.st / d.rates.sg），
+      其余规格放 d.un[]。全站计价（findDrug → priceFor）只读主字段，计价链路不受影响。
+   ⚠ 库存的持久化：drugs 表没有 stock 列，库存只存在 units jsonb 里，
+      所以主单位的库存会在 d.un 里保有一条「同单位镜像」（unit === d.u）。
+      这个镜像不占规格位（列表里不会出现两行 g），但写库存时必须同步它，否则刷新就丢。 */
+/* 规格枚举：0 = 主规格（u 为 null，值走主字段），1..n = 子规格（u 指向 d.un 里的条目） */
+function dmSpecEntries(d){
+  var out=[{s:0,u:null}], un=(d&&Array.isArray(d.un))?d.un:[], main=String((d&&d.u)||'g').trim(), k=0;
+  for(var i=0;i<un.length;i++){
+    var u=un[i]||{};
+    if(String(u.unit||'').trim()===main) continue;      /* 主单位镜像：跳过，它只负责存库存 */
+    k++; out.push({s:k,u:u});
   }
-  if(r==null) r=(typeof DEF_RATE!=='undefined' && DEF_RATE)?DEF_RATE:1.25;
-  return Math.round(cost*r*100)/100;
+  return out;
+}
+function dmSpecsOf(d){
+  if(!d) return [];
+  var es=dmSpecEntries(d), out=[];
+  for(var i=0;i<es.length;i++){
+    var e=es[i], u=e.u;
+    if(!u){
+      out.push({ s:0, unit:(d.u||'g'), st:(d.st==null?'':d.st), p:(d.p==null?'':d.p),
+                 wp:(d.wp==null?'':d.wp), bp:(d.bp==null?'':d.bp), sg:dmSuggestOf(d) });
+    }else{
+      out.push({ s:e.s, unit:(u.unit||''), st:(u.stock==null?'':u.stock),
+                 p:(u.retail==null?'':u.retail), wp:(u.wp==null?'':u.wp),
+                 bp:(u.cost==null?'':u.cost), sg:dmSubSuggest(d,u) });
+    }
+  }
+  return out;
+}
+/* 子规格建议价：有快照读快照，没有就按「进货价 × 批发倍率」实时算 */
+function dmSubSuggest(d,u){
+  if(!u) return '';
+  var sg=parseFloat(u.sg);
+  if(isFinite(sg) && sg>0) return Math.round(sg*100)/100;
+  var c=parseFloat(u.cost);
+  if(!isFinite(c)) return '';
+  return Math.round(c*dmWpRate(d)*100)/100;
+}
+/* 规格下标 → 子表条目（0 = 主规格，返回 null） */
+function dmSpecAt(d,s){
+  if(!d || !(s>0)) return null;
+  var es=dmSpecEntries(d);
+  return (es[s]||{}).u||null;
+}
+/* 主单位库存的镜像条目：有就返回，没有就建一条（云端只认 units 里的库存） */
+function dmMainMirror(d, create){
+  if(!d) return null;
+  var main=String(d.u||'g').trim()||'g';
+  if(!Array.isArray(d.un)) d.un=[];
+  for(var i=0;i<d.un.length;i++){
+    if(String((d.un[i]||{}).unit||'').trim()===main) return d.un[i];
+  }
+  if(!create) return null;
+  var rec={unit:main, stock:(d.st==null?'':d.st), cost:(d.bp==null?'':d.bp), retail:'', daily:'', wp:'', sg:''};
+  d.un.push(rec);
+  return rec;
+}
+/* 单元格取值 / 存值：f 用统一字段名（u/p/wp/bp/st），内部自动分派主规格 or 子规格 */
+function dmCellVal(d,f,s){
+  if(!d) return '';
+  var sp=dmSpecAt(d,s);
+  if(f==='u')  return sp?(sp.unit||''):(d.u||'g');
+  if(f==='p')  return sp?(sp.retail==null?'':sp.retail):(d.p==null?'':d.p);
+  if(f==='wp') return sp?(sp.wp==null?'':sp.wp):(d.wp==null?'':d.wp);
+  if(f==='bp') return sp?(sp.cost==null?'':sp.cost):(d.bp==null?'':d.bp);
+  if(f==='st') return sp?(sp.stock==null?'':sp.stock):(d.st==null?'':d.st);
+  if(f==='sg') return sp?dmSubSuggest(d,sp):dmSuggestOf(d);
+  return (d[f]==null?'':d[f]);
+}
+function dmCellSet(d,f,s,v){
+  if(!d) return;
+  var sp=dmSpecAt(d,s);
+  if(f==='u') { if(sp) sp.unit=v; else d.u=v; return; }
+  if(f==='p') { if(sp) sp.retail=v; else d.p=v; return; }
+  if(f==='wp'){ if(sp) sp.wp=v; else d.wp=v; return; }
+  if(f==='bp'){ if(sp) sp.cost=v; else { d.bp=v; var mm=dmMainMirror(d,false); if(mm) mm.cost=v; } return; }
+  if(f==='st'){ if(sp) sp.stock=v; else { d.st=v; var m2=dmMainMirror(d,true); if(m2) m2.stock=v; } return; }
+  d[f]=v;
+}
+/* 改主单位名 → 镜像条目跟着改名（否则刷新后多出一条旧单位规格） */
+function dmRenameMainUnit(d, oldU, newU){
+  if(!d || !newU) return;
+  var un=Array.isArray(d.un)?d.un:[], o=String(oldU||'').trim();
+  for(var i=0;i<un.length;i++){
+    if(String((un[i]||{}).unit||'').trim()===o && o!==newU){ un[i].unit=newU; break; }
+  }
+  d.u=newU;
+  dmMainMirror(d,true);
+}
+/* 规格归一：单位去空格、重复单位只留一条、空单位条目丢掉；主单位库存以镜像为准（镜像才是云端存的）。加载时跑一遍 */
+function dmNormalizeSpecs(d){
+  if(!d) return d;
+  d.u=String(d.u||'g').trim()||'g';
+  var main=String(d.u), un=Array.isArray(d.un)?d.un:[], out=[], seen={}, mirror=null;
+  for(var i=0;i<un.length;i++){
+    var u=un[i]||{}, ut=String(u.unit||'').trim();
+    if(!ut) continue;
+    u.unit=ut;
+    if(ut===main){ if(!mirror) mirror=u; continue; }
+    if(seen[ut]) continue;
+    seen[ut]=1; out.push(u);
+  }
+  if(mirror){
+    if(mirror.stock!=='' && mirror.stock!=null) d.st=String(mirror.stock);
+    if((d.bp===''||d.bp==null) && mirror.cost!=='' && mirror.cost!=null) d.bp=String(mirror.cost);
+    out.push(mirror);                       /* 镜像仍留在 d.un 里：库存要靠它存回云端 */
+  }
+  d.un=out;
+  return d;
+}
+/* 同名药拦截：返回已存在的另一条记录下标，没有则 -1（2026-10-30 用户要求禁止建两个同名药） */
+function dmNameTaken(name, exceptIdx){
+  var nm=String(name||'').trim().toLowerCase();
+  if(!nm) return -1;
+  for(var i=0;i<drugsList.length;i++){
+    if(i===exceptIdx) continue;
+    var d=drugsList[i]; if(!d) continue;
+    if(String(d.n||'').trim().toLowerCase()===nm) return i;
+  }
+  return -1;
 }
 /* 建议价快照：进货价变动时按当前批发倍率重算（cost 为空 → 不写，返回原值） */
 function dmSetSuggest(d, cost){
@@ -8266,16 +8447,6 @@ function dmSetSuggest(d, cost){
   d.rates.sg=Math.round(c*r*100)/100;
 }
 var DM_RO={sg:1};
-var DM_COLS=[
-  {k:'n',t:'药物名称'},
-  {k:'p',t:'零售价',money:1,bold:1},
-  {k:'wp',t:'批发价',money:1,bold:1},
-  {k:'bp',t:'进货价',money:1},
-  {k:'sg',t:'建议价',money:1,ro:1},
-  {k:'st',t:'库存量'},
-  {k:'og',t:'产地'},
-  {k:'c',t:'常用量'}
-];
 function renderTabs(){
   /* 只保留「中药」一个分类（2026-10-07 用户要求：删除中药颗粒/穴位/西成药/收费项目/用法）
      2026-10-28：只剩一个分类，页签本身已从页面移除 —— 容器不存在就直接跳过。 */
@@ -8326,31 +8497,76 @@ function dmRows(){
   }
   return dmSortRows(out);   /* A-Z 排序（2026-10-07 用户要求），__new 行排在末尾 */
 }
+/* 渲染药物表：一味药 = 一组行（主规格 + 各子规格），组尾一条「＋ 添加新规格」。
+   列序：药物名称 | 常用量 | 单位 | 零售价 | 批发价 | 进货价 | 建议价 | 库存量 | 产地 | 操作
+   主表字段（药名 / 常用量 / 产地 / 操作）用 rowspan 跨整组，子表字段一规格一行。 */
 function renderDrugTable(){
   var rows=dmRows(), h='';
   for(var r=0;r<rows.length;r++){
-    var idx=rows[r].i, d=rows[r].d, sgv=dmSuggestOf(d);
-    h+='<tr data-i="'+idx+'" class="'+(selDrugRow===idx?'sel':'')+'">';
-    for(var c=0;c<DM_COLS.length;c++){
-      var col=DM_COLS[c], v=d[col.k];
-      if(col.k==='sg') v=sgv;
-      v=(v==null?'':v);
-      var cls=(col.money?'c-money':'')+(col.ro?' c-ro':'')+(col.bold?' c-bold':'');
+    var idx=rows[r].i, d=rows[r].d, specs=dmSpecsOf(d), n=specs.length||1;
+    var sel=selDrugRow===idx;
+    if(!n) continue;
+    for(var s=0;s<n;s++){
+      var sp=specs[s]||{}, gv=(sp.sg===0?'':sp.sg), wv=sp.wp, bv=sp.bp;
       /* 批发价低于建议价 → 橙色加粗（批价压得比建议价还低，一眼看出来） */
-      if(col.k==='wp' && v!=='' && sgv!=='' &&
-         isFinite(parseFloat(v)) && isFinite(parseFloat(sgv)) &&
-         parseFloat(v)<parseFloat(sgv)-1e-9) cls+=' c-low';
-      h+='<td data-f="'+col.k+'" class="'+cls+'"'+(col.ro?' title="最新进货价 × 批发倍率（进货单保存后自动更新；改批发价不影响）"':'')+'><span>'+esc(v)+'</span></td>';
+      var low=(wv!=='' && gv!=='' && isFinite(parseFloat(wv)) && isFinite(parseFloat(gv)) &&
+               parseFloat(wv)<parseFloat(gv)-1e-9);
+      h+='<tr data-i="'+idx+'" data-s="'+s+'" class="dm-sprow'+(sel?' sel':'')+(s>0?' dm-subrow':'')+'">';
+      if(s===0){
+        h+='<td class="c-nm" data-f="n" rowspan="'+n+'"><span>'+esc(d.n||'')+'</span></td>'
+          +'<td class="c-amt" data-f="c" rowspan="'+n+'"><span>'+esc(d.c||'')+'</span></td>';
+      }
+      h+='<td class="c-u" data-f="u" data-s="'+s+'"><span>'+esc(sp.unit||'')
+        +(s>0?'<b class="dm-specdel" data-del="'+idx+'" data-s="'+s+'" title="删除这个规格">×</b>':'')
+        +'</span></td>'
+        +'<td class="c-money c-bold" data-f="p" data-s="'+s+'"><span>'+esc(sp.p==null?'':sp.p)+'</span></td>'
+        +'<td class="c-money c-bold'+(low?' c-low':'')+'" data-f="wp" data-s="'+s+'"><span>'+esc(wv==null?'':wv)+'</span></td>'
+        +'<td class="c-money" data-f="bp" data-s="'+s+'"><span>'+esc(bv==null?'':bv)+'</span></td>'
+        +'<td class="c-money c-ro" data-f="sg" data-s="'+s+'" title="最新进货价 × 批发倍率（进货单保存后自动更新；改批发价不影响）"><span>'+esc(gv==null?'':gv)+'</span></td>'
+        +'<td class="c-st" data-f="st" data-s="'+s+'"><span>'+esc(sp.st==null?'':sp.st)+'</span></td>';
+      if(s===0){
+        h+='<td class="c-og" data-f="og" rowspan="'+n+'"><span>'+esc(d.og||'')+'</span></td>'
+          +'<td class="c-act" rowspan="'+n+'">'
+          +'<button type="button" class="dm-rowbtn" data-act="detail" data-i="'+idx+'">详情</button>'
+          +'<button type="button" class="dm-rowbtn del" data-act="del" data-i="'+idx+'">删除</button>'
+          +'</td>';
+      }
+      h+='</tr>';
     }
-    /* 每行独立的「详情 / 删除」，不用先选中再点顶部按钮 */
-    h+='<td class="c-act">'
-      +'<button type="button" class="dm-rowbtn" data-act="detail" data-i="'+idx+'">详情</button>'
-      +'<button type="button" class="dm-rowbtn del" data-act="del" data-i="'+idx+'">删除</button>'
+    h+='<tr class="dm-addrow"><td colspan="10">'
+      +'<button type="button" class="dm-addspec" data-i="'+idx+'">＋ 添加新规格</button>'
       +'</td></tr>';
   }
-  $('dmBody').innerHTML=h||'<tr><td colspan="9" style="padding:0!important;border:none!important">'+rxEmptyHTML(
+  $('dmBody').innerHTML=h||'<tr><td colspan="10" style="padding:0!important;border:none!important">'+rxEmptyHTML(
         '药物库是空的','点上方「添加」录入第一味药，之后会自动划价与计价')+'</td></tr>';
-  $('dmStat').textContent='中药：'+rows.length+' 味 / 共 '+drugsList.length+' 味';
+  var nspec=0;
+  for(var q=0;q<rows.length;q++){ nspec+=dmSpecsOf(rows[q].d).length; }
+  $('dmStat').textContent='中药：'+rows.length+' 味 / '+nspec+' 个规格 / 共 '+drugsList.length+' 味';
+}
+/* 组尾「＋ 添加新规格」：在当前药下加一个空规格行，并直接进入单位编辑 */
+function dmAddSpec(idx){
+  var d=drugsList[idx]; if(!d) return;
+  if(!Array.isArray(d.un)) d.un=[];
+  d.un.push({unit:'', stock:'', cost:'', retail:'', daily:'', wp:'', sg:''});
+  saveDrugsLS(); renderDrugTable();
+  var s=dmSpecsOf(d).length-1;
+  var tr=$('dmBody').querySelector('tr[data-i="'+idx+'"][data-s="'+s+'"]');
+  if(!tr) return;
+  try{ tr.scrollIntoView({block:'center'}); }catch(e){}
+  var td=tr.querySelector('td[data-f="u"]');
+  if(td) dmStartEdit(td,tr);
+  toast('已为「'+(d.n||'')+'」新增规格，填个单位（盒 / 个 / 斤…）');
+}
+/* 子规格行上的「×」：删掉这一条规格（库存一起删） */
+function dmDelSpec(idx, s){
+  var d=drugsList[idx]; if(!d) return;
+  var u=dmSpecAt(d,s); if(!u) return;
+  var ut=String(u.unit||''), qty=String(u.stock==null?'':u.stock);
+  if(!confirm('删除「'+(d.n||'')+'」的「'+ut+'」规格？\n该规格库存 '+(qty===''?'0':qty)+' '+ut+' 会一起删掉。')) return;
+  var k=d.un.indexOf(u);
+  if(k>=0) d.un.splice(k,1);
+  saveDrugsLS(); renderDrugTable();
+  toast('已删除规格「'+ut+'」');
 }
 function openDrugMaint(){ navGo('drug'); }
 /* ============ 药物管理：独立页 + 详情抽屉 ============
@@ -8614,8 +8830,11 @@ var Drug=(function(){
     setTimeout(function(){ try{ $('ddName').focus(); }catch(e){} },60);
   }
   function ddRenderUnits(units){
-    var h='';
+    /* 主单位是规格 #1（在核心信息里编），它的库存镜像条目不在「多单位」里重复列出来 */
+    var h='', main=String((drugsList[curIdx]||{}).u||'g').trim(), n=0;
     for(var i=0;i<units.length;i++){ var u=units[i];
+      if(String(u.unit||'').trim()===main) continue;
+      n++;
       h+='<div class="dd-unit" data-i="'+i+'">'
         +'<input class="u-name" data-f="unit" value="'+esc(u.unit||'')+'">'
         +'<input class="u-num" data-f="stock" placeholder="库存" value="'+(u.stock==null?'':u.stock)+'">'
@@ -8624,18 +8843,38 @@ var Drug=(function(){
         +'<input class="u-num" data-f="daily" placeholder="日常价" value="'+(u.daily==null?'':u.daily)+'">'
         +'<span class="xu" data-del="'+i+'">✕</span></div>';
     }
-    $('ddUnits').innerHTML=h||'<div class="dd-empty">暂无多单位，点下方「+ 添加单位」。</div>';
+    $('ddUnits').innerHTML=h||'<div class="dd-empty">暂无其它规格，点下方「+ 添加单位」。</div>';
   }
   function ddSyncUnits(){
     var d=drugsList[curIdx]; if(!d) return;
-    var units=[]; var nodes=$('ddUnits').querySelectorAll('.dd-unit');
-    for(var i=0;i<nodes.length;i++){ var nd=nodes[i];
-      units.push({ unit:(nd.querySelector('[data-f="unit"]').value||'').trim(),
-                   stock:(nd.querySelector('[data-f="stock"]').value||'').trim(),
-                   cost:(nd.querySelector('[data-f="cost"]').value||'').trim(),
-                   retail:(nd.querySelector('[data-f="retail"]').value||'').trim(),
-                   daily:(nd.querySelector('[data-f="daily"]').value||'').trim() });
+    var old=d.un||[], byUnit={}, units=[], nodes=$('ddUnits').querySelectorAll('.dd-unit');
+    var mainU=String(d.u||'g').trim(), mirror=null;
+    /* 详情弹窗只编 单位/库存/进货价/零售价/日常价，批发价和建议价快照没在界面上，
+       这里按单位名把旧值带回来，否则一保存详情「批发价」就被清空了。 */
+    for(var k=0;k<old.length;k++){
+      var o=old[k]; if(!o||!o.unit) continue;
+      if(String(o.unit).trim()===mainU) mirror=o;
+      byUnit[String(o.unit)]=o;
     }
+    for(var i=0;i<nodes.length;i++){ var nd=nodes[i];
+      var ut=(nd.querySelector('[data-f="unit"]').value||'').trim();
+      if(!ut) continue;
+      var rec={ unit:ut,
+                stock:(nd.querySelector('[data-f="stock"]').value||'').trim(),
+                cost:(nd.querySelector('[data-f="cost"]').value||'').trim(),
+                retail:(nd.querySelector('[data-f="retail"]').value||'').trim(),
+                daily:(nd.querySelector('[data-f="daily"]').value||'').trim() };
+      var keep=byUnit[ut];
+      if(keep){
+        if(keep.wp!=null && keep.wp!=='') rec.wp=keep.wp;
+        if(keep.sg!=null && keep.sg!=='') rec.sg=keep.sg;
+      }
+      if(ut===mainU){ continue; }          /* 与主单位同名 → 交给镜像处理，别存两条 */
+      units.push(rec);
+    }
+    /* 主单位库存镜像：drugs 表没有 stock 列，库存只存在 units 里，必须原样留着 */
+    if(mirror) units.push(mirror);
+    else if(d.st!=='' && d.st!=null) units.push({unit:mainU, stock:d.st, cost:(d.bp==null?'':d.bp), retail:'', daily:'', wp:'', sg:''});
     d.un=units;
   }
   function ddAddUnit(){ ddSyncUnits(); var d=drugsList[curIdx]; (d.un=d.un||[]).push({unit:'',stock:'',cost:'',retail:'',daily:''}); ddRenderUnits(d.un); }
@@ -8972,15 +9211,25 @@ var Drug=(function(){
     ddBadClear(); ddMsgBox('');
     /* ---- 改名：云端以 name 为主键，改名前先确认 ---- */
     var oldName=String(d.n||'').trim();
+    /* 重名拦截：不允许建两味同名的药（2026-10-30 用户要求） */
+    var dupIdx=dmNameTaken(nm, curIdx);
+    if(dupIdx>=0){
+      ddBadMark(['ddName']);
+      ddMsgBox('已有同名药「'+String(drugsList[dupIdx].n||'').trim()+'」，不能建两味同名的药');
+      return;
+    }
     if(oldName && oldName!==nm){
       if(!confirm('药名「'+oldName+'」改为「'+nm+'」？\n\n改名后：\n· 药价目录、进货价历史会跟着改\n· 已保存处方里的文字不会自动改')) return;
     }
     ddSyncUnits();
     /* 改价前先记住旧进货价 / 旧倍率：建议价快照要靠它判断「进货价到底变没变」 */
     var oldBp=numOrNull(d.bp);
+    var oldU=String(d.u||'g').trim();
     var oldRs=(d.rates&&typeof d.rates==='object')?d.rates:null;
     d.n=nm;
-    d.u=($('ddUnit').value||'g').trim()||'g';
+    var newU=($('ddUnit').value||'g').trim()||'g';
+    if(newU!==oldU) dmRenameMainUnit(d, oldU, newU);   /* 主单位改名 → 库存镜像跟着改 */
+    else d.u=newU;
     d.c=String($('ddAmount').value||'').trim();
     d.tc=String($('ddTc').value||'').trim();
     d.dw=String($('ddDw').value||'').trim();
@@ -9031,11 +9280,25 @@ var Drug=(function(){
    点单元格 → 原地换成 <input>；失焦 / 回车保存并回到文本；Esc 取消恢复原值；
    保存成功该单元格绿色闪一下，失败红色闪一下并保留编辑状态（输入框不收起）。 */
 function dmCellText(td, v){ td.innerHTML='<span>'+esc(v==null?'':v)+'</span>'; }
+/* 按 data-f / data-s 回填一个单元格（单位列的「×」要跟着重建） */
+function dmFillCell(td, d){
+  if(!td||!d) return;
+  var f=td.getAttribute('data-f'), s=+(td.getAttribute('data-s')||0);
+  if(f==='u'){
+    var tr=td.closest('tr'), idx=tr?tr.getAttribute('data-i'):'';
+    td.innerHTML='<span>'+esc(dmCellVal(d,'u',s))
+      +(s>0?'<b class="dm-specdel" data-del="'+esc(idx)+'" data-s="'+s+'" title="删除这个规格">×</b>':'')
+      +'</span>';
+    return;
+  }
+  dmCellText(td, dmCellVal(d,f,s));
+}
 /* 批发价低于建议价 → 该格橙色加粗（改完价即时更新，不用整表重绘） */
-function dmRowLow(tr, d){
+function dmRowLow(tr, d, s){
   if(!tr||!d) return;
+  if(s==null) s=+(tr.getAttribute('data-s')||0);
   var td=tr.querySelector('td[data-f="wp"]'); if(!td) return;
-  var sg=dmSuggestOf(d), w=parseFloat(d.wp);
+  var sg=dmCellVal(d,'sg',s), w=parseFloat(dmCellVal(d,'wp',s));
   var low=(isFinite(w) && sg!=='' && isFinite(parseFloat(sg)) && w<parseFloat(sg)-1e-9);
   td.classList.toggle('c-low', low);
 }
@@ -9064,68 +9327,96 @@ function dmDelByIdx(idx){
 }
 function dmCommit(td,tr){
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
+  var s=+(td.getAttribute('data-s')||0);          /* 0 = 主规格，1..n = 第 n 个子规格 */
   var d=drugsList[idx];
   var inp=td.querySelector('input');
   if(!inp) return;                        /* 已收尾过，别重复提交 */
   if(td.__cancel){                        /* Esc：丢弃本次改动，恢复原值 */
     td.__cancel=false; td.classList.remove('dm-editing');
-    if(d) dmCellText(td, d[f]);
+    if(d) dmFillCell(td, d);
     return;
   }
-  var v=inp.value;
+  var v=String(inp.value==null?'':inp.value);
   if(!d){ td.classList.remove('dm-editing'); dmCellText(td,v); return; }
-  var old=(d[f]==null)?'':String(d[f]);
-  if(String(v)===old){                    /* 没改动：不写盘、不闪 */
-    td.classList.remove('dm-editing'); dmCellText(td, old); return;
+  if(f==='u') v=v.trim();
+  var old=String(dmCellVal(d,f,s));
+  if(v===old){                            /* 没改动：不写盘、不闪 */
+    td.classList.remove('dm-editing'); dmFillCell(td, d); return;
+  }
+  /* ---- 校验（不通过：原地保留输入框，红闪 + 顶部提示，用户接着改） ---- */
+  if(f==='n'){
+    if(!v.trim()){ dmBadCell(td,inp,'药品名称不能为空'); return; }
+    var dup=dmNameTaken(v, idx);
+    if(dup>=0){ dmBadCell(td,inp,'已有同名药「'+String(drugsList[dup].n||'').trim()+'」，不能建两味同名的药'); return; }
+  }
+  if(f==='u'){
+    if(!v){
+      if(s>0){                            /* 加规格时没填单位就走了 → 这条空规格直接撤掉 */
+        var blank=dmSpecAt(d,s), bk=(blank?d.un.indexOf(blank):-1);
+        if(bk>=0) d.un.splice(bk,1);
+        saveDrugsLS();
+        td.classList.remove('dm-editing'); renderDrugTable();
+        toast('已取消新增规格');
+        return;
+      }
+      dmBadCell(td,inp,'单位不能为空'); return;
+    }
+    var specs=dmSpecsOf(d), dupU=null;
+    for(var q=0;q<specs.length;q++){ if(specs[q].s!==s && String(specs[q].unit)===v){ dupU=specs[q]; break; } }
+    if(dupU){ dmBadCell(td,inp,'同一味药已有「'+v+'」这个单位，不能重复'); return; }
+  }
+  if(f==='p'||f==='wp'||f==='bp'||f==='st'){
+    if(v!=='' && !isFinite(parseFloat(v))){ dmBadCell(td,inp,'必须是数字（可留空）'); return; }
   }
   try{
-    d[f]=v;
-    /* 药名 → 拼音自动生成（2026-10-08 用户要求）。
-       每个汉字取拼音首字母，规格标注里的字也算进去：
-       麦冬 → md；麦冬[另包] → mdlb；制附子{先煎} → zfzxj。
-       生僻字不在映射表里就跳过，不影响其它字；一个都认不出时留空由人手填。 */
+    /* ---- 药名：存盘 + 重排（排序按拼音，改名会换位置） ---- */
     if(f==='n'){
-      var py=genPinyin(v);
-      if(d.py!==py){ d.py=py; var tdPy=tr.querySelector('td[data-f="py"]'); if(tdPy) dmCellText(tdPy, py); }
+      d.n=v.trim();
+      d.py=genPinyin(d.n);
+      saveDrugsLS();
+      td.classList.remove('dm-editing'); renderDrugTable();
+      toast('已保存「'+d.n+'」');
+      if(d.__new){
+        renderDrugList();
+        supaInsertNewDrugs().then(function(k){ if(k) toast('已新增「'+d.n+'」并写入云端数据库'); });
+      }
+      return;
     }
+    if(f==='u'){ if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v); }
+    else dmCellSet(d,f,s,v);
     /* 改进货价（元/kg）→ 批发价按「进货价 × 批发倍率」联动（同为元/kg，无需换算）
        + 建议价重算（进货价变了建议价才变，改批发价不动建议价） */
-    if(f==='bp'){
-      var bpv=parseFloat(v);
-      if(!isNaN(bpv)){
-        var rs=(d.rates&&typeof d.rates==='object')?d.rates:{};
-        var rr=parseFloat(rs.wp);
-        if(isNaN(rr) && d.wp!=='' && d.wp!=null && bpv) rr=parseFloat(d.wp)/bpv;   /* 老数据反推 */
-        if(isNaN(rr)) rr=(parseFloat(d.rate)||(typeof SET!=='undefined'&&SET&&parseFloat(SET.rate))||1.5);
-        d.rates=d.rates||{}; d.rates.wp=Math.round(rr*10000)/10000;
-        d.wp=String(Math.round(bpv*rr*1000)/1000);
-        var tdWp=tr.querySelector('td[data-f="wp"]'); if(tdWp) dmCellText(tdWp, d.wp);
-        dmSetSuggest(d, bpv);
-        var tdSg=tr.querySelector('td[data-f="sg"]'); if(tdSg) dmCellText(tdSg, dmSuggestOf(d));
-      }
+    if(f==='bp' && v!==''){
+      var bpv=parseFloat(v), rr=dmWpRate(d);
+      var nwp=Math.round(bpv*rr*1000)/1000;
+      dmCellSet(d,'wp',s,nwp);
+      var sp0=dmSpecAt(d,s);
+      if(sp0){ sp0.sg=Math.round(bpv*rr*100)/100; }   /* 子规格：快照写在自己那条上 */
+      else { dmSetSuggest(d, bpv); }
+      if(!d.rates||typeof d.rates!=='object') d.rates={};
+      d.rates.wp=Math.round(rr*10000)/10000;
+      var tdWp=tr.querySelector('td[data-f="wp"]'); if(tdWp) dmCellText(tdWp, dmCellVal(d,'wp',s));
+      var tdSg=tr.querySelector('td[data-f="sg"]'); if(tdSg) dmCellText(tdSg, dmCellVal(d,'sg',s));
     }
-    if(f==='bp' || f==='wp') dmRowLow(tr, d);   /* 批发价低于建议价 → 橙色加粗，随改随更新 */
+    if(f==='bp' || f==='wp') dmRowLow(tr, d, s);   /* 批发价低于建议价 → 橙色加粗，随改随更新 */
     saveDrugsLS();                        /* 本机落盘 + 云端（防抖整表上传） */
   }catch(err){
-    d[f]=old;                             /* 内存回滚，输入框原地保留 = 保持编辑状态 */
-    dmFlash(td,false);
-    toastErr('保存失败：'+((err&&err.message)||err)+'，请重试');
-    try{ inp.focus(); }catch(e2){}
+    dmBadCell(td,inp,'保存失败：'+((err&&err.message)||err));
     return;
   }
   td.classList.remove('dm-editing');
-  dmCellText(td, v);
+  dmFillCell(td, d);
   dmFlash(td, true);                      /* 保存成功：该格短暂高亮 */
   /* 改了目录价 → 当前处方若已划价就重算一遍（原来靠顶部「保存」按钮顺带做） */
   if((f==='p'||f==='dp') && priced && filledCount()){
     try{ autoPrice(); renderPriceList(); recalc(); }catch(e3){ console.warn('改价后重划失败:', e3.message); }
   }
-  /* 「添加」出来的新行：药名一填上就立刻真 INSERT 进云端（2026-10-08），
-     不必等用户再点「保 存」，也不会因为关页面丢掉。 */
-  if(d.__new && f==='n' && String(v).trim()){
-    renderDrugList();
-    supaInsertNewDrugs().then(function(k){ if(k) toast('已新增「'+v+'」并写入云端数据库'); });
-  }
+}
+/* 校验失败：红闪 + 提示，输入框保持打开（不把用户辛苦打的字弄丢） */
+function dmBadCell(td, inp, msg){
+  dmFlash(td,false);
+  toastErr(msg);
+  try{ inp.focus(); }catch(e){}
 }
 /* 把鼠标落点换算成「文字里的第几个字符」，供编辑框定位光标用。
    点空白处 / 不支持 caretRangeFromPoint 时返回 null（退回默认行为）。 */
@@ -9148,10 +9439,11 @@ function dmCaretOffset(td, x, y){
 function dmStartEdit(td,tr){
   if(!td||td.querySelector('input')) return;
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
+  var s=+(td.getAttribute('data-s')||0);
   if(!f) return;                          /* 操作列没有 data-f，不进入编辑 */
   if(DM_RO[f]) return;                    /* 建议价是计算列，不可编辑 */
   var d=drugsList[idx]; if(!d) return;
-  var v=d[f]; v=(v==null?'':v);
+  var v=dmCellVal(d,f,s);
   td.__cancel=false;
   td.classList.add('dm-editing');
   td.innerHTML='<input type="text" autocomplete="off" spellcheck="false" value="'+esc(v)+'">';
@@ -10017,6 +10309,14 @@ $('btnSave').onclick=function(){
     renderDrugTable();
   });
   $('dmBody').onclick=function(e){
+    /* 组尾「＋ 添加新规格」 */
+    var as=e.target.closest('.dm-addspec');
+    if(as){ e.preventDefault(); e.stopPropagation();
+      dmAddSpec(+as.getAttribute('data-i')); return; }
+    /* 子规格行上的「×」= 删掉这一条规格 */
+    var sd=e.target.closest('.dm-specdel');
+    if(sd){ e.preventDefault(); e.stopPropagation();
+      dmDelSpec(+sd.getAttribute('data-del'), +sd.getAttribute('data-s')); return; }
     /* 每行的「详情 / 删除」按钮（优先级最高，不进入行内编辑） */
     var btn=e.target.closest('button[data-act]');
     if(btn){
@@ -12011,22 +12311,56 @@ var Purchase = (function(){
     var dl=$('purchaseDrugList'); if(!dl) return;
     dl.innerHTML=drugsList.map(function(d){ return '<option value="'+esc(d.n)+'">'; }).join('');
   }
+  /* ---------- 加工品（炒 / 炙 / 焦…）找它的生品 ----------
+     生品与加工品在药物库是两条独立记录（山药 / 炒山药），进价各自保存、互不影响。
+     这里只负责认出「炒山药」→「山药」，好让用户一键把生品最近进价带过来改。 */
+  var PROC_RE=/^(麸炒|土炒|砂炒|清炒|酒炒|醋炒|炒|炙|焦|醋|盐|酒|蜜|姜|煅|制|熟|蒸)(.+)$/;
+  function baseOf(name){
+    var nm=String(name||'').trim();
+    if(!nm) return null;
+    var m=nm.match(PROC_RE);
+    if(!m) return null;
+    var base=String(m[2]||'').replace(/^[（(\[【].*$/,'').trim();
+    if(!base || base===nm) return null;
+    var d=findDrug(base);
+    if(!d) return null;
+    return {name:base, d:d};
+  }
   function renderItems(){
     var tb=$('purItems'); if(!tb) return;
     tb.innerHTML=S.cur.items.map(function(it,i){
-      var opts=['g','kg','斤','个','条','盒','罐','包','瓶'].map(function(u){
-        return '<option'+(u===(it.unit||'g')?' selected':'')+'>'+u+'</option>'; }).join('');
-      var d=findDrug(it.name), hint='';
+      var d=findDrug(it.name);
+      /* 单位候选 = 常用单位 + 这味药已有的规格单位（避免有「袋」却选不到，保存时被拦） */
+      var us=['g','kg','斤','个','条','盒','罐','包','瓶'];
+      if(d){
+        var mu=String(d.u||'g');
+        if(us.indexOf(mu)<0) us.push(mu);
+        (d.un||[]).forEach(function(x){ var u=String((x||{}).unit||''); if(u && us.indexOf(u)<0) us.push(u); });
+      }
+      var cur=String(it.unit||'g');
+      if(us.indexOf(cur)<0) us.push(cur);
+      var opts=us.map(function(u){
+        return '<option'+(u===cur?' selected':'')+'>'+u+'</option>'; }).join('');
+      var hint='';
       if(it.name){
         if(!d) hint='<div class="pur-hint">药品库无此药</div>';
         else if(!hasUnit(d,it.unit)) hint='<div class="pur-hint">无「'+esc(it.unit)+'」单位</div>';
         else hint='<div class="pur-hint ok">现有库存 '+esc(String(stockOf(d,it.unit)))+' '+esc(it.unit)+'</div>';
       }
+      /* 炒制类：进货单价旁边给一个「带入生品进价」，点了就填最近一次生品的价，还能再手改 */
+      var prod='', bb=baseOf(it.name);
+      if(bb){
+        var lc=latestCost(bb.name);
+        if(lc!=null){
+          prod='<button type="button" class="pur-prod" data-i="'+i+'" data-cost="'+esc(String(lc))+
+               '" title="把最近一次「'+esc(bb.name)+'」的进货价（'+fmt2(lc)+'）填进来">带入生品进价</button>';
+        }
+      }
       return '<tr data-i="'+i+'">'
         +'<td><input list="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名">'+hint+'</td>'
         +'<td><input class="pur-qty num" value="'+esc(it.qty||'')+'" placeholder="数量" style="width:100%"></td>'
         +'<td><select class="pur-unit">'+opts+'</select></td>'
-        +'<td><input class="pur-cost num" value="'+esc(it.cost||'')+'" placeholder="单价" style="width:100%"></td>'
+        +'<td><input class="pur-cost num" value="'+esc(it.cost||'')+'" placeholder="单价" style="width:100%">'+prod+'</td>'
         +'<td class="num pur-amt">'+fmt2(it.amount||0)+'</td>'
         +'<td><button type="button" class="mini" onclick="Purchase.delItem('+i+')">删</button></td>'
         +'</tr>';
@@ -12036,11 +12370,26 @@ var Purchase = (function(){
       (function(tr){
         var i=+tr.getAttribute('data-i');
         var name=tr.querySelector('.pur-name'), qty=tr.querySelector('.pur-qty'), unit=tr.querySelector('.pur-unit'), cost=tr.querySelector('.pur-cost');
-        function upd(){ var it=S.cur.items[i]; it.name=name.value; it.qty=qty.value; it.unit=unit.value; it.cost=cost.value; recalc(); }
+        function upd(){
+          var it=S.cur.items[i]; it.name=name.value; it.qty=qty.value; it.unit=unit.value; it.cost=cost.value;
+          recalc();
+          /* 金额单元格跟着改（原来只更新合计，行内金额要等重绘才对） */
+          var amtTd=tr.querySelector('.pur-amt');
+          if(amtTd) amtTd.textContent=fmt2(it.amount||0);
+        }
         name.oninput=function(){ upd(); };
         name.onchange=function(){ upd(); renderItems(); };
         unit.onchange=function(){ upd(); renderItems(); };
         qty.oninput=upd; cost.oninput=upd;
+        var prod=tr.querySelector('.pur-prod');
+        if(prod){ prod.onclick=function(e){
+          e.preventDefault();
+          var v=parseFloat(prod.getAttribute('data-cost'));
+          if(!isFinite(v)) return;
+          cost.value=String(v); cost.dispatchEvent(new Event('input'));
+          try{ cost.focus(); }catch(e2){}
+          toast('已带入生品进价 '+fmt2(v)+'，可直接改');
+        }; }
       })(rows[r]);
     }
   }
@@ -12128,7 +12477,9 @@ var Purchase = (function(){
     try{ toastErr('库存已写本机，但云端同步失败：'+((e&&e.message)||'网络错误')+'（刷新后可能丢）'); }catch(e2){}
   }
 
-  /* 库存写入（药名 + 单位）：只改这一条，不动其它单位 */
+  /* 库存写入（药名 + 单位）：只改这一条规格，不动同一味药的其它规格。
+     ⚠ 生成（生品）与加工品（炒山药）在药物库是两条独立记录，
+       所以「各进各的价」天然互不影响，不需要额外隔离。 */
   function applyStock(name, unit, qty, cost, dt, supplier, pno){
     var d=findDrug(name);
     if(!d){
@@ -12136,19 +12487,29 @@ var Purchase = (function(){
       drugsList.push(d);
     }
     if(!Array.isArray(d.un)) d.un=[];
+    var isMain=(String(unit)===String(d.u));
     var uu=null, i;
     for(i=0;i<d.un.length;i++){ if(String(d.un[i].unit)===String(unit)){ uu=d.un[i]; break; } }
-    if(!uu){ uu={unit:unit, stock:0, cost:cost, retail:'', daily:''}; d.un.push(uu); }
-    uu.stock=(parseFloat(uu.stock)||0)+qty;
-    uu.cost=cost;
-    if(String(unit)===String(d.u)){
-      d.st=String((parseFloat(d.st)||0)+qty);
+    if(!uu){ uu={unit:unit, stock:0, cost:cost, retail:'', daily:'', wp:'', sg:''}; d.un.push(uu); }
+    uu.stock=round2((parseFloat(uu.stock)||0)+qty);
+    if(isMain){
+      d.st=String(round2((parseFloat(d.st)||0)+qty));
+      uu.stock=d.st;                       /* 镜像与主字段保持一致 */
       /* 进货价变了才重算建议价（用户 2026-10-30 规则）；没变就保留原快照 */
       var prevCost=parseFloat(d.bp), newCost=parseFloat(cost);
       var changed=!(isFinite(prevCost)&&isFinite(newCost)&&Math.abs(prevCost-newCost)<1e-9);
       var hasSnap=!!(d.rates&&isFinite(parseFloat(d.rates.sg)));
       if(changed || !hasSnap) dmSetSuggest(d, cost);
-      d.bp=String(cost);
+      d.bp=String(cost); uu.cost=cost;
+    }else{
+      /* 子规格：进货价变了 → 批发价按同一倍率联动、建议价重算快照（和主规格同一套规则） */
+      var prevC=parseFloat(uu.cost), newC=parseFloat(cost);
+      var chg=!(isFinite(prevC)&&isFinite(newC)&&Math.abs(prevC-newC)<1e-9);
+      uu.cost=cost;
+      if(chg || uu.wp==null || uu.wp===''){
+        var rr=dmWpRate(d);
+        if(isFinite(rr) && isFinite(newC)){ uu.wp=String(Math.round(newC*rr*1000)/1000); uu.sg=Math.round(newC*rr*100)/100; }
+      }
     }
     saveDrugsLS();
     if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
@@ -12171,15 +12532,21 @@ var Purchase = (function(){
   function changeStock(name, unit, delta){
     var d=findDrug(name); if(!d) return;
     if(!Array.isArray(d.un)) d.un=[];
+    var isMain=(String(unit)===String(d.u));
     var uu=null, i;
     for(i=0;i<d.un.length;i++){ if(String(d.un[i].unit)===String(unit)){ uu=d.un[i]; break; } }
-    if(!uu) return;
+    if(!uu){
+      if(!isMain) return;                 /* 没这个规格，也没库存可扣 */
+      uu={unit:unit, stock:(d.st==null?'':d.st), cost:(d.bp==null?'':d.bp), retail:'', daily:'', wp:'', sg:''};
+      d.un.push(uu);
+    }
     var st=(parseFloat(uu.stock)||0)+delta;
     if(st<0) st=0;                       /* 库存不出现负数 */
     uu.stock=round2(st);
-    if(String(unit)===String(d.u)){
+    if(isMain){
       var s2=(parseFloat(d.st)||0)+delta;
       d.st=String(round2(s2<0?0:s2));
+      uu.stock=d.st;
     }
     saveDrugsLS();
     if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
