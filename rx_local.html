@@ -3962,7 +3962,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
 
                 <div class="wp-foot" id="wpFoot"></div>
-                <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
+                <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名、耗材名或拼音（如 md）即可检索选药，自动带出单价；打细粉 / 包装袋 / 无纺布袋等加工耗材也按同一行录入，按「数量 × 单价」计入总价。回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
               </div>
             </div>
           </div>
@@ -12778,7 +12778,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名</th><th>克数 / 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
@@ -12786,7 +12786,7 @@ var WPlan = (function(){
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名/拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
+      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
