@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='4ba8a476ee';
+  var V='bb0ac1e020';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -8486,10 +8486,10 @@ function dmSpecsOf(d){
   for(var i=0;i<es.length;i++){
     var e=es[i], u=e.u;
     if(!u){
-      out.push({ s:0, unit:(d.u||'g'), st:(d.st==null?'':d.st), p:(d.p==null?'':d.p),
+      out.push({ s:0, unit:(d.u||'g'), amt:(d.c==null?'':d.c), st:(d.st==null?'':d.st), p:(d.p==null?'':d.p),
                  wp:(d.wp==null?'':d.wp), bp:(d.bp==null?'':d.bp), sg:dmSuggestOf(d) });
     }else{
-      out.push({ s:e.s, unit:(u.unit||''), st:(u.stock==null?'':u.stock),
+      out.push({ s:e.s, unit:(u.unit||''), amt:(u.amt==null?'':u.amt), st:(u.stock==null?'':u.stock),
                  p:(u.retail==null?'':u.retail), wp:(u.wp==null?'':u.wp),
                  bp:(u.cost==null?'':u.cost), sg:dmSubSuggest(d,u) });
     }
@@ -8524,10 +8524,12 @@ function dmMainMirror(d, create){
   d.un.push(rec);
   return rec;
 }
-/* 单元格取值 / 存值：f 用统一字段名（u/p/wp/bp/st），内部自动分派主规格 or 子规格 */
+/* 单元格取值 / 存值：f 用统一字段名（c/u/p/wp/bp/st），内部自动分派主规格 or 子规格。
+   常用量 c 也按规格独立：主规格读 d.c，子规格读该条的 amt（一个规格一个常用量）。 */
 function dmCellVal(d,f,s){
   if(!d) return '';
   var sp=dmSpecAt(d,s);
+  if(f==='c')  return sp?(sp.amt==null?'':sp.amt):(d.c==null?'':d.c);
   if(f==='u')  return sp?(sp.unit||''):(d.u||'g');
   if(f==='p')  return sp?(sp.retail==null?'':sp.retail):(d.p==null?'':d.p);
   if(f==='wp') return sp?(sp.wp==null?'':sp.wp):(d.wp==null?'':d.wp);
@@ -8539,6 +8541,7 @@ function dmCellVal(d,f,s){
 function dmCellSet(d,f,s,v){
   if(!d) return;
   var sp=dmSpecAt(d,s);
+  if(f==='c') { if(sp) sp.amt=v; else d.c=v; return; }
   if(f==='u') { if(sp) sp.unit=v; else d.u=v; return; }
   if(f==='p') { if(sp) sp.retail=v; else d.p=v; return; }
   if(f==='wp'){ if(sp) sp.wp=v; else d.wp=v; return; }
@@ -8673,10 +8676,11 @@ function renderDrugTable(){
         h+='<td class="c-nm" data-f="n" rowspan="'+n+'"><div class="dm-nmrow">'
           +'<span>'+esc(d.n||'')+'</span>'
           +'<button type="button" class="dm-addspec" data-i="'+idx+'" title="为这味药再加一个规格（盒 / 个 / 斤…）">＋ 添加规格</button>'
-          +'</div></td>'
-          +'<td class="c-amt" data-f="c" rowspan="'+n+'"><span>'+esc(d.c||'')+'</span></td>';
+          +'</div></td>';
       }
-      h+='<td class="c-u" data-f="u" data-s="'+s+'"><span>'+esc(sp.unit||'')
+      /* 常用量：每个规格各一格，跟 单位/规格 同行同序（不再 rowspan 共用第一行） */
+      h+='<td class="c-amt" data-f="c" data-s="'+s+'"><span>'+esc(sp.amt==null?'':sp.amt)+'</span></td>'
+        +'<td class="c-u" data-f="u" data-s="'+s+'"><span>'+esc(sp.unit||'')
         +(s>0?'<b class="dm-specdel" data-del="'+idx+'" data-s="'+s+'" title="删除这个规格">×</b>':'')
         +'</span></td>'
         +'<td class="c-money c-bold" data-f="p" data-s="'+s+'"><span>'+esc(sp.p==null?'':sp.p)+'</span></td>'
@@ -8704,7 +8708,7 @@ function renderDrugTable(){
 function dmAddSpec(idx){
   var d=drugsList[idx]; if(!d) return;
   if(!Array.isArray(d.un)) d.un=[];
-  d.un.push({unit:'', stock:'', cost:'', retail:'', daily:'', wp:'', sg:''});
+  d.un.push({unit:'', amt:'', stock:'', cost:'', retail:'', daily:'', wp:'', sg:''});
   saveDrugsLS(); renderDrugTable();
   var s=dmSpecsOf(d).length-1;
   var tr=$('dmBody').querySelector('tr[data-i="'+idx+'"][data-s="'+s+'"]');
@@ -9023,6 +9027,7 @@ var Drug=(function(){
                 daily:(nd.querySelector('[data-f="daily"]').value||'').trim() };
       var keep=byUnit[ut];
       if(keep){
+        if(keep.amt!=null && keep.amt!=='') rec.amt=keep.amt;   /* 常用量按规格各自保留 */
         if(keep.wp!=null && keep.wp!=='') rec.wp=keep.wp;
         if(keep.sg!=null && keep.sg!=='') rec.sg=keep.sg;
       }
