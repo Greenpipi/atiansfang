@@ -625,6 +625,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 #acBox .ai .un{flex:0 0 auto;min-width:26px;text-align:center;font-size:11px;color:#666;border:1px solid #ccc;border-radius:2px;padding:0 3px}
 #acBox .ai .pr{flex:0 0 auto;min-width:52px;text-align:right;font-weight:700;color:var(--pri-deep)}
 #acBox .ai .py{flex:0 0 auto;color:#999;font-size:11px;min-width:44px;text-align:right}
+/* 候选里的后缀胶囊：与处方笺上的绿色标签同一视觉语言 */
+#acBox .ai .sfxtag{
+  flex:0 0 auto;font-size:11px;line-height:1.6;font-weight:600;padding:0 7px;border-radius:999px;
+  background:var(--pri-soft);color:var(--pri-h);border:1px solid var(--pri-line);
+}
+#acBox .ai.on .sfxtag{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.38)}
 #acBox .ai.on .un{color:var(--pri-soft);border-color:var(--n-4)}
 #acBox .ai.on .pr{color:#fff}
 #acBox .ai.on .py{color:var(--pri-soft)}
@@ -657,7 +663,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 /* ── 药物管理：浅灰底 + 细分隔线 + 行内编辑（默认纯文本，点单元格才变输入框） ──
    ⚠ 全局有 td{padding:0 var(--sp2)!important} / input{border:…!important}，
      这里所有间距、边框、背景都必须 !important 才压得住。 */
-.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:transparent; min-width:1046px; }
+.dm-page .dmtable{ width:100%; border-collapse:collapse; table-layout:fixed; background:transparent; min-width:1090px; }
 .dm-page .dmtable thead th{
   position:sticky; top:0; z-index:2; height:42px; padding:0 14px!important;
   text-align:left!important; font-size:12px; font-weight:700; color:var(--neutral-6);
@@ -729,20 +735,25 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 }
 .dm-page .dmtable tr.dm-subrow:hover td.c-u .dm-specdel{ display:block; }
 .dm-page .dmtable td.c-u .dm-specdel:hover{ background:#f8dcd5; }
-/* 每组末尾的「＋ 添加新规格」细条：浅底当分隔，按钮虚线弱化 */
-.dm-page .dmtable tr.dm-addrow td{
-  height:30px!important; padding:0 10px!important; background:#fcfcfa;
-  border-bottom:1px solid #e6e8e2!important;
+/* 「＋ 添加规格」：平时完全不占位（宽 0 / 透明），鼠标停在药名格上才从右侧浮现，
+   表格保持整洁；名称过长时自动省略，不会把按钮挤出去。 */
+.dm-page .dmtable tbody td.c-nm>div.dm-nmrow{ display:flex; align-items:center; gap:6px; height:43px; }
+.dm-page .dmtable tbody td.c-nm>div.dm-nmrow>span{
+  flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  line-height:43px;
 }
-.dm-page .dmtable tr.dm-addrow:hover td{ background:#fafbf8; }
-.dm-page .dmtable tr.dm-addrow .dm-addspec{
-  position:sticky; left:10px;              /* 横向滚动时也贴着左边，不会被冻结的名称列挡住 */
-  height:23px!important; min-height:0!important; padding:0 10px!important;
-  font-size:11.5px!important; font-weight:400!important; line-height:1;
+.dm-page .dmtable .dm-addspec{
+  flex:0 0 auto; width:0; opacity:0; overflow:hidden; pointer-events:none;
+  height:22px!important; min-height:0!important; padding:0!important;
+  font-size:11px!important; font-weight:400!important; line-height:20px!important;
   color:#5f8a6d!important; background:#fcfcfa!important;
-  border:1px dashed #cfd8cf!important; border-radius:7px!important; cursor:pointer;
+  border:1px dashed transparent!important; border-radius:7px!important; cursor:pointer;
+  white-space:nowrap; transition:opacity .12s ease;
 }
-.dm-page .dmtable tr.dm-addrow .dm-addspec:hover{
+.dm-page .dmtable tbody td.c-nm:hover .dm-addspec{
+  width:auto; opacity:1; pointer-events:auto; padding:0 8px!important; border-color:#cfd8cf!important;
+}
+.dm-page .dmtable tbody td.c-nm .dm-addspec:hover{
   color:var(--pri-deep)!important; border-color:var(--pri)!important; background:#f3fbf6!important;
 }
 /* 保存反馈：绿闪 / 红闪 */
@@ -820,7 +831,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
   #appRoot{display:none !important;}
   #printArea{display:block !important;}
   /* 云同步徽标 / 复制加密链接按钮是 position:fixed，屏幕上正常，打印时必须彻底去掉 */
-  .rxchrome,#rxSyncBadge,#rxEncLinkBtn,#toastWrap,#acBox,.ctxmenu,.modal,#supaWarn{display:none !important;}
+  .rxchrome,#rxSyncBadge,#rxEncLinkBtn,#toastWrap,#acBox,#sfxPick,.ctxmenu,.modal,#supaWarn{display:none !important;}
   html,body,#printArea,#printArea *{background:#fff !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}
   #printArea *{border-color:#000 !important}
   body{background:#fff;overflow:visible}
@@ -1332,7 +1343,7 @@ td.p{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:v
 @media print{
   #appRoot{display:none !important}
   #printArea{display:block !important}
-  .rxchrome,#rxSyncBadge,#rxEncLinkBtn,#toastWrap,#acBox,.ctxmenu,.modal,#supaWarn{display:none !important}
+  .rxchrome,#rxSyncBadge,#rxEncLinkBtn,#toastWrap,#acBox,#sfxPick,.ctxmenu,.modal,#supaWarn{display:none !important}
   html,body,#printArea,#printArea *{
     background:#fff !important;color:#000 !important;
     box-shadow:none !important;text-shadow:none !important;
@@ -1979,6 +1990,11 @@ tbody tr:last-child td{border-bottom:none!important}
 /* 药味网格行距：加大，让每味药有呼吸空间
    ⚠️ 作用域必须限定在编辑器区（.sheetwrap），不能影响 #printArea 的 A5 排版 */
 .sheetwrap .rxgrid{row-gap:6px!important;column-gap:16px!important}
+/* 药味网格左右各让 14px：首列/末列格子外侧的「＋」插入按钮要落在网格的裁切盒内
+   （.rxgrid 自己 overflow-x:hidden，加在 .sheetwrap 上没用 —— 2026-10-30 实测踩过）。
+   姓名行 / 底部费用同样让 14px，三段左右对齐。 */
+.sheetwrap .rxgrid{padding-left:14px!important;padding-right:14px!important}
+.sheetwrap .rxhead,.sheetwrap .rxfoot{padding-left:14px!important;padding-right:14px!important}
 .sheetwrap .cell{
   gap:8px!important;
   padding:3px 4px!important;margin:0 -4px;
@@ -1993,6 +2009,54 @@ tbody tr:last-child td{border-bottom:none!important}
 .cell .nm:focus,.cell .ds:focus{background:var(--neutral-1)!important;border-bottom-color:var(--pri)!important}
 /* 尾缀标签：与右侧下一列药名留出空隙，不再贴住 */
 .sheetwrap .cell .sfx{margin-right:6px!important}
+/* ── 2026-10-30 药名格交互：两侧圆形「＋」+ 快捷后缀下拉 ──
+   两者平时都隐藏（不占位、不可点），只有鼠标停在本格才浮现，处方笺保持干净。 */
+.sheetwrap .cell{position:relative}
+.sheetwrap .cell .xadd{
+  position:absolute; top:50%; transform:translateY(-50%)!important;
+  width:15px!important; height:15px!important; min-width:0!important; min-height:0!important;
+  padding:0!important; display:flex; align-items:center; justify-content:center;
+  font-size:13px!important; line-height:1!important; font-weight:400!important;
+  color:var(--pri-h)!important; background:var(--neutral-0)!important;
+  border:1px solid var(--pri-line)!important; border-radius:50%!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.10); cursor:pointer;
+  opacity:0; pointer-events:none; transition:opacity .12s ease; z-index:6;
+}
+.sheetwrap .cell .xadd.l{left:-9px}
+.sheetwrap .cell .xadd.r{right:-9px}
+.sheetwrap .cell:hover .xadd{opacity:1; pointer-events:auto}
+.sheetwrap .cell .xadd:hover{background:var(--pri-soft)!important}
+.sheetwrap .cell.empty .xadd{display:none}
+/* 快捷后缀：格子尾部一枚「后缀」小按钮，浮在格子右缘（不占布局宽），点开是后缀浮层。
+   已经有后缀胶囊的格子不显示按钮 —— 直接点胶囊换/删，避免和胶囊抢位置。 */
+.sheetwrap .cell .sfxq{
+  flex:0 0 auto; width:0; height:17px!important; min-width:0!important; min-height:0!important;
+  margin-left:2px; padding:0!important; box-sizing:border-box;
+  font-size:10px!important; line-height:15px!important; font-weight:400!important;
+  color:var(--neutral-6)!important; background:var(--neutral-0)!important;
+  border:1px solid var(--line)!important; border-radius:5px!important; cursor:pointer;
+  opacity:0; pointer-events:none; overflow:hidden; white-space:nowrap;
+  transition:opacity .12s ease;
+}
+.sheetwrap .cell:hover .sfxq{width:34px; opacity:1; pointer-events:auto}
+.sheetwrap .cell:has(.sfx:not(:empty)) .sfxq{display:none}
+.sheetwrap .cell.empty .sfxq{display:none}
+.sheetwrap .cell .sfx:not(:empty){cursor:pointer}
+/* 后缀浮层（点「后缀」按钮或点已有胶囊弹出） */
+#sfxPick{
+  position:fixed;z-index:210;display:none;min-width:118px;padding:4px;
+  background:var(--neutral-0);border:1px solid var(--line);border-radius:9px;
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+}
+#sfxPick .sp{
+  display:block;width:100%;height:26px!important;min-height:0!important;padding:0 10px!important;
+  text-align:left!important;font-size:12px!important;font-weight:400!important;line-height:26px!important;
+  color:var(--neutral-6)!important;background:transparent!important;border:none!important;border-radius:6px!important;
+  cursor:pointer;white-space:nowrap;
+}
+#sfxPick .sp:hover{background:var(--pri-soft)!important;color:var(--pri-h)!important}
+#sfxPick .sp.del{color:var(--danger)!important}
+#sfxPick .sp.del:hover{background:#fdf1ee!important}
 /* 历史列表 */
 .hitem{min-height:42px!important;padding:0 var(--sp2)!important;gap:var(--sp)!important}
 .hitem .fx{
@@ -2277,7 +2341,7 @@ input,select,textarea,button{
   /* 单剂药费：屏上靠 JS 按内容量宽，打印时必须交回auto（纸张宽度与屏幕不同，
      沿用屏上像素宽会把大金额挤出纸面）。!important 压过 fitMoneyInputs 的内联 width。 */
   .rxmoney .f input{width:auto!important;min-width:0!important;max-width:none!important}
-  .notemenu,#acBox{display:none!important}
+  .notemenu,#acBox,#sfxPick{display:none!important}
 }
 
 /* =====================================================================
@@ -3880,18 +3944,18 @@ body{ --navw:0px; }
             <div class="dm-tablewrap">
               <table class="dmtable">
                 <colgroup>
-                  <col style="width:172px"><col style="width:78px"><col style="width:70px">
+                  <col style="width:200px"><col style="width:78px"><col style="width:86px">
                   <col style="width:104px"><col style="width:104px"><col style="width:104px"><col style="width:104px">
                   <col style="width:78px"><col style="width:96px"><col style="width:136px">
                 </colgroup>
                 <thead><tr>
                   <th class="c-nm">药物名称</th>
                   <th class="c-amt">常用量</th>
-                  <th class="c-u">单位</th>
+                  <th class="c-u">单位/规格</th>
                   <th class="c-money">零售价</th>
-                  <th class="c-money">批发价<span class="tu">元/kg</span></th>
-                  <th class="c-money">进货价<span class="tu">元/kg</span></th>
-                  <th class="c-money c-ro">建议价<span class="tu">元/kg</span></th>
+                  <th class="c-money" title="元/kg">批发价</th>
+                  <th class="c-money" title="元/kg">进货价</th>
+                  <th class="c-money c-ro" title="元/kg">建议价</th>
                   <th class="c-st">库存量</th>
                   <th class="c-og">产地</th>
                   <th class="c-act">操作</th>
@@ -5006,8 +5070,37 @@ function drugNameByAlias(nm){
   }
   return raw;
 }
-/* 药名自动提示：按目录顺序过滤 */
-function acSearch(q){
+/* =========================================================
+   常用煎服法后缀库（2026-10-30）
+   · 药库里**不建**「阿胶[烊化]」这种条目，保持药库纯净；
+   · 录入时按药性挑 1~2 个相关后缀，动态拼成候选（阿胶福牌 → 阿胶福牌[烊化]）；
+   · 每格右侧还有下拉框，不用盲打也能选。
+   ========================================================= */
+var SFX_LIB=['先煎','后下','包煎','另煎','烊化','冲服','研粉冲服','煎汤代水','打碎','另包'];
+/* 后缀 → 拼音首字母（拼在药名助记码后面，ajfp + 烊化(yh) = ajfpyh） */
+var SFX_PY={'先':'x','煎':'j','后':'h','下':'x','包':'b','另':'l','烊':'y','化':'h',
+            '冲':'c','服':'f','研':'y','粉':'f','汤':'t','代':'d','水':'s','打':'d','碎':'s'};
+function pyOfSfx(s){
+  var out='', t=String(s||'');
+  for(var i=0;i<t.length;i++){ var p=SFX_PY[t[i]]; if(!p) return ''; out+=p; }
+  return out;
+}
+/* 按药性给这味药挑后缀（只挑 1~2 个，候选列表不会被撑爆） */
+var SFX_RULES=[
+  [/(阿胶|鹿角胶|龟甲胶|鳖甲胶|黄明胶|阿胶珠|鹿胎胶)/, ['烊化','另包']],
+  [/(石决明|珍珠母|牡蛎|龙骨|龙齿|磁石|代赭石|赭石|石膏|寒水石|紫石英|白石英|赤石脂|龟甲|龟板|鳖甲|穿山甲|水牛角|羚羊角|鹿角|阳起石|禹余粮|自然铜|钟乳石|花蕊石|青礞石|金礞石|浮石)/, ['先煎','打碎']],
+  [/(薄荷|荆芥|紫苏叶|砂仁|白豆蔻|豆蔻|草豆蔻|沉香|木香|钩藤|大黄|番泻叶|青蒿|藿香|佩兰|香薷)/, ['后下']],
+  [/(蒲黄|车前子|葶苈子|辛夷|辛夷花|旋覆花|海金沙|滑石|枇杷叶|马勃|蚕沙|蚕砂|夜明砂|青黛|六一散)/, ['包煎']],
+  [/(人参|西洋参|红参|高丽参|鹿茸|三七|琥珀|朱砂|牛黄|麝香|紫河车|冬虫夏草|海马|蛤蚧)/, ['另煎','冲服']],
+  [/粉$/, ['冲服','包煎']]
+];
+function sfxListFor(nm){
+  var s=String(nm||'');
+  for(var i=0;i<SFX_RULES.length;i++){ if(SFX_RULES[i][0].test(s)) return SFX_RULES[i][1].slice(0,2); }
+  return ['先煎','后下'];
+}
+/* 药名自动提示：按目录顺序过滤（基础命中，不含后缀变体） */
+function acSearchBase(q){
   q=String(q||'').trim();
   if(!q) return [];
   var ql=q.toLowerCase(), out=[], seen={};
@@ -5029,6 +5122,43 @@ function acSearch(q){
   }
   first.concat(mid).forEach(push);
   return out.slice(0,24);
+}
+/* 候选 = 基础命中 + 动态后缀变体。
+   · 正常输入（ajfp）：主名在前，前 3 条各补 1~2 个后缀变体；
+   · 只打了后缀码（ajfpyh）：识别出结尾的 yh=烊化，把带「烊化」的选项排在最前。 */
+function acSearch(q){
+  var base=acSearchBase(q), onlyVar=false, z, i;
+  if(!base.length){
+    var qs=String(q||'');
+    for(z=0;z<SFX_LIB.length;z++){
+      var pz=pyOfSfx(SFX_LIB[z]);
+      if(!pz || qs.length<=pz.length) continue;
+      if(qs.toLowerCase().slice(-pz.length)!==pz) continue;
+      var b2=acSearchBase(qs.slice(0,qs.length-pz.length));
+      if(b2.length){ base=b2; onlyVar=true; break; }
+    }
+  }
+  if(!base.length) return base;
+  var out=[], seen={}, vn=0;
+  function pushVar(d){
+    var ss=sfxListFor(d.n);
+    for(var j=0;j<ss.length;j++){
+      if(vn>=8) return;
+      var nn=d.n+'['+ss[j]+']';
+      if(seen[nn]) continue;
+      seen[nn]=1; vn++;
+      out.push({n:nn, u:d.u, p:d.p, c:d.c, py:String(d.py||'')+pyOfSfx(ss[j]),
+                __sfx:1, base:d.n, sfx:ss[j]});
+    }
+  }
+  for(i=0;i<base.length && out.length<30;i++){
+    var d=base[i];
+    if(seen[d.n]) continue;
+    seen[d.n]=1;
+    if(onlyVar){ pushVar(d); out.push(d); }      /* 按后缀码搜：带后缀的排前面 */
+    else { out.push(d); if(i<3) pushVar(d); }    /* 普通搜：主名在前 */
+  }
+  return out.slice(0,30);
 }
 
 /* ---------------- 药方文本解析 / 生成 ---------------- */
@@ -5166,13 +5296,12 @@ function renderSheet(){
     /* 空药名行加 .empty：CSS 据此把这一格的输入框完全透明（用户要求隐藏空白药品行） */
     var isEmpty=(!sp.nm && !doseText(it) && !sp.sfx);
     h+='<div class="cell'+(it.zibei?' zibei':'')+(isEmpty?' empty':'')+(sk?'" data-sfx-kind="'+sk:'')+'" data-i="'+i+'">'
-      +'<input class="nm" data-i="'+i+'" value="'+esc(sp.nm)+'" autocomplete="off"'
-      +(allEmpty&&i===0?' placeholder="在此粘贴药方，或输入药名"':'')+'>'
-      +'<input class="ds" data-i="'+i+'" value="'+esc(doseText(it))+'" autocomplete="off">'
-      +'<span class="sfx" data-i="'+i+'">'+esc(sfxText(sp.sfx))+'</span>'
+      +cellHTML(i, sp.nm, doseText(it), sfxText(sp.sfx), false,
+                (allEmpty&&i===0?'在此粘贴药方，或输入药名':''))
       +'</div>';
   }
   g.innerHTML=h;
+  if(typeof closeSfxPick==='function') closeSfxPick();   /* 重建前先收起后缀浮层，免得挂在新格子上 */
   rxFitCols();
   applySheetFont();
   if(typeof rcptHint==='function') rcptHint();
@@ -5205,7 +5334,7 @@ function fitAllCells(){
 }
 /* ---- 响应式列数：按处方区实际可用宽度决定 3 / 2 / 1 列，保证药名+克数完整可见 ----
    窗口缩小或拖动分栏时自动重排；一行三味是「宽屏默认」，窄屏自动降为两列/一列 */
-var RX_MIN_COL=150;     /* 单列至少要放得下 5 字药名 + 2 位克数 */
+var RX_MIN_COL=176;     /* 单列至少要放得下 5 字药名 + 克数 + 后缀胶囊 + 两侧按钮（2026-10-30：150 太挤，胶囊会顶到隔壁） */
 function rxFitCols(){
   var g=$('sGrid'); if(!g) return;
   var w=g.clientWidth||0;
@@ -8518,7 +8647,10 @@ function renderDrugTable(){
                parseFloat(wv)<parseFloat(gv)-1e-9);
       h+='<tr data-i="'+idx+'" data-s="'+s+'" class="dm-sprow'+(sel?' sel':'')+(s>0?' dm-subrow':'')+'">';
       if(s===0){
-        h+='<td class="c-nm" data-f="n" rowspan="'+n+'"><span>'+esc(d.n||'')+'</span></td>'
+        h+='<td class="c-nm" data-f="n" rowspan="'+n+'"><div class="dm-nmrow">'
+          +'<span>'+esc(d.n||'')+'</span>'
+          +'<button type="button" class="dm-addspec" data-i="'+idx+'" title="为这味药再加一个规格（盒 / 个 / 斤…）">＋ 添加规格</button>'
+          +'</div></td>'
           +'<td class="c-amt" data-f="c" rowspan="'+n+'"><span>'+esc(d.c||'')+'</span></td>';
       }
       h+='<td class="c-u" data-f="u" data-s="'+s+'"><span>'+esc(sp.unit||'')
@@ -8538,9 +8670,6 @@ function renderDrugTable(){
       }
       h+='</tr>';
     }
-    h+='<tr class="dm-addrow"><td colspan="10">'
-      +'<button type="button" class="dm-addspec" data-i="'+idx+'">＋ 添加新规格</button>'
-      +'</td></tr>';
   }
   $('dmBody').innerHTML=h||'<tr><td colspan="10" style="padding:0!important;border:none!important">'+rxEmptyHTML(
         '药物库是空的','点上方「添加」录入第一味药，之后会自动划价与计价')+'</td></tr>';
@@ -9299,6 +9428,14 @@ function dmCellText(td, v){ td.innerHTML='<span>'+esc(v==null?'':v)+'</span>'; }
 function dmFillCell(td, d){
   if(!td||!d) return;
   var f=td.getAttribute('data-f'), s=+(td.getAttribute('data-s')||0);
+  /* 药名格是「名称 + 悬停浮现的＋添加规格」组合，改完名要整块重建，否则按钮会丢 */
+  if(f==='n'){
+    var tr0=td.closest('tr'), i0=tr0?tr0.getAttribute('data-i'):'';
+    td.innerHTML='<div class="dm-nmrow"><span>'+esc(d.n||'')+'</span>'
+      +'<button type="button" class="dm-addspec" data-i="'+esc(i0)+'"'
+      +' title="为这味药再加一个规格（盒 / 个 / 斤…）">＋ 添加规格</button></div>';
+    return;
+  }
   if(f==='u'){
     var tr=td.closest('tr'), idx=tr?tr.getAttribute('data-i'):'';
     td.innerHTML='<span>'+esc(dmCellVal(d,'u',s))
@@ -9487,8 +9624,9 @@ function acShow(inp,list){
   var h='';
   for(var i=0;i<list.length;i++){
     var d=list[i];
-    /* 一行看清：药名 · 常用量单位 · 单价（元/该单位） · 拼音 */
-    h+='<div class="ai'+(i===0?' on':'')+'" data-i="'+i+'"><span class="nm2">'+esc(d.n)+'</span>'
+    /* 一行看清：药名 · 后缀胶囊 · 常用量单位 · 单价（元/该单位） · 拼音 */
+    h+='<div class="ai'+(i===0?' on':'')+'" data-i="'+i+'"><span class="nm2">'+esc(d.__sfx?(d.base||d.n):d.n)+'</span>'
+      +(d.__sfx?'<span class="sfxtag">'+esc(d.sfx)+'</span>':'')
       +'<span class="un">'+(d.u?esc(d.u):'g')+'</span>'
       +'<span class="pr">'+(d.p!=null&&d.p!==''?esc(d.p):'—')+'</span>'
       +'<span class="py">'+esc(d.py||'')+'</span></div>';
@@ -9532,6 +9670,9 @@ function acAccept(idx){
     var sp=splitSfx(d.n);
     cell.querySelector('.nm').value=sp.nm;
     var sx=cell.querySelector('.sfx'); if(sx) sx.textContent=sfxText(sp.sfx);   /* 去方括号 */
+    /* 标签颜色跟着后缀变（先煎=琥珀 / 后下=蓝 / 其余=绿），别沿用上一味药的类别 */
+    var kd=sfxKind(sp.sfx);
+    if(kd) cell.setAttribute('data-sfx-kind',kd); else cell.removeAttribute('data-sfx-kind');
     /* 选中范围覆盖到 token 之后可能残留的旧尾缀文本 */
     inp.value=sp.nm;
   }else{
@@ -9542,15 +9683,13 @@ function acAccept(idx){
     dsIn.value=(+d.c)+(d.u||'g');
     cell.classList.remove('zibei');
   }
-  /* 记录用户选中的那条（单位 + 该单位的价格），后续计价按它算 */
-  var it0=items[k];
-  if(it0){
-    it0.du=(d.u||'g');
-    it0.dp=(d.p!=null&&d.p!=='')?n(d.p):null;
-  }
+  /* 记住用户选中的那条（单位 + 该单位的价格），后续计价按它算。
+     ⚠ readCell 在药名变化时会把 du/dp 清空，所以要在它之后再写回去。 */
+  var wantU=(d.u||'g'), wantP=(d.p!=null&&d.p!=='')?n(d.p):null;
   acHide();
   dupMerged=-1;
   readCell(k);
+  if(items[k]&&!items[k].zibei){ items[k].du=wantU; items[k].dp=wantP; }
   if(dupMerged>=0){
     toastErr('「'+d.n+'」重复了，已把剂量合并到第 '+(dupMerged+1)+' 格');
     renderSheet(); growCells(); recalc();
@@ -9562,6 +9701,79 @@ function acAccept(idx){
   recalc();
   return true;
 }
+/* 一格药味的 HTML（renderSheet 与 growCells 共用，保证两边结构完全一致）：
+   左「＋」/ 右「＋」（悬停才出现，用来前后插一行）+ 药名 + 克数 + 绿色后缀胶囊 + 后缀下拉框 */
+function cellHTML(i, nm, ds, sfx, extraCls, ph){
+  return '<button type="button" class="xadd l" data-i="'+i+'" data-ins="before" tabindex="-1" title="在这一格前面插入一行">+</button>'
+    +'<input class="nm" data-i="'+i+'" value="'+esc(nm)+'" autocomplete="off"'
+    +(ph?' placeholder="'+esc(ph)+'"':'')+'>'
+    +'<input class="ds" data-i="'+i+'" value="'+esc(ds)+'" autocomplete="off">'
+    +'<span class="sfx" data-i="'+i+'">'+esc(sfx)+'</span>'
+    +'<button type="button" class="sfxq" data-i="'+i+'" tabindex="-1" title="选常用后缀（先煎 / 后下 / 烊化…）">后缀</button>'
+    +'<button type="button" class="xadd r" data-i="'+i+'" data-ins="after" tabindex="-1" title="在这一格后面插入一行">+</button>';
+}
+/* 后缀浮层：点格尾「后缀」按钮或点已有的绿色胶囊都能打开，选完立刻落到胶囊上 */
+var _sfxPickK=-1;
+function closeSfxPick(){ var m=document.getElementById('sfxPick'); if(m) m.style.display='none'; _sfxPickK=-1; }
+function openSfxPick(k, anchor){
+  var m=document.getElementById('sfxPick');
+  if(!m){
+    m=document.createElement('div'); m.id='sfxPick'; document.body.appendChild(m);
+    m.addEventListener('mousedown',function(e){ e.preventDefault(); });
+    m.addEventListener('click',function(e){
+      var it=e.target.closest('.sp'); if(!it) return;
+      var kk=_sfxPickK; closeSfxPick();
+      if(kk<0) return;
+      setCellSfx(kk, it.getAttribute('data-v')||'');
+    });
+  }
+  var cell=cellEl(k); if(!cell) return;
+  var cur=sfxText((cell.querySelector('.sfx')||{}).textContent||'');
+  var h='';
+  for(var i=0;i<SFX_LIB.length;i++){
+    h+='<button type="button" class="sp'+(SFX_LIB[i]===cur?' on':'')+'" data-v="'+esc(SFX_LIB[i])+'">'+esc(SFX_LIB[i])+'</button>';
+  }
+  if(cur) h+='<button type="button" class="sp del" data-v="">清除后缀</button>';
+  m.innerHTML=h;
+  m.style.display='block';
+  _sfxPickK=k;
+  var r=(anchor||cell).getBoundingClientRect();
+  var w=m.offsetWidth, hh=m.offsetHeight;
+  var top=r.bottom+4, left=r.left;
+  if(top+hh>window.innerHeight-6) top=Math.max(4,r.top-hh-4);
+  if(left+w>window.innerWidth-6) left=Math.max(4,window.innerWidth-w-6);
+  m.style.top=top+'px'; m.style.left=left+'px';
+}
+/* 下拉框 / 候选选中后缀 → 写进 .sfx（数据层仍拼回 [后缀]，打印与保存不受影响） */
+function setCellSfx(k, txt){
+  var cell=cellEl(k); if(!cell) return false;
+  var nmIn=cell.querySelector('.nm'), sx=cell.querySelector('.sfx');
+  if(!nmIn || !nmIn.value.trim()){ toastErr('先填药名，再选后缀'); return false; }
+  var t=String(txt||'').trim();
+  if(sx) sx.textContent=t;
+  var kd=sfxKind(t);
+  if(kd) cell.setAttribute('data-sfx-kind',kd); else cell.removeAttribute('data-sfx-kind');
+  var it0=items[k], du0=it0?it0.du:'', dp0=it0?it0.dp:null;
+  readCell(k);
+  if(items[k]&&!items[k].zibei){ items[k].du=du0||items[k].du; items[k].dp=(dp0==null?items[k].dp:dp0); }
+  cell.classList.toggle('empty', !nmIn.value.trim() && !cell.querySelector('.ds').value.trim() && !t);
+  fitCell(k); recalc();
+  return true;
+}
+/* 行内「＋」：在当前格前面 / 后面插一格空白药名并聚焦，方便直接打字 */
+function insertCellAt(k, where){
+  if(!(k>=0) || k>items.length) return;
+  readCell(k);
+  var at=(where==='before')?k:k+1;
+  items.splice(at,0,mkItem('',0,'',false));
+  renderSheet(); growCells(); recalc();
+  var c=cellEl(at);
+  if(c){
+    var nm=c.querySelector('.nm');
+    try{ c.scrollIntoView({block:'nearest'}); }catch(e){}
+    if(nm) nm.focus();
+  }
+}
 /* 末尾追加空格子（保持随时可继续输入） */
 function growCells(){
   var need=Math.max(12, Math.ceil((filledCount()+1)/3)*3+3);
@@ -9572,7 +9784,7 @@ function growCells(){
       var div=document.createElement('div');
       /* 空行同样打 .empty，CSS 据此把输入框完全透明（用户要求隐藏空白药品行） */
       div.className='cell empty'; div.setAttribute('data-i',i);
-      div.innerHTML='<input class="nm" data-i="'+i+'" value="" autocomplete="off"><input class="ds" data-i="'+i+'" value="" autocomplete="off"><span class="sfx" data-i="'+i+'"></span>';
+      div.innerHTML=cellHTML(i,'','','',false,'');
       g.appendChild(div);
     }
   }
@@ -9763,6 +9975,23 @@ function bind(){
       if(list.length) acShow(inp,list); else acHide();
     },0);
   });
+  /* 药名格两侧圆形「＋」：前面 / 后面插一格空白药名并自动聚焦。
+     用捕获阶段先接住，免得被格子的框选 / 点选逻辑吃掉这次点击。 */
+  $('sGrid').addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('.xadd'):null;
+    if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    insertCellAt(+b.getAttribute('data-i'), b.getAttribute('data-ins'));
+  },true);
+  /* 快捷后缀：点格尾「后缀」按钮、或点已有的绿色胶囊 → 弹后缀浮层 */
+  $('sGrid').addEventListener('click',function(e){
+    var btn=e.target.closest?e.target.closest('.sfxq'):null;
+    var pill=e.target.closest?e.target.closest('.cell .sfx'):null;
+    if(!btn && !(pill && String(pill.textContent||'').trim())) return;
+    e.preventDefault(); e.stopPropagation();
+    var host=btn||pill;
+    openSfxPick(+host.getAttribute('data-i'), btn||pill);
+  },true);
   /* 药名获得焦点时不要抢走浏览器算好的光标位置 */
   $('sGrid').addEventListener('mousedown',function(e){
     var inp=e.target;
@@ -9927,6 +10156,7 @@ function bind(){
   document.addEventListener('mousedown',function(e){
     /* 点别处：关闭候选框与右键菜单 */
     if(!e.target.closest('#acBox')) acHide();
+    if(!e.target.closest('#sfxPick')) closeSfxPick();
     if(!e.target.closest('#sheetMenu')) closeSheetMenu();
   });
 
@@ -9982,6 +10212,7 @@ function bind(){
   /* Esc：退出点选模式 / 关闭菜单与候选 */
   window.addEventListener('keydown',function(e){
     if(e.key!=='Escape') return;
+    if(document.getElementById('sfxPick') && document.getElementById('sfxPick').style.display==='block'){ closeSfxPick(); return; }
     if(sheetMenu.style.display==='block'){ closeSheetMenu(); return; }
     if(pickMode){ setPickMode(false); return; }
     if(rngIdxList().length){ clearRngMark(); return; }
