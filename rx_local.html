@@ -33,7 +33,7 @@
   function getPass(){try{return new URLSearchParams(location.search).get('k')||'';}catch(e){return '';}}
   var RX_PASS=getPass();
   var SYNC_ON=(CLOUD_OK && !!RX_PASS && (typeof crypto!=='undefined') && !!crypto.subtle);
-  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1'];
+  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1'];
   var _cpromise=null;
   function deriveKey(pass){
     if(_cpromise) return _cpromise;
@@ -3119,6 +3119,181 @@ body{ --navw:0px; }
 .wp-ac .r .pr{ color:var(--aux); font-size:12px; white-space:nowrap; }
 .wp-nm-wrap .wp-nm{ flex:1 1 auto; min-width:0; }
 .wp-subpane{ margin-top:14px; }
+/* 卡片式列表条目（进货单列表用；原来只有 class 没有样式，是裸文本） */
+.wp-card{ background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card);
+  padding:12px 16px; margin-bottom:10px; box-shadow:var(--shadow-1);
+  transition:box-shadow .16s ease,border-color .16s ease; }
+.wp-card:hover{ box-shadow:var(--shadow-2); border-color:var(--neutral-3); }
+.wp-card-h{ display:flex; align-items:center; gap:12px; }
+.wp-card-h b{ font-size:14px; font-weight:700; color:var(--neutral-title); }
+.wp-card-sub{ font-size:12px; color:var(--neutral-4); }
+.wp-card-amt{ font-size:15px; font-weight:700; color:var(--aux,#b5462f);
+  font-variant-numeric:tabular-nums; }
+.wp-card-meta{ margin-top:5px; font-size:12px; color:var(--neutral-5); line-height:1.7; }
+.wp-card-meta a{ color:var(--pri-deep); text-decoration:none; }
+.wp-card-meta a:hover{ text-decoration:underline; }
+.wp-card-meta a.pur-del{ color:var(--danger,#c0392b); }
+/* =====================================================================
+   🖨 打印模板配置 + 实时预览（2026-10-29）
+   制表数据里不存店名/地址，全部由模板在「渲染时」注入 → 一份药单可出
+   发货单 / 销售单 / 小票 / 不带价格版多种纸面，数据不动。
+   ===================================================================== */
+.wps{ position:fixed; inset:0; z-index:9000; display:none; background:var(--neutral-2); }
+.wps.on{ display:flex; }
+/* 面板内按钮沿用 .wplan 按钮语言（后面更具体的规则会覆盖它） */
+.wps button{ font-family:inherit; font-size:13px; min-height:32px; padding:6px 14px;
+  border-radius:var(--r-pill); border:1px solid var(--neutral-3); background:var(--n-white) !important;
+  color:var(--neutral-6) !important; font-weight:600; cursor:pointer; box-shadow:none;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease; }
+.wps button:hover{ background:var(--neutral-1) !important; border-color:var(--neutral-4) !important; transform:none; }
+.wps button.pri{ background:var(--pri) !important; border-color:var(--pri) !important; color:#fff !important; }
+.wps button.pri:hover{ background:var(--pri-h) !important; border-color:var(--pri-h) !important; }
+.wps button.mini{ font-size:12px; min-height:30px; padding:4px 12px; }
+/* ---------- 左：模板 + 页面设置 ---------- */
+.wps-side{ flex:0 0 322px; width:322px; min-height:0; display:flex; flex-direction:column;
+  background:var(--n-white); border-right:1px solid var(--neutral-3); }
+.wps-side-h{ flex:0 0 auto; display:flex; align-items:center; gap:8px; height:52px;
+  padding:0 12px 0 16px; border-bottom:1px solid var(--neutral-2); }
+.wps-side-h b{ flex:1 1 auto; font-size:15px; font-weight:700; color:var(--neutral-title); }
+.wps-x{ width:30px; height:30px; min-height:30px !important; padding:0 !important; border:none !important;
+  background:transparent !important; color:var(--neutral-5) !important; font-size:20px; line-height:1;
+  border-radius:var(--r-sm) !important; cursor:pointer; }
+.wps-x:hover{ background:var(--neutral-1) !important; color:var(--neutral-title) !important; transform:none !important; }
+.wps-body{ flex:1 1 auto; min-height:0; overflow-y:auto; padding:0 14px 26px; }
+.wps-sec{ padding:12px 0; border-bottom:1px solid var(--neutral-2); }
+.wps-sec:last-child{ border-bottom:none; }
+.wps-sec-h{ display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin-bottom:9px; font-size:11px; font-weight:700; letter-spacing:.5px;
+  color:var(--neutral-4); text-transform:uppercase; }
+/* 模板条目 */
+.wps-tpl{ display:flex; align-items:center; gap:8px; padding:8px 9px; margin-bottom:6px;
+  border:1px solid var(--neutral-2); border-radius:var(--r-md); background:var(--n-white); cursor:pointer; }
+.wps-tpl:hover{ border-color:var(--neutral-4); }
+.wps-tpl.on{ border-color:var(--pri); background:var(--pri-soft); }
+.wps-tpl .t{ flex:1 1 auto; min-width:0; }
+.wps-tpl .t b{ display:block; font-size:13px; font-weight:600; color:var(--neutral-title);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wps-tpl .t span{ display:block; font-size:11px; color:var(--neutral-4);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wps-ico{ flex:0 0 auto; width:24px; height:24px; min-height:24px !important; padding:0 !important;
+  border:none !important; background:transparent !important; color:var(--neutral-4) !important;
+  border-radius:var(--r-sm) !important; cursor:pointer; font-size:13px; line-height:1; }
+.wps-ico:hover{ background:var(--n-white) !important; color:var(--pri-deep) !important; transform:none !important; }
+.wps-ico.del:hover{ color:var(--danger) !important; }
+/* 行 / 控件 */
+.wps-row{ display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:12px; color:var(--neutral-6); }
+.wps-row > label{ flex:0 0 58px; color:var(--neutral-5); white-space:nowrap; }
+.wps-row input[type=text],.wps-row select{ flex:1 1 auto; min-width:0; height:28px; padding:0 8px;
+  font-size:12px; font-family:inherit; color:var(--neutral-title); background:var(--n-white);
+  border:1px solid var(--neutral-3); border-radius:var(--radius-input); }
+.wps-row input[type=text]:focus,.wps-row select:focus{ outline:none; border-color:var(--pri);
+  box-shadow:0 0 0 3px var(--pri-soft); }
+.wps-row input[type=range]{ flex:1 1 auto; min-width:0; height:18px; accent-color:var(--pri); }
+.wps-num{ flex:0 0 34px; text-align:right; font-variant-numeric:tabular-nums; color:var(--neutral-6); }
+.wps-seg{ display:inline-flex; flex:1 1 auto; border:1px solid var(--neutral-3);
+  border-radius:var(--r-pill); padding:2px; gap:2px; background:var(--neutral-1); }
+.wps-seg button{ flex:1 1 0; min-height:24px !important; padding:2px 0 !important; margin:0 !important;
+  border:none !important; background:transparent !important; box-shadow:none !important;
+  color:var(--neutral-6) !important; font-size:12px !important; font-weight:600 !important;
+  border-radius:var(--r-pill) !important; cursor:pointer; }
+.wps-seg button.on{ background:var(--n-white) !important; color:var(--pri-deep) !important;
+  box-shadow:var(--shadow-1) !important; }
+.wps-sw{ display:flex; align-items:center; gap:7px; padding:4px 0; font-size:12px; color:var(--neutral-6); cursor:pointer; }
+.wps-sw input{ width:15px; height:15px; margin:0; accent-color:var(--pri); }
+.wps-swgrid{ display:grid; grid-template-columns:1fr 1fr; gap:0 10px; }
+.wps-plus{ width:100%; justify-content:center; }
+.wps-side-f{ flex:0 0 auto; display:flex; flex-direction:column; gap:7px; padding:10px 14px;
+  border-top:1px solid var(--neutral-2); background:var(--n-white); }
+.wps-side-f .row{ display:flex; gap:8px; }
+.wps-side-f .row button{ flex:1 1 0; justify-content:center; }
+.wps-side-f > button{ justify-content:center; min-height:36px; }
+/* ---------- 右：预览 ---------- */
+.wps-main{ flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; background:#43474c; }
+.wps-bar{ flex:0 0 auto; display:flex; align-items:center; gap:10px; height:52px; padding:0 16px;
+  background:#393c41; color:#dfe3e6; }
+.wps-bar b{ font-size:13px; font-weight:600; color:#fff; }
+.wps-bar .grow{ flex:1; }
+.wps-bar .meta{ font-size:12px; color:#a9b0b6; }
+.wps-stage{ flex:1 1 auto; min-height:0; overflow:auto; padding:26px 20px 40px; display:flex;
+  justify-content:center; align-items:flex-start; }
+.wps-paper{ background:#fff; color:#000; box-shadow:0 10px 34px rgba(0,0,0,.42);
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+/* 纸面排版（屏幕预览与打印共用同一份 class） */
+.wpd-h{ text-align:center; }
+.wpd-shop{ font-size:1.55em; font-weight:700; letter-spacing:1px; margin-bottom:2px; }
+.wpd-title{ font-size:1.9em; font-weight:700; letter-spacing:2px; }
+.wpd-sub{ font-size:.92em; color:#333; margin-top:3px; }
+.wpd-metas{ display:flex; justify-content:space-between; gap:14px; margin-top:8px;
+  padding-top:6px; border-top:1px solid #000; text-align:left; font-size:.95em; line-height:1.6; }
+.wpd-metas .r{ text-align:right; white-space:nowrap; }
+.wpd-tbl{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:fixed;
+  font-variant-numeric:tabular-nums; }
+.wpd-tbl th,.wpd-tbl td{ border:1px solid #000; padding:2px 5px; text-align:left;
+  overflow:hidden; word-break:break-all; }
+.wpd-tbl td{ height:var(--wpd-rh,22px); }
+/* 规格/数量/单价/金额都是短值，绝不换行（否则 kg 会竖着排） */
+.wpd-tbl td.c,.wpd-tbl th.c,.wpd-tbl td.num,.wpd-tbl th.num{ white-space:nowrap; }
+.wpd-tbl td.c,.wpd-tbl th.c{ text-align:center; }
+.wpd-tbl th{ font-weight:700; background:#f2f2f2; text-align:center; }
+.wpd-tbl td.num,.wpd-tbl th.num{ text-align:right; }
+.wpd-tbl td.c,.wpd-tbl th.c{ text-align:center; }
+.wpd-sum{ display:flex; justify-content:space-between; gap:12px; margin-top:6px;
+  font-size:.95em; font-weight:700; }
+.wpd-word{ margin-top:4px; font-size:.92em; }
+.wpd-foot{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; padding-top:6px;
+  border-top:1px solid #000; font-size:.9em; color:#222; line-height:1.6; }
+.wpd-page{ text-align:right; margin-top:4px; font-size:.85em; color:#444; }
+.wpd-subline{ margin-top:2px; font-size:.95em; }
+.wpd-pagebreak{ break-after:page; page-break-after:always; }
+.wpd-pagebreak:last-child{ break-after:auto; page-break-after:auto; }
+/* 小票（58/80mm）：表头竖排、合计分行，别硬挤两列 */
+.wpd-narrow .wpd-metas{ display:block; border-top:none; }
+.wpd-narrow .wpd-metas .r{ text-align:left; white-space:normal; margin-top:2px; }
+.wpd-narrow .wpd-title{ font-size:1.5em; letter-spacing:1px; }
+.wpd-narrow .wpd-shop{ font-size:1.1em; }
+.wpd-narrow .wpd-sum{ flex-direction:column; align-items:flex-start; gap:1px; }
+.wpd-narrow .wpd-foot{ display:block; }
+.wpd-narrow .wpd-tbl td{ word-break:break-word; }
+/* ⚠ 全局有 td{padding:0 16px!important;height:40px;font-size:14px} 和
+     th{height:44px;background:…!important}，会把纸面表格挤爆（小票上尤其明显：
+     padding 左右各 16px 吃掉整列宽度）。纸面表格必须整组 !important 抢回来。 */
+.wps-paper .wpd-tbl,#wpPrintArea .wpd-tbl{ border-collapse:collapse !important; }
+.wps-paper .wpd-tbl th,.wps-paper .wpd-tbl td,
+#wpPrintArea .wpd-tbl th,#wpPrintArea .wpd-tbl td{
+  height:var(--wpd-rh,22px) !important;
+  padding:2px 5px !important;
+  font-size:inherit !important;
+  line-height:1.3 !important;
+  color:#000 !important;
+  background:#fff !important;
+  border:1px solid #000 !important;
+  text-align:left;
+  vertical-align:middle;
+}
+.wps-paper .wpd-tbl th,#wpPrintArea .wpd-tbl th{
+  background:#f2f2f2 !important; font-weight:700 !important; text-align:center;
+}
+.wps-paper .wpd-tbl td.num,#wpPrintArea .wpd-tbl td.num{ text-align:right; }
+.wps-paper .wpd-tbl td.c,.wps-paper .wpd-tbl th.c,
+#wpPrintArea .wpd-tbl td.c,#wpPrintArea .wpd-tbl th.c{ text-align:center; }
+.wps-paper .wpd-tbl tbody tr:last-child td,
+#wpPrintArea .wpd-tbl tbody tr:last-child td{ border-bottom:1px solid #000 !important; }
+.wps-paper .wpd-tbl tbody tr:hover,
+.wps-paper .wpd-tbl tbody tr:hover td{ background:#fff !important; }
+@media print{
+  body.wp-printing #wpPrintArea .wpd-tbl th{ background:#fff !important; }
+}
+/* ---------- 打印时：只出 #wpPrintArea ---------- */
+#wpPrintArea{ display:none; }
+@media print{
+  body.wp-printing #appRoot{ display:none !important; }
+  body.wp-printing #printArea{ display:none !important; }
+  body.wp-printing #wpPrintArea{ display:block !important; }
+  body.wp-printing .wps{ display:none !important; }
+  html,body,body.wp-printing #wpPrintArea,body.wp-printing #wpPrintArea *{
+    background:#fff !important; color:#000 !important; box-shadow:none !important; }
+}
+
 </style>
 
 </head>
@@ -3330,6 +3505,7 @@ body{ --navw:0px; }
                 <button class="wp-sub on" type="button" data-sub="list" onclick="WPlan.showSub('list')">订单列表</button>
                 <button class="wp-sub" type="button" data-sub="edit" onclick="WPlan.showSub('edit')">制表 / 详情</button>
               </div>
+              <button class="btn" type="button" id="wpPrintSetBtn" onclick="WPrint.open()">打印设置</button>
               <button class="btn pri" type="button" onclick="WPlan.newOrder()">新建订单</button>
             </div>
 
@@ -3366,6 +3542,101 @@ body{ --navw:0px; }
               <div class="wp-foot" id="wpFoot"></div>
               <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名或拼音（如 md）即可检索选药，自动带出单价；回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
             </div>
+          </div>
+        </div>
+
+        <!-- 打印模板配置 + 实时预览（左配置 / 右预览，2026-10-29） -->
+        <div class="wps" id="wpsSheet">
+          <div class="wps-side">
+            <div class="wps-side-h">
+              <b>打印设置</b>
+              <button class="wps-x" type="button" onclick="WPrint.close()" title="关闭">×</button>
+            </div>
+            <div class="wps-body">
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>模板选择</span>
+                  <button class="wps-ico" type="button" id="wpsNewBtn" onclick="WPrint.addTpl()" title="新建模板">＋</button>
+                </div>
+                <div id="wpsTplList"></div>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>页面设置</span></div>
+                <div class="wps-row"><label>纸张</label><select id="wpsPaperSel" onchange="WPrint.cfg('paper',this.value)">
+                  <option value="a4">A4 · 210×297mm</option>
+                  <option value="a5">A5 · 148×210mm</option>
+                  <option value="58">小票 58mm</option>
+                  <option value="80">小票 80mm</option>
+                </select></div>
+                <div class="wps-row"><label>方向</label>
+                  <div class="wps-seg" id="wpsOrient">
+                    <button type="button" data-v="portrait" onclick="WPrint.cfg('orient','portrait')">纵向</button>
+                    <button type="button" data-v="landscape" onclick="WPrint.cfg('orient','landscape')">横向</button>
+                  </div>
+                </div>
+                <div class="wps-row"><label>左边距</label><input type="range" id="wpsPadL" min="0" max="40" step="1" oninput="WPrint.cfg('padL',this.value)"><span class="wps-num" id="wpsPadLv">20</span></div>
+                <div class="wps-row"><label>右边距</label><input type="range" id="wpsPadR" min="0" max="40" step="1" oninput="WPrint.cfg('padR',this.value)"><span class="wps-num" id="wpsPadRv">20</span></div>
+                <div class="wps-row"><label>上边距</label><input type="range" id="wpsPadT" min="0" max="40" step="1" oninput="WPrint.cfg('padT',this.value)"><span class="wps-num" id="wpsPadTv">12</span></div>
+                <div class="wps-row"><label>下边距</label><input type="range" id="wpsPadB" min="0" max="40" step="1" oninput="WPrint.cfg('padB',this.value)"><span class="wps-num" id="wpsPadBv">12</span></div>
+                <div class="wps-row"><label>分页</label>
+                  <div class="wps-seg" id="wpsPageMode">
+                    <button type="button" data-v="auto" onclick="WPrint.cfg('pageMode','auto')">连续</button>
+                    <button type="button" data-v="page" onclick="WPrint.cfg('pageMode','page')">分页</button>
+                    <button type="button" data-v="pageSub" onclick="WPrint.cfg('pageMode','pageSub')">分页+小计</button>
+                  </div>
+                </div>
+                <div class="wps-row" id="wpsRppRow"><label>每页行数</label><input type="range" id="wpsRpp" min="5" max="40" step="1" oninput="WPrint.cfg('rowsPerPage',this.value)"><span class="wps-num" id="wpsRppv">20</span></div>
+                <label class="wps-sw"><input type="checkbox" id="wpsShowPageNo" onchange="WPrint.cfg('showPageNo',this.checked)">显示页号</label>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>表头内容</span></div>
+                <div class="wps-row"><label>标题</label><input type="text" id="wpsTitle" placeholder="发货单" oninput="WPrint.cfg('title',this.value)"></div>
+                <div class="wps-row"><label>店名</label><input type="text" id="wpsShop" placeholder="诊所 / 店铺名称" oninput="WPrint.cfg('shop',this.value)"></div>
+                <div class="wps-row"><label>电话</label><input type="text" id="wpsTel" placeholder="联系电话" oninput="WPrint.cfg('tel',this.value)"></div>
+                <div class="wps-row"><label>地址</label><input type="text" id="wpsAddr" placeholder="店铺地址" oninput="WPrint.cfg('addr',this.value)"></div>
+                <div class="wps-row"><label>客户</label><input type="text" id="wpsCustLabel" placeholder="顾客" oninput="WPrint.cfg('custLabel',this.value)"></div>
+                <div class="wps-row"><label>落款</label><input type="text" id="wpsFoot" placeholder="供货方 / 盖章处" oninput="WPrint.cfg('footNote',this.value)"></div>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>显示项</span></div>
+                <div class="wps-swgrid">
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwShop" onchange="WPrint.cfg('showShop',this.checked)">店名</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwTitle" onchange="WPrint.cfg('showTitle',this.checked)">标题</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwTel" onchange="WPrint.cfg('showTel',this.checked)">电话</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwAddr" onchange="WPrint.cfg('showAddr',this.checked)">地址</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwIndex" onchange="WPrint.cfg('showIndex',this.checked)">序号</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwSpec" onchange="WPrint.cfg('showSpec',this.checked)">规格</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwPrice" onchange="WPrint.cfg('showPrice',this.checked)">单价</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwAmount" onchange="WPrint.cfg('showAmount',this.checked)">金额</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwNote" onchange="WPrint.cfg('showNote',this.checked)">备注</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwWeight" onchange="WPrint.cfg('showWeight',this.checked)">合计重量</label>
+                </div>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>排版</span></div>
+                <div class="wps-row"><label>字号</label><input type="range" id="wpsFs" min="7" max="18" step="1" oninput="WPrint.cfg('fs',this.value)"><span class="wps-num" id="wpsFsv">11</span></div>
+                <div class="wps-row"><label>行高</label><input type="range" id="wpsRh" min="14" max="40" step="1" oninput="WPrint.cfg('rh',this.value)"><span class="wps-num" id="wpsRhv">24</span></div>
+              </div>
+            </div>
+            <div class="wps-side-f">
+              <div class="row">
+                <button type="button" class="mini" onclick="WPrint.saveTpl(true)">另存为模板</button>
+                <button type="button" class="mini" onclick="WPrint.saveTpl(false)">保存</button>
+              </div>
+              <button type="button" class="pri" onclick="WPrint.doPrint()">立即打印</button>
+            </div>
+          </div>
+          <div class="wps-main">
+            <div class="wps-bar">
+              <b id="wpsBarTpl">模板</b>
+              <span class="meta" id="wpsBarMeta"></span>
+              <span class="grow"></span>
+              <span class="meta" id="wpsBarOrder"></span>
+            </div>
+            <div class="wps-stage" id="wpsStage"><div class="wps-paper" id="wpsPaper"></div></div>
           </div>
         </div>
 
@@ -3431,12 +3702,15 @@ body{ --navw:0px; }
                   <label>日期</label><input id="purDt" type="date" style="width:140px">
                   <label>供应商</label><input id="purSupplier" style="flex:1;min-width:120px" placeholder="供应商名称">
                 </div>
+                <div class="pur-row">
+                  <label>备注</label><input id="purNote" style="flex:1;min-width:200px" placeholder="备注（选填）">
+                </div>
                 <div class="pur-tablewrap">
                   <table class="dmtable pur-table">
                     <thead><tr>
                       <th style="text-align:left">药材名称</th>
-                      <th style="width:90px">数量</th><th style="width:64px">单位</th>
-                      <th style="width:104px">进货单价</th><th style="width:104px">金额</th><th style="width:48px"></th>
+                      <th style="width:96px">数量</th><th style="width:78px">单位</th>
+                      <th style="width:108px">进货单价</th><th style="width:104px">金额</th><th style="width:60px"></th>
                     </tr></thead>
                     <tbody id="purItems"></tbody>
                   </table>
@@ -3454,15 +3728,84 @@ body{ --navw:0px; }
             </div>
           </div>
         </div>
+
+        <!-- 删除进货单：必须问「是否同时扣回库存」 -->
+        <div class="modal" id="purDelModal">
+          <div class="pur-mw">
+            <div class="pur-mh">删除进货单</div>
+            <div class="pur-mb">
+              <p class="pur-dt" id="purDelText"></p>
+              <p class="pur-dh">是否同时扣回对应库存？</p>
+              <ul class="pur-dl" id="purDelList"></ul>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.closeDel()">取消</button>
+              <button type="button" class="mini" onclick="Purchase.doDel(false)">仅删单据</button>
+              <button type="button" class="danger" onclick="Purchase.doDel(true)">是，扣回库存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 进货遇到药品库里没有的「药名 + 单位」 -->
+        <div class="modal" id="purNewModal">
+          <div class="pur-mw">
+            <div class="pur-mh">药品库里还没有这些药材</div>
+            <div class="pur-mb">
+              <p class="pur-dt">按「药名 + 单位」严格匹配，下面这些在药品管理里不存在：</p>
+              <ul class="pur-dl" id="purNewList"></ul>
+              <p class="pur-dh">是否自动建药并继续保存进货单？</p>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.closeNewDrug()">取消，先去建药</button>
+              <button type="button" class="pri" onclick="Purchase.confirmNewDrug()">自动建药并保存</button>
+            </div>
+          </div>
+        </div>
+
         <style>
-          .pur-form{padding:10px 12px}
-          .pur-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-          .pur-row label{font-size:13px;color:#555}
-          .pur-row input{border:1px solid #c8c4ba;border-radius:4px;padding:4px 8px;font-size:13px}
-          .pur-tablewrap{overflow:auto}
-          .pur-table input{border:1px solid #c8c4ba;border-radius:3px;padding:3px 6px;font-size:13px;width:100%}
-          .pur-table select{border:1px solid #c8c4ba;border-radius:3px;padding:3px 4px;font-size:13px}
-          .pur-btns{display:flex;gap:8px;align-items:center;margin-top:10px}
+          .pur-mw{ width:460px; background:var(--n-white); border-radius:var(--radius-card);
+            box-shadow:var(--shadow-3,0 18px 48px rgba(0,0,0,.18)); overflow:hidden; }
+          .pur-mh{ padding:15px 18px; font-size:15px; font-weight:700; color:var(--neutral-title);
+            border-bottom:1px solid var(--neutral-2); }
+          .pur-mb{ padding:14px 18px; max-height:52vh; overflow:auto; }
+          .pur-ma{ display:flex; gap:8px; justify-content:flex-end; padding:12px 18px;
+            border-top:1px solid var(--neutral-2); background:var(--neutral-0, #fbfbfa); }
+          .pur-ma button.danger{ background:var(--danger-soft,#fdecea)!important;
+            border-color:var(--danger-line,#f5c6c0)!important; color:var(--danger,#c0392b)!important; }
+          .pur-ma button.pri{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
+          .pur-dt{ margin:0 0 8px; font-size:13px; color:var(--neutral-6); line-height:1.7; }
+          .pur-dh{ margin:8px 0 0; font-size:13px; font-weight:600; color:var(--neutral-title); }
+          .pur-dl{ margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--neutral-6); line-height:1.9; }
+          .pur-dl b{ color:var(--pri-deep); }
+        </style>
+        <style>
+          .pur-form{padding:4px 2px;max-width:1120px}
+          .pur-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+          .pur-row label{font-size:12px;color:var(--neutral-5)}
+          .pur-row input{height:38px;box-sizing:border-box;padding:0 11px;font-size:13px;
+            font-family:inherit;color:var(--neutral-title);background:var(--n-white);
+            border:1px solid var(--neutral-3);border-radius:var(--radius-input)}
+          .pur-row input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+          .pur-tablewrap{overflow:auto;background:var(--n-white);
+            border:1px solid var(--neutral-2);border-radius:var(--radius-card)}
+          .pur-table{width:100%;table-layout:fixed}
+          .pur-table th{background:var(--neutral-1)!important;text-align:left;font-weight:700!important}
+          .pur-table td,.pur-table th{vertical-align:top}
+          .pur-table input,.pur-table select{width:100%;height:34px;box-sizing:border-box;
+            padding:0 10px;font-size:13px;font-family:inherit;color:var(--neutral-title);
+            background:var(--n-white);border:1px solid var(--neutral-3);border-radius:8px}
+          .pur-table input:focus,.pur-table select:focus{outline:none;border-color:var(--pri);
+            box-shadow:0 0 0 3px var(--pri-soft)}
+          .pur-table td,.pur-table th{padding-left:6px!important;padding-right:6px!important}
+          .pur-table td{padding-top:6px!important;padding-bottom:6px!important}
+          /* 全局 .dmtable td input 是右对齐（金额表），药名框要抢回左对齐 */
+          .pur-table td input{text-align:left!important}
+          .pur-table td input.num{text-align:right!important}
+          .pur-btns{display:flex;gap:8px;align-items:center;margin-top:12px}
+          .pur-hint{font-size:11px;line-height:1.5;margin-top:3px;color:#b5462f}
+          #purMsg:empty{display:none}
+          .pur-hint.ok{color:#5b8c5a}
+          .pur-del{color:var(--danger,#c0392b)}
           .pur-total{font-size:13px}
           .pur-total b{font-size:15px;color:#b5462f}
           .pur-msg{color:#c0392b;font-size:12px;margin-top:6px;min-height:14px}
@@ -3485,12 +3828,13 @@ body{ --navw:0px; }
             </div>
             <div class="dm-tablewrap">
               <table class="dmtable">
-                <colgroup><col><col style="width:130px"><col style="width:130px"><col style="width:130px"><col style="width:92px"><col style="width:118px"></colgroup>
+                <colgroup><col><col style="width:122px"><col style="width:122px"><col style="width:122px"><col style="width:106px"><col style="width:92px"><col style="width:118px"></colgroup>
                 <thead><tr>
                   <th class="c-nm">药物名称</th>
                   <th class="c-money">零售价<span class="tu">元/g</span></th>
                   <th class="c-money">批发价<span class="tu">元/kg</span></th>
                   <th class="c-money">进货价<span class="tu">元/kg</span></th>
+                  <th class="c-money c-ro">建议价<span class="tu">元/kg</span></th>
                   <th class="c-st">库存量</th><th class="c-act">操作</th>
                 </tr></thead>
                 <tbody id="dmBody"></tbody>
@@ -3513,6 +3857,7 @@ body{ --navw:0px; }
           .dm-search:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(22,163,74,.10)!important}
           .dm-spacer{flex:1}
           .dm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+          .dm-page .dmtable td.c-ro span{color:#8a8f98}
           .dm-tablewrap{flex:1 1 0;min-height:0;overflow:auto;
             border:1px solid var(--neutral-2);border-radius:var(--radius-card);background:var(--n-white);box-shadow:var(--shadow-1)}
           .dm-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
@@ -3523,13 +3868,16 @@ body{ --navw:0px; }
                    ↓ 次要信息（可折叠）
                    ↓ 多单位 / 进货价历史 / 售价历史（各成一折）
              边距：左右 24px、区块间距 20px；标签在输入框左侧同行对齐。 */
-          .dd-dlg{width:640px;max-width:96vw}
+          .dd-dlg{width:760px;max-width:96vw}
           .dd-dlg>.body{padding:24px;display:flex;flex-direction:column;gap:20px}
           .dd-core{display:flex;flex-direction:column;gap:16px}
           .dd-core-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
           .dd-core-t{font-size:var(--fs-sub);font-weight:700;color:var(--neutral-title)}
           .dd-core-hint{font-size:var(--fs-cap);color:var(--neutral-4)}
           .dd-frow{display:flex;gap:16px;align-items:flex-start}
+          .dd-frow-top{align-items:flex-end}
+          .dd-frow-top .dd-f-name{flex:1 1 0}
+          .dd-frow-top .dd-f-alias{flex:1.5 1 0}
           .dd-f{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:6px}
           .dd-f-2{flex:2 1 0}
           .dd-f label{font-size:var(--fs-cap);color:var(--neutral-5);text-align:left}
@@ -3698,9 +4046,11 @@ body{ --navw:0px; }
                 <span class="dd-core-t">核心信息</span>
                 <span class="dd-core-hint">名称 + 进货价/批发价/零售价必填；每档价格各自按「进货价 × 倍率」联动</span>
               </div>
-              <div class="dd-frow">
-                <div class="dd-f"><label for="ddName">药品名称</label><input id="ddName" autocomplete="off"></div>
-              </div>
+              <div class="dd-frow dd-frow-top">
+                  <div class="dd-f dd-f-name"><label for="ddName">药品名称</label><input id="ddName" autocomplete="off"></div>
+                  <div class="dd-f dd-f-alias"><label for="ddAlias">别名（空格或逗号分隔）</label><input id="ddAlias" placeholder="别名1 别名2" autocomplete="off"></div>
+                  <div class="dd-f"><label for="ddOrigin">产地</label><input id="ddOrigin" placeholder="如 安徽 / 四川" autocomplete="off"></div>
+                </div>
               <div class="dd-pricecard">
                 <div class="dd-pc-hd">
                   <span class="dd-pc-t">价格</span>
@@ -3739,14 +4089,10 @@ body{ --navw:0px; }
 
             <!-- ============ 次要信息区（默认折叠，弱化） ============ -->
             <details class="dd-sec" id="ddMore">
-              <summary><span>次要信息</span><span class="dd-sum-hint">别名 · 斗位 · 产地 · 常用量 · 单位 · 拼音 · 中药分类</span></summary>
+              <summary><span>次要信息</span><span class="dd-sum-hint">斗位 · 常用量 · 单位 · 拼音 · 中药分类</span></summary>
               <div class="dd-sec-body">
                 <div class="dd-frow">
-                  <div class="dd-f"><label for="ddAlias">别名（空格或逗号分隔）</label><input id="ddAlias" placeholder="别名1 别名2" autocomplete="off"></div>
                   <div class="dd-f"><label for="ddDw">斗位</label><input id="ddDw" autocomplete="off"></div>
-                </div>
-                <div class="dd-frow">
-                  <div class="dd-f"><label for="ddOrigin">产地</label><input id="ddOrigin" placeholder="如 安徽 / 四川" autocomplete="off"></div>
                   <div class="dd-f"><label for="ddAmount">常用量</label><input id="ddAmount" placeholder="如 10" autocomplete="off"></div>
                   <div class="dd-f"><label for="ddUnit">单位</label><input id="ddUnit" placeholder="g" autocomplete="off"></div>
                 </div>
@@ -3907,6 +4253,9 @@ body{ --navw:0px; }
 <!-- 处方区右键菜单 -->
 <div id="sheetMenu" class="ctxmenu"></div>
 <div id="printArea"></div>
+<!-- 药方打印（计划药单）专用打印区：每次打印时按模板重建，与制表数据分离 -->
+<div id="wpPrintArea"></div>
+<style id="wpPrintPageCss"></style>
 
 <script src="drugs_data.js"></script>
 <script src="history_data.js"></script>
@@ -5407,6 +5756,7 @@ function guestLoadAll(){
       if(has) CLOUD_DOC_PRICES[r.name]=dp;
       if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
     });
+    try{ purgeTestGuests(); }catch(e){}
   }).catch(function(e){ console.warn('重要客人数据拉取失败:',e.message); });
 }
 function guestDelete(name){
@@ -6342,6 +6692,39 @@ function loadDoctors(){
     if(!DOCTORS[rn]) DOCTORS[rn]={n:rn, at:nowStr(), price:{}, log:[]};
     var t3=DOCTORS[rn]; t3.rates=t3.rates||{};
     for(var rk in rr){ if(t3.rates[rk]==null) t3.rates[rk]=rr[rk]; }
+  }
+  try{ purgeTestGuests(); }catch(e){}
+}
+/* ---------- 一次性清理：浏览器自动化验证留下的测试客人 ----------
+   早期验证时往 doctors 表写过「测试医生甲 / 测试医生乙 / 检索医生」，
+   这些不是真实客人，上线版本「重要客人价格」必须是空状态。
+   命中后本机与云端一并删除，之后靠 PURGE_GUEST_KEY 只做内存过滤，不再重复打库。 */
+var PURGE_GUEST_KEY='rx_purge_testguests_20261030';
+function purgeTestGuests(){
+  var re=/^(测试|检索医生|测试医生)/;
+  var hit=[], nm, i;
+  for(nm in DOCTORS){ if(DOCTORS.hasOwnProperty(nm) && re.test(nm)) hit.push(nm); }
+  if(typeof GUESTS!=='undefined' && GUESTS){
+    for(nm in GUESTS){ if(GUESTS.hasOwnProperty(nm) && re.test(nm) && hit.indexOf(nm)<0) hit.push(nm); }
+  }
+  if(!hit.length) return;
+  var done=false;
+  try{ done=!!localStorage.getItem(PURGE_GUEST_KEY); }catch(e){}
+  for(i=0;i<hit.length;i++){
+    nm=hit[i];
+    try{ delete DOCTORS[nm]; }catch(e){}
+    try{ if(typeof GUESTS!=='undefined' && GUESTS) delete GUESTS[nm]; }catch(e){}
+  }
+  try{ saveDoctors(); }catch(e){}
+  try{ localStorage.setItem(LS_DOCTORS, JSON.stringify(DOCTORS)); }catch(e){}
+  if(!done){
+    for(i=0;i<hit.length;i++){
+      try{
+        if(SUPA.on) SUPA.q('doctors?name=eq.'+encodeURIComponent(hit[i]),{method:'DELETE'}).catch(function(){});
+      }catch(e){}
+    }
+    try{ localStorage.setItem(PURGE_GUEST_KEY,'1'); }catch(e){}
+    try{ console.info('[清理测试客人] '+hit.join('、')); }catch(e){}
   }
 }
 function saveDoctors(){
@@ -7813,11 +8196,30 @@ function genPinyin(name){
   return out;
 }
 /* 表格只平铺常用核心列；常用量/分类/拼音/斗位/进价等挪到「详情」弹窗里看。 */
+/* 建议价（只读计算列）：最新进货价 × 该药批发倍率 ——— 进货单保存后自动跟着变。
+   进货价优先取「进货价历史」里最近一条（含单位不同的进货），没有才退回 d.bp。 */
+function dmSuggestOf(d){
+  if(!d || !d.n) return '';
+  var cost=null;
+  try{ if(typeof Purchase!=='undefined' && Purchase.latestCost) cost=Purchase.latestCost(d.n); }catch(e){ cost=null; }
+  if(cost==null){ var b=parseFloat(d.bp); if(isFinite(b)) cost=b; }
+  if(cost==null || !isFinite(cost)) return '';
+  var r=null, rs=(d.rates&&typeof d.rates==='object')?d.rates:{};
+  if(rs.wp!=null && isFinite(parseFloat(rs.wp))) r=parseFloat(rs.wp);
+  if(r==null){
+    var bp0=parseFloat(d.bp), wp0=parseFloat(d.wp);
+    if(isFinite(bp0) && bp0 && isFinite(wp0)) r=wp0/bp0;
+  }
+  if(r==null) r=(typeof DEF_RATE!=='undefined' && DEF_RATE)?DEF_RATE:1.25;
+  return Math.round(cost*r*100)/100;
+}
+var DM_RO={sg:1};
 var DM_COLS=[
   {k:'n',t:'药物名称'},
   {k:'p',t:'零售价',money:1},
   {k:'wp',t:'批发价',money:1},
   {k:'bp',t:'进货价',money:1},
+  {k:'sg',t:'建议价',money:1,ro:1},
   {k:'st',t:'库存量'}
 ];
 function renderTabs(){
@@ -7874,8 +8276,10 @@ function renderDrugTable(){
     var idx=rows[r].i, d=rows[r].d;
     h+='<tr data-i="'+idx+'" class="'+(selDrugRow===idx?'sel':'')+'">';
     for(var c=0;c<DM_COLS.length;c++){
-      var col=DM_COLS[c], v=d[col.k]; v=(v==null?'':v);
-      h+='<td data-f="'+col.k+'" class="'+(col.money?'c-money':'')+'"><span>'+esc(v)+'</span></td>';
+      var col=DM_COLS[c], v=d[col.k];
+      if(col.k==='sg') v=dmSuggestOf(d);
+      v=(v==null?'':v);
+      h+='<td data-f="'+col.k+'" class="'+(col.money?'c-money':'')+(col.ro?' c-ro':'')+'"'+(col.ro?' title="最新进货价 × 批发倍率（进货单保存后自动更新）"':'')+'><span>'+esc(v)+'</span></td>';
     }
     /* 每行独立的「详情 / 删除」，不用先选中再点顶部按钮 */
     h+='<td class="c-act">'
@@ -7883,7 +8287,7 @@ function renderDrugTable(){
       +'<button type="button" class="dm-rowbtn del" data-act="del" data-i="'+idx+'">删除</button>'
       +'</td></tr>';
   }
-  $('dmBody').innerHTML=h||'<tr><td colspan="6" style="padding:0!important;border:none!important">'+rxEmptyHTML(
+  $('dmBody').innerHTML=h||'<tr><td colspan="7" style="padding:0!important;border:none!important">'+rxEmptyHTML(
         '药物库是空的','点上方「+ 添加」录入第一味药，之后会自动划价与计价')+'</td></tr>';
   $('dmStat').textContent='中药：'+rows.length+' 味 / 共 '+drugsList.length+' 味';
 }
@@ -8659,6 +9063,7 @@ function dmStartEdit(td,tr){
   if(!td||td.querySelector('input')) return;
   var f=td.getAttribute('data-f'), idx=+tr.getAttribute('data-i');
   if(!f) return;                          /* 操作列没有 data-f，不进入编辑 */
+  if(DM_RO[f]) return;                    /* 建议价是计算列，不可编辑 */
   var d=drugsList[idx]; if(!d) return;
   var v=d[f]; v=(v==null?'':v);
   td.__cancel=false;
@@ -10915,20 +11320,540 @@ var WPlan = (function(){
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, closeModal: closeModal
+    openExcel: openExcel, onExcelFile: onExcelFile, closeModal: closeModal,
+    getCur: function(){ return S.cur; },
+    ordersList: function(){ return S.orders; }
   };
+})();
+
+/* =====================================================================
+   🖨 WPrint · 药方（计划药单）打印模板 + 实时预览 + 打印
+   ---------------------------------------------------------------------
+   设计原则（用户 2026-10-29）：
+   ① 制表数据必须干净 —— 订单里只存 客人/日期/药名/数量/单价，**不存店名地址**；
+   ② 店名 / 电话 / 地址 / 单据标题只活在「打印模板」里，渲染时才注入；
+   ③ 同一份订单可套不同模板出 发货单 / 销售单 / 小票 / 不带价格版；
+   ④ 打印走 window.print()，用 #wpPrintArea + 动态 @page，与旧处方打印互不干扰。
+   ===================================================================== */
+var WPrint=(function(){
+  var LS='rx_wptpl_v1';
+  var PAPER={
+    a4:{w:210,h:297,label:'A4 210×297mm'},
+    a5:{w:148,h:210,label:'A5 148×210mm'},
+    '58':{w:58,h:0,label:'小票 58mm'},
+    '80':{w:80,h:0,label:'小票 80mm'}
+  };
+  var TEXTKEYS={title:1,shop:1,tel:1,addr:1,custLabel:1,footNote:1};
+  var S={tpls:[], curId:'', order:null, loaded:false};
+  function n2(x){ var v=parseFloat(x); return isFinite(v)?v:0; }
+  function r2(x){ return Math.round(n2(x)*100)/100; }
+  function mm2px(mm){ return Math.round(n2(mm)*96/25.4*100)/100; }
+
+  /* ---------- 模板数据 ---------- */
+  function baseTpl(){
+    return { id:'', name:'', paper:'a5', orient:'portrait',
+      padL:12, padR:12, padT:10, padB:10,
+      title:'发货单', shop:'', tel:'', addr:'', custLabel:'顾客', footNote:'',
+      showShop:true, showTitle:true, showTel:true, showAddr:true, showIndex:true,
+      showSpec:true, showPrice:true, showAmount:true, showNote:true, showWeight:true,
+      pageMode:'auto', rowsPerPage:20, showPageNo:false,
+      fs:11, rh:22, isDefault:false };
+  }
+  function mk(o){
+    var t=baseTpl(), k;
+    for(k in o){ if(o.hasOwnProperty(k)) t[k]=o[k]; }
+    if(!t.id) t.id=newId();
+    return t;
+  }
+  function newId(){ return 'T'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+  function defaults(){
+    return [
+      mk({id:'T-a5-fh', name:'发货单 · A5（不带价格）', paper:'a5', title:'发货单',
+          pageMode:'page', rowsPerPage:20, showPrice:false, showAmount:false, isDefault:true}),
+      mk({id:'T-a4-xs', name:'销售单 · A4（带价格）', paper:'a4', title:'销售单',
+          padL:18, padR:18, padT:15, padB:15, fs:12, rh:24, pageMode:'auto'}),
+      mk({id:'T-a5-xs', name:'销售单 · A5（带价格）', paper:'a5', title:'销售单',
+          pageMode:'auto'}),
+      mk({id:'T-58-mx', name:'小票 · 58mm', paper:'58', title:'销售单',
+          padL:4, padR:4, padT:3, padB:3, fs:9, rh:17,
+          showShop:false, showTel:false, showAddr:false, showIndex:false,
+          showNote:false, showSpec:false, showWeight:false, custLabel:'顾客'})
+    ];
+  }
+  function load(){
+    if(S.loaded) return;
+    var a=null;
+    try{ a=JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){ a=null; }
+    if(a && a.length){
+      S.tpls=a.map(function(t){
+        var d=baseTpl(), k;
+        for(k in t){ if(t.hasOwnProperty(k)) d[k]=t[k]; }
+        return d;
+      });
+    } else { S.tpls=defaults(); saveLS(); }
+    var dft=null, i;
+    for(i=0;i<S.tpls.length;i++){ if(S.tpls[i].isDefault) dft=S.tpls[i]; }
+    S.curId=(dft||S.tpls[0]).id;
+    S.loaded=true;
+  }
+  function saveLS(){ try{ localStorage.setItem(LS, JSON.stringify(S.tpls)); }catch(e){} }
+  function curTpl(){
+    load();
+    for(var i=0;i<S.tpls.length;i++){ if(S.tpls[i].id===S.curId) return S.tpls[i]; }
+    return S.tpls[0];
+  }
+  function tplById(id){
+    for(var i=0;i<S.tpls.length;i++){ if(S.tpls[i].id===id) return S.tpls[i]; }
+    return null;
+  }
+  /* 云端 print_templates 表：以模板名为自然键，整条覆盖写。
+     header jsonb 存完整配置（表头内容 店名/地址/电话 + 边距 + 字号 + 行高 + 各显示开关），
+     同时同步平列 shop_name / show_price / show_amount / font_size / row_height / is_default，
+     方便在 Supabase 后台直接看。 */
+  function rowOf(t){
+    return { name:t.name,
+      shop_name:t.shop||'',
+      show_price:!!t.showPrice, show_amount:!!t.showAmount,
+      font_size:Math.round(n2(t.fs)), row_height:Math.round(n2(t.rh)),
+      is_default:!!t.isDefault,
+      header:{ id:t.id, shop:t.shop||'', tel:t.tel||'', addr:t.addr||'',
+               pad:{ l:n2(t.padL), r:n2(t.padR), t:n2(t.padT), b:n2(t.padB) },
+               cfg:t } };
+  }
+  /* 同一个模板名的「删 → 写」必须串行：否则新建后立刻删除时，
+     POST 会晚于 DELETE 落地，云端留下一条幽灵模板。 */
+  var _q={};
+  function queue(name, fn){
+    _q[name]=((_q[name]||Promise.resolve()).then(fn)).catch(function(e){
+      console.warn('模板云端写入失败:', (e&&e.message)||e);
+    });
+  }
+  function pushCloud(t){
+    if(typeof SUPA==='undefined' || !SUPA.on || !t) return;
+    var row=rowOf(t), nm=t.name;
+    queue(nm, function(){
+      return SUPA.q('print_templates?name=eq.'+encodeURIComponent(nm), {method:'DELETE'})
+        .then(function(){ return SUPA.q('print_templates',{method:'POST', body:row}); });
+    });
+  }
+  function delCloud(name){
+    if(typeof SUPA==='undefined' || !SUPA.on) return;
+    queue(name, function(){
+      return SUPA.q('print_templates?name=eq.'+encodeURIComponent(name),{method:'DELETE'});
+    });
+  }
+  /* 打开面板时以云端为准（模板要在手机 / Mac / Windows 上一致）；云端空则把本机默认推上去 */
+  function pullCloud(){
+    if(typeof SUPA==='undefined' || !SUPA.on) return;
+    SUPA.q('print_templates?select=*&order=id.asc').then(function(rows){
+      var valid=[], v;
+      for(v=0;v<(rows||[]).length;v++){
+        var rr=rows[v];
+        /* 只认带完整 cfg 的行；早期测试留下的空壳行直接忽略，也顺手清掉 */
+        if(rr && rr.header && rr.header.cfg && rr.header.cfg.paper) valid.push(rr);
+        else if(rr && rr.name) delCloud(rr.name);
+      }
+      if(!valid.length){
+        for(var q0=0;q0<S.tpls.length;q0++) pushCloud(S.tpls[q0]);
+        return;
+      }
+      var out=[], i;
+      for(i=0;i<valid.length;i++){
+        var r=valid[i], h=r.header||{}, cfg=h.cfg||{};
+        var t=baseTpl(), k;
+        for(k in cfg){ if(cfg.hasOwnProperty(k)) t[k]=cfg[k]; }
+        if(!t.id) t.id=h.id||newId();
+        t.name=String(r.name||t.name||'模板');
+        t.shop=String(r.shop_name==null?(t.shop||''):r.shop_name);
+        if(r.show_price!=null) t.showPrice=!!r.show_price;
+        if(r.show_amount!=null) t.showAmount=!!r.show_amount;
+        if(r.font_size!=null) t.fs=r.font_size;
+        if(r.row_height!=null) t.rh=r.row_height;
+        t.isDefault=!!r.is_default;
+        if(h.tel!=null) t.tel=String(h.tel);
+        if(h.addr!=null) t.addr=String(h.addr);
+        if(h.pad){ t.padL=n2(h.pad.l); t.padR=n2(h.pad.r); t.padT=n2(h.pad.t); t.padB=n2(h.pad.b); }
+        out.push(t);
+      }
+      if(!out.length) return;
+      S.tpls=out; saveLS();
+      var dft=null;
+      for(i=0;i<S.tpls.length;i++){ if(S.tpls[i].isDefault) dft=S.tpls[i]; }
+      S.curId=(dft||S.tpls[0]).id;
+      renderList(); syncForm(); renderPreview();
+    }).catch(function(){});
+  }
+  /* ---------- 打开展示 ---------- */
+
+  /* ---------- 打开展示 ---------- */
+  function open(){
+    var o=null;
+    try{ o=WPlan.getCur(); }catch(e){ o=null; }
+    /* 没有打开的订单时，自动打开最近一张，别让「打印设置」变成一个死按钮 */
+    if(!o){
+      var list=[];
+      try{ list=WPlan.ordersList()||[]; }catch(e){ list=[]; }
+      if(list.length){ try{ WPlan.selectOrder(list[0].id); o=WPlan.getCur(); }catch(e){} }
+    }
+    if(!o && WPlan && WPlan.ensure){ try{ WPlan.ensure(); o=WPlan.getCur(); }catch(e){} }
+    if(!o){ toast('先在「制表 / 详情」里点开一张订单'); return; }
+    load();
+    S.order=o;
+    var sh=$('wpsSheet'); if(!sh) return;
+    sh.classList.add('on');
+    renderList(); syncForm(); renderPreview(); pullCloud();
+  }
+  function close(){ var sh=$('wpsSheet'); if(sh) sh.classList.remove('on'); }
+  function isOpen(){ var sh=$('wpsSheet'); return !!(sh && sh.classList.contains('on')); }
+
+  function seg(id, v){
+    var box=$(id); if(!box) return;
+    var bs=box.querySelectorAll('button');
+    for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-v')===v); }
+  }
+  function setNum(id,v){ var e=$(id); if(e) e.textContent=v; }
+  function setVal(id,v){ var e=$(id); if(e) e.value=(v==null?'':v); }
+  function setChk(id,v){ var e=$(id); if(e) e.checked=!!v; }
+
+  function renderList(){
+    var box=$('wpsTplList'); if(!box) return;
+    load();
+    var h='', i, t;
+    for(i=0;i<S.tpls.length;i++){
+      t=S.tpls[i];
+      h+='<div class="wps-tpl'+(t.id===S.curId?' on':'')+'" data-id="'+esc(t.id)+'">'
+        +'<div class="t"><b>'+esc(t.name)+(t.isDefault?' · 默认':'')+'</b>'
+        +'<span>'+esc((PAPER[t.paper]||PAPER.a5).label)+' · '+esc(t.title||'')+'</span></div>'
+        +'<button type="button" class="wps-ico" title="重命名" onclick="event.stopPropagation();WPrint.renameTpl(\''+esc(t.id)+'\')">✎</button>'
+        +'<button type="button" class="wps-ico del" title="删除模板" onclick="event.stopPropagation();WPrint.delTpl(\''+esc(t.id)+'\')">✕</button>'
+        +'</div>';
+    }
+    box.innerHTML=h;
+    var rows=box.querySelectorAll('.wps-tpl');
+    for(i=0;i<rows.length;i++){
+      rows[i].onclick=function(){ pick(this.getAttribute('data-id')); };
+    }
+  }
+  function pick(id){
+    if(!tplById(id)) return;
+    S.curId=id; renderList(); syncForm(); renderPreview();
+  }
+  function syncForm(){
+    var t=curTpl();
+    setVal('wpsPaperSel',t.paper);
+    seg('wpsOrient',t.orient); seg('wpsPageMode',t.pageMode);
+    setVal('wpsPadL',t.padL); setNum('wpsPadLv',t.padL);
+    setVal('wpsPadR',t.padR); setNum('wpsPadRv',t.padR);
+    setVal('wpsPadT',t.padT); setNum('wpsPadTv',t.padT);
+    setVal('wpsPadB',t.padB); setNum('wpsPadBv',t.padB);
+    setVal('wpsRpp',t.rowsPerPage); setNum('wpsRppv',t.rowsPerPage);
+    setChk('wpsShowPageNo',t.showPageNo);
+    setVal('wpsTitle',t.title); setVal('wpsShop',t.shop); setVal('wpsTel',t.tel);
+    setVal('wpsAddr',t.addr); setVal('wpsCustLabel',t.custLabel); setVal('wpsFoot',t.footNote);
+    setChk('wpsSwShop',t.showShop); setChk('wpsSwTitle',t.showTitle);
+    setChk('wpsSwTel',t.showTel); setChk('wpsSwAddr',t.showAddr);
+    setChk('wpsSwIndex',t.showIndex); setChk('wpsSwSpec',t.showSpec);
+    setChk('wpsSwPrice',t.showPrice); setChk('wpsSwAmount',t.showAmount);
+    setChk('wpsSwNote',t.showNote); setChk('wpsSwWeight',t.showWeight);
+    setVal('wpsFs',t.fs); setNum('wpsFsv',t.fs);
+    setVal('wpsRh',t.rh); setNum('wpsRhv',t.rh);
+    var rr=$('wpsRppRow'); if(rr) rr.style.display=(t.pageMode==='auto'?'none':'flex');
+    var bt=$('wpsBarTpl'); if(bt) bt.textContent=t.name;
+    var bm=$('wpsBarMeta');
+    if(bm) bm.textContent=(PAPER[t.paper]||PAPER.a5).label+' · '+(t.orient==='landscape'?'横向':'纵向');
+  }
+  /* 所有左侧控件都走这一个入口：改模板 → 存本地 → 刷预览 */
+  function cfg(k,v){
+    var t=curTpl();
+    var bools={showShop:1,showTitle:1,showTel:1,showAddr:1,showIndex:1,showSpec:1,
+               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1};
+    if(bools[k]) t[k]=!!v;
+    else if(TEXTKEYS[k]) t[k]=String(v==null?'':v);
+    else if(k==='paper'||k==='orient'||k==='pageMode') t[k]=v;
+    else t[k]=n2(v);
+    saveLS();
+    if(!TEXTKEYS[k]) syncForm();
+    renderPreview();
+  }
+
+  /* ---------- 模板增删改 ---------- */
+  function addTpl(){
+    load();
+    var c=mk({ name:'新模板 '+(S.tpls.length+1), paper:'a5', title:'发货单' });
+    c.isDefault=false;
+    S.tpls.push(c); S.curId=c.id; saveLS();
+    renderList(); syncForm(); renderPreview(); pushCloud(c);
+  }
+  function renameTpl(id){
+    var t=tplById(id); if(!t) return;
+    var nm=prompt('模板名称', t.name);
+    if(nm===null) return;
+    nm=String(nm).trim(); if(!nm) return;
+    var old=t.name;
+    t.name=nm; S.curId=id; saveLS();
+    if(old!==nm) delCloud(old);
+    renderList(); syncForm(); pushCloud(t);
+  }
+  function delTpl(id){
+    load();
+    if(S.tpls.length<=1){ toast('至少保留一个模板'); return; }
+    var t=tplById(id); if(!t) return;
+    if(!confirm('删除模板「'+t.name+'」？')) return;
+    var wasDefault=!!t.isDefault, i;
+    for(i=0;i<S.tpls.length;i++){ if(S.tpls[i].id===id){ S.tpls.splice(i,1); break; } }
+    if(wasDefault && S.tpls.length) S.tpls[0].isDefault=true;
+    if(S.curId===id) S.curId=S.tpls[0].id;
+    saveLS(); delCloud(t.name);
+    renderList(); syncForm(); renderPreview();
+    toast('已删除模板');
+  }
+  function saveTpl(asNew){
+    var t=curTpl();
+    if(asNew){
+      var nm=prompt('新模板名称','副本 · '+(t.title||t.name));
+      if(nm===null) return;
+      var c=mk(t);
+      c.id=newId(); c.name=String(nm||'').trim()||('模板 '+(S.tpls.length+1)); c.isDefault=false;
+      S.tpls.push(c); S.curId=c.id; saveLS(); pushCloud(c);
+      renderList(); syncForm(); renderPreview();
+      toast('已另存为「'+c.name+'」');
+      return;
+    }
+    saveLS(); pushCloud(t); toast('模板已保存');
+  }
+
+  /* ---------- 单据内容 ---------- */
+  function orderRemark(o){
+    var out=[], bs=(o&&o.blocks)||[];
+    for(var i=0;i<bs.length;i++){
+      if(bs[i].remark && String(bs[i].remark).trim()) out.push(String(bs[i].remark).trim());
+    }
+    return out.join('；');
+  }
+  function flatRows(o){
+    var out=[], bs=(o&&o.blocks)||[], i, j, b, its, it, doses, q, pr;
+    for(i=0;i<bs.length;i++){
+      b=bs[i]; doses=n2(b.doses)||1; its=b.items||[];
+      for(j=0;j<its.length;j++){
+        it=its[j];
+        if(!it || !String(it.name==null?'':it.name).trim()) continue;
+        q=n2(it.qty)*doses;
+        pr=it.zibei?0:n2(it.price);
+        out.push({ name:String(it.name).trim(), sfx:it.sfx||'',
+          unit:(it.du||it.unit||'g'),
+          qty:q, price:pr, amount:it.zibei?0:r2(pr*q),
+          note:it.rm||'', zibei:!!it.zibei });
+      }
+    }
+    return out;
+  }
+  function weightOf(rows){
+    var w=0, i, u, q;
+    for(i=0;i<rows.length;i++){
+      u=String(rows[i].unit||'').toLowerCase(); q=n2(rows[i].qty);
+      if(u==='g') w+=q/1000;
+      else if(u==='kg') w+=q;
+      else if(u==='斤') w+=q*0.5;
+    }
+    return Math.round(w*1000)/1000;
+  }
+  function fmtQty(v){ return String(Math.round(n2(v)*1000)/1000); }
+  function fmtMoney(v){ return String(Math.round(n2(v)*100)/100); }
+  /* 人民币大写（发货单/销售单底部的「成交金额大写」） */
+  function upperMoney(num){
+    var x=n2(num);
+    if(x<=0) return '零元整';
+    var D=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];
+    var U=['','拾','佰','仟','万','拾','佰','仟','亿','拾','佰','仟'];
+    var i0=Math.floor(x), dec=Math.round((x-i0)*100);
+    var str=String(i0), s='', i;
+    for(i=0;i<str.length;i++){ s+=D[+str.charAt(i)]+U[str.length-1-i]; }
+    s=s.replace(/零[拾佰仟]/g,'零').replace(/零零+/g,'零')
+       .replace(/零([万亿])/g,'$1').replace(/^零+/,'').replace(/零+$/,'');
+    if(s) s+='元';
+    if(!dec) return (s||'零元')+'整';
+    var jiao=Math.floor(dec/10), fen=dec%10;
+    if(jiao) s+=D[jiao]+'角'; else if(fen) s+='零';
+    if(fen) s+=D[fen]+'分';
+    return s;
+  }
+  function paginate(rows, t){
+    var out=[], per=Math.max(1, Math.round(n2(t.rowsPerPage)||20));
+    if(t.pageMode==='auto' || rows.length<=per){ out.push(rows); return out; }
+    for(var i=0;i<rows.length;i+=per) out.push(rows.slice(i, i+per));
+    return out;
+  }
+  function colSpec(t){
+    var cols=[], narrow=(t.paper==='58'||t.paper==='80');
+    if(t.showIndex) cols.push({k:'i', t:'行号', w:8, cls:'c'});
+    cols.push({k:'n', t:'商品名称', w:narrow?46:28});
+    if(t.showSpec) cols.push({k:'s', t:'规格', w:11, cls:'c'});
+    cols.push({k:'q', t:'数量', w:narrow?17:12, cls:'num'});
+    if(t.showPrice) cols.push({k:'p', t:'单价', w:narrow?18:13, cls:'num'});
+    if(t.showAmount) cols.push({k:'a', t:'金额', w:narrow?19:13, cls:'num'});
+    if(t.showNote) cols.push({k:'m', t:'备注', w:15});
+    return cols;
+  }
+  function pageHtml(o, t, rows, pi, totalPages){
+    var h='', i, r, cols=colSpec(t), sum=0, wt=weightOf(rows), colW=0, c;
+    var narrow=(t.paper==='58'||t.paper==='80');
+    for(i=0;i<cols.length;i++) colW+=cols[i].w;
+
+    /* ---- 表头：店名 / 电话 / 地址 / 标题 全部来自模板 ---- */
+    var left='', right='';
+    left+='<div>'+esc(t.custLabel||'顾客')+'：'+esc(String(o.guest||'').trim()||'—')+'</div>';
+    left+='<div>业务日期：'+esc(o.date||'')+'</div>';
+    if(o.no) left+='<div>单号：'+esc(o.no)+'</div>';
+    var rmk=orderRemark(o);
+    if(rmk) left+='<div>备注：'+esc(rmk)+'</div>';
+    if(t.showShop && t.shop) right+='<div>制单：'+esc(t.shop)+'</div>';
+    if(t.showTel && t.tel) right+='<div>电话：'+esc(t.tel)+'</div>';
+    if(t.showAddr && t.addr) right+='<div>地址：'+esc(t.addr)+'</div>';
+
+    h+='<div class="wpd'+(narrow?' wpd-narrow':'')+'" style="--wpd-rh:'+Math.round(n2(t.rh))+'px">';
+    h+='<div class="wpd-h">';
+    if(t.showShop && t.shop) h+='<div class="wpd-shop">'+esc(t.shop)+'</div>';
+    if(t.showTitle) h+='<div class="wpd-title">'+esc(t.title||'发货单')+'</div>';
+    h+='<div class="wpd-metas"><div class="l">'+left+'</div><div class="r">'+right+'</div></div>';
+    h+='</div>';
+
+    /* ---- 明细表 ---- */
+    h+='<table class="wpd-tbl"><colgroup>';
+    for(i=0;i<cols.length;i++){ h+='<col style="width:'+(Math.round(cols[i].w/colW*1000)/10)+'%">'; }
+    h+='</colgroup><thead><tr>';
+    for(i=0;i<cols.length;i++){
+      c=cols[i];
+      h+='<th'+(c.cls?' class="'+c.cls+'"':'')+'>'+esc(c.t)+'</th>';
+    }
+    h+='</tr></thead><tbody>';
+    for(i=0;i<rows.length;i++){
+      r=rows[i]; sum+=r.amount;
+      h+='<tr>';
+      if(t.showIndex) h+='<td class="c">'+(pi*Math.max(1,Math.round(n2(t.rowsPerPage)||20))+i+1)+'</td>';
+      h+='<td>'+esc(r.name)+(r.sfx?(' '+esc(r.sfx)):'')+'</td>';
+      if(t.showSpec) h+='<td class="c">'+esc(r.unit)+'</td>';
+      h+='<td class="num">'+fmtQty(r.qty)+'</td>';
+      if(t.showPrice) h+='<td class="num">'+(r.zibei?'自备':fmtMoney(r.price))+'</td>';
+      if(t.showAmount) h+='<td class="num">'+(r.zibei?'—':fmtMoney(r.amount))+'</td>';
+      if(t.showNote) h+='<td>'+esc(r.note)+'</td>';
+      h+='</tr>';
+    }
+    h+='</tbody></table>';
+
+    /* ---- 合计 ---- */
+    h+='<div class="wpd-sum">';
+    if(t.showWeight) h+='<span>合计重量：'+wt+'kg</span>';
+    if(t.showAmount) h+='<span>合计金额：'+fmtMoney(sum)+'</span>';
+    h+='</div>';
+    if(t.showAmount) h+='<div class="wpd-word">成交金额大写：'+upperMoney(sum)+'</div>';
+    if(t.pageMode==='pageSub' && t.showAmount && totalPages>1){
+      h+='<div class="wpd-subline">本页小计：'+fmtMoney(sum)+' 元（第 '+(pi+1)+' / '+totalPages+' 页）</div>';
+    }
+
+    /* ---- 页脚 ---- */
+    h+='<div class="wpd-foot"><div>'+esc(t.footNote||'')+'</div>';
+    if(t.showTel && t.tel) h+='<div>联系方式：'+esc(t.tel)+'</div>';
+    h+='<div>盖章处：</div></div>';
+    if(totalPages>1 || t.showPageNo){
+      h+='<div class="wpd-page">'+(t.showPageNo?('第 '+(pi+1)+' / '+totalPages+' 页'):'页：'+(pi+1)+'/'+totalPages)+'</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+  function docHtml(o, t){
+    var rows=flatRows(o), pages=paginate(rows,t), h='', i;
+    for(i=0;i<pages.length;i++) h+=pageHtml(o, t, pages[i], i, pages.length);
+    return h;
+  }
+
+  /* ---------- 预览 ---------- */
+  function renderPreview(){
+    var t=curTpl(), o=S.order||{blocks:[]};
+    var paper=$('wpsPaper'), stage=$('wpsStage');
+    if(!paper) return;
+    var p=PAPER[t.paper]||PAPER.a5;
+    var w=p.w, hh=(p.h||240);
+    if(t.orient==='landscape'){ var tmp=w; w=hh; hh=tmp; }
+    var pw=mm2px(w), ph=mm2px(hh);
+    paper.style.width=pw+'px';
+    paper.style.minHeight=ph+'px';
+    paper.style.padding=n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm';
+    paper.style.fontSize=Math.round(n2(t.fs))+'px';
+    paper.innerHTML=docHtml(o,t);
+    /* 预览只显示第一页（后面的页打印时才输出） */
+    var pgs=paper.querySelectorAll('.wpd');
+    for(var i=1;i<pgs.length;i++) pgs[i].style.display='none';
+    var rows=flatRows(o), tot=0, j;
+    for(j=0;j<rows.length;j++) tot+=rows[j].amount;
+    var avail=(stage?stage.clientWidth:900)-52;
+    var sc=avail/pw; if(sc>1) sc=1; if(sc<0.2) sc=0.2;
+    paper.style.zoom=Math.round(sc*1000)/1000;
+    var bo=$('wpsBarOrder');
+    if(bo) bo.textContent=(String(o.guest||'').trim()||'未填客人')+' · '+(o.date||'')+' · '+rows.length+' 味 · '+
+      (pgs.length>1?('共 '+pgs.length+' 页'):'1 页')+' · 合计 ¥'+fmtMoney(tot);
+    window.__WPS_LAST={ pages:pgs.length, rows:rows.length, total:tot,
+      pageW:w, pageH:hh, scale:paper.style.zoom };
+  }
+
+  /* ---------- 打印 ---------- */
+  function pageSizeCss(t){
+    var p=PAPER[t.paper]||PAPER.a5, w=p.w, hh=p.h;
+    if(t.orient==='landscape'){ var tmp=w; w=hh||240; hh=tmp; }
+    return (hh? (w+'mm '+hh+'mm') : (w+'mm auto'));
+  }
+  function doPrint(){
+    var t=curTpl(), o=S.order;
+    if(!o){ toast('没有可打印的订单'); return; }
+    var area=$('wpPrintArea'), css=$('wpPrintPageCss');
+    if(!area || !css) return;
+    var p=PAPER[t.paper]||PAPER.a5;
+    var w=p.w;
+    if(t.orient==='landscape') w=(p.h||240);
+    var s='@page{size:'+pageSizeCss(t)+';margin:0}';
+    s+='#wpPrintArea{display:block;width:'+w+'mm}';
+    s+='#wpPrintArea .wpd{padding:'+n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm;'
+      +'font-size:'+Math.round(n2(t.fs))+'px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#000}';
+    css.textContent=s;
+    area.innerHTML=docHtml(o,t);
+    document.body.classList.add('wp-printing');
+    var done=false;
+    function clean(){
+      if(done) return; done=true;
+      document.body.classList.remove('wp-printing');
+      area.innerHTML='';
+      css.textContent='';
+      window.removeEventListener('afterprint', clean);
+    }
+    window.addEventListener('afterprint', clean);
+    try{ window.print(); }catch(e){ toastErr('调起打印失败：'+((e&&e.message)||e)); }
+    setTimeout(clean, 1500);
+  }
+
+  /* Esc 关闭面板 */
+  document.addEventListener('keydown', function(e){
+    if((e.key==='Escape'||e.keyCode===27) && isOpen()) close();
+  });
+
+  return { open:open, close:close, isOpen:isOpen, cfg:cfg, pick:pick,
+    addTpl:addTpl, renameTpl:renameTpl, delTpl:delTpl, saveTpl:saveTpl,
+    doPrint:doPrint, renderPreview:renderPreview, docHtml:docHtml,
+    upperMoney:upperMoney, flatRows:flatRows, weightOf:weightOf,
+    tpls:function(){ load(); return S.tpls; }, cur:curTpl,
+    _state:S };
 })();
 
 /* ===================== 进货单模块 ===================== */
 var Purchase = (function(){
+  /* 进货单：录单 → 库存累加 → 进价历史 → 建议价联动；删除可回滚库存。
+     ⚠ 库存严格按「药名 + 单位」匹配：同一味药的 g 和 kg 是两条独立库存。 */
   var LS='rx_purchases_v1', LSLOG='rx_costlog_v1';
-  var S={orders:[], cur:null, sub:'list', search:'', log:[]};
+  var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[]};
   function load(){
     try{ S.orders=JSON.parse(localStorage.getItem(LS)||'[]'); }catch(e){ S.orders=[]; }
     try{ S.log=JSON.parse(localStorage.getItem(LSLOG)||'[]'); }catch(e){ S.log=[]; }
   }
-  function saveLS(){ localStorage.setItem(LS, JSON.stringify(S.orders)); }
-  function saveLogLS(){ localStorage.setItem(LSLOG, JSON.stringify(S.log)); }
+  function saveLS(){ try{ localStorage.setItem(LS, JSON.stringify(S.orders)); }catch(e){} }
+  function saveLogLS(){ try{ localStorage.setItem(LSLOG, JSON.stringify(S.log)); }catch(e){} }
   function fmt2(x){ x=parseFloat(x)||0; return x.toFixed(2); }
   function round2(x){ return Math.round((parseFloat(x)||0)*100)/100; }
   function autoNo(){
@@ -10938,6 +11863,20 @@ var Purchase = (function(){
   }
   function today(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
   function upsert(arr,rec){ for(var k=0;k<arr.length;k++){ if(arr[k].no===rec.no){ arr[k]=rec; return arr; } } arr.push(rec); return arr; }
+  function findByNo(no){ for(var i=0;i<S.orders.length;i++){ if(S.orders[i].no===no) return S.orders[i]; } return null; }
+  function findDrug(name){
+    name=String(name==null?'':name).trim();
+    if(!name) return null;
+    for(var i=0;i<drugsList.length;i++){ if(drugsList[i].n===name) return drugsList[i]; }
+    return null;
+  }
+  function hasUnit(d, unit){
+    if(!d) return false;
+    if(String(d.u||'g')===String(unit)) return true;
+    var un=d.un||[];
+    for(var i=0;i<un.length;i++){ if(String(un[i].unit)===String(unit)) return true; }
+    return false;
+  }
   function ensure(){
     load();
     if(SUPA.on){ SUPA.loadPurchases().then(function(rows){
@@ -10956,16 +11895,18 @@ var Purchase = (function(){
     if(sub==='list') renderList();
   }
   function newOrder(){
-    S.cur={no:autoNo(), dt:today(), supplier:'', items:[{name:'',qty:'',unit:'g',cost:'',amount:0}], note:''};
+    S.cur={no:autoNo(), dt:today(), supplier:'', items:[{name:'',qty:'',unit:'g',cost:'',amount:0}], note:'', total:0};
     renderEdit(); showSub('edit');
   }
   function editOrder(no){
-    var o=null; for(var i=0;i<S.orders.length;i++){ if(S.orders[i].no===no){ o=S.orders[i]; break; } }
-    if(!o) return; S.cur=JSON.parse(JSON.stringify(o)); renderEdit(); showSub('edit');
+    var o=findByNo(no); if(!o) return;
+    S.cur=JSON.parse(JSON.stringify(o));
+    renderEdit(); showSub('edit');
   }
   function recalc(){
     var total=0; S.cur.items.forEach(function(it){ var q=parseFloat(it.qty)||0, c=parseFloat(it.cost)||0; it.amount=q*c; total+=it.amount; });
     var t=$('purTotal'); if(t) t.textContent=fmt2(total);
+    return total;
   }
   function fillDrugList(){
     var dl=$('purchaseDrugList'); if(!dl) return;
@@ -10976,8 +11917,14 @@ var Purchase = (function(){
     tb.innerHTML=S.cur.items.map(function(it,i){
       var opts=['g','kg','斤','个','条','盒','罐','包','瓶'].map(function(u){
         return '<option'+(u===(it.unit||'g')?' selected':'')+'>'+u+'</option>'; }).join('');
+      var d=findDrug(it.name), hint='';
+      if(it.name){
+        if(!d) hint='<div class="pur-hint">药品库无此药</div>';
+        else if(!hasUnit(d,it.unit)) hint='<div class="pur-hint">无「'+esc(it.unit)+'」单位</div>';
+        else hint='<div class="pur-hint ok">现有库存 '+esc(String(stockOf(d,it.unit)))+' '+esc(it.unit)+'</div>';
+      }
       return '<tr data-i="'+i+'">'
-        +'<td><input list="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名"></td>'
+        +'<td><input list="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名">'+hint+'</td>'
         +'<td><input class="pur-qty num" value="'+esc(it.qty||'')+'" placeholder="数量" style="width:100%"></td>'
         +'<td><select class="pur-unit">'+opts+'</select></td>'
         +'<td><input class="pur-cost num" value="'+esc(it.cost||'')+'" placeholder="单价" style="width:100%"></td>'
@@ -10991,12 +11938,24 @@ var Purchase = (function(){
         var i=+tr.getAttribute('data-i');
         var name=tr.querySelector('.pur-name'), qty=tr.querySelector('.pur-qty'), unit=tr.querySelector('.pur-unit'), cost=tr.querySelector('.pur-cost');
         function upd(){ var it=S.cur.items[i]; it.name=name.value; it.qty=qty.value; it.unit=unit.value; it.cost=cost.value; recalc(); }
-        name.oninput=upd; qty.oninput=upd; cost.oninput=upd; unit.onchange=upd;
+        name.oninput=function(){ upd(); };
+        name.onchange=function(){ upd(); renderItems(); };
+        unit.onchange=function(){ upd(); renderItems(); };
+        qty.oninput=upd; cost.oninput=upd;
       })(rows[r]);
     }
   }
+  function stockOf(d, unit){
+    if(!d) return 0;
+    if(String(d.u||'g')===String(unit) && (d.st!==''&&d.st!=null)) return parseFloat(d.st)||0;
+    var un=d.un||[];
+    for(var i=0;i<un.length;i++){ if(String(un[i].unit)===String(unit)) return parseFloat(un[i].stock)||0; }
+    return 0;
+  }
   function renderEdit(){
-    $('purNo').value=S.cur.no||''; $('purDt').value=S.cur.dt||today(); $('purSupplier').value=S.cur.supplier||'';
+    $('purNo').value=S.cur.no||''; $('purDt').value=S.cur.dt||today();
+    $('purSupplier').value=S.cur.supplier||'';
+    var nt=$('purNote'); if(nt) nt.value=S.cur.note||'';
     if(!S.cur.items||!S.cur.items.length) S.cur.items=[{name:'',qty:'',unit:'g',cost:'',amount:0}];
     renderItems(); fillDrugList(); recalc();
     var m=$('purMsg'); if(m) m.textContent='';
@@ -11007,72 +11966,212 @@ var Purchase = (function(){
     if(!S.cur.items.length) S.cur.items.push({name:'',qty:'',unit:'g',cost:'',amount:0});
     renderItems();
   }
+
+  /* ---------- 保存 ---------- */
+  function missingUnits(items){
+    var out=[];
+    items.forEach(function(it){
+      var d=findDrug(it.name);
+      if(!d) out.push({name:it.name, unit:it.unit, why:'药品库中还没有这味药'});
+      else if(!hasUnit(d, it.unit)) out.push({name:it.name, unit:it.unit, why:'该药没有「'+it.unit+'」这个单位'});
+    });
+    return out;
+  }
   function saveOrder(){
-    S.cur.no=$('purNo').value.trim(); S.cur.dt=$('purDt').value; S.cur.supplier=$('purSupplier').value.trim();
+    S.cur.no=$('purNo').value.trim()||autoNo();
+    S.cur.dt=$('purDt').value||today();
+    S.cur.supplier=$('purSupplier').value.trim();
+    var nt=$('purNote'); S.cur.note=nt?nt.value.trim():'';
     S.cur.items=S.cur.items.filter(function(it){ return (it.name||'').trim(); });
     var bad=[];
     S.cur.items.forEach(function(it){ if(!(parseFloat(it.qty)>0)||!(parseFloat(it.cost)>=0)) bad.push(it.name); });
-    var m=$('purMsg');
+    var m=$('purMsg'); if(m) m.textContent='';
     if(!S.cur.items.length){ if(m) m.textContent='请至少录入一味药材'; return; }
     if(bad.length){ if(m) m.textContent='有行的数量/单价没填好：'+bad.join('、'); return; }
+    /* 严格按「药名 + 单位」匹配库存：库里没有就先问一句，绝不偷偷建药 */
+    var miss=missingUnits(S.cur.items);
+    if(miss.length){
+      S.missing=miss; S.pending=S.cur;
+      var ul=$('purNewList');
+      if(ul) ul.innerHTML=miss.map(function(x){ return '<li>'+esc(x.name)+'（<b>'+esc(x.unit)+'</b>）— '+esc(x.why)+'</li>'; }).join('');
+      openM('purNewModal');
+      return;
+    }
+    commitSave();
+  }
+  function commitSave(){
     recalc();
     S.cur.total=0; S.cur.items.forEach(function(it){ S.cur.total+=it.amount; });
+    /* 改单重存：先把旧单造成的库存与进价流水撤回，再按新内容重记，否则库存会翻倍 */
+    var prev=findByNo(S.cur.no);
+    if(prev) undoStock(prev);
     S.orders=upsert(S.orders, S.cur); saveLS();
-    /* 进货必更新库存：无论是否连云端都要更新本机药物库存；
-       只有云端写入（进货单、进货价历史）才依赖 SUPA.on。 */
-    S.cur.items.forEach(function(it){ updateDrugStock(it.name, it.unit, parseFloat(it.qty), parseFloat(it.cost), S.cur.dt, S.cur.supplier, S.cur.no); });
+    S.cur.items.forEach(function(it){
+      applyStock(it.name, it.unit, parseFloat(it.qty), parseFloat(it.cost), S.cur.dt, S.cur.supplier, S.cur.no);
+    });
     if(SUPA.on){
       var rec={no:S.cur.no, dt:S.cur.dt, supplier:S.cur.supplier,
         items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount}; }),
         total:S.cur.total, note:S.cur.note||''};
       SUPA.savePurchase(rec).catch(function(e){ toastErr('进货单云端保存失败：'+e.message); });
     }
-    toast('进货单 '+S.cur.no+' 已保存');
+    var no=S.cur.no;
+    toast('进货单 '+no+' 已保存，库存已更新');
     S.cur=null; showSub('list');
+    try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){}
   }
-  function updateDrugStock(name, unit, qty, cost, dt, supplier, pno){
-    if(!name) return;
-    var idx=-1; for(var i=0;i<drugsList.length;i++){ if(drugsList[i].n===name){ idx=i; break; } }
-    var d;
-    if(idx<0){
-      d={n:name,u:unit,c:'',tc:'',py:genPinyin(name),dw:'',cat:'中药',bp:String(cost),p:'',st:'',dp:'',og:'',al:[],un:[]};
-      drugsList.push(d); idx=drugsList.length-1;
-    } else { d=drugsList[idx]; }
+  /* 库存写云端失败：本机已改，云端没改 → 必须让人知道（只提示一次，别刷屏） */
+  var _stockWarned=false;
+  function warnStockCloud(e){
+    console.warn('库存云端写入失败:', (e&&e.message)||e);
+    if(_stockWarned) return;
+    _stockWarned=true;
+    try{ toastErr('库存已写本机，但云端同步失败：'+((e&&e.message)||'网络错误')+'（刷新后可能丢）'); }catch(e2){}
+  }
+
+  /* 库存写入（药名 + 单位）：只改这一条，不动其它单位 */
+  function applyStock(name, unit, qty, cost, dt, supplier, pno){
+    var d=findDrug(name);
+    if(!d){
+      d={n:name, u:unit, c:'', tc:'', py:genPinyin(name), dw:'', cat:'中药', bp:String(cost), p:'', st:'0', dp:'', og:'', al:[], un:[]};
+      drugsList.push(d);
+    }
     if(!Array.isArray(d.un)) d.un=[];
-    var uu=null; for(var k=0;k<d.un.length;k++){ if(d.un[k].unit===unit){ uu=d.un[k]; break; } }
-    if(!uu){ uu={unit:unit,stock:0,cost:cost,retail:'',daily:''}; d.un.push(uu); }
-    uu.stock=(parseFloat(uu.stock)||0)+qty; uu.cost=cost;
-    if(unit===d.u){ d.st=String(parseFloat(d.st||0)+qty); d.bp=String(cost); }
-    if(!d.p){
-      /* 没有零售价 → 按这味药自己的零售倍率算（没设过才退回老的全局倍率） */
-      var rr=(d.rates&&parseFloat(d.rates.p))||((SET&&SET.rate)?SET.rate:1.5);
-      d.rates=d.rates||{}; d.rates.p=rr;
-      d.p=String(round2(cost*rr/1000));   /* 进货价元/kg → 零售价元/g */
+    var uu=null, i;
+    for(i=0;i<d.un.length;i++){ if(String(d.un[i].unit)===String(unit)){ uu=d.un[i]; break; } }
+    if(!uu){ uu={unit:unit, stock:0, cost:cost, retail:'', daily:''}; d.un.push(uu); }
+    uu.stock=(parseFloat(uu.stock)||0)+qty;
+    uu.cost=cost;
+    if(String(unit)===String(d.u)){
+      d.st=String((parseFloat(d.st)||0)+qty);
+      d.bp=String(cost);
     }
     saveDrugsLS();
-    if(SUPA.on){
-      try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(function(){}); }catch(e){}
-    }
-    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno};
+    if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
+    /* 进价历史：每次进货都留一条（时间 / 价格 / 来源=进货单） */
+    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno, src:'进货单'};
     S.log.push(clog); saveLogLS();
     if(SUPA.on){ try{ SUPA.addCostLog(clog).catch(function(){}); }catch(e){} }
   }
+  /* 撤回一张单造成的库存与进价流水（改单重存 / 删除时用） */
+  function undoStock(o){
+    if(!o) return;
+    (o.items||[]).forEach(function(it){ changeStock(it.name, it.unit, -parseFloat(it.qty)); });
+    var kept=[];
+    for(var i=0;i<S.log.length;i++){ if(String(S.log[i].purchase_no||'')!==String(o.no||'')) kept.push(S.log[i]); }
+    S.log=kept; saveLogLS();
+    if(SUPA.on){
+      try{ SUPA.q('drug_cost_log?purchase_no=eq.'+encodeURIComponent(o.no||''),{method:'DELETE'}).catch(function(){}); }catch(e){}
+    }
+  }
+  function changeStock(name, unit, delta){
+    var d=findDrug(name); if(!d) return;
+    if(!Array.isArray(d.un)) d.un=[];
+    var uu=null, i;
+    for(i=0;i<d.un.length;i++){ if(String(d.un[i].unit)===String(unit)){ uu=d.un[i]; break; } }
+    if(!uu) return;
+    var st=(parseFloat(uu.stock)||0)+delta;
+    if(st<0) st=0;                       /* 库存不出现负数 */
+    uu.stock=round2(st);
+    if(String(unit)===String(d.u)){
+      var s2=(parseFloat(d.st)||0)+delta;
+      d.st=String(round2(s2<0?0:s2));
+    }
+    saveDrugsLS();
+    if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
+  }
+
+  /* ---------- 删单（可回滚库存） ---------- */
+  function openM(id){ var m=$(id); if(m) m.classList.add('on'); }
+  function closeM(id){ var m=$(id); if(m) m.classList.remove('on'); }
+  function delOrder(no, ev){
+    if(ev && ev.stopPropagation) ev.stopPropagation();
+    var o=findByNo(no); if(!o) return;
+    S.del=o;
+    var t=$('purDelText');
+    if(t) t.textContent='进货单 '+o.no+'（'+(o.dt||'')+'）共 '+((o.items||[]).length)+' 项，合计 ¥'+fmt2(o.total||0)+'。';
+    var ul=$('purDelList');
+    if(ul) ul.innerHTML=(o.items||[]).map(function(it){
+      return '<li>'+esc(it.name)+' <b>-'+esc(String(it.qty))+' '+esc(it.unit)+'</b></li>';
+    }).join('');
+    openM('purDelModal');
+  }
+  function closeDel(){ closeM('purDelModal'); S.del=null; }
+  function doDel(withStock){
+    var o=S.del; if(!o) return;
+    if(withStock) undoStock(o);
+    S.orders=S.orders.filter(function(x){ return x.no!==o.no; }); saveLS();
+    if(SUPA.on){ try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){} }
+    closeM('purDelModal'); S.del=null;
+    renderList();
+    try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){}
+    toast('已删除 '+o.no+(withStock?'，库存已扣回':'，库存未变动'));
+  }
+  /* ---------- 自动建药确认 ---------- */
+  function closeNewDrug(){
+    closeM('purNewModal');
+    var m=$('purMsg');
+    if(m) m.textContent='已取消保存：请先在「药物管理」里建好这些药材，再回来录单。';
+    S.pending=null; S.missing=[];
+  }
+  function confirmNewDrug(){
+    var pend=S.pending; if(!pend) return;
+    var miss=S.missing.slice();
+    closeM('purNewModal');
+    miss.forEach(function(x){
+      if(findDrug(x.name)) return;
+      var it=null, i;
+      for(i=0;i<pend.items.length;i++){ if(String(pend.items[i].name).trim()===x.name){ it=pend.items[i]; break; } }
+      var cost=it?(parseFloat(it.cost)||0):0;
+      var d={n:x.name, u:x.unit, c:'', tc:'', py:genPinyin(x.name), dw:'', cat:'中药',
+             bp:String(cost), p:'', st:'0', dp:'', og:'', al:[], un:[]};
+      drugsList.push(d);
+      if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
+    });
+    saveDrugsLS();
+    S.missing=[]; S.pending=null;
+    commitSave();
+  }
+
+  /* ---------- 最近一次进货价（药物管理页「建议价」用） ---------- */
+  function latestCost(name){
+    var nm=String(name||'').trim(); if(!nm) return null;
+    var log=S.log;
+    if(!log || !log.length){ try{ log=JSON.parse(localStorage.getItem(LSLOG)||'[]'); }catch(e){ log=[]; } }
+    var best=null, bl='';
+    for(var i=0;i<log.length;i++){
+      var r=log[i]; if(!r) continue;
+      if(String(r.drug||'').trim()!==nm) continue;
+      var c=parseFloat(r.cost); if(!isFinite(c)) continue;
+      var k=String(r.dt||'')+'|'+String(i);
+      if(best===null || k>bl){ best=c; bl=k; }
+    }
+    return best;
+  }
+
+  /* ---------- 列表 ---------- */
   function renderList(){
     var box=$('purList'); if(!box) return;
     var list=S.orders.slice().sort(function(a,b){ return (b.dt||'')<(a.dt||'')?-1:1; });
     var f=(S.search||'').toLowerCase();
-    if(f) list=list.filter(function(o){ return (o.no+o.supplier+(o.dt||'')).toLowerCase().indexOf(f)>=0; });
+    if(f) list=list.filter(function(o){ return (o.no+o.supplier+(o.dt||'')+(o.note||'')).toLowerCase().indexOf(f)>=0; });
     if(!list.length){ box.innerHTML='<div class="wp-empty">还没有进货单，点右上「新建 / 录单」开始。</div>'; return; }
     box.innerHTML=list.map(function(o){
-      var cnt=(o.items&&o.items.length)||0, total=(o.total||0);
+      var its=o.items||[], cnt=its.length, total=(o.total||0);
+      var names=its.slice(0,6).map(function(it){ return esc(it.name); }).join('、');
       return '<div class="wp-card" data-no="'+esc(o.no)+'">'
         +'<div class="wp-card-h"><b>'+esc(o.no)+'</b><span class="wp-card-sub">'+esc(o.dt||'')+' · 供应商：'+(esc(o.supplier)||'—')+'</span>'
         +'<span class="spacer"></span><span class="wp-card-amt">¥'+fmt2(total)+'</span></div>'
-        +'<div class="wp-card-meta">'+(cnt)+' 项 · <a href="javascript:;" onclick="Purchase.editOrder(\''+esc(o.no)+'\')">查看 / 修改</a></div>'
+        +'<div class="wp-card-meta">'+cnt+' 项'+(names?(' · '+names+(cnt>6?'…':'')):'')+'</div>'
+        +(o.note?('<div class="wp-card-meta">备注：'+esc(o.note)+'</div>'):'')
+        +'<div class="wp-card-meta"><a href="javascript:;" onclick="Purchase.editOrder(\''+esc(o.no)+'\')">查看 / 修改</a>'
+        +' · <a href="javascript:;" class="pur-del" onclick="Purchase.delOrder(\''+esc(o.no)+'\',event)">删除</a></div>'
         +'</div>';
     }).join('');
   }
-  return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, delItem:delItem, saveOrder:saveOrder, setSearch:setSearch };
+  return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, delItem:delItem,
+    saveOrder:saveOrder, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
+    closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
 })();
 
 init();

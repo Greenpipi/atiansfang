@@ -26,9 +26,12 @@ echo "[1/3] 构建单文件…"
 echo "[2/3] 同步到发布目录 site/…"
 mkdir -p site
 cp index.html site/index.html
-cp favicon.png          site/favicon.png
-cp icon-512.png         site/icon-512.png
-cp apple-touch-icon.png site/apple-touch-icon.png
+# 图标容错：源图标已移进 favicon/，根目录没有就用 favicon/ 里的；都没有则保留 site/ 旧图（不能中断发布）
+cp_if(){ if [ -f "$1" ]; then cp "$1" "$2"; elif [ -f "$3" ]; then cp "$3" "$2"; fi; }
+cp_if favicon.png          site/favicon.png          favicon/icon-32.png
+cp_if icon-512.png         site/icon-512.png         favicon/icon-512.png
+cp_if apple-touch-icon.png site/apple-touch-icon.png favicon/icon-180.png
+cp -r favicon site/ 2>/dev/null || true
 
 echo "      site/index.html = $(wc -c < site/index.html) 字节"
 
