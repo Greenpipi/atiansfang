@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='ba2759837c';
+  var V='7351453576';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -3536,6 +3536,9 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-tbl td.num{ text-align:right; font-variant-numeric:tabular-nums; }
 .gst-tbl td.money{ text-align:right; font-weight:700; color:var(--neutral-title); font-variant-numeric:tabular-nums; }
 .gst-tbl .nm{ font-weight:700; color:var(--neutral-title); }
+/* 常用方列表：付数、金额两列的数据与表头统一居中 */
+.gst-cf-tbl th:nth-child(2), .gst-cf-tbl th:nth-child(3),
+.gst-cf-tbl td:nth-child(2), .gst-cf-tbl td:nth-child(3){ text-align:center; }
 .gst-st{ display:inline-block; font-size:11px; padding:2px 9px; border-radius:var(--r-pill); cursor:pointer; white-space:nowrap;
   font-family:inherit; line-height:1.5; min-height:0; }
 .gst-st.paid{ color:var(--pri-deep); background:var(--pri-soft); border:1px solid var(--pri-line); }
@@ -7281,7 +7284,7 @@ var Guest=(function(){
       box.innerHTML='<div class="gst-empty-row">'+(kw?'没有匹配的常用方':'还没有常用方，点「+ 新建常用方」保存一张')+'</div>';
       return;
     }
-    var h='<table class="gst-tbl"><thead><tr><th>方名</th><th>付数</th><th>金额</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead><tbody>';
+    var h='<table class="gst-tbl gst-cf-tbl"><thead><tr><th>方名</th><th>付数</th><th>金额</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead><tbody>';
     for(var k=0;k<shown.length;k++){
       var cc=shown[k];
       h+='<tr>'
