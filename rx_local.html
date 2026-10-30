@@ -3307,21 +3307,20 @@ body{ --navw:0px; }
 .wp-seg{ display:inline-flex; align-items:center; padding:4px; background:#f2f3f5;
   border:1px solid rgba(0,0,0,.04); border-radius:999px; }
 /* 全站 button:not(.pri):not(.warn){background:!important} 权重更高，这里用 ID 选择器压过它 */
-#wpSegStatus .wp-seg-btn, #wpSegView .wp-seg-btn, #wpHistTabs .wp-seg-btn{
+#wpSegStatus .wp-seg-btn, #wpSegView .wp-seg-btn{
   -webkit-appearance:none; appearance:none; flex:0 0 auto; height:32px; min-height:0!important;
   padding:0 18px; margin:0; border:none!important; background:transparent!important; box-shadow:none!important;
   color:#8a8f98!important; font-size:13.5px; font-weight:500; font-family:var(--font-ui); line-height:32px;
   border-radius:999px; cursor:pointer; white-space:nowrap;
   transition:background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .12s ease; }
-#wpSegStatus .wp-seg-btn:hover, #wpSegView .wp-seg-btn:hover, #wpHistTabs .wp-seg-btn:hover{
+#wpSegStatus .wp-seg-btn:hover, #wpSegView .wp-seg-btn:hover{
   background:transparent!important; border-color:transparent!important; color:var(--neutral-title)!important; }
-#wpSegStatus .wp-seg-btn.on, #wpSegView .wp-seg-btn.on, #wpHistTabs .wp-seg-btn.on{
+#wpSegStatus .wp-seg-btn.on, #wpSegView .wp-seg-btn.on{
   background:#fff!important; border-color:transparent!important; color:var(--pri-deep)!important; font-weight:700;
   box-shadow:0 1px 3px rgba(0,0,0,.10), 0 0 0 .5px rgba(0,0,0,.05)!important; }
-#wpSegStatus .wp-seg-btn.on:hover, #wpSegView .wp-seg-btn.on:hover, #wpHistTabs .wp-seg-btn.on:hover{
+#wpSegStatus .wp-seg-btn.on:hover, #wpSegView .wp-seg-btn.on:hover{
   background:#fff!important; color:var(--pri-deep)!important; }
-#wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active, #wpHistTabs .wp-seg-btn:active{ transform:scale(.97); }
-.wp-mh .spacer{ flex:1; }
+#wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active{ transform:scale(.97); }
 .wp-list-bar .wp-view-tabs{ margin-left:2px; }
 /* 搜索框清除按钮：红色圆形 X（全站 button:not(.pri):not(.warn) 规则权重更高，这里加双类 + !important 压过） */
 .sch-wrap{ position:relative; display:flex; align-items:center; min-width:0; }
@@ -3461,32 +3460,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 #gstClear:hover, #gstClear:active{ background:#d13b46!important; color:#fff!important;
   transform:translateY(-50%)!important; box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
 .gst-search.has-val #gstClear{ display:flex; }
-/* 常用方编辑：结构化药品表格（与订单详情的录入方式一致，2026-10-31） */
-/* 全站弹窗基座把 .dlg 锁成 800×800!important，这里单独给常用方弹窗放宽 */
-#gstCfModal>.dlg{ width:960px!important; height:auto!important; }
-.cf-wrap{ border:1px solid var(--neutral-2); border-radius:10px; overflow:hidden; background:var(--n-white); }
-.cf-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:13px; }
-.cf-tbl th{ background:var(--neutral-0); color:var(--neutral-5); font-size:11px; font-weight:600;
-  padding:8px; text-align:left; border-bottom:1px solid var(--neutral-2); white-space:nowrap; }
-.cf-tbl td{ padding:5px 8px; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
-.cf-tbl tbody tr:last-child td{ border-bottom:none; }
-.cf-tbl input{ width:100%; height:32px; box-sizing:border-box; border:1px solid transparent; border-radius:8px;
-  background:transparent; padding:0 8px; font-family:var(--font-ui); font-size:13px; color:var(--neutral-title); outline:none; }
-.cf-tbl input:hover{ border-color:var(--neutral-2); }
-.cf-tbl input:focus{ border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); background:var(--n-white); }
-.cf-tbl input.num{ text-align:right; font-variant-numeric:tabular-nums; }
-.cf-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; }
-.cf-tools{ display:flex; align-items:center; gap:12px; margin-top:10px; }
-.cf-sum{ margin-left:auto; font-size:13px; color:var(--neutral-6); }
-.cf-sum b{ color:var(--pri-deep); font-size:15px; }
-#cfAc{ position:fixed; display:none; z-index:9999; max-height:240px; overflow-y:auto;
-  background:var(--n-white); border:1px solid var(--neutral-3); border-radius:10px;
-  box-shadow:0 10px 28px rgba(0,0,0,.14); }
-#cfAc .r{ display:flex; align-items:center; justify-content:space-between; gap:14px;
-  padding:7px 12px; font-size:13px; cursor:pointer; }
-#cfAc .r.on,#cfAc .r:hover{ background:var(--pri-soft); }
-#cfAc .r .nm{ color:var(--neutral-title); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#cfAc .r .pr{ color:var(--aux); font-size:12px; white-space:nowrap; }
 .gst-add-btn{ width:100%; height:38px; }
 .gst-list{ flex:1 1 auto; min-height:0; overflow:auto; padding:8px; }
 .gst-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
@@ -3506,13 +3479,12 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-empty{ flex:1 1 auto; display:flex; align-items:center; justify-content:center;
   color:var(--neutral-4); font-size:14px; padding:40px; }
 .gst-detail{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
-.gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+.gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
   padding:16px 20px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
 .gst-dt{ min-width:0; }
-.gst-dt b{ font-size:20px; color:var(--neutral-title); font-weight:700; }
-.gst-head-right{ display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-left:auto; }
-.gst-meta{ font-size:12px; color:var(--neutral-4); white-space:nowrap; }
-.gst-tabs{ display:flex; gap:6px; }
+.gst-dt b{ font-size:18px; color:var(--neutral-title); font-weight:700; margin-right:10px; }
+.gst-dt span{ font-size:12px; color:var(--neutral-4); }
+.gst-tabs{ display:flex; gap:6px; margin-left:auto; }
 .gst-tab{ min-height:32px; padding:5px 16px; border:1px solid var(--neutral-3); background:var(--n-white);
   color:var(--neutral-6); border-radius:var(--r-pill); font-size:13px; font-weight:600;
   font-family:inherit; cursor:pointer; }
@@ -3550,9 +3522,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-tbl td.num{ text-align:right; font-variant-numeric:tabular-nums; }
 .gst-tbl td.money{ text-align:right; font-weight:700; color:var(--neutral-title); font-variant-numeric:tabular-nums; }
 .gst-tbl .nm{ font-weight:700; color:var(--neutral-title); }
-/* 常用方列表：付数、金额两列的数据与表头统一居中 */
-.gst-cf-tbl th:nth-child(2), .gst-cf-tbl th:nth-child(3),
-.gst-cf-tbl td:nth-child(2), .gst-cf-tbl td:nth-child(3){ text-align:center; }
 .gst-st{ display:inline-block; font-size:11px; padding:2px 9px; border-radius:var(--r-pill); cursor:pointer; white-space:nowrap;
   font-family:inherit; line-height:1.5; min-height:0; }
 .gst-st.paid{ color:var(--pri-deep); background:var(--pri-soft); border:1px solid var(--pri-line); }
@@ -3565,18 +3534,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-act button.pri{ background:var(--pri); border-color:var(--pri); color:#fff; }
 .gst-act button.danger{ color:var(--danger,#c0392b); border-color:var(--danger-line,#f0c2b8); background:var(--danger-soft,#fff2ee); }
 .gst-empty-row{ padding:34px; text-align:center; color:var(--neutral-4); font-size:13px; }
-.gst-modal-actions{ margin-top:18px; display:flex; justify-content:flex-end; gap:10px; }
-.gst-modal-actions .btn{ min-height:36px; }
-/* Excel 导入预览：列多、字号小，未匹配药名标红提示人工补录 */
-.gst-imp-tbl th, .gst-imp-tbl td{ font-size:12px; padding:8px; }
-.gst-imp-tbl .gst-imp-name{ font-weight:700; color:var(--neutral-title); min-width:180px; }
-.gst-imp-tbl .gst-imp-miss{ color:var(--aux,#b5462f); min-width:150px; max-width:220px; }
-.gst-imp-tbl .gst-imp-note{ color:var(--neutral-5); min-width:150px; max-width:230px; }
-.gst-imp-status{ font-size:11px; white-space:nowrap; }
-.gst-imp-status.ok{ color:var(--pri-deep); }
-.gst-imp-status.skip{ color:var(--neutral-4); }
-.gst-imp-status.warn{ color:var(--aux,#b5462f); }
-.gst-imp-sum{ font-size:12px; color:var(--neutral-5); line-height:1.7; margin-bottom:10px; }
 @media (max-width:980px){
   .gst-wrap{ flex-direction:column; }
   .gst-left{ flex:0 0 260px; width:auto; }
@@ -3995,10 +3952,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <div class="wp-order-row">
                     <div class="wp-field wp-req wp-field-dish"><label>订单名称 *</label><input id="wpDish" class="wp-in" placeholder="必填，如 四物汤 / 水丸" oninput="WPlan.setDish(this.value)"></div>
                     <div class="wp-field wp-req"><label>日期 *</label><input id="wpDate" class="wp-in" type="date" onchange="WPlan.setDate(this.value)"></div>
-                    <div class="wp-field wp-req"><label>付数 *</label><input id="wpDoses" class="wp-in wp-in-num" type="number" min="1" step="1" value="1" oninput="WPlan.setOrderDoses(this.value)"></div>
                     <div class="wp-field"><label>客人 / 医生</label><input id="wpGuest" class="wp-in" list="wpGuestList" placeholder="选择或输入客人" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
                     <div class="wp-field"><label>单据编号</label><input id="wpNo" class="wp-in" readonly></div>
-                    <div class="wp-field wp-fy"><label>&nbsp;</label><button id="wpFyBtn" class="btn" type="button" onclick="WPlan.toggleFy()">标记发药</button></div>
                   </div>
                 </div>
 
@@ -4111,15 +4066,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
         <div class="modal" id="wpHistModal">
           <div class="wp-mw">
-            <div class="wp-mh">
-              从药方复用
-              <div class="wp-seg" id="wpHistTabs" style="margin-left:14px">
-                <button class="wp-seg-btn on" type="button" data-t="hist" onclick="WPlan.histTab('hist')">历史药方</button>
-                <button class="wp-seg-btn" type="button" data-t="common" onclick="WPlan.histTab('common')">常用药方</button>
-              </div>
-              <span class="spacer"></span>
-              <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button>
-            </div>
+            <div class="wp-mh">从该客人历史药方复用 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
             <div class="wp-mb" id="wpHistBody"></div>
             <div class="wp-mb-actions" id="wpHistFoot"></div>
           </div>
@@ -4696,22 +4643,31 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="gst-empty" id="gstEmpty">从左侧选择一位客户，查看 360° 档案</div>
               <div class="gst-detail" id="gstDetail" style="display:none">
                 <div class="gst-detail-head">
-                  <div class="gst-dt"><b id="gstName">—</b></div>
-                  <div class="gst-head-right">
-                    <span class="gst-meta" id="gstMeta"></span>
-                    <div class="gst-tabs">
-                      <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
-                      <button class="gst-tab" type="button" data-t="rx" onclick="Guest.tab('rx')">日常处方</button>
-                      <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
-                    </div>
+                  <div class="gst-dt">
+                    <b id="gstName">—</b>
+                    <span id="gstMeta"></span>
+                  </div>
+                  <div class="gst-tabs">
+                    <button class="gst-tab on" type="button" data-t="info" onclick="Guest.tab('info')">基础信息</button>
+                    <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
+                    <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
                   </div>
                 </div>
                 <div class="gst-detail-body">
+                  <!-- 基础信息 -->
                   <div class="gst-pane" id="gstPaneInfo">
                     <div class="gst-form">
                       <div class="gst-f"><label>姓名</label><input id="gstFName" placeholder="客户姓名"></div>
                       <div class="gst-f"><label>电话</label><input id="gstFPhone" placeholder="手机 / 微信同号"></div>
                       <div class="gst-f gst-full"><label>地址</label><input id="gstFAddr" placeholder="收货 / 配送地址"></div>
+                      <div class="gst-f">
+                        <label>客户类型</label>
+                        <select id="gstFType">
+                          <option value="散客">散客</option>
+                          <option value="批发">批发</option>
+                          <option value="月结">月结</option>
+                        </select>
+                      </div>
                       <div class="gst-f gst-full"><label>备注</label><textarea id="gstFNote" rows="4" placeholder="口味偏好 / 忌口 / 结算习惯…"></textarea></div>
                     </div>
                     <div class="gst-form-foot">
@@ -4724,22 +4680,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <div class="gst-pane" id="gstPaneCommon" style="display:none">
                     <div class="gst-pane-tools">
                       <button class="btn pri" type="button" onclick="Guest.newCommon()">+ 新建常用方</button>
-                      <button class="btn" type="button" title="按备注开头的客户名自动归户，与当前选中的客户无关" onclick="Guest.importExcelPick()">导入 Excel</button>
-                      <input type="file" id="gstImpFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="Guest.importExcelFile(this)">
                       <input class="gst-mini-search sch" id="gstCommonSearch" placeholder="搜索方名 / 药名" oninput="Guest.renderCommon()">
                       <span class="gst-tool-hint" id="gstCommonCount"></span>
                     </div>
                     <div class="gst-table-wrap" id="gstCommonList"></div>
-                  </div>
-
-                  <!-- 日常处方 -->
-                  <div class="gst-pane" id="gstPaneRx" style="display:none">
-                    <div class="gst-pane-tools">
-                      <span class="gst-tool-hint" id="gstRxCount"></span>
-                      <span class="gst-spacer"></span>
-                      <span class="gst-tool-hint">数据来自「日常药方打印」；点「打开」可载入该处方继续修改</span>
-                    </div>
-                    <div class="gst-table-wrap" id="gstRxList"></div>
                   </div>
 
                   <!-- 历史订单 -->
@@ -4786,7 +4730,15 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
     <div class="body">
       <div class="gst-form gst-form-dlg">
         <div class="gst-f gst-full"><label>姓名 *</label><input id="gstNewName" placeholder="客户姓名"></div>
-        <div class="gst-f gst-full"><label>电话</label><input id="gstNewPhone" placeholder="手机 / 微信同号"></div>
+        <div class="gst-f"><label>电话</label><input id="gstNewPhone" placeholder="手机 / 微信同号"></div>
+        <div class="gst-f">
+          <label>客户类型</label>
+          <select id="gstNewType">
+            <option value="散客">散客</option>
+            <option value="批发">批发</option>
+            <option value="月结">月结</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="foot">
@@ -4798,48 +4750,20 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
 <!-- ================= 新建 / 编辑常用方 ================= -->
 <div class="modal" id="gstCfModal">
-  <div class="dlg" style="width:900px">
+  <div class="dlg" style="width:620px">
     <header><span id="gstCfTitle">新建常用方</span><span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
       <div class="gst-form gst-form-dlg">
         <div class="gst-f"><label>方名 *</label><input id="gstCfName" placeholder="如 四物汤 / 祛湿茶"></div>
-        <div class="gst-f"><label>付数 *</label><input id="gstCfDoses" class="num" type="number" min="1" step="1" value="1" oninput="Guest.cfDoses(this.value)"></div>
-        <div class="gst-f gst-full"><label>备注</label><textarea id="gstCfNote" rows="2" placeholder="如：每付加炙甘草10克，打细粉"></textarea></div>
-        <div class="gst-f gst-full">
-          <label>药品明细 *</label>
-          <div class="cf-wrap">
-            <table class="cf-tbl">
-              <colgroup><col style="width:24%"><col style="width:84px"><col style="width:66px"><col style="width:100px"><col style="width:96px"><col><col style="width:56px"></colgroup>
-              <thead><tr><th>药名 / 拼音</th><th>克数</th><th>单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead>
-              <tbody id="gstCfRows"></tbody>
-            </table>
-          </div>
-          <div class="cf-tools">
-            <button class="btn sm" type="button" onclick="Guest.cfAddRow()">＋ 添加药材</button>
-            <span class="cf-sum" id="gstCfSum"></span>
-          </div>
-          <div class="gst-hint" id="gstCfHint">输入药名或拼音即可检索选药，自动带出单价；保存后可在「常用方」中一键复用。</div>
+        <div class="gst-f"><label>付数 *</label><input id="gstCfDoses" class="num" type="number" min="1" step="1" value="1"></div>
+        <div class="gst-f gst-full"><label>药方内容 *</label><textarea id="gstCfItems" rows="8" placeholder="例如：桂枝 10g 白芍 10g 甘草 5g（空格或换行分隔，自动带出单价）"></textarea>
+          <div class="gst-hint" id="gstCfHint">保存后可在「常用方」中一键复用，自动跳转到药方打印页。</div>
         </div>
       </div>
     </div>
     <div class="foot">
       <button class="btn" type="button" data-close>取消</button>
       <button class="btn pri" type="button" onclick="Guest.saveCommon()">保存常用方</button>
-    </div>
-  </div>
-</div>
-
-<!-- ================= Excel 批量导入常用方 ================= -->
-<div class="modal" id="gstImpModal">
-  <div class="dlg" style="width:1020px">
-    <header>导入 Excel · 常用方<span class="spacer"></span><span class="x" data-close>✕</span></header>
-    <div class="body">
-      <div class="gst-imp-sum" id="gstImpSummary">请选择「套件管理」Excel（需包含 套件名称 / 备注 / 包含货品 三列）。每行按备注开头的客户名自动归户，与当前选中的客户无关。</div>
-      <div class="gst-table-wrap" id="gstImpPreview" style="max-height:56vh"></div>
-      <div class="gst-modal-actions">
-        <button class="btn" type="button" data-close>取消</button>
-        <button class="btn pri" type="button" id="gstImpBtn" onclick="Guest.importExcelCommit()" disabled>确认导入</button>
-      </div>
     </div>
   </div>
 </div>
@@ -4912,17 +4836,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <button type="button" class="mini" id="setSfxAdd">＋ 添加后缀</button>
         </div>
         <div class="set-sfxlist" id="setSfxList"></div>
-      </section>
-
-      <!-- 加工方式：订单详情里每个小订单的下拉直接读这一份，单价 × 数量计入总价 -->
-      <section class="set-sec">
-        <div class="set-hd">
-          <span class="set-t">加工方式</span>
-          <span class="set-hint">名称 / 规格 / 单价 / 数量（下单选择后自动计入总价）</span>
-          <span class="spacer"></span>
-          <button type="button" class="mini" id="setProcAdd">＋ 添加加工方式</button>
-        </div>
-        <div class="set-proclist" id="setProcList"></div>
       </section>
 
     </div>
@@ -5069,23 +4982,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .set-sfxrow .s-del:hover{color:var(--danger)!important;border-color:var(--danger-line)!important;
   background:var(--danger-soft)!important}
 .set-sfxempty{font-size:var(--fs-cap);color:var(--neutral-4);padding:6px 0}
-/* 加工方式配置（2026-10-31） */
-.set-proclist{display:flex;flex-direction:column;gap:8px}
-.set-procrow{display:flex;align-items:center;gap:8px}
-.set-procrow input{height:34px;box-sizing:border-box;
-  border:1px solid var(--neutral-3);border-radius:var(--radius-input);padding:0 10px;
-  font-family:var(--font-ui);font-size:var(--fs-cap);color:var(--neutral-ink);
-  background:var(--neutral-0);outline:none;min-width:0}
-.set-procrow input:focus{border-color:var(--pri)!important;box-shadow:0 0 0 3px rgba(21,163,74,.10)!important}
-.set-procrow .p-n{flex:1 1 0}
-.set-procrow .p-s{flex:0 0 110px;width:110px}
-.set-procrow .p-p,.set-procrow .p-q{flex:0 0 84px;width:84px;text-align:center;font-variant-numeric:tabular-nums}
-.set-procrow .p-del{flex:0 0 auto;width:28px;height:28px!important;min-height:0!important;
-  padding:0!important;font-size:11px!important;line-height:1;
-  border:1px solid var(--neutral-2)!important;border-radius:6px!important;
-  background:var(--neutral-0)!important;color:var(--neutral-4)!important;cursor:pointer}
-.set-procrow .p-del:hover{color:var(--danger)!important;border-color:var(--danger-line)!important;
-  background:var(--danger-soft)!important}
+/* 加工方式配置已移除（2026-10-31 起加工/耗材走订单明细行） */
 
 /* ---------------- ③ 滚动条：2px 主题绿，滚动时显现 ---------------- */
 ::-webkit-scrollbar{width:2px!important;height:2px!important}
@@ -6831,7 +6728,7 @@ function collectRecord(no){
 }
 /* ================= 客人管理（2026-10-30 重写） =================
    布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
-   数据：客户档案 → Supabase doctors.prices（phone / addr 一并存）
+   数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
         常用方  → localStorage rx_gcommon_v1（随 RX_CLOUD 同步）
         历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
 var GUESTS={};
@@ -6839,18 +6736,9 @@ var GUEST_CUR='';
 var GST_CF_LS='rx_gcommon_v1';
 var GST_CF=[];
 var GST_CF_EDIT='';
-var GST_IMP_ROWS=[];      /* Excel 导入预览的解析结果（含勾选状态） */
-var GST_IMP_IDX=null;    /* 药名 → 药品 的索引，导入时建一次 */
-var GST_XLSX_P=null;     /* SheetJS 动态加载 Promise */
-var GST_IMP_FILE='';     /* 当前导入的文件名（预览标题用） */
-var GST_CF_READY=false;  /* 云端常用方是否已经合并过（未合并时别用空数组覆盖云端） */
-/* 历史遗留的错名 → 正名。只用于本地单据/常用方迁移和 Excel 导入归户，不猜别的名字。 */
-var GUEST_NAME_ALIAS={'黄婉媚':'黄琬媚'};
-var GST_CF_ITEMS=[];          /* 弹窗里正在编辑的药品行（草稿，保存才落库） */
-var CF_AC=null;               /* 常用方弹窗的药名检索浮层状态 */
 
 /* ---------- 客户档案数据层（沿用 doctors 表，prices jsonb 承载档案字段） ---------- */
-function guestRowOf(g, cf){
+function guestRowOf(g){
   /* prices 里还存着各味药的「重要客人价格」和倍率，写档案时必须保留 */
   var keep={}, o=(typeof DOCTORS!=='undefined'&&DOCTORS[g.name])||{};
   var src=o.price||{};
@@ -6860,21 +6748,16 @@ function guestRowOf(g, cf){
   keep.note=g.note||'';
   keep.phone=g.phone||'';
   keep.addr=g.addr||'';
+  keep.ctype=g.ctype||'散客';
   keep.pins=(g.pins||[]).slice(0,3);
   keep.stars=(g.stars||{});
-  /* 常用方也挂在这个客人的 prices 里（__gcommon），换设备/清缓存后能还原。
-     未完成云端合并且本机也没有缓存时不要写空数组，避免把云端方子覆盖掉。 */
-  if(cf!==undefined) keep.__gcommon=cf;
-  else if(g.common) keep.__gcommon=g.common;
-  else if(GST_CF_READY) keep.__gcommon=gstCfFor(g.name);
   return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
   var p=(r&&r.prices)||{};
   return {name:r.name, discount:p.discount||0, note:p.note||'',
-          phone:p.phone||'', addr:p.addr||'',
-          pins:(p.pins||[]).slice(0,3), stars:(p.stars||{}),
-          common:Array.isArray(p.__gcommon)?p.__gcommon:[]};
+          phone:p.phone||'', addr:p.addr||'', ctype:p.ctype||'散客',
+          pins:(p.pins||[]).slice(0,3), stars:(p.stars||{})};
 }
 function gstCacheSave(){
   try{ localStorage.setItem('rx_guests_cache_v1', JSON.stringify(GUESTS)); }catch(e){}
@@ -6896,27 +6779,13 @@ function guestLoadAll(){
     GUESTS={};
     (rows||[]).forEach(function(r){ if(r && r.name) GUESTS[r.name]=guestFromRow(r); });
     gstCacheSave();
-    /* 常用方：本机错名先迁移，再把各客人的 prices.__gcommon 合并进来 */
-    try{ gstLoadCf(); gstMigrateGuestNames(); }catch(e){}
-    var cloudCf=[];
-    (rows||[]).forEach(function(r){
-      if(!r || !r.name) return;
-      var p=r.prices||{};
-      if(Array.isArray(p.__gcommon)) cloudCf=cloudCf.concat(gstCfFromCloud(r.name,p.__gcommon));
-    });
-    gstMergeCloudCf(cloudCf);
-    GST_CF_READY=true;
-    for(var nm in GUESTS){
-      if(Object.prototype.hasOwnProperty.call(GUESTS,nm)) GUESTS[nm].common=gstCfFor(nm);
-    }
-    try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
     /* 同一张表里 prices 还存着「药名 → 重要客人价格」，另外捞一份给 DOCTORS 用 */
     CLOUD_DOC_PRICES={}; CLOUD_DOC_RATES={};
     (rows||[]).forEach(function(r){
       var p=r.prices||{}, dp={}, has=false;
       for(var k in p){
         if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates'||
-           k==='__gcommon'||k==='phone'||k==='addr') continue;
+           k==='phone'||k==='addr'||k==='ctype') continue;
         if(p[k]==null || p[k]==='') continue;
         dp[k]=p[k]; has=true;
       }
@@ -6928,9 +6797,6 @@ function guestLoadAll(){
 }
 function guestDelete(name){
   delete GUESTS[name]; gstCacheSave();
-  /* 客人删了，他的常用方也不能留在本机变成孤儿 */
-  GST_CF=GST_CF.filter(function(x){ return x && x.guest!==name; });
-  try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
   if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?name=eq.'+encodeURIComponent(name),{method:'DELETE'})
     .catch(function(e){ toastErr('删除失败：'+e.message); });
@@ -6940,76 +6806,9 @@ function guestDelete(name){
 function gstLoadCf(){
   try{ var a=JSON.parse(localStorage.getItem(GST_CF_LS)||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
 }
-function gstCfPersist(extraGuest){
+function gstCfPersist(){
   try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
   if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push(GST_CF_LS); }catch(e){} }
-  /* 同时写回 Supabase：挂在对应客人的 doctors.prices.__gcommon 下，换设备才能看到。
-     extraGuest 用于「删掉某个客人的最后一个方子」——此时 GST_CF 里已经没有他，
-     仍要写一次空数组把云端的旧方子清掉。 */
-  if(!(window.SUPA && SUPA.on)) return;
-  var seen={}, i, gs;
-  for(i=0;i<GST_CF.length;i++){
-    gs=GST_CF[i] && GST_CF[i].guest;
-    if(gs && !seen[gs]){ seen[gs]=1; gstCfPushGuest(gs); }
-  }
-  if(extraGuest && !seen[extraGuest]) gstCfPushGuest(extraGuest);
-}
-function gstCfStamp(c){
-  return String((c&&c.updatedAt)||(c&&c.createdAt)||'');
-}
-/* 云端 __gcommon 数组 → 页面内部结构。guest 以 doctors 行名为准（改名后自动归位） */
-function gstCfFromCloud(guest, arr){
-  var out=[], i, x;
-  for(i=0;i<arr.length;i++){
-    x=arr[i]; if(!x || typeof x!=='object') continue;
-    out.push({id:String(x.id||gstCfId()), guest:guest,
-              name:String(x.name||''), doses:n(x.doses)||1,
-              items:Array.isArray(x.items)?x.items:[],
-              note:String(x.note||''),
-              createdAt:String(x.createdAt||''),
-              updatedAt:String(x.updatedAt||x.createdAt||'')});
-  }
-  return out;
-}
-/* 云端和本机合并：按 id 取更新时间较晚的那条；本机独有的（还没同步）保留 */
-function gstMergeCloudCf(cloudList){
-  var byId={}, i, c, cur, k, out=[];
-  for(i=0;i<GST_CF.length;i++){
-    c=GST_CF[i]; if(c && c.id) byId[c.id]=c;
-  }
-  for(i=0;i<cloudList.length;i++){
-    c=cloudList[i]; if(!c || !c.id) continue;
-    cur=byId[c.id];
-    if(!cur || !gstCfStamp(cur) || gstCfStamp(c)>=gstCfStamp(cur)) byId[c.id]=c;
-  }
-  for(k in byId){ if(Object.prototype.hasOwnProperty.call(byId,k)) out.push(byId[k]); }
-  out.sort(function(a,b){ return String(b.createdAt||'').localeCompare(String(a.createdAt||'')); });
-  GST_CF=out;
-}
-function gstCfPushGuest(guest){
-  if(!(window.SUPA && SUPA.on)) return;
-  var g=GUESTS[guest]; if(!g) return;
-  var cf=gstCfFor(guest);
-  g.common=cf;
-  SUPA.q('doctors?on_conflict=name',{method:'POST',body:guestRowOf(g,cf)})
-    .catch(function(e){ console.warn('常用方写库失败：',e.message); });
-}
-/* 本机旧数据里的错名统一成正名（历史订单 + 常用方）。只迁移明确登记过的别名。 */
-function gstMigrateGuestNames(){
-  var changed=false, i, a;
-  for(i=0;i<GST_CF.length;i++){
-    a=GUEST_NAME_ALIAS[GST_CF[i] && GST_CF[i].guest];
-    if(a){ GST_CF[i].guest=a; changed=true; }
-  }
-  if(changed){ try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){} }
-  try{
-    var os=gstOrdersRaw(), oc=false;
-    for(i=0;i<os.length;i++){
-      a=GUEST_NAME_ALIAS[os[i] && os[i].guest];
-      if(a){ os[i].guest=a; oc=true; }
-    }
-    if(oc) gstOrdersWrite(os);
-  }catch(e){}
 }
 function gstCfId(){ return 'CF'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 function gstCfFor(guest){
@@ -7156,7 +6955,7 @@ var Guest=(function(){
     for(var nm in GUESTS){
       if(!Object.prototype.hasOwnProperty.call(GUESTS,nm)) continue;
       var g=GUESTS[nm]||{};
-      var hay=(nm+' '+(g.phone||'')+' '+(g.note||'')).toLowerCase();
+      var hay=(nm+' '+(g.phone||'')+' '+(g.note||'')+' '+(g.ctype||'')).toLowerCase();
       if(!kw || hay.indexOf(kw)>=0) out.push(nm);
     }
     out.sort(function(a,b){ return a<b?-1:(a>b?1:0); });
@@ -7178,7 +6977,7 @@ var Guest=(function(){
     for(var i=0;i<names.length;i++){
       var nm=names[i], g=GUESTS[nm]||{};
       var unpaid=debtOf(nm);
-      var sub=g.phone||g.note||'';
+      var sub=g.phone?g.phone:(g.note?g.note:(g.ctype||'散客'));
       h+='<div class="gst-item'+(nm===GUEST_CUR?' on':'')+'" data-n="'+esc(nm)+'" onclick="Guest.pick(this.getAttribute(\'data-n\'))">'
         + '<span class="gst-ava">'+esc(String(nm).slice(0,1)||'?')+'</span>'
         + '<div class="gst-item-main"><b>'+esc(nm)+'</b><span>'+esc(sub)+'</span></div>'
@@ -7197,13 +6996,14 @@ var Guest=(function(){
   function metaText(g){
     var os=gstGuestOrders(g.name), unpaid=0;
     for(var i=0;i<os.length;i++){ if(!gstIsPaid(os[i])) unpaid+=gstOrderAmount(os[i]); }
-    return os.length+' 单 · 未结 ¥'+money(unpaid);
+    return (g.ctype||'散客')+' · '+os.length+' 单 · 未结 ¥'+money(unpaid)+(g.phone?(' · '+g.phone):'');
   }
   function fillForm(g){
     if(!g) return;
     if($('gstFName')) $('gstFName').value=g.name||'';
     if($('gstFPhone')) $('gstFPhone').value=g.phone||'';
     if($('gstFAddr')) $('gstFAddr').value=g.addr||'';
+    if($('gstFType')) $('gstFType').value=g.ctype||'散客';
     if($('gstFNote')) $('gstFNote').value=g.note||'';
   }
   function renderDetail(fill){
@@ -7219,12 +7019,11 @@ var Guest=(function(){
     if($('gstName')) $('gstName').textContent=g.name;
     if($('gstMeta')) $('gstMeta').textContent=metaText(g);
     if(fill) fillForm(g);
-    var panes={info:'gstPaneInfo',common:'gstPaneCommon',rx:'gstPaneRx',history:'gstPaneHistory'};
+    var panes={info:'gstPaneInfo',common:'gstPaneCommon',history:'gstPaneHistory'};
     for(var k in panes){ if($(panes[k])) $(panes[k]).style.display=(k===_tab?'':'none'); }
     var tabs=document.querySelectorAll('.gst-tab');
     for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-t')===_tab); }
     if(_tab==='common') renderCommon();
-    if(_tab==='rx') renderRx();
     if(_tab==='history') renderHistory();
   }
   function tab(t){ _tab=t||'info'; renderDetail(false); }
@@ -7258,6 +7057,7 @@ var Guest=(function(){
     }
     g.phone=String($('gstFPhone').value||'').trim();
     g.addr=String($('gstFAddr').value||'').trim();
+    g.ctype=$('gstFType').value||'散客';
     g.note=String($('gstFNote').value||'').trim();
     guestSave(g).then(function(){
       renderList(); renderDetail(true);
@@ -7268,6 +7068,7 @@ var Guest=(function(){
   function newCustomer(){
     if($('gstNewName')) $('gstNewName').value='';
     if($('gstNewPhone')) $('gstNewPhone').value='';
+    if($('gstNewType')) $('gstNewType').value='散客';
     var m=$('gstNewModal'); if(m) m.classList.add('on');
     setTimeout(function(){ if($('gstNewName')) $('gstNewName').focus(); },50);
   }
@@ -7276,6 +7077,7 @@ var Guest=(function(){
     if(!nm){ toastErr('请填写客户姓名'); $('gstNewName').focus(); return; }
     if(GUESTS[nm]){ toastErr('客户「'+nm+'」已存在'); return; }
     var g={name:nm, phone:String($('gstNewPhone') ? $('gstNewPhone').value : '').trim(),
+           ctype:$('gstNewType') ? ($('gstNewType').value||'散客') : '散客',
            addr:'', note:'', discount:0, pins:[], stars:{}};
     guestSave(g).then(function(){
       var m=$('gstNewModal'); if(m) m.classList.remove('on');
@@ -7300,7 +7102,7 @@ var Guest=(function(){
       box.innerHTML='<div class="gst-empty-row">'+(kw?'没有匹配的常用方':'还没有常用方，点「+ 新建常用方」保存一张')+'</div>';
       return;
     }
-    var h='<table class="gst-tbl gst-cf-tbl"><thead><tr><th>方名</th><th>付数</th><th>金额</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead><tbody>';
+    var h='<table class="gst-tbl"><thead><tr><th>方名</th><th>付数</th><th>金额</th><th>创建时间</th><th style="text-align:right">操作</th></tr></thead><tbody>';
     for(var k=0;k<shown.length;k++){
       var cc=shown[k];
       h+='<tr>'
@@ -7318,171 +7120,23 @@ var Guest=(function(){
     h+='</tbody></table>';
     box.innerHTML=h;
   }
-  /* ---- 常用方编辑：结构化药品表格（药名检索 / 克数 / 单位 / 单价 / 金额 / 备注） ---- */
-  function cfBlank(){ return { name:'', qty:0, unit:'g', du:'g', price:null, priceManual:false, zibei:false, sfx:'', rm:'' }; }
-  function cfFocus(i, field){
-    setTimeout(function(){
-      var tr=document.querySelector('#gstCfRows tr[data-i="'+i+'"]');
-      if(!tr) return;
-      var el=tr.querySelector('.cf-'+(field||'name'));
-      if(el){ el.focus(); if(field!=='name'){ try{ el.select(); }catch(e){} } }
-      else { var n2=tr.querySelector('.cf-name'); if(n2) n2.focus(); }
-    },0);
-  }
-  function cfSum(){
-    var el=$('gstCfSum'); if(!el) return;
-    var per=0, i, its=GST_CF_ITEMS;
-    for(i=0;i<its.length;i++) per+=gstItemAmt(its[i]);
-    var d=Math.max(1, Math.round(n($('gstCfDoses') ? $('gstCfDoses').value : 1)||1));
-    el.innerHTML='单付 <b>¥'+money(per)+'</b> × '+d+'付 = <b>¥'+money(per*d)+'</b>';
-  }
-  function cfRowAmount(i){
-    var tr=document.querySelector('#gstCfRows tr[data-i="'+i+'"]'); if(!tr) return;
-    var td=tr.querySelector('.cf-amt'); if(td) td.textContent='¥'+money(gstItemAmt(GST_CF_ITEMS[i]));
-  }
-  function cfRenderRows(focusIdx, field){
-    var box=$('gstCfRows'); if(!box) return;
-    var h='', i;
-    for(i=0;i<GST_CF_ITEMS.length;i++){
-      var it=GST_CF_ITEMS[i]||{};
-      h+='<tr data-i="'+i+'">'
-        +'<td><input class="cf-name" value="'+esc(it.name||'')+'" placeholder="药名 / 拼音" autocomplete="off" spellcheck="false" oninput="Guest.cfNameInput('+i+',this)" onfocus="Guest.cfNameFocus('+i+',this)" onkeydown="Guest.cfNameKey(event,'+i+',this)"></td>'
-        +'<td><input class="cf-qty num" type="number" min="0" step="0.1" value="'+(n(it.qty)?n(it.qty):'')+'" oninput="Guest.cfQty('+i+',this.value)"></td>'
-        +'<td><input class="cf-unit" value="'+esc(it.unit||it.du||'g')+'" onchange="Guest.cfUnit('+i+',this.value)"></td>'
-        +'<td><input class="cf-price num" type="number" min="0" step="0.001" value="'+(it.price==null?'':n(it.price))+'" oninput="Guest.cfPrice('+i+',this.value)"></td>'
-        +'<td class="cf-amt">¥'+money(gstItemAmt(it))+'</td>'
-        +'<td><input class="cf-rm" value="'+esc(it.rm||'')+'" placeholder="备注（选填）" oninput="Guest.cfRm('+i+',this.value)"></td>'
-        +'<td><button class="btn danger sm" type="button" onclick="Guest.cfDelRow('+i+')">删</button></td>'
-        +'</tr>';
-    }
-    if(!GST_CF_ITEMS.length) h='<tr><td colspan="7" style="color:#999;text-align:center;padding:18px">还没有药材，点下方「＋ 添加药材」</td></tr>';
-    box.innerHTML=h;
-    cfSum();
-    if(focusIdx!=null) cfFocus(focusIdx, field);
-  }
-  /* 药名检索浮层（复用全站 acSearch 结果，选中后自动带出单位与单价） */
-  function cfAcBox(){
-    var b=$('cfAc');
-    if(!b){
-      b=document.createElement('div'); b.id='cfAc'; document.body.appendChild(b);
-      b.addEventListener('mousedown',function(e){
-        e.preventDefault();
-        var r=e.target.closest('.r');
-        if(r) cfAcPick(+r.getAttribute('data-i'));
-      });
-    }
-    return b;
-  }
-  function cfAcHide(){ var b=$('cfAc'); if(b) b.style.display='none'; CF_AC=null; }
-  function cfAcRender(){
-    if(!CF_AC) return;
-    var b=cfAcBox(), h='', k;
-    for(k=0;k<CF_AC.list.length;k++){
-      var d=CF_AC.list[k];
-      h+='<div class="r'+(k===CF_AC.sel?' on':'')+'" data-i="'+k+'"><span class="nm">'+esc(d.n||'')+'</span>'
-        +'<span class="pr">'+(d.p==null?'—':esc(n(d.p)))+(d.u?('/'+esc(d.u)):'')+'</span></div>';
-    }
-    b.innerHTML=h; b.style.display='block';
-    var r=CF_AC.el.getBoundingClientRect();
-    var top=r.bottom+2, left=r.left;
-    b.style.minWidth=Math.max(r.width,240)+'px';
-    if(top+b.offsetHeight>window.innerHeight-8) top=Math.max(8,r.top-b.offsetHeight-2);
-    if(left+b.offsetWidth>window.innerWidth-8) left=Math.max(8,window.innerWidth-b.offsetWidth-8);
-    b.style.left=left+'px'; b.style.top=top+'px';
-  }
-  function cfAcSearch(i, el){
-    var term=String(el.value||'').trim();
-    var list=[];
-    try{ list=acSearch(term)||[]; }catch(e){ list=[]; }
-    list=list.slice(0,12);
-    if(!list.length){ cfAcHide(); return; }
-    CF_AC={ i:i, el:el, list:list, sel:0 };
-    cfAcRender();
-  }
-  function cfAcPick(k){
-    if(!CF_AC) return;
-    var d=CF_AC.list[k]; if(!d) return;
-    var i=CF_AC.i, it=GST_CF_ITEMS[i]; if(!it) return;
-    var sp=splitSfx(d.n||'');
-    it.name=sp.nm; it.sfx=sp.sfx;
-    it.unit=String(d.u||'g'); it.du=it.unit;
-    it.price=gstPriceFor(GUEST_CUR, sp.nm, it.unit);
-    it.priceManual=false;
-    cfAcHide();
-    cfRenderRows(i, 'qty');
-  }
-  function cfNameInput(i, el){
-    if(!GST_CF_ITEMS[i]) return;
-    GST_CF_ITEMS[i].name=String(el.value||'');
-    cfAcSearch(i, el);
-  }
-  function cfNameFocus(i, el){ cfAcSearch(i, el); }
-  function cfNameKey(e, i, el){
-    if(!CF_AC || CF_AC.i!==i){
-      if(e.key==='Enter'){ e.preventDefault(); cfAddRow(); }
-      return;
-    }
-    var k=e.key;
-    if(k==='ArrowDown'){ CF_AC.sel=(CF_AC.sel+1)%CF_AC.list.length; cfAcRender(); e.preventDefault(); return; }
-    if(k==='ArrowUp'){ CF_AC.sel=(CF_AC.sel-1+CF_AC.list.length)%CF_AC.list.length; cfAcRender(); e.preventDefault(); return; }
-    if(k==='Escape'){ cfAcHide(); return; }
-    if((k==='Enter'||k==='Tab') && CF_AC.list.length){ e.preventDefault(); cfAcPick(CF_AC.sel); }
-  }
-  function cfQty(i, v){
-    var it=GST_CF_ITEMS[i]; if(!it) return;
-    it.qty=n(v); cfRowAmount(i); cfSum();
-  }
-  function cfUnit(i, v){
-    var it=GST_CF_ITEMS[i]; if(!it) return;
-    it.unit=String(v||'g'); it.du=it.unit;
-    if(!it.priceManual) it.price=gstPriceFor(GUEST_CUR, it.name, it.unit);
-    cfRenderRows(i, 'qty');
-  }
-  function cfPrice(i, v){
-    var it=GST_CF_ITEMS[i]; if(!it) return;
-    it.price=n(v); it.priceManual=true;
-    cfRowAmount(i); cfSum();
-  }
-  function cfRm(i, v){ var it=GST_CF_ITEMS[i]; if(it) it.rm=String(v||''); }
-  function cfDoses(v){
-    var el=$('gstCfDoses');
-    if(el) el.value=Math.max(1, Math.round(n(v)||1));
-    cfSum();
-  }
-  function cfDelRow(i){
-    GST_CF_ITEMS.splice(i,1);
-    cfRenderRows();
-  }
-  function cfAddRow(){
-    GST_CF_ITEMS.push(cfBlank());
-    cfRenderRows(GST_CF_ITEMS.length-1, 'name');
-  }
   function newCommon(){
     if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
     GST_CF_EDIT='';
-    GST_CF_ITEMS=[cfBlank()];
     if($('gstCfTitle')) $('gstCfTitle').textContent='新建常用方 · '+GUEST_CUR;
     if($('gstCfName')) $('gstCfName').value='';
     if($('gstCfDoses')) $('gstCfDoses').value=1;
-    if($('gstCfNote')) $('gstCfNote').value='';
-    cfRenderRows();
+    if($('gstCfItems')) $('gstCfItems').value='';
     var m=$('gstCfModal'); if(m) m.classList.add('on');
     setTimeout(function(){ if($('gstCfName')) $('gstCfName').focus(); },50);
   }
   function editCommon(id){
     var c=gstCfFind(id); if(!c) return;
     GST_CF_EDIT=id;
-    GST_CF_ITEMS=(c.items||[]).map(function(it){
-      return { name:String(it.name||''), qty:n(it.qty), unit:String(it.unit||it.du||'g'), du:String(it.du||it.unit||'g'),
-               price:(it.price==null?null:n(it.price)), priceManual:!!it.manual, zibei:!!it.zibei,
-               sfx:String(it.sfx||''), rm:String(it.rm||'') };
-    });
-    if(!GST_CF_ITEMS.length) GST_CF_ITEMS=[cfBlank()];
     if($('gstCfTitle')) $('gstCfTitle').textContent='编辑常用方 · '+GUEST_CUR;
     if($('gstCfName')) $('gstCfName').value=c.name||'';
     if($('gstCfDoses')) $('gstCfDoses').value=n(c.doses)||1;
-    if($('gstCfNote')) $('gstCfNote').value=c.note||'';
-    cfRenderRows();
+    if($('gstCfItems')) $('gstCfItems').value=gstItemsText(c.items);
     var m=$('gstCfModal'); if(m) m.classList.add('on');
   }
   function saveCommon(){
@@ -7490,31 +7144,17 @@ var Guest=(function(){
     var nm=String($('gstCfName').value||'').trim();
     if(!nm){ toastErr('请填写方名'); $('gstCfName').focus(); return; }
     var doses=Math.max(1, Math.round(n($('gstCfDoses') ? $('gstCfDoses').value : 1)||1));
-    var note=String($('gstCfNote') ? $('gstCfNote').value : '').trim();
-    var items=[], i;
-    for(i=0;i<GST_CF_ITEMS.length;i++){
-      var it=GST_CF_ITEMS[i], name=String(it.name||'').trim();
-      if(!name) continue;
-      if(it.zibei){ items.push({name:name,qty:0,unit:'',du:'',price:0,manual:false,zibei:true,sfx:'',rm:''}); continue; }
-      var qty=n(it.qty);
-      if(!(qty>0)){ toastErr('第 '+(i+1)+' 行「'+name+'」请填写克数'); return; }
-      var sp=splitSfx(name);
-      var u=String(it.unit||it.du||'g');
-      var price=it.priceManual?n(it.price):n(gstPriceFor(GUEST_CUR, sp.nm, u));
-      items.push({name:sp.nm, qty:qty, unit:u, du:u, price:price,
-                  manual:!!it.priceManual, zibei:false, sfx:(it.sfx||sp.sfx||''), rm:String(it.rm||'')});
-    }
-    if(!items.length){ toastErr('请至少添加一味药材'); return; }
+    var items=gstBuildItems(String($('gstCfItems').value||''), GUEST_CUR);
+    if(!items.length){ toastErr('药方内容没有识别到药材，请按「药名 克数」填写'); $('gstCfItems').focus(); return; }
     var now=nowStr();
     if(GST_CF_EDIT){
       var c=gstCfFind(GST_CF_EDIT);
       if(!c){ toastErr('常用方不存在'); return; }
-      c.name=nm; c.doses=doses; c.items=items; c.note=note; c.updatedAt=now;
+      c.name=nm; c.doses=doses; c.items=items; c.updatedAt=now;
     }else{
-      GST_CF.unshift({id:gstCfId(), guest:GUEST_CUR, name:nm, doses:doses, items:items, note:note, createdAt:now, updatedAt:now});
+      GST_CF.unshift({id:gstCfId(), guest:GUEST_CUR, name:nm, doses:doses, items:items, createdAt:now, updatedAt:now});
     }
     gstCfPersist();
-    cfAcHide();
     var m=$('gstCfModal'); if(m) m.classList.remove('on');
     renderCommon();
     toast(GST_CF_EDIT?'常用方已更新':'已保存常用方「'+nm+'」');
@@ -7535,7 +7175,6 @@ var Guest=(function(){
     var h='<div style="font-size:13px;color:#444;margin-bottom:10px">'
       +'<b style="font-size:16px">'+esc(c.name||'')+'</b>'
       +'　<span style="color:#888">'+esc(c.guest||'')+' ｜ '+doses+' 付 ｜ 创建 '+esc(c.createdAt||'')+'</span></div>'
-      +((c.note)?'<div style="font-size:13px;color:#666;margin:-4px 0 10px;line-height:1.7">备注：'+esc(c.note)+'</div>':'')
       +'<div style="border:1px solid #e5e6e8;border-radius:10px;max-height:60vh;overflow:auto">'
       +'<table class="gst-tbl"><thead><tr><th>药名</th><th>数量</th><th>单位</th><th>单价</th><th>金额</th></tr></thead><tbody>'
       +(rows||'<tr><td colspan="5">（无药材）</td></tr>')+'</tbody></table></div>'
@@ -7552,7 +7191,7 @@ var Guest=(function(){
              guest:c.guest||'', dish:c.name||'', doses:n(c.doses)||1, date:date, fy:'',
              saveCommon:false, commonId:c.id||'', paid:'',
              blocks:[{ id:'B'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
-                       title:c.name||'常用方', source:'common', fromRxNo:'', remark:c.note||'',
+                       title:c.name||'常用方', source:'common', fromRxNo:'', remark:'',
                        items:JSON.parse(JSON.stringify(c.items||[])), fy:'', doses:n(c.doses)||1 }],
              createdAt:now, updatedAt:now };
     os.unshift(io);
@@ -7564,42 +7203,8 @@ var Guest=(function(){
   function delCommon(id){
     var c=gstCfFind(id); if(!c) return;
     if(!confirm('确定删除常用方「'+(c.name||'')+'」？')) return;
-    var delGuest=c.guest;
     GST_CF=GST_CF.filter(function(x){ return x.id!==id; });
-    gstCfPersist(delGuest); renderCommon(); toast('已删除');
-  }
-  /* 日常处方：直接复用「日常药方打印」的数据（本机保存 + 书剑历史都算关联处方） */
-  function renderRx(){
-    var box=$('gstRxList'); if(!box) return;
-    if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
-    var list=doctorRxs(GUEST_CUR);
-    if($('gstRxCount')) $('gstRxCount').textContent='共 '+list.length+' 张日常处方';
-    var h='<table class="gst-tbl"><thead><tr><th>时间</th><th>处方号</th><th>付数</th><th>总金额</th><th>状态</th><th>来源</th><th style="text-align:right">操作</th></tr></thead><tbody>';
-    if(!list.length){
-      h+='<tr><td colspan="7" class="gst-empty-row">该客户还没有日常处方；在「日常药方打印」保存处方后会出现在这里</td></tr>';
-    }
-    for(var i=0;i<list.length;i++){
-      var r=list[i];
-      h+='<tr>'
-        +'<td>'+esc(gstFmtTime((r.dt||'')+(r.tm?(' '+r.tm):'')))+'</td>'
-        +'<td>'+esc(r.no||'—')+'</td>'
-        +'<td class="num">'+(n(r.j)||1)+' 付</td>'
-        +'<td class="money">¥'+money(r.total)+'</td>'
-        +'<td>'+(r.fy?'已发':'未发')+'</td>'
-        +'<td>'+esc(r.src||'')+'</td>'
-        +'<td class="gst-act"><button type="button" class="pri" onclick="Guest.openRx(\''+esc(r.no)+'\')">打开</button></td>'
-        +'</tr>';
-    }
-    h+='</tbody></table>';
-    box.innerHTML=h;
-  }
-  function openRx(no){
-    var list=allRx(), found=null;
-    for(var i=0;i<list.length;i++){ if(list[i].no===no){ found=list[i]; break; } }
-    if(!found){ toastErr('找不到该处方'); return; }
-    if(typeof loadRx==='function') loadRx(found);
-    if(typeof navGo==='function') navGo('print');
-    toast('已打开 '+(found.n||'')+' 的日常处方');
+    gstCfPersist(); renderCommon(); toast('已删除');
   }
   function filteredHistory(){
     var os=gstGuestOrders(GUEST_CUR);
@@ -7671,7 +7276,7 @@ var Guest=(function(){
       +'table{border-collapse:collapse;width:100%;font-size:10.5pt} th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
       +'th{background:#f2f4f6} .tot{margin-top:14pt;font-size:12pt} .tot b{font-size:15pt}</style></head><body>'
       +'<h1>'+esc(title)+'</h1>'
-      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')
+      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')+'　类型：'+esc(g.ctype||'散客')
       +'　导出时间：'+esc(nowStr())+'</div>'
       +'<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:86pt">总金额(元)</th><th style="width:52pt">状态</th></tr></thead><tbody>'
       +rows+'</tbody></table>'
@@ -7686,342 +7291,11 @@ var Guest=(function(){
     toast('已导出 Word 账单');
   }
 
-  /* ================= Excel 批量导入常用方（旧「套件管理」表） ==========
-     列映射：套件名称→方名；备注→（去掉开头客户名后的）备注；包含货品→药品。
-     原表没有克数，导入时每味药 qty=0，进列表后点「编辑」补克数即可。
-     客户：备注开头若是客户名（如「黄婉媚，…」「李医生，…」），自动挂到该客户；
-           客户不存在则用 guestSave() 新建（写 doctors 表，与手动新增一致）。
-     药名：先按药价目录精确匹配；括号里的工艺说明会尝试「炒/生/制/姜…」组合；
-           仍匹配不到就保留原名（不瞎猜），并在预览里标红提示人工处理。
-     包装/加工词（打细粉、包装袋等）不是药，导入时跳过。 */
-  var IMP_PROC={'打细粉':1,'打粗粉':1,'打超细粉':1,'打粉':1,'合打':1,'打碎':1,'粉碎':1,'研粉':1};
-  var IMP_PACK={'包装袋':1,'封口塑料袋':1,'无纺布袋子':1,'无纺布袋':1,'自封袋':1,'塑料袋':1,'纸袋':1,'包装盒':1};
-  var IMP_ALIAS={
-    '白藓皮':'白鲜皮','牡丹皮':'丹皮','浙贝':'浙贝母','薏苡仁':'薏仁',
-    '墨旱莲':'旱莲草','川断':'续断','首乌':'制首乌','黄精':'制黄精',
-    '了刁竹':'徐长卿','荜拨':'荜茇','西洋参薄片':'西洋参','两面针A':'两面针',
-    '党参条':'党参','九制陈皮':'制陈皮'
-  };
-  var IMP_PREFIX=['生','炒','制','炙','醋','盐','姜','酒','蜜','煅','焦','单','双'];
-
-  function impNorm(s){
-    return String(s==null?'':s)
-      .replace(/[（(]/g,'(').replace(/[）)]/g,')')
-      .replace(/[【\[]/g,'[').replace(/[】\]]/g,']')
-      .replace(/\s+/g,'').trim();
-  }
-  /* 只用「药名完全等于」查目录，不做模糊包含 —— 防止「马钱子」被配到「马」这种错 */
-  function impExact(nm){
-    var k=impNorm(nm).replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,'').replace(/[\[\]]/g,'');
-    return (GST_IMP_IDX && GST_IMP_IDX[k])?GST_IMP_IDX[k]:null;
-  }
-  function impBuildIdx(){
-    var idx={}, i, d, k;
-    for(i=0;i<drugsList.length;i++){
-      d=drugsList[i]; if(!d||!d.n) continue;
-      k=impNorm(d.n); if(k && !idx[k]) idx[k]=d;
-    }
-    GST_IMP_IDX=idx;
-  }
-  function impMatch(raw){
-    var s=String(raw==null?'':raw).trim();
-    if(!s) return null;
-    var n=impNorm(s), base=n, qual='';
-    var d=impExact(n); if(d) return d;
-    var m=n.match(/^(.+?)\(([^()]*)\)$/);
-    if(m){ base=m[1]; qual=m[2]; }
-    var cands=[], i;
-    if(qual){ cands.push(qual+base); cands.push(base+qual); }
-    for(i=0;i<IMP_PREFIX.length;i++) cands.push(IMP_PREFIX[i]+base);
-    cands.push(base);
-    for(i=0;i<cands.length;i++){ d=impExact(cands[i]); if(d) return d; }
-    if(typeof ALIAS!=='undefined' && ALIAS){
-      var av=ALIAS[n]||ALIAS[base];
-      if(av){ d=impExact(av); if(d) return d; }
-    }
-    var ia=IMP_ALIAS[n]||IMP_ALIAS[base];
-    if(ia){ d=impExact(ia); if(d) return d; }
-    return null;
-  }
-  function impIsGuest(t){
-    t=String(t||'').trim();
-    if(!t) return false;
-    if(GUESTS[t]) return true;
-    if(/(医生|老师|医师|女士|先生|姐|哥|姨|叔)$/.test(t)) return true;
-    if(IMP_PROC[t]||IMP_PACK[t]) return false;
-    if(/[0-9０-９]/.test(t)) return false;
-    if(/[克包袋粉量付斤片丸块]/.test(t)) return false;
-    return t.length>=2 && t.length<=6 && /^[\u4e00-\u9fa5A-Za-z·]+$/.test(t);
-  }
-  /* 备注拆成「客户名 + 真正备注」：黄婉媚，每付加炙甘草10克，打细粉 → 黄婉媚 / 每付加炙甘草10克，打细粉 */
-  function impRemark(raw){
-    var s=String(raw==null?'':raw).trim();
-    if(!s) return {guest:'', note:''};
-    var m=s.match(new RegExp('^([^，,、;；\\s]{1,12})[，,、;；\\s]+([\\s\\S]*)$'));
-    if(!m) return {guest:'', note:s};
-    var first=m[1].trim(), rest=m[2].trim();
-    if(impIsGuest(first)) return {guest:first, note:rest};
-    return {guest:'', note:s};
-  }
-  function impDoses(nm){
-    var m=String(nm||'').match(/(\d+(?:\.\d+)?)\s*付/);
-    if(!m) return 1;
-    return Math.max(1, Math.round(parseFloat(m[1])));
-  }
-  function impItemsOf(text, guest){
-    var toks=String(text==null?'':text).split(new RegExp('[,，、;；\\n]+'));
-    var out=[], miss=[], skipped=[], i, t, d, nm, unit;
-    for(i=0;i<toks.length;i++){
-      t=String(toks[i]||'').trim(); if(!t) continue;
-      if(IMP_PROC[t]||IMP_PACK[t]){ skipped.push(t); continue; }
-      d=impMatch(t);
-      nm=d?String(d.n):t;
-      unit=d?String(d.u||d.unit||'g'):'g';
-      out.push({name:nm, qty:0, unit:unit, du:unit,
-                price:d?gstPriceFor(guest, nm, unit):null,
-                manual:false, zibei:false, sfx:'', rm:''});
-      if(!d) miss.push(t);
-    }
-    return {items:out, miss:miss, skipped:skipped};
-  }
-  function impParseAOA(aoa, fileName){
-    if(!drugsList || !drugsList.length) throw new Error('药价目录还没加载完，请稍后再试');
-    impBuildIdx();
-    gstLoadCf();
-    GST_IMP_FILE=fileName||'';
-    var hdr=-1, cName=-1, cNote=-1, cItems=-1, cTime=-1, i, j, r, h;
-    for(i=0;i<Math.min(aoa.length,10);i++){
-      r=aoa[i]||[]; var n1=-1, n2=-1, n3=-1, n4=-1;
-      for(j=0;j<r.length;j++){
-        h=String(r[j]==null?'':r[j]).replace(/\s+/g,'');
-        if(n1<0 && /(套件名称|方子名称|方名|套件名)$/.test(h)) n1=j;
-        if(n2<0 && /备注/.test(h)) n2=j;
-        if(n3<0 && /(包含货品|包含药品|药味|药材)/.test(h)) n3=j;
-        if(n4<0 && /(创建时间|下单时间)/.test(h)) n4=j;
-      }
-      if(n1>=0 && n3>=0){ hdr=i; cName=n1; cNote=n2; cItems=n3; cTime=n4; break; }
-    }
-    if(hdr<0) throw new Error('没找到表头：Excel 里需要有「套件名称」「包含货品」两列');
-
-    GST_IMP_ROWS=[];
-    var seen={};
-    for(i=hdr+1;i<aoa.length;i++){
-      r=aoa[i]||[];
-      var name=String(r[cName]==null?'':r[cName]).trim();
-      if(!name) continue;
-      var rawNote=cNote>=0?String(r[cNote]==null?'':r[cNote]).trim():'';
-      var rawItems=String(r[cItems]==null?'':r[cItems]).trim();
-      var rg=impRemark(rawNote);
-      var guest=GUEST_NAME_ALIAS[rg.guest]||rg.guest;
-      var built=impItemsOf(rawItems, guest);
-      var doses=impDoses(name);
-      var createdAt=cTime>=0?String(r[cTime]==null?'':r[cTime]).trim():'';
-      var row={name:name, guest:guest, note:rg.note, doses:doses,
-               items:built.items, miss:built.miss, skipped:built.skipped,
-               createdAt:createdAt, ok:true, sel:true, status:'待导入', cls:'ok'};
-      if(!guest){
-        row.ok=false; row.sel=false; row.status='无法识别客户'; row.cls='warn';
-      }else{
-        var key=guest+'|'+name;
-        if(seen[key]){
-          row.ok=false; row.sel=false; row.status='重复行，跳过'; row.cls='skip';
-        }else{
-          seen[key]=1;
-          var list=gstCfFor(guest), k;
-          for(k=0;k<list.length;k++){
-            if(String(list[k].name||'').trim()===name){
-              row.ok=false; row.sel=false; row.status='已存在，跳过'; row.cls='skip';
-              break;
-            }
-          }
-        }
-      }
-      GST_IMP_ROWS.push(row);
-    }
-    renderImportPreview(fileName);
-  }
-  function renderImportPreview(fileName){
-    var box=$('gstImpPreview'); if(!box) return;
-    var ready=0, dup=0, bad=0, missN=0, skipN=0, i, r, h='';
-    for(i=0;i<GST_IMP_ROWS.length;i++){
-      r=GST_IMP_ROWS[i];
-      if(r.ok) ready++;
-      if(r.cls==='skip') dup++;
-      if(r.cls==='warn') bad++;
-      missN+=r.miss.length; skipN+=r.skipped.length;
-    }
-    var selN=0;
-    for(i=0;i<GST_IMP_ROWS.length;i++) if(GST_IMP_ROWS[i].ok && GST_IMP_ROWS[i].sel) selN++;
-    if($('gstImpSummary')){
-      $('gstImpSummary').textContent=(fileName?fileName+' · ':'')
-        +'共 '+GST_IMP_ROWS.length+' 行，可导入 '+ready+' 个（已勾选 '+selN+'）'
-        +(dup?('；已存在/重复 '+dup+' 个，跳过'):'')
-        +(bad?('；无法识别客户 '+bad+' 个，未选'):'')
-        +(missN?('；未匹配药名 '+missN+' 味（保留原名，克数记 0 待补）'):'')
-        +'。';
-    }
-    h='<table class="gst-tbl gst-imp-tbl"><thead><tr>'
-      +'<th style="width:34px"><input type="checkbox" '+(selN===ready&&ready?'checked':'')+' onchange="Guest.importSelectAll(this.checked)"></th>'
-      +'<th>方名（套件名称）</th><th>客户</th><th style="width:52px">付数</th><th style="width:56px">药材</th>'
-      +'<th>未匹配药名（保留原名）</th><th>备注</th><th style="width:92px">状态</th>'
-      +'</tr></thead><tbody>';
-    if(!GST_IMP_ROWS.length){
-      h+='<tr><td colspan="8" class="gst-empty-row">Excel 里没有可导入的数据行</td></tr>';
-    }
-    for(i=0;i<GST_IMP_ROWS.length;i++){
-      r=GST_IMP_ROWS[i];
-      h+='<tr>'
-        +'<td><input type="checkbox" data-i="'+i+'" '+(r.ok?(r.sel?'checked':''):'disabled')+' onchange="Guest.importSelect('+i+',this.checked)"></td>'
-        +'<td class="gst-imp-name">'+esc(r.name)+'</td>'
-        +'<td>'+esc(r.guest||'—')+'</td>'
-        +'<td class="num">'+r.doses+'</td>'
-        +'<td class="num" title="'+(r.skipped.length?esc('已忽略包装/加工：'+r.skipped.join('、')):'')+'">'+r.items.length+'</td>'
-        +'<td class="gst-imp-miss">'+(r.miss.length?esc(r.miss.join('、')):'—')+'</td>'
-        +'<td class="gst-imp-note">'+esc(r.note||'—')+'</td>'
-        +'<td class="gst-imp-status '+r.cls+'">'+esc(r.status)+'</td>'
-        +'</tr>';
-    }
-    h+='</tbody></table>';
-    box.innerHTML=h;
-    var btn=$('gstImpBtn'); if(btn) btn.disabled=(selN===0);
-  }
-  function importExcelPick(){
-    if(!drugsList || !drugsList.length){ toastErr('药价目录还没加载完，请稍后再试'); return; }
-    gstLoadCf();
-    GST_IMP_ROWS=[];
-    if($('gstImpPreview')) $('gstImpPreview').innerHTML='';
-    if($('gstImpSummary')) $('gstImpSummary').textContent='请选择「套件管理」Excel（需包含 套件名称 / 备注 / 包含货品 三列）。每行按备注开头的客户名自动归户，与当前选中的客户无关。';
-    var btn=$('gstImpBtn'); if(btn) btn.disabled=true;
-    var f=$('gstImpFile'); if(f){ f.value=''; f.click(); }
-  }
-  function gstEnsureXLSX(){
-    if(window.XLSX) return Promise.resolve();
-    if(GST_XLSX_P) return GST_XLSX_P;
-    GST_XLSX_P=new Promise(function(resolve, reject){
-      var s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
-      s.onload=function(){ if(window.XLSX) resolve(); else reject(new Error('Excel 解析库加载失败')); };
-      s.onerror=function(){ GST_XLSX_P=null; reject(new Error('无法加载 Excel 解析库，请检查网络后重试')); };
-      document.head.appendChild(s);
-    });
-    return GST_XLSX_P;
-  }
-  function gstReadFile(file){
-    return new Promise(function(resolve, reject){
-      var fr=new FileReader();
-      fr.onload=function(){ resolve(fr.result); };
-      fr.onerror=function(){ reject(fr.error||new Error('读取文件失败')); };
-      if(/\.csv$/i.test(file.name)) fr.readAsText(file,'utf-8');
-      else fr.readAsArrayBuffer(file);
-    });
-  }
-  function importExcelFile(input){
-    var file=input.files && input.files[0];
-    if(!file) return;
-    var m=$('gstImpModal'); if(m) m.classList.add('on');
-    if($('gstImpPreview')) $('gstImpPreview').innerHTML='';
-    if($('gstImpSummary')) $('gstImpSummary').textContent='正在读取 '+file.name+' …';
-    var btn=$('gstImpBtn'); if(btn) btn.disabled=true;
-    gstEnsureXLSX().then(function(){
-      return gstReadFile(file);
-    }).then(function(data){
-      var wb, ws, aoa;
-      if(typeof data==='string') wb=XLSX.read(data,{type:'string'});
-      else wb=XLSX.read(new Uint8Array(data),{type:'array'});
-      ws=wb.Sheets[wb.SheetNames[0]];
-      aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
-      impParseAOA(aoa, file.name);
-    }).catch(function(e){
-      if($('gstImpSummary')) $('gstImpSummary').textContent='解析失败：'+(e&&e.message?e.message:'未知错误');
-      toastErr('Excel 解析失败：'+(e&&e.message?e.message:'未知错误'));
-    });
-    input.value='';
-  }
-  function importSelect(i, on){
-    var r=GST_IMP_ROWS[i]; if(!r || !r.ok) return;
-    r.sel=!!on;
-    var btn=$('gstImpBtn');
-    var selN=0;
-    for(var k=0;k<GST_IMP_ROWS.length;k++) if(GST_IMP_ROWS[k].ok && GST_IMP_ROWS[k].sel) selN++;
-    if(btn) btn.disabled=(selN===0);
-    if($('gstImpSummary')){
-      var ready=0,dup=0,bad=0,missN=0;
-      for(var j=0;j<GST_IMP_ROWS.length;j++){
-        var x=GST_IMP_ROWS[j];
-        if(x.ok) ready++;
-        if(x.cls==='skip') dup++;
-        if(x.cls==='warn') bad++;
-        missN+=x.miss.length;
-      }
-      $('gstImpSummary').textContent='共 '+GST_IMP_ROWS.length+' 行，可导入 '+ready+' 个（已勾选 '+selN+'）'
-        +(dup?('；已存在/重复 '+dup+' 个，跳过'):'')
-        +(bad?('；无法识别客户 '+bad+' 个，未选'):'')
-        +(missN?('；未匹配药名 '+missN+' 味（保留原名，克数记 0 待补）'):'')+'。';
-    }
-  }
-  function importSelectAll(on){
-    for(var i=0;i<GST_IMP_ROWS.length;i++){
-      if(GST_IMP_ROWS[i].ok) GST_IMP_ROWS[i].sel=!!on;
-    }
-    renderImportPreview(GST_IMP_FILE);
-  }
-  function importExcelCommit(){
-    var rows=[], i, r;
-    for(i=0;i<GST_IMP_ROWS.length;i++){
-      r=GST_IMP_ROWS[i];
-      if(r.ok && r.sel) rows.push(r);
-    }
-    if(!rows.length){ toastErr('没有勾选可导入的方子'); return; }
-    var made=0, added=0, skipped=0, j;
-    for(i=0;i<rows.length;i++){
-      r=rows[i];
-      if(!GUESTS[r.guest]){
-        guestSave({name:r.guest, phone:'', addr:'', note:'',
-                   discount:0, pins:[], stars:{}});
-        made++;
-      }
-    }
-    var now=nowStr();
-    for(i=0;i<rows.length;i++){
-      r=rows[i];
-      var exists=false, list=gstCfFor(r.guest);
-      for(j=0;j<list.length;j++){
-        if(String(list[j].name||'').trim()===r.name){ exists=true; break; }
-      }
-      if(exists){ skipped++; continue; }
-      GST_CF.unshift({id:gstCfId(), guest:r.guest, name:r.name, doses:r.doses,
-                      items:r.items, note:r.note,
-                      createdAt:r.createdAt||now, updatedAt:now});
-      added++;
-    }
-    gstCfPersist();
-    var m=$('gstImpModal'); if(m) m.classList.remove('on');
-    GST_IMP_ROWS=[];
-    renderList();
-    if(GUEST_CUR && GUESTS[GUEST_CUR]) renderCommon();
-    toast('已导入 '+added+' 个方子'
-      +(skipped?('，跳过 '+skipped+' 个已存在'):'')
-      +(made?('，新建客户 '+made+' 个'):'')
-      +'。药材克数先记 0，点「编辑」补全即可');
-  }
-  /* 常用方药名浮层：点浮层外的位置即收起（浮层内部的 mousedown 先选中再置空，不会被误关） */
-  document.addEventListener('mousedown', function(e){
-    if(!CF_AC) return;
-    var p=$('cfAc');
-    if(p && (p.contains(e.target) || CF_AC.el===e.target)) return;
-    cfAcHide();
-  });
-
   return {
     ensure:ensure, setSearch:setSearch, clearSearch:clearSearch, pick:pick, tab:tab,
     saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
     renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
-    cfAddRow:cfAddRow, cfDelRow:cfDelRow, cfNameInput:cfNameInput, cfNameFocus:cfNameFocus,
-    cfNameKey:cfNameKey, cfQty:cfQty, cfUnit:cfUnit, cfPrice:cfPrice, cfRm:cfRm, cfDoses:cfDoses,
     previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
-    renderRx:renderRx, openRx:openRx,
-    importExcelPick:importExcelPick, importExcelFile:importExcelFile,
-    importSelect:importSelect, importSelectAll:importSelectAll, importExcelCommit:importExcelCommit,
     renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
     exportBill:exportBill, togglePaid:togglePaid
   };
@@ -8607,15 +7881,7 @@ SUPA.saveDrug=function(d, doctor, fromP){
 };
 /* ---------- 7. 医生专属价 ---------- */
 SUPA.saveDoctor=function(name, prices){
-  /* prices 里除了药价，还挂着该客人的常用方 __gcommon；这里必须原样带上，
-     否则在「医生专属价」页保存一次就会把常用方覆盖掉。 */
-  var p={}, k, cf=null, g=GUESTS[name];
-  prices=prices||{};
-  for(k in prices){ if(Object.prototype.hasOwnProperty.call(prices,k)) p[k]=prices[k]; }
-  if(GST_CF_READY) cf=gstCfFor(name);
-  else if(g && Array.isArray(g.common)) cf=g.common;
-  if(cf) p.__gcommon=cf;
-  return SUPA.q('doctors?on_conflict=name',{method:'POST',body:{name:name, prices:p}});
+  return SUPA.q('doctors?on_conflict=name',{method:'POST',body:{name:name, prices:prices||{}}});
 };
 SUPA.loadDoctors=function(){
   return SUPA.q('doctors?select=*').then(function(rows){
@@ -11681,7 +10947,6 @@ function loadSet(){
   if(SET.rxBold===undefined) SET.rxBold=false;
   if(SET.rxLh==null||!(n(SET.rxLh)>0)) SET.rxLh=1.6;
   if(SET.showPrice===undefined) SET.showPrice=true;
-  if(!Array.isArray(SET.proc)) SET.proc=[];
 }
 /* 打开设置面板（原顶栏「设置」按钮，2026-10-28 导航上移后统一由顶部导航调用） */
 /* ===== 设置 · 后缀管理 =====
@@ -11729,48 +10994,8 @@ function bindSetSfx(){
     if(py && !py.value.trim() && inp.value.trim()) py.value=pyByChar(inp.value.trim());
   },true);
 }
-/* ===== 设置 · 加工方式管理（2026-10-31） =====
-   编辑副本 _setProc，只有点「保存设置」才写入 SET.proc（rx_set_v3，随云端同步）。 */
-var _setProc=[];
-function setProcRead(){
-  var box=$('setProcList'); if(!box) return;
-  var rows=box.querySelectorAll('.set-procrow'), out=[];
-  for(var i=0;i<rows.length;i++){
-    out.push({
-      name:String(rows[i].querySelector('.p-n').value||'').trim(),
-      spec:String(rows[i].querySelector('.p-s').value||'').trim(),
-      price:n(rows[i].querySelector('.p-p').value),
-      qty:n(rows[i].querySelector('.p-q').value)
-    });
-  }
-  _setProc=out;
-}
-function renderSetProc(){
-  var box=$('setProcList'); if(!box) return;
-  var h='';
-  if(!_setProc.length) h='<div class="set-sfxempty">还没有加工方式，点右上「＋ 添加加工方式」新增</div>';
-  for(var i=0;i<_setProc.length;i++){
-    var p=_setProc[i]||{};
-    h+='<div class="set-procrow">'
-      +'<input class="p-n" value="'+esc(p.name||'')+'" placeholder="名称，如 打粉 / 水丸" autocomplete="off">'
-      +'<input class="p-s" value="'+esc(p.spec||'')+'" placeholder="规格，如 60g" autocomplete="off">'
-      +'<input class="p-p" type="number" min="0" step="0.01" value="'+(p.price==null||p.price===''?'':p.price)+'" placeholder="单价">'
-      +'<input class="p-q" type="number" min="0" step="1" value="'+(p.qty==null||p.qty===''?'':p.qty)+'" placeholder="数量">'
-      +'<button type="button" class="p-del" data-i="'+i+'" title="删除这个加工方式">✕</button>'
-      +'</div>';
-  }
-  box.innerHTML=h;
-}
-function bindSetProc(){
-  var box=$('setProcList'); if(!box || box.__bound) return;
-  box.__bound=1;
-  box.addEventListener('click',function(e){
-    var b=e.target.closest('.p-del'); if(!b) return;
-    setProcRead();
-    _setProc.splice(+b.getAttribute('data-i'),1);
-    renderSetProc();
-  });
-}
+/* ===== 设置 · 加工方式管理已移除（2026-10-31） =====
+   加工 / 包装耗材改为订单明细里的普通行，按「数量 × 单价」直接计入总价。 */
 function openSettings(){
   $('setRcptFs').value=SET.rcptFs||'';
   $('setRcptBold').checked=!!SET.rcptBold; $('setRcptLh').value=(SET.rcptLh==null?'':SET.rcptLh);
@@ -11786,12 +11011,6 @@ function openSettings(){
   /* 后缀管理：每次打开都以已保存的清单为准（编辑副本，取消不影响） */
   _setSfx=SFX_ITEMS.map(function(o){ return {n:o.n, py:o.py}; });
   renderSetSfx(); bindSetSfx();
-  /* 加工方式：同样以已保存的清单为准 */
-  _setProc=(Array.isArray(SET.proc)?SET.proc:[]).map(function(p){
-    return {name:String((p&&p.name)||''), spec:String((p&&p.spec)||''),
-            price:(p&&p.price!=null?p.price:''), qty:(p&&p.qty!=null?p.qty:'')};
-  });
-  renderSetProc(); bindSetProc();
   $('mSet').classList.add('on');
 }
 function bind(){
@@ -11807,17 +11026,6 @@ function bind(){
     var _rlh=n($('setRxLh').value);
     SET.rxLh=(_rlh>0)?_rlh:1.6;
     SET.showPrice=$('setShowPrice').checked; SET.showClinic=$('setShowClinic').checked;
-    /* ---- 加工方式：和设置一起保存（名称为空的忽略，同名去重） ---- */
-    setProcRead();
-    var procOut=[], procSeen={};
-    for(var pi=0;pi<_setProc.length;pi++){
-      var pn=String(_setProc[pi].name||'').trim();
-      if(!pn || procSeen[pn]) continue;
-      procSeen[pn]=1;
-      procOut.push({name:pn, spec:String(_setProc[pi].spec||'').trim(),
-                    price:n(_setProc[pi].price), qty:n(_setProc[pi].qty)});
-    }
-    SET.proc=procOut;
     localStorage.setItem(LS_SET,JSON.stringify(SET)); autoBackup();
     if(typeof applySheetFont==='function') applySheetFont();
     /* ---- 后缀管理：和设置一起保存 ---- */
@@ -11845,16 +11053,7 @@ function bind(){
     var last=rows[rows.length-1];
     if(last){ var inp=last.querySelector('.s-n'); inp.focus(); try{ inp.setSelectionRange(0,0); }catch(e){} }
   };
-  /* 加工方式：新增一行空记录，聚焦到名称框 */
-  var _procAdd=$('setProcAdd');
-  if(_procAdd) _procAdd.onclick=function(){
-    setProcRead();
-    _setProc.push({name:'', spec:'', price:'', qty:''});
-    renderSetProc();
-    var rows=$('setProcList').querySelectorAll('.set-procrow');
-    var last=rows[rows.length-1];
-    if(last){ var inp=last.querySelector('.p-n'); inp.focus(); try{ inp.setSelectionRange(0,0); }catch(e){} }
-  };
+  /* 加工方式：新增入口已移除（2026-10-31） */
   /* 备份相关设置已移除（纯云端，无需本地备份） */
   /* 弹窗关闭：右上角 × / 点遮罩 / 按 Esc，三条路都要通。
      （2026-10-07 用户报「设置弹窗关不掉」——根因是昨天主题改版时
@@ -13196,7 +12395,6 @@ var WPlan = (function(){
       if(!b.items) b.items = [];
       if(!(n(b.doses) >= 1)) b.doses = o.doses;
       if(b.date == null) b.date = '';
-      if(b.proc == null) b.proc = '';
       if(b.ship == null) b.ship = '';
       if(b.saveCommon == null) b.saveCommon = false;
       if(b.commonId == null) b.commonId = '';
@@ -13232,7 +12430,7 @@ var WPlan = (function(){
     var d = S.cur ? (n(S.cur.doses) || 1) : 1;
     var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
     return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d,
-             date: (S.cur && S.cur.date) || '', proc: '', ship: '', saveCommon: false, commonId: '' };
+             date: (S.cur && S.cur.date) || '', ship: '', saveCommon: false, commonId: '' };
   }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
@@ -13291,36 +12489,13 @@ var WPlan = (function(){
   }
   function amountOf(it){ if(!it || it.zibei) return 0; return (it.price == null ? 0 : n(it.price)) * n(it.qty); }
   function blockSub(b){ var s = 0; for(var i=0;i<b.items.length;i++) s += amountOf(b.items[i]); return s; }
-  /* 单付价 × 付数 = 该药方总价 */
-  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1) + procFee(b); }
-  /* 加工方式：配置在【设置 → 加工方式】（SET.proc），费用 = 单价 × 数量 */
-  function procList(){
-    try{ return (typeof SET !== 'undefined' && Array.isArray(SET.proc)) ? SET.proc : []; }catch(e){ return []; }
-  }
-  function procRec(name){
-    if(!name) return null;
-    var l = procList();
-    for(var i=0;i<l.length;i++){ if(l[i] && String(l[i].name || '') === String(name)) return l[i]; }
-    return null;
-  }
-  function procFee(b){
-    var r = procRec(b && b.proc); if(!r) return 0;
-    return n(r.price) * (n(r.qty) || 0);
-  }
-  function procLabel(b){
-    var r = procRec(b && b.proc);
-    if(!r) return String((b && b.proc) || '');
-    return String(r.name || '') + (r.spec ? '(' + r.spec + ')' : '');
-  }
-  function procOptions(cur){
-    var l = procList(), h = '<option value="">无</option>', found = false;
-    for(var i=0;i<l.length;i++){
-      var p = l[i], nm = String((p && p.name) || '').trim(); if(!nm) continue;
-      if(nm === cur) found = true;
-      h += '<option value="' + esc(nm) + '"' + (nm === cur ? ' selected' : '') + '>' + esc(nm + (p.spec ? (' ' + p.spec) : '')) + '</option>';
-    }
-    if(cur && !found) h += '<option value="' + esc(cur) + '" selected>' + esc(cur) + '</option>';
-    return h;
+  /* 单付价 × 付数 = 该药方总价（加工 / 耗材已并入明细行，不再单列加工费） */
+  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1); }
+  /* 订单总付数：各药方付数之和（订单级付数输入已移除） */
+  function orderDosesOf(o){
+    var bs = (o && o.blocks) || [], d = 0, i;
+    for(i=0;i<bs.length;i++) d += n(bs[i].doses) || 1;
+    return d || 1;
   }
   var SHIP_LIST = ['自取', '快递', '同城配送', '送货上门'];
   function shipOptions(cur){
@@ -13347,10 +12522,7 @@ var WPlan = (function(){
   function dispQty(it){ var du = it.du || it.unit || 'g'; return n(it.qty) * uCoef(it.unit || du, du); }
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
-    var fee = procFee(b);
-    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockSub(b) * d) + '</b>'
-      + (fee > 0 ? ' + 加工 <b>¥' + money(fee) + '</b>' : '')
-      + ' → 小计 <b>¥' + money(blockTotal(b)) + '</b>'
+    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockTotal(b)) + '</b>'
       + (blockWeight(b) > 0 ? ' · 总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g' : '');
   }
 
@@ -13500,7 +12672,7 @@ var WPlan = (function(){
         + '<div class="wp-c-time">' + esc(fmtTime(o.createdAt || o.date)) + '</div>'
         + '<div class="wp-c-guest">' + esc(o.guest || '未命名客人') + '</div>'
         + '<div class="wp-c-dish" title="' + esc(dishOf(o)) + '">' + esc(dishOf(o)) +
-          '<span class="sub">付数 ' + (n(o.doses) || 1) + '</span></div>'
+          '<span class="sub">付数 ' + orderDosesOf(o) + '</span></div>'
         + '<div class="wp-c-cnt">' + o.blocks.length + ' 方</div>'
         + '<div class="wp-c-total">¥' + money(total) + '</div>'
         + '<div class="wp-c-status"><span class="tag ' + fyCls + '">' + fyTxt + '</span></div>'
@@ -13547,7 +12719,7 @@ var WPlan = (function(){
       var o = g.orders[k];
       rows += '<tr><td>' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
         + '<td class="nm">' + esc(dishOf(o)) + '</td>'
-        + '<td class="num">' + (n(o.doses) || 1) + ' 付</td>'
+        + '<td class="num">' + orderDosesOf(o) + ' 付</td>'
         + '<td class="money">¥' + money(orderTotal(o)) + '</td>'
         + '<td class="act"><button class="btn sm" type="button" onclick="event.stopPropagation();WPlan.printOrder(\'' + o.id + '\')">打印</button></td></tr>';
     }
@@ -13564,13 +12736,10 @@ var WPlan = (function(){
     var gi = document.getElementById('wpGuest'); if(gi && document.activeElement !== gi) gi.value = o.guest || '';
     var di = document.getElementById('wpDate'); if(di) di.value = o.date || today();
     var din = document.getElementById('wpDish'); if(din && document.activeElement !== din) din.value = o.dish || '';
-    var dse = document.getElementById('wpDoses'); if(dse && document.activeElement !== dse) dse.value = n(o.doses) || 1;
     var ni = document.getElementById('wpNo'); if(ni) ni.value = o.no || '';
     var sc = document.getElementById('wpSaveCommon'); if(sc) sc.checked = !!o.saveCommon;
     var dt = document.getElementById('wpDetailTitle'); if(dt) dt.textContent = String(o.dish || '').trim() || '订单详情';
     var dn = document.getElementById('wpDetailNo'); if(dn) dn.textContent = o.no || '';
-    var fb = document.getElementById('wpFyBtn');
-    if(fb){ if(o.fy){ fb.textContent = '取消发药'; fb.className = 'btn danger'; } else { fb.textContent = '标记发药'; fb.className = 'btn'; } }
   }
   function renderGuestList(){
     var dl = document.getElementById('wpGuestList'); if(!dl) return;
@@ -13597,7 +12766,6 @@ var WPlan = (function(){
       + '<input class="wp-block-title" value="' + esc(b.title || '') + '" oninput="WPlan.setBlockTitle(\'' + b.id + '\',this.value)">'
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
-      + '<label class="wp-bi">加工 <select class="bi-in" onchange="WPlan.setBlockProc(\'' + b.id + '\',this.value)">' + procOptions(b.proc) + '</select></label>'
       + '<label class="wp-bi">配送 <select class="bi-in" onchange="WPlan.setBlockShip(\'' + b.id + '\',this.value)">' + shipOptions(b.ship) + '</select></label>'
       + '<span class="wp-sub" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
       + '<span class="spacer"></span>'
@@ -13703,13 +12871,6 @@ var WPlan = (function(){
     if(dt) dt.textContent = o.dish || '订单详情';
     saveDebounced(); renderFoot();
   }
-  function setOrderDoses(v){
-    var o = curOrder(); if(!o) return;
-    var d = Math.max(0, Math.round(n(v)));
-    o.doses = d;
-    for(var i=0;i<(o.blocks || []).length;i++) o.blocks[i].doses = d || 1;
-    saveDebounced(); recount(); renderFoot();
-  }
   function setSaveCommon(v){
     var o = curOrder(); if(!o) return;
     o.saveCommon = !!v;
@@ -13722,9 +12883,6 @@ var WPlan = (function(){
     }
     if(!o.date){
       toastErr('请选择日期（必填）'); var d = document.getElementById('wpDate'); if(d) d.focus(); return false;
-    }
-    if(!(n(o.doses) >= 1)){
-      toastErr('付数必须 ≥ 1'); var s = document.getElementById('wpDoses'); if(s) s.focus(); return false;
     }
     return true;
   }
@@ -13914,7 +13072,7 @@ var WPlan = (function(){
     toast('已下载图片');
   }
 
-  /* ---- 订单详情 / 单方「生成表格图片」（含明细与加工费） ---- */
+  /* ---- 订单详情 / 单方「生成表格图片」（明细行即全部费用） ---- */
   function genOrderImage(o, blocks, cb){
     var W = 840, shown = blocks || (o.blocks || []);
     var items = 0, i, j;
@@ -13923,7 +13081,7 @@ var WPlan = (function(){
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
-      var sub = blockSub(b) * d, fee = procFee(b), amt = sub + fee;
+      var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
       if(!(b.items || []).length) rs = '<tr><td colspan="4" style="color:#999">（药方为空）</td></tr>';
@@ -13939,13 +13097,11 @@ var WPlan = (function(){
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
         + '<span class="bd">日期 ' + esc(blockDate(o, b) || '—') + '</span>'
         + '<span class="bd">付数 ' + d + '</span>'
-        + (b.proc ? '<span class="bd">加工 ' + esc(procLabel(b)) + '</span>' : '')
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
         + '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th style="width:16%;text-align:right">单价</th><th style="width:16%;text-align:right">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
-        + '<div class="bf">药费 ¥' + money(sub) + (fee > 0 ? ('　加工 ¥' + money(fee)) : '')
-        + '　小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
+        + '<div class="bf">小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
     }
     var css = ''
@@ -14025,15 +13181,11 @@ var WPlan = (function(){
     var rows = '', detail = '', total = 0, k, bi;
     for(k=0;k<g.orders.length;k++){
       var o = g.orders[k], amt = orderTotal(o); total += amt;
-      var bs = o.blocks || [], procs = [], seen = {};
-      for(bi=0;bi<bs.length;bi++){
-        if(bs[bi].proc){ var lb = procLabel(bs[bi]); if(!seen[lb]){ seen[lb] = 1; procs.push(lb); } }
-      }
+      var bs = o.blocks || [];
       rows += '<tr><td style="width:34pt;text-align:center">' + (k+1) + '</td>'
         + '<td style="width:92pt">' + esc(o.date || '') + '</td>'
         + '<td class="nm">' + esc(dishOf(o)) + '</td>'
-        + '<td>' + esc(procs.join('、') || '—') + '</td>'
-        + '<td style="width:44pt;text-align:center">' + (n(o.doses) || 1) + '</td>'
+        + '<td style="width:44pt;text-align:center">' + orderDosesOf(o) + '</td>'
         + '<td style="width:76pt;text-align:right">' + money(amt) + '</td></tr>';
       for(bi=0;bi<bs.length;bi++){
         var b = bs[bi], d = n(b.doses) || 1, items = '';
@@ -14045,16 +13197,13 @@ var WPlan = (function(){
             + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
         }
         if(!items) items = '<tr><td colspan="4" style="color:#888">（药方为空）</td></tr>';
-        var fee = procFee(b);
         detail += '<div class="det"><h3>' + (k+1) + '.' + (bi+1) + '　' + esc(b.title || ('药方' + (bi+1)))
           + '<span class="dh">' + esc(blockDate(o, b) || '') + '　' + d + '付'
-          + (b.proc ? ('　加工 ' + esc(procLabel(b))) : '')
           + (b.ship ? ('　配送 ' + esc(b.ship)) : '') + '</span></h3>'
           + '<table class="dt"><thead><tr><th style="width:40%">药名</th><th>克数 / 单位</th>'
           + '<th style="width:15%;text-align:right">单价</th><th style="width:15%;text-align:right">金额</th></tr></thead><tbody>'
           + items + '</tbody></table>'
-          + '<div class="detf">药费 ¥' + money(blockSub(b) * d) + (fee > 0 ? ('　加工 ¥' + money(fee)) : '')
-          + '　小计 <b>¥' + money(blockTotal(b)) + '</b></div></div>';
+          + '<div class="detf">小计 <b>¥' + money(blockTotal(b)) + '</b></div></div>';
       }
     }
     var title = g.label + ' · 汇总账单';
@@ -14074,7 +13223,7 @@ var WPlan = (function(){
       + '<h1>' + esc(g.label) + '</h1>'
       + '<div class="meta">客户：' + esc(g.guest) + '　｜　月份：' + esc(g.mm ? (g.ym) : '未定') + '　｜　单据数：' + g.count + '</div>'
       + '<table><thead><tr><th style="width:34pt;text-align:center">序号</th><th style="width:92pt">日期</th>'
-      + '<th>订单名称</th><th style="width:110pt">加工方式</th>'
+      + '<th>订单名称</th>'
       + '<th style="width:44pt;text-align:center">付数</th><th style="width:76pt;text-align:right">金额(元)</th></tr></thead><tbody>'
       + rows + '</tbody></table>'
       + '<div class="tot">计划汇总金额：<b>¥' + money(total) + '</b></div>'
@@ -14114,8 +13263,6 @@ var WPlan = (function(){
   function setDate(v){ var o = curOrder(); if(!o) return; o.date = v || ''; saveDebounced(); }
   function toggleFy(){
     var o = curOrder(); if(!o) return; o.fy = o.fy ? '' : '1'; save();
-    var fb = document.getElementById('wpFyBtn');
-    if(fb){ if(o.fy){ fb.textContent = '取消发药'; fb.className = 'btn danger'; } else { fb.textContent = '标记发药'; fb.className = 'btn'; } }
     renderFoot(); toast(o.fy ? '已标记发药' : '已取消发药');
   }
   function addBlock(){
@@ -14131,11 +13278,6 @@ var WPlan = (function(){
     var b = blockById(bid); if(!b) return;
     b.date = String(v || '');
     saveDebounced();
-  }
-  function setBlockProc(bid, v){
-    var b = blockById(bid); if(!b) return;
-    b.proc = String(v || '');
-    saveDebounced(); recount(); renderFoot();
   }
   function setBlockShip(bid, v){
     var b = blockById(bid); if(!b) return;
@@ -14195,12 +13337,18 @@ var WPlan = (function(){
     var u = normUnit(raw) || 'g';
     var base = baseOf(it);
     var oldDu = String(it.du || it.unit || 'g').toLowerCase();
-    var uname = (u === 'g' || u === 'kg') ? base : (base + '（' + u + '）');
     var q = n(it.qty);
     if(isWeightUnit(oldDu) && isWeightUnit(u)){ q = q * uCoef(u, oldDu); }   /* 仅重量单位间换算 */
     it.qty = q;
     it.du = u;
     it.unit = u;
+    /* 药库里没有这个名字（包装袋 / 无纺布袋 / 打细粉等耗材行）：
+       保留原名称与手填单价，不生成「药名（单位）」记录，避免污染药品库 */
+    if(!base || !(findDrugAll(base) || []).length){
+      it.name = base;
+      save(); renderBlocks(); recount(); return;
+    }
+    var uname = (u === 'g' || u === 'kg') ? base : (base + '（' + u + '）');
     it.name = uname;
     it.manual = false;
     if(u !== 'g' && u !== 'kg') ensureUnitDrug(uname, u);
@@ -14246,7 +13394,6 @@ var WPlan = (function(){
 
   /* ---- 历史药方复用（先预览，确认后再带入；可多选） ---- */
   var _prevNos = [], _prevBid = null;
-  var _histTab = 'hist';      /* 复用弹窗 Tab：hist=历史药方，common=常用药方 */
   function findRx(no){
     var all = allRx();
     for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
@@ -14258,23 +13405,10 @@ var WPlan = (function(){
     return items;
   }
   function openHistory(bid){
-    _tgt = bid; _prevBid = bid; _prevNos = []; _histTab = 'hist';
+    _tgt = bid; _prevBid = bid; _prevNos = [];
     var o = curOrder();
-    if(!o || !o.guest){ toastErr('请先在上方选择客人 / 医生'); return; }
-    renderHistBody();
-    openModal('wpHistModal');
-  }
-  function histTab(t){
-    _histTab = (t === 'common') ? 'common' : 'hist';
-    _prevNos = [];
-    renderHistBody();
-  }
-  function renderHistBody(){
-    var o = curOrder(), body = document.getElementById('wpHistBody');
-    if(!o || !body) return;
-    applySegUI('#wpHistTabs', 'data-t', _histTab);
-    if(_histTab === 'common'){ renderCommonTab(o, body); updateHistFoot(); return; }
-    var rxs = doctorRxs(o.guest);
+    if(!o || !o.guest){ toastErr('请先在上方选择医生'); return; }
+    var rxs = doctorRxs(o.guest); var body = document.getElementById('wpHistBody'); if(!body) return;
     if(!rxs.length){
       body.innerHTML = '<div class="wp-empty">该客人暂无历史药方（来自日常药方打印数据）</div>';
     } else {
@@ -14291,51 +13425,7 @@ var WPlan = (function(){
       body.innerHTML = h2;
     }
     updateHistFoot();
-  }
-  /* 常用药方 Tab：按当前客人过滤 rx_gcommon_v1 */
-  function renderCommonTab(o, body){
-    try{ if(typeof gstLoadCf === 'function') gstLoadCf(); }catch(e){}
-    var all = (typeof GST_CF !== 'undefined' && GST_CF) ? GST_CF : [];
-    var guest = String(o.guest || '').trim();
-    var list = [];
-    for(var i=0;i<all.length;i++){
-      var c = all[i];
-      if(c && String((c.guest || '')).trim() === guest) list.push(c);
-    }
-    if(!list.length){
-      body.innerHTML = '<div class="wp-empty">该客人还没有常用方。可在「客人管理 → 常用方」里新建。</div>';
-      return;
-    }
-    var h = '';
-    for(var k=0;k<list.length;k++){
-      var c2 = list[k];
-      h += '<div class="wp-hist-row">'
-        + '<span class="meta"><b>' + esc(c2.name || '未命名常用方') + '</b> · ' + (n(c2.doses) || 1) + '付 · ¥' + money(gstCfAmount(c2))
-        + ' · ' + esc(c2.createdAt || '') + '</span>'
-        + '<button class="btn sm" type="button" onclick="Guest.previewCommon(\'' + esc(c2.id) + '\')">预览</button>'
-        + '<button class="btn sm pri" type="button" onclick="WPlan.applyCommon(\'' + esc(c2.id) + '\')">复用</button>'
-        + '</div>';
-    }
-    body.innerHTML = h;
-  }
-  /* 把选中常用方的药品明细带入当前药方（空药方优先复用，否则新建一个） */
-  function applyCommon(id){
-    var o = curOrder(); if(!o) return;
-    var all = (typeof GST_CF !== 'undefined' && GST_CF) ? GST_CF : [];
-    var c = null;
-    for(var i=0;i<all.length;i++){ if(all[i] && all[i].id === id){ c = all[i]; break; } }
-    if(!c){ toastErr('常用方不存在'); return; }
-    var items = JSON.parse(JSON.stringify(c.items || []));
-    if(!items.length){ toastErr('该常用方没有药材'); return; }
-    var b = _prevBid ? blockById(_prevBid) : null;
-    if(!b || b.items.length){ b = blankBlock(); o.blocks.push(b); }
-    b.items = b.items.concat(items);
-    b.source = 'common';
-    b.doses = Math.max(1, Math.round(n(c.doses) || 1));
-    if(!String(b.title || '').trim()) b.title = String(c.name || '');
-    save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
-    closeModal('wpHistModal');
-    toast('已复用常用方「' + String(c.name || '') + '」');
+    openModal('wpHistModal');
   }
   function prevToggle(no, on){
     _prevNos = _prevNos.filter(function(x){ return x !== no; });
@@ -14345,11 +13435,6 @@ var WPlan = (function(){
   function getPrevSel(){ return _prevNos.slice(); }
   function updateHistFoot(){
     var f = document.getElementById('wpHistFoot'); if(!f) return;
-    if(_histTab === 'common'){
-      f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">点「复用」即可把该常用方的药品明细带入当前药方</span>'
-        + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">关闭</button>';
-      return;
-    }
     var n2 = _prevNos.length;
     f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
       + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">取消</button>'
@@ -14733,15 +13818,15 @@ var WPlan = (function(){
     openPlan: openPlan, closePlan: closePlan, exportPlanWord: exportPlanWord,
     openPay: openPay, copyPay: copyPay, downloadPay: downloadPay,
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
-    setBlockDate: setBlockDate, setBlockProc: setBlockProc, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
+    setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
-    setDish: setDish, setOrderDoses: setOrderDoses, setSaveCommon: setSaveCommon,
+    setDish: setDish, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
     printCur: printCur, printOrder: printOrder,
     setBlockTitle: setBlockTitle, setRemark: setRemark, setItemRemark: setItemRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
     setItemName: setItemName, delItem: delItem, addItems: addItems,
     toggleUnit: toggleUnit, setUnit: setUnit,
-    openHistory: openHistory, bringHistory: bringHistory, histTab: histTab, applyCommon: applyCommon,
+    openHistory: openHistory, bringHistory: bringHistory,
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
