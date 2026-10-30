@@ -3307,20 +3307,21 @@ body{ --navw:0px; }
 .wp-seg{ display:inline-flex; align-items:center; padding:4px; background:#f2f3f5;
   border:1px solid rgba(0,0,0,.04); border-radius:999px; }
 /* 全站 button:not(.pri):not(.warn){background:!important} 权重更高，这里用 ID 选择器压过它 */
-#wpSegStatus .wp-seg-btn, #wpSegView .wp-seg-btn{
+#wpSegStatus .wp-seg-btn, #wpSegView .wp-seg-btn, #wpHistTabs .wp-seg-btn{
   -webkit-appearance:none; appearance:none; flex:0 0 auto; height:32px; min-height:0!important;
   padding:0 18px; margin:0; border:none!important; background:transparent!important; box-shadow:none!important;
   color:#8a8f98!important; font-size:13.5px; font-weight:500; font-family:var(--font-ui); line-height:32px;
   border-radius:999px; cursor:pointer; white-space:nowrap;
   transition:background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .12s ease; }
-#wpSegStatus .wp-seg-btn:hover, #wpSegView .wp-seg-btn:hover{
+#wpSegStatus .wp-seg-btn:hover, #wpSegView .wp-seg-btn:hover, #wpHistTabs .wp-seg-btn:hover{
   background:transparent!important; border-color:transparent!important; color:var(--neutral-title)!important; }
-#wpSegStatus .wp-seg-btn.on, #wpSegView .wp-seg-btn.on{
+#wpSegStatus .wp-seg-btn.on, #wpSegView .wp-seg-btn.on, #wpHistTabs .wp-seg-btn.on{
   background:#fff!important; border-color:transparent!important; color:var(--pri-deep)!important; font-weight:700;
   box-shadow:0 1px 3px rgba(0,0,0,.10), 0 0 0 .5px rgba(0,0,0,.05)!important; }
-#wpSegStatus .wp-seg-btn.on:hover, #wpSegView .wp-seg-btn.on:hover{
+#wpSegStatus .wp-seg-btn.on:hover, #wpSegView .wp-seg-btn.on:hover, #wpHistTabs .wp-seg-btn.on:hover{
   background:#fff!important; color:var(--pri-deep)!important; }
-#wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active{ transform:scale(.97); }
+#wpSegStatus .wp-seg-btn:active, #wpSegView .wp-seg-btn:active, #wpHistTabs .wp-seg-btn:active{ transform:scale(.97); }
+.wp-mh .spacer{ flex:1; }
 .wp-list-bar .wp-view-tabs{ margin-left:2px; }
 /* 搜索框清除按钮：红色圆形 X（全站 button:not(.pri):not(.warn) 规则权重更高，这里加双类 + !important 压过） */
 .sch-wrap{ position:relative; display:flex; align-items:center; min-width:0; }
@@ -3460,6 +3461,32 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 #gstClear:hover, #gstClear:active{ background:#d13b46!important; color:#fff!important;
   transform:translateY(-50%)!important; box-shadow:0 1px 2px rgba(227,77,89,.35)!important; }
 .gst-search.has-val #gstClear{ display:flex; }
+/* 常用方编辑：结构化药品表格（与订单详情的录入方式一致，2026-10-31） */
+/* 全站弹窗基座把 .dlg 锁成 800×800!important，这里单独给常用方弹窗放宽 */
+#gstCfModal>.dlg{ width:960px!important; height:auto!important; }
+.cf-wrap{ border:1px solid var(--neutral-2); border-radius:10px; overflow:hidden; background:var(--n-white); }
+.cf-tbl{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:13px; }
+.cf-tbl th{ background:var(--neutral-0); color:var(--neutral-5); font-size:11px; font-weight:600;
+  padding:8px; text-align:left; border-bottom:1px solid var(--neutral-2); white-space:nowrap; }
+.cf-tbl td{ padding:5px 8px; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
+.cf-tbl tbody tr:last-child td{ border-bottom:none; }
+.cf-tbl input{ width:100%; height:32px; box-sizing:border-box; border:1px solid transparent; border-radius:8px;
+  background:transparent; padding:0 8px; font-family:var(--font-ui); font-size:13px; color:var(--neutral-title); outline:none; }
+.cf-tbl input:hover{ border-color:var(--neutral-2); }
+.cf-tbl input:focus{ border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); background:var(--n-white); }
+.cf-tbl input.num{ text-align:right; font-variant-numeric:tabular-nums; }
+.cf-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; }
+.cf-tools{ display:flex; align-items:center; gap:12px; margin-top:10px; }
+.cf-sum{ margin-left:auto; font-size:13px; color:var(--neutral-6); }
+.cf-sum b{ color:var(--pri-deep); font-size:15px; }
+#cfAc{ position:fixed; display:none; z-index:9999; max-height:240px; overflow-y:auto;
+  background:var(--n-white); border:1px solid var(--neutral-3); border-radius:10px;
+  box-shadow:0 10px 28px rgba(0,0,0,.14); }
+#cfAc .r{ display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:7px 12px; font-size:13px; cursor:pointer; }
+#cfAc .r.on,#cfAc .r:hover{ background:var(--pri-soft); }
+#cfAc .r .nm{ color:var(--neutral-title); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#cfAc .r .pr{ color:var(--aux); font-size:12px; white-space:nowrap; }
 .gst-add-btn{ width:100%; height:38px; }
 .gst-list{ flex:1 1 auto; min-height:0; overflow:auto; padding:8px; }
 .gst-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px;
@@ -4083,7 +4110,15 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
         <div class="modal" id="wpHistModal">
           <div class="wp-mw">
-            <div class="wp-mh">从该客人历史药方复用 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
+            <div class="wp-mh">
+              从药方复用
+              <div class="wp-seg" id="wpHistTabs" style="margin-left:14px">
+                <button class="wp-seg-btn on" type="button" data-t="hist" onclick="WPlan.histTab('hist')">历史药方</button>
+                <button class="wp-seg-btn" type="button" data-t="common" onclick="WPlan.histTab('common')">常用药方</button>
+              </div>
+              <span class="spacer"></span>
+              <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button>
+            </div>
             <div class="wp-mb" id="wpHistBody"></div>
             <div class="wp-mb-actions" id="wpHistFoot"></div>
           </div>
@@ -4769,15 +4804,27 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
 <!-- ================= 新建 / 编辑常用方 ================= -->
 <div class="modal" id="gstCfModal">
-  <div class="dlg" style="width:620px">
+  <div class="dlg" style="width:900px">
     <header><span id="gstCfTitle">新建常用方</span><span class="spacer"></span><span class="x" data-close>✕</span></header>
     <div class="body">
       <div class="gst-form gst-form-dlg">
         <div class="gst-f"><label>方名 *</label><input id="gstCfName" placeholder="如 四物汤 / 祛湿茶"></div>
-        <div class="gst-f"><label>付数 *</label><input id="gstCfDoses" class="num" type="number" min="1" step="1" value="1"></div>
+        <div class="gst-f"><label>付数 *</label><input id="gstCfDoses" class="num" type="number" min="1" step="1" value="1" oninput="Guest.cfDoses(this.value)"></div>
         <div class="gst-f gst-full"><label>备注</label><textarea id="gstCfNote" rows="2" placeholder="如：每付加炙甘草10克，打细粉"></textarea></div>
-        <div class="gst-f gst-full"><label>药方内容 *</label><textarea id="gstCfItems" rows="8" placeholder="例如：桂枝 10g 白芍 10g 甘草 5g（空格或换行分隔，自动带出单价）"></textarea>
-          <div class="gst-hint" id="gstCfHint">保存后可在「常用方」中一键复用，自动跳转到药方打印页。</div>
+        <div class="gst-f gst-full">
+          <label>药品明细 *</label>
+          <div class="cf-wrap">
+            <table class="cf-tbl">
+              <colgroup><col style="width:24%"><col style="width:84px"><col style="width:66px"><col style="width:100px"><col style="width:96px"><col><col style="width:56px"></colgroup>
+              <thead><tr><th>药名 / 拼音</th><th>克数</th><th>单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead>
+              <tbody id="gstCfRows"></tbody>
+            </table>
+          </div>
+          <div class="cf-tools">
+            <button class="btn sm" type="button" onclick="Guest.cfAddRow()">＋ 添加药材</button>
+            <span class="cf-sum" id="gstCfSum"></span>
+          </div>
+          <div class="gst-hint" id="gstCfHint">输入药名或拼音即可检索选药，自动带出单价；保存后可在「常用方」中一键复用。</div>
         </div>
       </div>
     </div>
@@ -6805,6 +6852,8 @@ var GST_IMP_FILE='';     /* 当前导入的文件名（预览标题用） */
 var GST_CF_READY=false;  /* 云端常用方是否已经合并过（未合并时别用空数组覆盖云端） */
 /* 历史遗留的错名 → 正名。只用于本地单据/常用方迁移和 Excel 导入归户，不猜别的名字。 */
 var GUEST_NAME_ALIAS={'黄婉媚':'黄琬媚'};
+var GST_CF_ITEMS=[];          /* 弹窗里正在编辑的药品行（草稿，保存才落库） */
+var CF_AC=null;               /* 常用方弹窗的药名检索浮层状态 */
 
 /* ---------- 客户档案数据层（沿用 doctors 表，prices jsonb 承载档案字段） ---------- */
 function guestRowOf(g, cf){
@@ -7279,25 +7328,171 @@ var Guest=(function(){
     h+='</tbody></table>';
     box.innerHTML=h;
   }
+  /* ---- 常用方编辑：结构化药品表格（药名检索 / 克数 / 单位 / 单价 / 金额 / 备注） ---- */
+  function cfBlank(){ return { name:'', qty:0, unit:'g', du:'g', price:null, priceManual:false, zibei:false, sfx:'', rm:'' }; }
+  function cfFocus(i, field){
+    setTimeout(function(){
+      var tr=document.querySelector('#gstCfRows tr[data-i="'+i+'"]');
+      if(!tr) return;
+      var el=tr.querySelector('.cf-'+(field||'name'));
+      if(el){ el.focus(); if(field!=='name'){ try{ el.select(); }catch(e){} } }
+      else { var n2=tr.querySelector('.cf-name'); if(n2) n2.focus(); }
+    },0);
+  }
+  function cfSum(){
+    var el=$('gstCfSum'); if(!el) return;
+    var per=0, i, its=GST_CF_ITEMS;
+    for(i=0;i<its.length;i++) per+=gstItemAmt(its[i]);
+    var d=Math.max(1, Math.round(n($('gstCfDoses') ? $('gstCfDoses').value : 1)||1));
+    el.innerHTML='单付 <b>¥'+money(per)+'</b> × '+d+'付 = <b>¥'+money(per*d)+'</b>';
+  }
+  function cfRowAmount(i){
+    var tr=document.querySelector('#gstCfRows tr[data-i="'+i+'"]'); if(!tr) return;
+    var td=tr.querySelector('.cf-amt'); if(td) td.textContent='¥'+money(gstItemAmt(GST_CF_ITEMS[i]));
+  }
+  function cfRenderRows(focusIdx, field){
+    var box=$('gstCfRows'); if(!box) return;
+    var h='', i;
+    for(i=0;i<GST_CF_ITEMS.length;i++){
+      var it=GST_CF_ITEMS[i]||{};
+      h+='<tr data-i="'+i+'">'
+        +'<td><input class="cf-name" value="'+esc(it.name||'')+'" placeholder="药名 / 拼音" autocomplete="off" spellcheck="false" oninput="Guest.cfNameInput('+i+',this)" onfocus="Guest.cfNameFocus('+i+',this)" onkeydown="Guest.cfNameKey(event,'+i+',this)"></td>'
+        +'<td><input class="cf-qty num" type="number" min="0" step="0.1" value="'+(n(it.qty)?n(it.qty):'')+'" oninput="Guest.cfQty('+i+',this.value)"></td>'
+        +'<td><input class="cf-unit" value="'+esc(it.unit||it.du||'g')+'" onchange="Guest.cfUnit('+i+',this.value)"></td>'
+        +'<td><input class="cf-price num" type="number" min="0" step="0.001" value="'+(it.price==null?'':n(it.price))+'" oninput="Guest.cfPrice('+i+',this.value)"></td>'
+        +'<td class="cf-amt">¥'+money(gstItemAmt(it))+'</td>'
+        +'<td><input class="cf-rm" value="'+esc(it.rm||'')+'" placeholder="备注（选填）" oninput="Guest.cfRm('+i+',this.value)"></td>'
+        +'<td><button class="btn danger sm" type="button" onclick="Guest.cfDelRow('+i+')">删</button></td>'
+        +'</tr>';
+    }
+    if(!GST_CF_ITEMS.length) h='<tr><td colspan="7" style="color:#999;text-align:center;padding:18px">还没有药材，点下方「＋ 添加药材」</td></tr>';
+    box.innerHTML=h;
+    cfSum();
+    if(focusIdx!=null) cfFocus(focusIdx, field);
+  }
+  /* 药名检索浮层（复用全站 acSearch 结果，选中后自动带出单位与单价） */
+  function cfAcBox(){
+    var b=$('cfAc');
+    if(!b){
+      b=document.createElement('div'); b.id='cfAc'; document.body.appendChild(b);
+      b.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        var r=e.target.closest('.r');
+        if(r) cfAcPick(+r.getAttribute('data-i'));
+      });
+    }
+    return b;
+  }
+  function cfAcHide(){ var b=$('cfAc'); if(b) b.style.display='none'; CF_AC=null; }
+  function cfAcRender(){
+    if(!CF_AC) return;
+    var b=cfAcBox(), h='', k;
+    for(k=0;k<CF_AC.list.length;k++){
+      var d=CF_AC.list[k];
+      h+='<div class="r'+(k===CF_AC.sel?' on':'')+'" data-i="'+k+'"><span class="nm">'+esc(d.n||'')+'</span>'
+        +'<span class="pr">'+(d.p==null?'—':esc(n(d.p)))+(d.u?('/'+esc(d.u)):'')+'</span></div>';
+    }
+    b.innerHTML=h; b.style.display='block';
+    var r=CF_AC.el.getBoundingClientRect();
+    var top=r.bottom+2, left=r.left;
+    b.style.minWidth=Math.max(r.width,240)+'px';
+    if(top+b.offsetHeight>window.innerHeight-8) top=Math.max(8,r.top-b.offsetHeight-2);
+    if(left+b.offsetWidth>window.innerWidth-8) left=Math.max(8,window.innerWidth-b.offsetWidth-8);
+    b.style.left=left+'px'; b.style.top=top+'px';
+  }
+  function cfAcSearch(i, el){
+    var term=String(el.value||'').trim();
+    var list=[];
+    try{ list=acSearch(term)||[]; }catch(e){ list=[]; }
+    list=list.slice(0,12);
+    if(!list.length){ cfAcHide(); return; }
+    CF_AC={ i:i, el:el, list:list, sel:0 };
+    cfAcRender();
+  }
+  function cfAcPick(k){
+    if(!CF_AC) return;
+    var d=CF_AC.list[k]; if(!d) return;
+    var i=CF_AC.i, it=GST_CF_ITEMS[i]; if(!it) return;
+    var sp=splitSfx(d.n||'');
+    it.name=sp.nm; it.sfx=sp.sfx;
+    it.unit=String(d.u||'g'); it.du=it.unit;
+    it.price=gstPriceFor(GUEST_CUR, sp.nm, it.unit);
+    it.priceManual=false;
+    cfAcHide();
+    cfRenderRows(i, 'qty');
+  }
+  function cfNameInput(i, el){
+    if(!GST_CF_ITEMS[i]) return;
+    GST_CF_ITEMS[i].name=String(el.value||'');
+    cfAcSearch(i, el);
+  }
+  function cfNameFocus(i, el){ cfAcSearch(i, el); }
+  function cfNameKey(e, i, el){
+    if(!CF_AC || CF_AC.i!==i){
+      if(e.key==='Enter'){ e.preventDefault(); cfAddRow(); }
+      return;
+    }
+    var k=e.key;
+    if(k==='ArrowDown'){ CF_AC.sel=(CF_AC.sel+1)%CF_AC.list.length; cfAcRender(); e.preventDefault(); return; }
+    if(k==='ArrowUp'){ CF_AC.sel=(CF_AC.sel-1+CF_AC.list.length)%CF_AC.list.length; cfAcRender(); e.preventDefault(); return; }
+    if(k==='Escape'){ cfAcHide(); return; }
+    if((k==='Enter'||k==='Tab') && CF_AC.list.length){ e.preventDefault(); cfAcPick(CF_AC.sel); }
+  }
+  function cfQty(i, v){
+    var it=GST_CF_ITEMS[i]; if(!it) return;
+    it.qty=n(v); cfRowAmount(i); cfSum();
+  }
+  function cfUnit(i, v){
+    var it=GST_CF_ITEMS[i]; if(!it) return;
+    it.unit=String(v||'g'); it.du=it.unit;
+    if(!it.priceManual) it.price=gstPriceFor(GUEST_CUR, it.name, it.unit);
+    cfRenderRows(i, 'qty');
+  }
+  function cfPrice(i, v){
+    var it=GST_CF_ITEMS[i]; if(!it) return;
+    it.price=n(v); it.priceManual=true;
+    cfRowAmount(i); cfSum();
+  }
+  function cfRm(i, v){ var it=GST_CF_ITEMS[i]; if(it) it.rm=String(v||''); }
+  function cfDoses(v){
+    var el=$('gstCfDoses');
+    if(el) el.value=Math.max(1, Math.round(n(v)||1));
+    cfSum();
+  }
+  function cfDelRow(i){
+    GST_CF_ITEMS.splice(i,1);
+    cfRenderRows();
+  }
+  function cfAddRow(){
+    GST_CF_ITEMS.push(cfBlank());
+    cfRenderRows(GST_CF_ITEMS.length-1, 'name');
+  }
   function newCommon(){
     if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
     GST_CF_EDIT='';
+    GST_CF_ITEMS=[cfBlank()];
     if($('gstCfTitle')) $('gstCfTitle').textContent='新建常用方 · '+GUEST_CUR;
     if($('gstCfName')) $('gstCfName').value='';
     if($('gstCfDoses')) $('gstCfDoses').value=1;
     if($('gstCfNote')) $('gstCfNote').value='';
-    if($('gstCfItems')) $('gstCfItems').value='';
+    cfRenderRows();
     var m=$('gstCfModal'); if(m) m.classList.add('on');
     setTimeout(function(){ if($('gstCfName')) $('gstCfName').focus(); },50);
   }
   function editCommon(id){
     var c=gstCfFind(id); if(!c) return;
     GST_CF_EDIT=id;
+    GST_CF_ITEMS=(c.items||[]).map(function(it){
+      return { name:String(it.name||''), qty:n(it.qty), unit:String(it.unit||it.du||'g'), du:String(it.du||it.unit||'g'),
+               price:(it.price==null?null:n(it.price)), priceManual:!!it.manual, zibei:!!it.zibei,
+               sfx:String(it.sfx||''), rm:String(it.rm||'') };
+    });
+    if(!GST_CF_ITEMS.length) GST_CF_ITEMS=[cfBlank()];
     if($('gstCfTitle')) $('gstCfTitle').textContent='编辑常用方 · '+GUEST_CUR;
     if($('gstCfName')) $('gstCfName').value=c.name||'';
     if($('gstCfDoses')) $('gstCfDoses').value=n(c.doses)||1;
     if($('gstCfNote')) $('gstCfNote').value=c.note||'';
-    if($('gstCfItems')) $('gstCfItems').value=gstItemsText(c.items);
+    cfRenderRows();
     var m=$('gstCfModal'); if(m) m.classList.add('on');
   }
   function saveCommon(){
@@ -7306,8 +7501,20 @@ var Guest=(function(){
     if(!nm){ toastErr('请填写方名'); $('gstCfName').focus(); return; }
     var doses=Math.max(1, Math.round(n($('gstCfDoses') ? $('gstCfDoses').value : 1)||1));
     var note=String($('gstCfNote') ? $('gstCfNote').value : '').trim();
-    var items=gstBuildItems(String($('gstCfItems').value||''), GUEST_CUR);
-    if(!items.length){ toastErr('药方内容没有识别到药材，请按「药名 克数」填写'); $('gstCfItems').focus(); return; }
+    var items=[], i;
+    for(i=0;i<GST_CF_ITEMS.length;i++){
+      var it=GST_CF_ITEMS[i], name=String(it.name||'').trim();
+      if(!name) continue;
+      if(it.zibei){ items.push({name:name,qty:0,unit:'',du:'',price:0,manual:false,zibei:true,sfx:'',rm:''}); continue; }
+      var qty=n(it.qty);
+      if(!(qty>0)){ toastErr('第 '+(i+1)+' 行「'+name+'」请填写克数'); return; }
+      var sp=splitSfx(name);
+      var u=String(it.unit||it.du||'g');
+      var price=it.priceManual?n(it.price):n(gstPriceFor(GUEST_CUR, sp.nm, u));
+      items.push({name:sp.nm, qty:qty, unit:u, du:u, price:price,
+                  manual:!!it.priceManual, zibei:false, sfx:(it.sfx||sp.sfx||''), rm:String(it.rm||'')});
+    }
+    if(!items.length){ toastErr('请至少添加一味药材'); return; }
     var now=nowStr();
     if(GST_CF_EDIT){
       var c=gstCfFind(GST_CF_EDIT);
@@ -7317,6 +7524,7 @@ var Guest=(function(){
       GST_CF.unshift({id:gstCfId(), guest:GUEST_CUR, name:nm, doses:doses, items:items, note:note, createdAt:now, updatedAt:now});
     }
     gstCfPersist();
+    cfAcHide();
     var m=$('gstCfModal'); if(m) m.classList.remove('on');
     renderCommon();
     toast(GST_CF_EDIT?'常用方已更新':'已保存常用方「'+nm+'」');
@@ -7455,7 +7663,7 @@ var Guest=(function(){
     toast('已导出 Word 账单');
   }
 
-  /* ================= Excel 批量导入常用方（旧「套件管理」表） =================
+  /* ================= Excel 批量导入常用方（旧「套件管理」表） ==========
      列映射：套件名称→方名；备注→（去掉开头客户名后的）备注；包含货品→药品。
      原表没有克数，导入时每味药 qty=0，进列表后点「编辑」补克数即可。
      客户：备注开头若是客户名（如「黄婉媚，…」「李医生，…」），自动挂到该客户；
@@ -7773,11 +7981,20 @@ var Guest=(function(){
       +(made?('，新建客户 '+made+' 个'):'')
       +'。药材克数先记 0，点「编辑」补全即可');
   }
+  /* 常用方药名浮层：点浮层外的位置即收起（浮层内部的 mousedown 先选中再置空，不会被误关） */
+  document.addEventListener('mousedown', function(e){
+    if(!CF_AC) return;
+    var p=$('cfAc');
+    if(p && (p.contains(e.target) || CF_AC.el===e.target)) return;
+    cfAcHide();
+  });
 
   return {
     ensure:ensure, setSearch:setSearch, clearSearch:clearSearch, pick:pick, tab:tab,
     saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
     renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
+    cfAddRow:cfAddRow, cfDelRow:cfDelRow, cfNameInput:cfNameInput, cfNameFocus:cfNameFocus,
+    cfNameKey:cfNameKey, cfQty:cfQty, cfUnit:cfUnit, cfPrice:cfPrice, cfRm:cfRm, cfDoses:cfDoses,
     previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
     importExcelPick:importExcelPick, importExcelFile:importExcelFile,
     importSelect:importSelect, importSelectAll:importSelectAll, importExcelCommit:importExcelCommit,
@@ -14005,6 +14222,7 @@ var WPlan = (function(){
 
   /* ---- 历史药方复用（先预览，确认后再带入；可多选） ---- */
   var _prevNos = [], _prevBid = null;
+  var _histTab = 'hist';      /* 复用弹窗 Tab：hist=历史药方，common=常用药方 */
   function findRx(no){
     var all = allRx();
     for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
@@ -14016,10 +14234,23 @@ var WPlan = (function(){
     return items;
   }
   function openHistory(bid){
-    _tgt = bid; _prevBid = bid; _prevNos = [];
+    _tgt = bid; _prevBid = bid; _prevNos = []; _histTab = 'hist';
     var o = curOrder();
-    if(!o || !o.guest){ toastErr('请先在上方选择医生'); return; }
-    var rxs = doctorRxs(o.guest); var body = document.getElementById('wpHistBody'); if(!body) return;
+    if(!o || !o.guest){ toastErr('请先在上方选择客人 / 医生'); return; }
+    renderHistBody();
+    openModal('wpHistModal');
+  }
+  function histTab(t){
+    _histTab = (t === 'common') ? 'common' : 'hist';
+    _prevNos = [];
+    renderHistBody();
+  }
+  function renderHistBody(){
+    var o = curOrder(), body = document.getElementById('wpHistBody');
+    if(!o || !body) return;
+    applySegUI('#wpHistTabs', 'data-t', _histTab);
+    if(_histTab === 'common'){ renderCommonTab(o, body); updateHistFoot(); return; }
+    var rxs = doctorRxs(o.guest);
     if(!rxs.length){
       body.innerHTML = '<div class="wp-empty">该客人暂无历史药方（来自日常药方打印数据）</div>';
     } else {
@@ -14036,7 +14267,51 @@ var WPlan = (function(){
       body.innerHTML = h2;
     }
     updateHistFoot();
-    openModal('wpHistModal');
+  }
+  /* 常用药方 Tab：按当前客人过滤 rx_gcommon_v1 */
+  function renderCommonTab(o, body){
+    try{ if(typeof gstLoadCf === 'function') gstLoadCf(); }catch(e){}
+    var all = (typeof GST_CF !== 'undefined' && GST_CF) ? GST_CF : [];
+    var guest = String(o.guest || '').trim();
+    var list = [];
+    for(var i=0;i<all.length;i++){
+      var c = all[i];
+      if(c && String((c.guest || '')).trim() === guest) list.push(c);
+    }
+    if(!list.length){
+      body.innerHTML = '<div class="wp-empty">该客人还没有常用方。可在「客人管理 → 常用方」里新建。</div>';
+      return;
+    }
+    var h = '';
+    for(var k=0;k<list.length;k++){
+      var c2 = list[k];
+      h += '<div class="wp-hist-row">'
+        + '<span class="meta"><b>' + esc(c2.name || '未命名常用方') + '</b> · ' + (n(c2.doses) || 1) + '付 · ¥' + money(gstCfAmount(c2))
+        + ' · ' + esc(c2.createdAt || '') + '</span>'
+        + '<button class="btn sm" type="button" onclick="Guest.previewCommon(\'' + esc(c2.id) + '\')">预览</button>'
+        + '<button class="btn sm pri" type="button" onclick="WPlan.applyCommon(\'' + esc(c2.id) + '\')">复用</button>'
+        + '</div>';
+    }
+    body.innerHTML = h;
+  }
+  /* 把选中常用方的药品明细带入当前药方（空药方优先复用，否则新建一个） */
+  function applyCommon(id){
+    var o = curOrder(); if(!o) return;
+    var all = (typeof GST_CF !== 'undefined' && GST_CF) ? GST_CF : [];
+    var c = null;
+    for(var i=0;i<all.length;i++){ if(all[i] && all[i].id === id){ c = all[i]; break; } }
+    if(!c){ toastErr('常用方不存在'); return; }
+    var items = JSON.parse(JSON.stringify(c.items || []));
+    if(!items.length){ toastErr('该常用方没有药材'); return; }
+    var b = _prevBid ? blockById(_prevBid) : null;
+    if(!b || b.items.length){ b = blankBlock(); o.blocks.push(b); }
+    b.items = b.items.concat(items);
+    b.source = 'common';
+    b.doses = Math.max(1, Math.round(n(c.doses) || 1));
+    if(!String(b.title || '').trim()) b.title = String(c.name || '');
+    save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
+    closeModal('wpHistModal');
+    toast('已复用常用方「' + String(c.name || '') + '」');
   }
   function prevToggle(no, on){
     _prevNos = _prevNos.filter(function(x){ return x !== no; });
@@ -14046,6 +14321,11 @@ var WPlan = (function(){
   function getPrevSel(){ return _prevNos.slice(); }
   function updateHistFoot(){
     var f = document.getElementById('wpHistFoot'); if(!f) return;
+    if(_histTab === 'common'){
+      f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">点「复用」即可把该常用方的药品明细带入当前药方</span>'
+        + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">关闭</button>';
+      return;
+    }
     var n2 = _prevNos.length;
     f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
       + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">取消</button>'
@@ -14437,7 +14717,7 @@ var WPlan = (function(){
     setBlockTitle: setBlockTitle, setRemark: setRemark, setItemRemark: setItemRemark, setQty: setQty, setDoses: setDoses, setPrice: setPrice,
     setItemName: setItemName, delItem: delItem, addItems: addItems,
     toggleUnit: toggleUnit, setUnit: setUnit,
-    openHistory: openHistory, bringHistory: bringHistory,
+    openHistory: openHistory, bringHistory: bringHistory, histTab: histTab, applyCommon: applyCommon,
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
