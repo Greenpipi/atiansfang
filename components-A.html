@@ -189,6 +189,82 @@ main{min-width:0}
 .kbdTag{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border:1px solid var(--line);border-radius:4px;background:var(--card2);font-size:9px;color:var(--ink3)}
 .avatar-xs{width:24px;height:24px;border-radius:50%;background:var(--soft);color:var(--pri2);display:inline-grid;place-items:center;font-size:10px;font-weight:600}
 
+/* 日期 / 下拉 / 备选下拉 */
+.pickerGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
+.pickerCell .cap{font-size:10px;color:var(--ink3);margin-bottom:6px;display:flex;align-items:baseline;gap:6px}
+.pickerCell .cap em{font-style:normal;font-size:9px;color:var(--ink3);opacity:.8}
+.dateTrigger,.selectTrigger,.comboTrigger{position:relative;display:flex;align-items:center}
+.dateTrigger .input{padding-right:40px;cursor:pointer}
+.dateIcon{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;background:transparent;border-radius:7px;color:var(--ink3);display:grid;place-items:center;cursor:pointer;transition:background .15s ease,color .15s ease}
+.dateIcon:hover{background:var(--soft);color:var(--pri2)}
+.dateIcon svg{width:15px;height:15px}
+.openPanel{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:0 14px 34px rgba(17,45,32,.10);padding:12px;margin-top:12px}
+.opTag{position:absolute;top:-9px;right:10px;font-size:9px;letter-spacing:.04em;color:var(--ink3);background:var(--card);padding:0 6px}
+.calHead{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 8px}
+.calHead b{font-size:12px;font-weight:600;letter-spacing:.02em}
+.calNav{width:26px;height:26px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink2);cursor:pointer;font-size:14px;line-height:1;display:grid;place-items:center;transition:all .15s ease}
+.calNav:hover{background:var(--soft);border-color:#CFE8DD;color:var(--pri2)}
+.calWeek{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9px;color:var(--ink3);padding-bottom:5px;border-bottom:1px solid var(--line)}
+.calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding-top:6px}
+.calCell{height:30px;border:0;background:transparent;border-radius:7px;font-size:10.5px;color:var(--ink2);cursor:pointer;font-variant-numeric:tabular-nums;transition:background .13s ease,color .13s ease,box-shadow .13s ease}
+.calCell:hover{background:var(--soft2);color:var(--pri2)}
+.calCell.out{color:#C3D1CA}
+.calCell.weekend{color:var(--ink3)}
+.calCell.today{box-shadow:inset 0 0 0 1px var(--pri);color:var(--pri2);font-weight:600}
+.calCell.sel{background:var(--pri);color:#fff;font-weight:600;box-shadow:none}
+.calCell.sel:hover{background:var(--pri2);color:#fff}
+.calFoot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+.linkBtn{border:0;background:transparent;color:var(--pri2);font-size:10.5px;cursor:pointer;padding:2px 0}
+.linkBtn:hover{text-decoration:underline}
+.linkBtn.muted{color:var(--ink3);margin-left:auto}
+.selectTrigger{height:38px;padding:0 30px 0 12px;border:1px solid var(--line2);border-radius:9px;background:var(--card);cursor:pointer;font-size:12.5px;color:var(--ink);transition:border-color .18s ease,box-shadow .18s ease}
+.selectTrigger:hover{border-color:var(--pri)}
+.selChev{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--ink3);pointer-events:none}
+.menuList{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.menuRow{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s ease}
+.menuRow:last-child{border-bottom:0}
+.menuRow:hover{background:var(--soft2)}
+.menuRow.on{background:var(--soft2)}
+.menuRow.on .mcheck{opacity:1;color:var(--pri)}
+.menuRow .mbody{flex:1;min-width:0}
+.menuRow .mname{font-size:11.5px;color:var(--ink);font-weight:500}
+.menuRow .mdesc{display:block;font-size:9.5px;color:var(--ink3);margin-top:2px}
+.mcheck{width:14px;height:14px;opacity:.25;color:var(--ink3);flex:0 0 14px}
+.mcheck svg{width:14px;height:14px;display:block}
+.menuFoot{font-size:9.5px;color:var(--ink3);padding:8px 2px 0;display:flex;justify-content:space-between}
+.comboTrigger{height:38px;border:1px solid var(--line2);border-radius:9px;background:var(--card);padding:0 60px 0 33px;transition:border-color .18s ease,box-shadow .18s ease}
+.comboTrigger:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12)}
+.comboTrigger .searchIco{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ink3);pointer-events:none}
+.comboInput{width:100%;border:0;outline:0;background:transparent;font-size:12.5px;color:var(--ink);height:36px}
+.comboClear{position:absolute;right:28px;top:50%;transform:translateY(-50%);width:18px;height:18px;border:0;border-radius:50%;background:var(--card2);color:var(--ink3);font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.comboClear:hover{background:var(--soft);color:var(--pri2)}
+.comboChev{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--ink3);pointer-events:none}
+.comboQuick{display:flex;gap:5px;flex-wrap:wrap;padding:2px 0 8px}
+.comboQuick .q{font-size:9.5px;color:var(--ink2);background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:3px 8px;cursor:pointer;transition:all .15s ease}
+.comboQuick .q:hover{background:var(--soft);border-color:#CFE8DD;color:var(--pri2)}
+.comboGroup{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--ink3);padding:4px 2px 6px}
+.comboGroup:after{content:"";flex:1;height:1px;background:var(--line)}
+.comboList .comboRow{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:6px;cursor:pointer;font-size:11.5px;transition:background .14s ease}
+.comboList .comboRow:hover,.comboList .comboRow.hover{background:var(--soft2)}
+.comboList .comboRow.sel{background:var(--soft);box-shadow:inset 2px 0 0 var(--pri)}
+.comboList .nm{color:var(--ink);font-weight:500;min-width:3.4em}
+.comboList .meta{font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.comboList .use{margin-left:auto;font-size:9px;color:var(--ink3)}
+.comboEmpty{display:none;padding:14px 8px;text-align:center;font-size:10.5px;color:var(--ink3)}
+.comboEmpty.show{display:block}
+.comboFoot{display:flex;justify-content:space-between;font-size:9px;color:var(--ink3);border-top:1px solid var(--line);margin-top:6px;padding-top:7px}
+.dateRangeBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-top:16px;background:var(--card2);border:1px solid var(--line);border-radius:10px}
+.dateRangeBar .drLabel{font-size:10.5px;color:var(--ink3);display:flex;flex-direction:column;gap:1px}
+.dateRangeBar .drLabel b{font-size:11.5px;color:var(--ink);font-weight:600}
+.dateRangeBar .drFields{display:flex;align-items:center;gap:6px}
+.dateRangeBar .drFields .input{width:150px;height:34px;font-size:11.5px}
+.dateRangeBar .to{font-size:10.5px;color:var(--ink3)}
+.drPresets{display:flex;gap:5px;flex-wrap:wrap}
+.presetChip{height:26px;padding:0 9px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--ink2);font-size:10.5px;cursor:pointer;transition:all .15s ease}
+.presetChip:hover{border-color:#CFE8DD;background:var(--soft2);color:var(--pri2)}
+.presetChip.on{background:var(--soft);border-color:#CFE8DD;color:var(--pri2);font-weight:600}
+.dateRangeBar .drGo{margin-left:auto}
+
 /* ============ 表单 ============ */
 .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .formCard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column}
@@ -522,7 +598,7 @@ main{min-width:0}
       <p class="secLead">按钮、输入、选择、分段与状态标签，全部按现网站的操作密度设计。<b>主按钮永远只有一个</b>；悬停只做轻微上浮与颜色变化，点击即时反馈。</p>
 
       <div class="spec">
-        <div class="specHead"><b>按钮 Button</b><span>默认 / 悬浮 / 禁用 / 加载</span><span class="idx">01 / 04</span></div>
+        <div class="specHead"><b>按钮 Button</b><span>默认 / 悬浮 / 禁用 / 加载</span><span class="idx">01 / 05</span></div>
         <div class="btnRow" style="margin-bottom:16px">
           <button class="btn primary">保存处方</button>
           <button class="btn">新建处方</button>
@@ -546,7 +622,7 @@ main{min-width:0}
       </div>
 
       <div class="spec">
-        <div class="specHead"><b>输入 Input</b><span>默认 / 聚焦 / 错误 / 禁用 / 前后缀</span><span class="idx">02 / 04</span></div>
+        <div class="specHead"><b>输入 Input</b><span>默认 / 聚焦 / 错误 / 禁用 / 前后缀</span><span class="idx">02 / 05</span></div>
         <div class="fieldGrid">
           <div class="demoField">
             <div class="cap">默认 <em>text</em></div>
@@ -601,7 +677,75 @@ main{min-width:0}
       </div>
 
       <div class="spec">
-        <div class="specHead"><b>选择与数据</b><span>勾选 / 单选 / 开关 / 分段 / 步进 / 滑杆 / 标签</span><span class="idx">03 / 04</span></div>
+        <div class="specHead"><b>日期 · 下拉 · 备选</b><span>展开态常显 · 可直接点击体验</span><span class="idx">03 / 05</span></div>
+        <div class="pickerGrid">
+          <div class="pickerCell">
+            <div class="cap">日期控件 <em>date picker</em></div>
+            <div class="dateTrigger">
+              <input class="input dateText" id="dateSingleInput" value="2026-10-31" readonly>
+              <button class="dateIcon" id="dateSingleBtn" title="选择日期"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button>
+            </div>
+            <div class="openPanel">
+              <span class="opTag">展开态</span>
+              <div class="calHead"><button class="calNav" data-cal="-1">‹</button><b id="calTitle">2026 年 10 月</b><button class="calNav" data-cal="1">›</button></div>
+              <div class="calWeek"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+              <div class="calGrid" id="calGrid"></div>
+              <div class="calFoot"><button class="linkBtn" id="calToday">今天</button><span style="font-size:9px;color:var(--ink3)">点选后回填输入框</span><button class="linkBtn muted" id="calClear">清空</button></div>
+            </div>
+            <div class="help">选中日期或切换月份后，输入框同步更新；历史检索也用这一套。</div>
+          </div>
+
+          <div class="pickerCell">
+            <div class="cap">下拉菜单 <em>select</em></div>
+            <div class="selectTrigger" id="paperSelect">
+              <span id="paperSelectValue">A5 · 148×210mm</span>
+              <svg class="selChev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+            </div>
+            <div class="openPanel">
+              <span class="opTag">展开态</span>
+              <div class="menuList" id="paperMenu">
+                <div class="menuRow on" data-v="A5 · 148×210mm"><div class="mbody"><span class="mname">A5</span><span class="mdesc">148 × 210mm · 处方笺默认</span></div><span class="mcheck"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 8.5 6.4 12 13 4.5"/></svg></span></div>
+                <div class="menuRow" data-v="A4 · 210×297mm"><div class="mbody"><span class="mname">A4</span><span class="mdesc">210 × 297mm · 清单 / 发货单</span></div><span class="mcheck"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 8.5 6.4 12 13 4.5"/></svg></span></div>
+                <div class="menuRow" data-v="小票 58mm"><div class="mbody"><span class="mname">小票 58mm</span><span class="mdesc">窄幅热敏纸 · 单列排版</span></div><span class="mcheck"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 8.5 6.4 12 13 4.5"/></svg></span></div>
+                <div class="menuRow" data-v="小票 80mm"><div class="mbody"><span class="mname">小票 80mm</span><span class="mdesc">宽幅热敏纸 · 双列排版</span></div><span class="mcheck"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 8.5 6.4 12 13 4.5"/></svg></span></div>
+              </div>
+              <div class="menuFoot"><span>4 个纸张选项</span><span>Enter 确认 · Esc 关闭</span></div>
+            </div>
+            <div class="help">自定义下拉替代原生 select，选项可带副标题与勾选态；纸张、分类、单位共用。</div>
+          </div>
+
+          <div class="pickerCell">
+            <div class="cap">备选下拉 <em>searchable combobox</em></div>
+            <div class="comboTrigger">
+              <svg class="searchIco" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg>
+              <input class="comboInput" id="comboInput" value="阿" placeholder="搜索药材 / 客人 / 备注">
+              <button class="comboClear" id="comboClear" title="清空">×</button>
+              <svg class="comboChev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+            </div>
+            <div class="openPanel">
+              <span class="opTag">展开态</span>
+              <div class="comboQuick"><span class="q" data-q="阿胶">阿胶</span><span class="q" data-q="阿胶珠">阿胶珠</span><span class="q" data-q="柴胡">柴胡</span><span class="q" data-q="陈皮">陈皮</span></div>
+              <div class="comboGroup">匹配药材 <span id="comboCount">2 项</span></div>
+              <div class="comboList" id="comboList"></div>
+              <div class="comboEmpty" id="comboEmpty">没有匹配的药材，检查拼写或新增药品</div>
+              <div class="comboFoot"><span>↑↓ 选择 · Enter 插入</span><span>Esc 关闭</span></div>
+            </div>
+            <div class="help">输入即筛，支持拼音与最近使用；无结果时给出下一步动作，而不是空白。</div>
+          </div>
+        </div>
+
+        <div class="dateRangeBar">
+          <div class="drLabel"><b>日期范围</b><span>历史处方 / 订单筛选</span></div>
+          <div class="drFields"><input class="input" id="rangeFrom" type="date" value="2026-10-01"><span class="to">至</span><input class="input" id="rangeTo" type="date" value="2026-10-31"></div>
+          <div class="drPresets"><button class="presetChip" data-preset="today">今天</button><button class="presetChip" data-preset="week">本周</button><button class="presetChip on" data-preset="month">本月</button><button class="presetChip" data-preset="last">上月</button></div>
+          <button class="btn sm primary drGo" id="rangeGo">查 询</button>
+        </div>
+
+        <div class="subnote">日期、下拉、备选均为自定义控件，不使用浏览器默认弹层。<b>日期支持单日与范围</b>，范围提供今天 / 本周 / 本月 / 上月快捷；备选支持搜索、最近使用与键盘选择。</div>
+      </div>
+
+      <div class="spec">
+        <div class="specHead"><b>选择与数据</b><span>勾选 / 单选 / 开关 / 分段 / 步进 / 滑杆 / 标签</span><span class="idx">04 / 05</span></div>
         <div class="fieldGrid" style="gap:20px 24px">
           <div class="demoField">
             <div class="cap">复选框 <em>checkbox</em></div>
@@ -969,6 +1113,164 @@ document.getElementById('replay').addEventListener('click', function(){
   var d = document.getElementById('demoCard');
   d.classList.remove('run'); void d.offsetWidth; d.classList.add('run');
 });
+
+/* ================= 日期 / 下拉 / 备选 ================= */
+(function(){
+  var TODAY = '2026-10-31';
+  var cal = { y:2026, m:9, selected:TODAY };
+  function pad(n){ return (n<10?'0':'')+n; }
+  function ds(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
+  function renderCal(){
+    var title = document.getElementById('calTitle');
+    title.textContent = cal.y + ' 年 ' + (cal.m+1) + ' 月';
+    var first = new Date(cal.y, cal.m, 1).getDay();
+    var dim = new Date(cal.y, cal.m+1, 0).getDate();
+    var prevDim = new Date(cal.y, cal.m, 0).getDate();
+    var html = '', cy, cm, d, out, str, cls;
+    for(var i=0;i<42;i++){
+      out = false;
+      if(i < first){ d = prevDim - first + i + 1; cm = cal.m - 1; cy = cal.y; if(cm<0){ cm=11; cy--; } out = true; }
+      else if(i >= first + dim){ d = i - (first + dim) + 1; cm = cal.m + 1; cy = cal.y; if(cm>11){ cm=0; cy++; } out = true; }
+      else { d = i - first + 1; cm = cal.m; cy = cal.y; }
+      str = ds(cy, cm, d);
+      cls = 'calCell' + (out?' out':'') + ((i%7===0||i%7===6)?' weekend':'') + (str===TODAY?' today':'') + (str===cal.selected?' sel':'');
+      html += '<button class="'+cls+'" data-date="'+str+'">'+d+'</button>';
+    }
+    var grid = document.getElementById('calGrid');
+    grid.innerHTML = html;
+    grid.querySelectorAll('.calCell').forEach(function(cell){
+      cell.addEventListener('click', function(){
+        var v = cell.getAttribute('data-date');
+        cal.selected = v;
+        var parts = v.split('-');
+        cal.y = +parts[0]; cal.m = +parts[1] - 1;
+        document.getElementById('dateSingleInput').value = v;
+        renderCal();
+      });
+    });
+  }
+  document.querySelectorAll('.calNav').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      cal.m += +btn.getAttribute('data-cal');
+      if(cal.m<0){ cal.m=11; cal.y--; }
+      if(cal.m>11){ cal.m=0; cal.y++; }
+      renderCal();
+    });
+  });
+  document.getElementById('calToday').addEventListener('click', function(){
+    cal.y=2026; cal.m=9; cal.selected=TODAY;
+    document.getElementById('dateSingleInput').value = TODAY;
+    renderCal();
+  });
+  document.getElementById('calClear').addEventListener('click', function(){
+    cal.selected = '';
+    document.getElementById('dateSingleInput').value = '';
+    renderCal();
+  });
+  document.getElementById('dateSingleBtn').addEventListener('click', function(){
+    document.getElementById('dateSingleInput').focus();
+  });
+  renderCal();
+
+  /* 自定义下拉 */
+  document.querySelectorAll('#paperMenu .menuRow').forEach(function(row){
+    row.addEventListener('click', function(){
+      document.querySelectorAll('#paperMenu .menuRow').forEach(function(r){ r.classList.remove('on'); });
+      row.classList.add('on');
+      var v = row.getAttribute('data-v');
+      document.getElementById('paperSelectValue').textContent = v;
+      showToast('已切换为 ' + v);
+    });
+  });
+
+  /* 备选下拉 */
+  var HERBS = [
+    {n:'阿胶', u:'g', p:'6.80', a:'ejiao', use:'已用 3 次'},
+    {n:'阿胶珠', u:'g', p:'7.20', a:'ejiaozhu'},
+    {n:'艾叶', u:'g', p:'0.18', a:'aiye'},
+    {n:'柴胡', u:'g', p:'0.35', a:'chaihu'},
+    {n:'陈皮', u:'g', p:'0.22', a:'chenpi'},
+    {n:'黄芩', u:'g', p:'0.32', a:'huangqin'},
+    {n:'当归', u:'g', p:'0.65', a:'danggui'},
+    {n:'熟地黄', u:'g', p:'0.32', a:'shudihuang'}
+  ];
+  var comboInput = document.getElementById('comboInput');
+  var comboIdx = -1;
+  function renderCombo(){
+    var q = comboInput.value.trim().toLowerCase();
+    var list = HERBS.filter(function(h){ return h.n.indexOf(q)>=0 || h.a.indexOf(q)>=0; });
+    document.getElementById('comboCount').textContent = list.length + ' 项';
+    var box = document.getElementById('comboList');
+    box.innerHTML = list.map(function(h, i){
+      return '<div class="comboRow" data-i="'+i+'" data-n="'+h.n+'"><span class="nm">'+h.n+'</span><span class="meta">'+h.u+' · ¥'+h.p+'</span>'+(h.use?'<span class="use">'+h.use+'</span>':'')+'</div>';
+    }).join('');
+    document.getElementById('comboEmpty').classList.toggle('show', list.length===0);
+    box.querySelectorAll('.comboRow').forEach(function(row){
+      row.addEventListener('click', function(){
+        comboInput.value = row.getAttribute('data-n');
+        showToast('已选择 ' + row.getAttribute('data-n'));
+        renderCombo();
+      });
+    });
+    comboIdx = -1;
+  }
+  comboInput.addEventListener('input', renderCombo);
+  comboInput.addEventListener('keydown', function(e){
+    var rows = document.querySelectorAll('#comboList .comboRow');
+    if(!rows.length) return;
+    if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+      e.preventDefault();
+      comboIdx = e.key==='ArrowDown' ? Math.min(comboIdx+1, rows.length-1) : Math.max(comboIdx-1, 0);
+      rows.forEach(function(r,i){ r.classList.toggle('hover', i===comboIdx); });
+    }else if(e.key==='Enter'){
+      e.preventDefault();
+      var target = rows[comboIdx >= 0 ? comboIdx : 0];
+      comboInput.value = target.getAttribute('data-n');
+      showToast('已选择 ' + comboInput.value);
+      renderCombo();
+    }
+  });
+  document.getElementById('comboClear').addEventListener('click', function(){
+    comboInput.value = '';
+    renderCombo();
+    comboInput.focus();
+  });
+  document.querySelectorAll('.comboQuick .q').forEach(function(q){
+    q.addEventListener('click', function(){
+      comboInput.value = q.getAttribute('data-q');
+      renderCombo();
+    });
+  });
+  renderCombo();
+
+  /* 日期范围快捷 */
+  var now = new Date(2026,9,31);
+  function fmt(d){ return ds(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function setRange(from, to, key){
+    document.getElementById('rangeFrom').value = fmt(from);
+    document.getElementById('rangeTo').value = fmt(to);
+    document.querySelectorAll('[data-preset]').forEach(function(p){ p.classList.toggle('on', p.getAttribute('data-preset')===key); });
+  }
+  document.querySelectorAll('[data-preset]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var key = b.getAttribute('data-preset');
+      if(key==='today'){
+        setRange(now, now, key);
+      }else if(key==='week'){
+        var off = (now.getDay()+6)%7;
+        var start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-off);
+        setRange(start, now, key);
+      }else if(key==='month'){
+        setRange(new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth()+1, 0), key);
+      }else{
+        setRange(new Date(now.getFullYear(), now.getMonth()-1, 1), new Date(now.getFullYear(), now.getMonth(), 0), key);
+      }
+    });
+  });
+  document.getElementById('rangeGo').addEventListener('click', function(){
+    showToast('已按 ' + document.getElementById('rangeFrom').value + ' 至 ' + document.getElementById('rangeTo').value + ' 查询');
+  });
+})();
 
 /* ================= 弹窗内容 ================= */
 function billHTML(){
