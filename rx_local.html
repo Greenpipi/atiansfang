@@ -15632,9 +15632,26 @@ function rxMigrateLegacyLocalData(){
   color:#5E7168 !important;
   border-bottom:1px solid #DDE7E1 !important;
   font-size:13.5px !important;
+  padding:12px 16px !important;
 }
 .page[data-page="print"] .wplan .wp-tbl td{
   border-bottom:1px solid #EDF3EF !important;
+  padding:12px 16px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl col.c-plus{
+  width:136px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl th:first-child{
+  padding-left:80px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl th:last-child{
+  padding-right:calc(var(--wp-pad-x) + 10px) !important;
+}
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{
+  padding:12px 6px 12px 80px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl td.row-act{
+  padding:12px calc(var(--wp-pad-x) + 10px) 12px 16px !important;
 }
 .page[data-page="print"] .wplan .wp-tbl tbody tr:hover{
   background:#F5FBF7 !important;
@@ -15662,15 +15679,20 @@ function rxMigrateLegacyLocalData(){
 .page[data-page="print"] .wplan .wp-tbl tbody{ counter-reset:wpx-seq; }
 .page[data-page="print"] .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
 .page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{ position:relative; }
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td .wp-plus{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+}
 .page[data-page="print"] .wplan .wp-tbl thead th:first-child{ position:relative; }
 .page[data-page="print"] .wplan .wp-tbl thead th:first-child::before{
   content:'序号';
-  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  position:absolute; left:80px; width:28px;
+  top:50%; transform:translateY(-50%); text-align:center;
   font-size:13.5px; font-weight:600; color:#5E7168; white-space:nowrap;
 }
 .page[data-page="print"] .wplan .wp-tbl td.wp-plus-td::before{
   content:counter(wpx-seq);
-  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  position:absolute; left:80px; width:28px;
+  top:50%; transform:translateY(-50%); text-align:center;
   font-size:14px; font-weight:500; color:#5E7168;
   font-variant-numeric:tabular-nums; pointer-events:none;
 }
