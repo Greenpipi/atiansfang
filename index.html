@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='b335bf5b64';
+  var V='34fca41311';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -15266,5 +15266,375 @@ init();
   },true);
 })();
 </script>
+<style id="skinA-drug-guest">
+/* =====================================================================
+   皮肤层 A：药物管理 / 客人管理（只加 CSS，不改 DOM、不改 JS、不改字段）
+   Scope：data-page="drug"、data-page="guest" 及其相关弹窗
+   ===================================================================== */
+.page[data-page="drug"], .page[data-page="guest"],
+#mDrugDetail, #gstNewModal, #gstCfModal{
+  --pri:#0E9A6A; --pri-h:#0B7F57; --pri-deep:#0B6E4D;
+  --pri-soft:#E7F7EF; --pri-line:#CFEADF;
+  --neutral-0:#F7FBF8; --neutral-1:#F3F8F5; --neutral-2:#E4ECE7; --neutral-3:#D6E3DC;
+  --neutral-4:#93A49B; --neutral-5:#5E7168; --neutral-6:#3F4650;
+  --neutral-title:#16231D; --neutral-ink:#16231D; --n-white:#FFFFFF;
+  --radius-card:14px; --radius-input:9px; --radius-item:10px;
+  --shadow-1:0 8px 26px rgba(17,45,32,.06);
+  --shadow-pop:0 18px 50px rgba(17,45,32,.18);
+  --fs-title:22px; --fs-sub:16px; --fs-body:15px; --fs-cap:13px;
+  --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-num:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --aux:#C08A2E; --danger:#D25B4E; --danger-soft:#FBEDEB; --danger-line:#EFCFCA;
+  --g-50:#F1FAF5; --g-100:#E7F7EF; --g-200:#CFEADF; --g-300:#9FD8BC;
+  --g-400:#35C08D; --g-500:#0E9A6A; --g-600:#0B7F57; --g-700:#0B6E4D;
+}
+.page[data-page="drug"] .pageBody,
+.page[data-page="guest"] .pageBody{ background:#F3F8F5 !important; }
+
+/* ---------------- 药物管理 ---------------- */
+.page[data-page="drug"] .dm-page{
+  background:#F3F8F5 !important;
+  padding:22px 26px 44px !important;
+}
+.page[data-page="drug"] .dm-title{
+  font-size:22px !important; font-weight:600 !important;
+  color:#16231D !important; letter-spacing:.01em !important;
+}
+.page[data-page="drug"] .dm-top{ gap:12px !important; padding-bottom:16px !important; }
+.page[data-page="drug"] .dm-searchbox{ flex:0 0 210px !important; width:210px !important; }
+.page[data-page="drug"] .dm-search{
+  height:32px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  padding:0 26px 0 12px !important; box-shadow:none !important;
+}
+.page[data-page="drug"] .dm-search:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+.page[data-page="drug"] .dm-tools{ gap:8px !important; }
+.page[data-page="drug"] .dm-tools button{
+  border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#3F4650 !important;
+  font-size:14px !important; font-weight:600 !important; line-height:1 !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  box-shadow:none !important; transform:none !important; white-space:nowrap;
+}
+.page[data-page="drug"] .dm-tools button:hover{
+  background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important;
+  transform:none !important; box-shadow:none !important;
+}
+.page[data-page="drug"] .dm-tools button.pri{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+}
+.page[data-page="drug"] .dm-tools button.pri:hover{
+  background:#0B7F57 !important; border-color:#0B7F57 !important;
+  box-shadow:0 6px 16px rgba(14,154,106,.20) !important;
+}
+.page[data-page="drug"] .dm-tools button.mini{
+  font-size:13.5px !important;
+}
+.page[data-page="drug"] .dm-tablewrap{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important; border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+  overflow:auto !important;
+}
+.page[data-page="drug"] .dm-page .dmtable{
+  font-size:13.5px !important; background:transparent !important; min-width:1090px !important;
+}
+.page[data-page="drug"] .dm-page .dmtable thead th{
+  height:42px !important; padding:0 14px !important;
+  background:#F7FBF8 !important; color:#5E7168 !important;
+  border:none !important; border-bottom:1px solid #DDE7E1 !important;
+  font-size:12.5px !important; font-weight:600 !important; letter-spacing:.02em;
+}
+.page[data-page="drug"] .dm-page .dmtable tbody td{
+  height:44px !important; padding:0 14px !important;
+  border:none !important; border-bottom:1px solid #EDF3EF !important;
+  background:#FFFFFF !important; font-size:13.5px !important; color:#5E7168 !important;
+}
+.page[data-page="drug"] .dm-page .dmtable tbody tr:last-child td{ border-bottom:none !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody tr:hover td{ background:#F5FBF7 !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody tr.dm-hov td{ background:#F5FBF7 !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody td>span{
+  line-height:43px !important; min-height:43px !important;
+}
+.page[data-page="drug"] .dm-page .dmtable thead th.c-nm{
+  background:#F7FBF8 !important;
+}
+.page[data-page="drug"] .dm-page .dmtable tbody td.c-nm{
+  background:#FFFFFF !important; box-shadow:1px 0 0 #EDF3EF !important;
+}
+.page[data-page="drug"] .dm-page .dmtable tbody tr:hover td.c-nm,
+.page[data-page="drug"] .dm-page .dmtable tbody tr.dm-hov td.c-nm{ background:#F5FBF7 !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody td.c-money>span{ color:#16231D !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody td.c-low>span{ color:#C08A2E !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody td.c-ro>span{ color:#93A49B !important; }
+.page[data-page="drug"] .dm-page .dmtable tbody td.c-nm .dm-nmrow>span{
+  font-weight:600 !important; color:#16231D !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.dm-editing>input{
+  height:32px !important; margin:5px 0 !important;
+  border:1px solid #CFEADF !important; border-radius:7px !important;
+  background:#FFFFFF !important; color:#16231D !important;
+  font-size:13.5px !important;
+  box-shadow:0 0 0 3px rgba(14,154,106,.10) !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.dm-editing>input:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.18) !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn{
+  height:26px !important; padding:0 10px !important; margin-left:6px;
+  font-size:12.5px !important; font-weight:500 !important;
+  color:#5E7168 !important; background:#FFFFFF !important;
+  border:1px solid #D6E3DC !important; border-radius:7px !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  box-shadow:none !important; transform:none !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn:hover{
+  color:#0B7F57 !important; border-color:#CFEADF !important; background:#F1FAF5 !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn.del{
+  color:#D25B4E !important; border-color:#EFCFCA !important; background:#FBEDEB !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn.del:hover{
+  background:#F8DDD8 !important; border-color:#E3B3AA !important;
+}
+.page[data-page="drug"] .dm-page .dmtable .dm-addspec{
+  color:#0B7F57 !important; border-color:#CFEADF !important; background:#F7FBF8 !important;
+  border-radius:6px !important; font-size:11.5px !important;
+}
+.page[data-page="drug"] .dm-page .dmtable .dm-addspec:hover{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#fff !important;
+}
+.page[data-page="drug"] .dm-page .dmtable td.c-u .dm-specdel{
+  color:#D25B4E !important; background:#FBEDEB !important; border-color:#EFCFCA !important;
+}
+.page[data-page="drug"] .dm-foot #dmStat{
+  font-size:12.5px !important; color:#93A49B !important;
+}
+
+/* ---------------- 客人管理 ---------------- */
+.page[data-page="guest"] .gst-wrap{
+  background:#F3F8F5 !important; gap:16px !important; padding:16px !important;
+}
+.page[data-page="guest"] .gst-card{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important; border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+}
+.page[data-page="guest"] .gst-left{ flex:0 0 300px !important; width:300px !important; }
+.page[data-page="guest"] .gst-left-head{
+  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
+  padding:14px !important; gap:10px !important;
+}
+.page[data-page="guest"] .gst-search input{
+  height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  padding:0 34px 0 12px !important;
+}
+.page[data-page="guest"] .gst-search input:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+.page[data-page="guest"] .gst-add-btn{
+  height:38px !important; border-radius:9px !important;
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+  font-size:14px !important; font-weight:600 !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  box-shadow:0 6px 16px rgba(14,154,106,.18) !important;
+}
+.page[data-page="guest"] .gst-add-btn:hover{
+  background:#0B7F57 !important; border-color:#0B7F57 !important; transform:none !important;
+}
+.page[data-page="guest"] .gst-list{ padding:8px !important; }
+.page[data-page="guest"] .gst-item{
+  border-radius:10px !important; padding:10px 12px !important; margin-bottom:6px !important;
+  border:1px solid transparent !important;
+}
+.page[data-page="guest"] .gst-item:hover{ background:#F7FBF8 !important; }
+.page[data-page="guest"] .gst-item.on{
+  background:#E7F7EF !important; border-color:#CFEADF !important;
+  box-shadow:inset 3px 0 0 #0E9A6A !important;
+}
+.page[data-page="guest"] .gst-ava{
+  flex:0 0 36px !important; width:36px !important; height:36px !important;
+  background:#E7F7EF !important; color:#0B6E4D !important;
+  font-size:14px !important; font-weight:600 !important;
+}
+.page[data-page="guest"] .gst-item-main b{ font-size:14.5px !important; color:#16231D !important; }
+.page[data-page="guest"] .gst-item-main span{ font-size:12px !important; color:#93A49B !important; }
+.page[data-page="guest"] .gst-debt{ font-size:11.5px !important; }
+.page[data-page="guest"] .gst-empty{ font-size:14.5px !important; color:#93A49B !important; }
+.page[data-page="guest"] .gst-detail-head{
+  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
+  padding:16px 20px !important; gap:16px !important;
+}
+.page[data-page="guest"] .gst-dt b{ font-size:22px !important; font-weight:600 !important; color:#16231D !important; }
+.page[data-page="guest"] .gst-meta{ font-size:12.5px !important; color:#93A49B !important; }
+.page[data-page="guest"] .gst-tab{
+  min-height:32px !important; padding:5px 16px !important; border-radius:9px !important;
+  border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important;
+  font-size:13.5px !important; font-weight:600 !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  box-shadow:none !important;
+}
+.page[data-page="guest"] .gst-tab:hover{ background:#F1FAF5 !important; color:#0B7F57 !important; }
+.page[data-page="guest"] .gst-tab.on{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+  box-shadow:0 4px 12px rgba(14,154,106,.16) !important;
+}
+.page[data-page="guest"] .gst-detail-body{ padding:18px 20px !important; }
+.page[data-page="guest"] .gst-form{ gap:14px 16px !important; }
+.page[data-page="guest"] .gst-f label{ font-size:13px !important; color:#5E7168 !important; font-weight:600 !important; }
+.page[data-page="guest"] .gst-f input,
+.page[data-page="guest"] .gst-f select,
+.page[data-page="guest"] .gst-f textarea{
+  min-height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  padding:8px 12px !important; box-shadow:none !important;
+}
+.page[data-page="guest"] .gst-f textarea{ line-height:1.7 !important; }
+.page[data-page="guest"] .gst-f input:focus,
+.page[data-page="guest"] .gst-f select:focus,
+.page[data-page="guest"] .gst-f textarea:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+.page[data-page="guest"] .gst-form-foot{ margin-top:18px !important; gap:12px !important; }
+.page[data-page="guest"] .gst-form-foot .btn{
+  border-radius:9px !important; font-size:14px !important; font-weight:600 !important;
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+}
+.page[data-page="guest"] .gst-hint{ font-size:12px !important; color:#93A49B !important; }
+.page[data-page="guest"] .gst-pane-tools{ gap:10px !important; margin-bottom:14px !important; }
+.page[data-page="guest"] .gst-mini-search{
+  height:32px !important; width:200px !important; border:1px solid #D6E3DC !important;
+  border-radius:9px !important; font-size:13px !important; background:#FFFFFF !important;
+  padding:0 12px !important;
+}
+.page[data-page="guest"] .gst-mini-search:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+.page[data-page="guest"] .gst-month{
+  height:32px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; font-size:13px !important; padding:0 12px !important;
+}
+.page[data-page="guest"] .gst-tool-hint{ font-size:12px !important; color:#93A49B !important; }
+.page[data-page="guest"] .gst-tool-lb{ font-size:13px !important; color:#5E7168 !important; }
+.page[data-page="guest"] .gst-pane-tools .btn{
+  border-radius:8px !important; font-size:13px !important; font-weight:600 !important;
+  background:#FFFFFF !important; border:1px solid #D6E3DC !important; color:#5E7168 !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+}
+.page[data-page="guest"] .gst-pane-tools .btn:hover{
+  background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important;
+}
+.page[data-page="guest"] .gst-pane-tools .btn.pri{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+}
+.page[data-page="guest"] .gst-table-wrap{
+  border:1px solid #E4ECE7 !important; border-radius:12px !important;
+  background:#FFFFFF !important; overflow:auto !important;
+}
+.page[data-page="guest"] .gst-tbl{ font-size:14px !important; }
+.page[data-page="guest"] .gst-tbl th{
+  font-size:11.5px !important; font-weight:600 !important; color:#5E7168 !important;
+  background:#F7FBF8 !important; padding:10px !important;
+  border-bottom:1px solid #DDE7E1 !important;
+}
+.page[data-page="guest"] .gst-tbl td{
+  font-size:14px !important; color:#3F4650 !important;
+  padding:10px !important; border-bottom:1px solid #EDF3EF !important;
+}
+.page[data-page="guest"] .gst-tbl tbody tr:last-child td{ border-bottom:none !important; }
+.page[data-page="guest"] .gst-tbl tbody tr:hover{ background:#F5FBF7 !important; }
+.page[data-page="guest"] .gst-tbl td.money{ color:#16231D !important; }
+.page[data-page="guest"] .gst-tbl .nm{ color:#16231D !important; }
+.page[data-page="guest"] .gst-st{ border-radius:999px !important; font-size:11.5px !important; padding:3px 9px !important; }
+.page[data-page="guest"] .gst-act button{
+  min-height:26px !important; height:26px !important; padding:2px 9px !important;
+  border-radius:7px !important; font-size:12px !important;
+  border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+}
+.page[data-page="guest"] .gst-act button:hover{ background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important; }
+.page[data-page="guest"] .gst-act button.pri{ background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important; }
+.page[data-page="guest"] .gst-act button.danger{ color:#D25B4E !important; border-color:#EFCFCA !important; background:#FBEDEB !important; }
+.page[data-page="guest"] .gst-empty-row{ color:#93A49B !important; font-size:13.5px !important; }
+.page[data-page="guest"] .gst-ordtag{ font-size:10.5px !important; }
+
+/* ---------------- 相关弹窗（只换样式） ---------------- */
+#gstNewModal, #gstCfModal, #mDrugDetail{ background:rgba(13,35,25,.35) !important; }
+#gstNewModal .dlg, #gstCfModal .dlg, #mDrugDetail .dlg{
+  background:#FFFFFF !important;
+  border:1px solid #D6E3DC !important; border-radius:16px !important;
+  box-shadow:0 18px 50px rgba(17,45,32,.18) !important;
+  overflow:hidden !important;
+}
+#gstNewModal .dlg header, #gstCfModal .dlg header, #mDrugDetail .dlg header{
+  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
+  font-size:17px !important; font-weight:600 !important;
+  color:#16231D !important;
+}
+#gstNewModal .dlg header .x, #gstCfModal .dlg header .x, #mDrugDetail .dlg header .x{
+  border-radius:8px !important; color:#93A49B !important; cursor:pointer;
+}
+#gstNewModal .dlg .body, #gstCfModal .dlg .body, #mDrugDetail .dlg .body{
+  background:#FFFFFF !important;
+}
+#gstNewModal .dlg .foot, #gstCfModal .dlg .foot, #mDrugDetail .dlg .foot{
+  background:#FFFFFF !important; border-top:1px solid #E4ECE7 !important;
+}
+#gstNewModal .dlg .foot .btn, #gstCfModal .dlg .foot .btn, #mDrugDetail .dlg .foot .btn{
+  border-radius:9px !important; font-size:14px !important; font-weight:600 !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+}
+#gstNewModal .dlg .foot .btn.pri, #gstCfModal .dlg .foot .btn.pri{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+}
+#gstNewModal .dlg .foot .btn:not(.pri), #gstCfModal .dlg .foot .btn:not(.pri){
+  background:#FFFFFF !important; border:1px solid #D6E3DC !important; color:#5E7168 !important;
+}
+#gstNewModal .gst-f label, #gstCfModal .gst-f label{ font-size:13px !important; color:#5E7168 !important; font-weight:600 !important; }
+#gstNewModal .gst-f input, #gstNewModal .gst-f select,
+#gstCfModal .gst-f input, #gstCfModal .gst-f textarea{
+  min-height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  padding:8px 12px !important;
+}
+#gstNewModal .gst-f input:focus, #gstNewModal .gst-f select:focus,
+#gstCfModal .gst-f input:focus, #gstCfModal .gst-f textarea:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+  outline:none !important;
+}
+#gstCfModal .gst-hint{ font-size:12px !important; color:#93A49B !important; }
+#mDrugDetail .dd-core-t{ font-size:16px !important; color:#16231D !important; }
+#mDrugDetail .dd-core-hint{ font-size:13px !important; color:#93A49B !important; }
+#mDrugDetail .dd-f label{ font-size:13px !important; color:#5E7168 !important; }
+#mDrugDetail .dd-f input{
+  border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  box-shadow:none !important; padding:0 10px !important;
+}
+#mDrugDetail .dd-f input:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+#mDrugDetail .dd-pricecard{
+  background:#F7FBF8 !important; border:1px solid #E4ECE7 !important; border-radius:12px !important;
+}
+#mDrugDetail .dd-pin>input, #mDrugDetail .dd-rate-in>input{
+  border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
+  box-shadow:none !important;
+}
+#mDrugDetail .dd-pin>input:focus, #mDrugDetail .dd-rate-in>input:focus{
+  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+}
+#mDrugDetail .dd-grow{ background:#FFFFFF !important; border:1px solid #E4ECE7 !important; border-radius:9px !important; }
+#mDrugDetail .dd-grow-nm b{ font-size:13px !important; color:#16231D !important; }
+#mDrugDetail .dd-gsrc{ font-size:11px !important; color:#93A49B !important; }
+#mDrugDetail .dd-sug{ border-radius:7px !important; border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important; }
+#mDrugDetail .dd-sug:hover{ background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important; }
+#mDrugDetail .dd-sec summary{ font-size:13px !important; color:#5E7168 !important; }
+</style>
 </body>
 </html>
