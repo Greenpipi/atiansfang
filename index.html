@@ -2998,7 +2998,12 @@ body{ --navw:0px; }
 }
 .wp-tbl .wp-nm:focus, .wp-tbl .num:focus, .wp-tbl .wp-unit-in:focus, .wp-tbl .wp-rm-in:focus{ border-color:var(--pri); outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14); }
 .wp-tbl .wp-nm{ flex:1 1 auto; min-width:0; }
-.wp-nm-wrap{ display:flex; align-items:center; gap:8px; }
+/* 药名格：输入框占满整列；脚注 / 标准药以绝对定位小胶囊放在输入框内部右侧 */
+.wp-nm-wrap{ position:relative; display:block; }
+.wp-nm-tags{ position:absolute; right:7px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 22px); pointer-events:none; }
+.wp-nm-wrap.has-sfx .wp-nm{ padding-right:52px; }
+.wp-nm-wrap.has-std .wp-nm{ padding-right:92px; }
+.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:124px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
@@ -3048,6 +3053,29 @@ body{ --navw:0px; }
 .wp-mb{ padding:16px 18px; overflow:auto; }
 .wp-mb-actions{ margin-top:12px; display:flex; gap:10px; justify-content:flex-end; }
 .wp-ta{ width:100%; min-height:170px; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:10px; font-size:var(--fs-body); font-family:var(--font-ui); line-height:1.7; resize:vertical; box-sizing:border-box; }
+/* 导入预览：绿=匹配成功，红=未匹配（下拉可指定仓库药） */
+.wp-imp-mw{ width:min(920px,94vw); }
+.wp-imp-sum{ font-size:var(--fs-cap); color:var(--neutral-6); margin-bottom:10px; }
+.wp-imp-sum b{ color:var(--neutral-title); }
+.wp-imp-sum b.ok{ color:#15803d; }
+.wp-imp-sum b.bad{ color:var(--danger); }
+.wp-imp-wrap{ max-height:56vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:var(--radius-input); }
+.wp-imp-tbl{ width:100%; border-collapse:collapse; font-size:var(--fs-cap); }
+.wp-imp-tbl thead th{ position:sticky; top:0; z-index:1; background:var(--neutral-1); color:var(--neutral-6); font-weight:600; text-align:left; padding:8px 10px; border-bottom:1px solid var(--neutral-2); }
+.wp-imp-tbl th.num, .wp-imp-tbl td.num{ text-align:right; }
+.wp-imp-tbl tbody td{ padding:6px 10px; border-bottom:1px solid var(--neutral-1); vertical-align:middle; }
+.wp-imp-tbl tbody tr.imp-ok td{ background:#eaf7ee; color:#146c38; }
+.wp-imp-tbl tbody tr.imp-bad td{ background:#fdecea; color:#b42318; }
+.wp-imp-tbl .imp-tag{ flex:none; margin-left:0; padding:1px 6px; border-radius:10px; font-size:11px; background:rgba(21,163,74,.14); color:#15803d; }
+.wp-imp-tbl .imp-std{ display:flex; align-items:center; gap:6px; min-width:0; }
+.wp-imp-tbl .imp-nm{ flex:1 1 auto; min-width:0; width:auto; box-sizing:border-box; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; padding:4px 8px!important; font-size:12px!important; height:28px!important; min-height:28px!important; }
+.wp-imp-tbl .imp-nm.bad{ border-color:var(--danger)!important; color:#b42318!important; }
+.wp-imp-tbl .imp-nm.ok{ border-color:#9fcfae!important; color:#146c38!important; }
+.wp-imp-tbl .imp-nm:focus{ border-color:var(--pri)!important; box-shadow:0 0 0 3px rgba(52,192,106,.14); outline:none; }
+.wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
+.wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
+/* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
+.wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
 .wp-results{ margin-top:12px; max-height:50vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:var(--radius-input); }
 .wp-results .r{ display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--neutral-2); cursor:pointer; gap:10px; }
 .wp-results .r:hover{ background:var(--pri-soft); }
@@ -3931,6 +3959,26 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <textarea id="wpText" class="wp-ta" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别药名 / 数量 / 单位 / 煎煮法"></textarea>
             </div>
             <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">生成表格行</button></div>
+          </div>
+        </div>
+        <!-- 导入预览与匹配确认：绿=已匹配，红=未匹配（可下拉选仓库药） -->
+        <div class="modal" id="wpImportModal">
+          <div class="wp-mw wp-imp-mw">
+            <div class="wp-mh">导入预览与匹配确认 <button class="x" type="button" onclick="WPlan.impCancel()">×</button></div>
+            <div class="wp-mb">
+              <div class="wp-imp-sum" id="wpImportSum"></div>
+              <div class="wp-imp-wrap">
+                <table class="wp-imp-tbl">
+                  <colgroup><col style="width:26%"><col style="width:34%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col></colgroup>
+                  <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th></tr></thead>
+                  <tbody id="wpImportBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="wp-mb-actions">
+              <button class="btn" type="button" onclick="WPlan.impCancel()">取消</button>
+              <button class="btn pri" type="button" onclick="WPlan.impConfirm()">确认导入</button>
+            </div>
           </div>
         </div>
         <!-- 批量结款：生成的结款明细图片（可复制 / 下载，发客户核对付款） -->
@@ -7668,6 +7716,7 @@ SUPA.loadDrugs=function(noSave){
     rxCalibDrugFloor(rows.length);
     drugsList=rows.map(function(r){
       return {n:brkNormName(r.name),u:r.unit||'g',c:r.usage||'',tc:r.tccat||'',py:r.py||'',
+              id:(r.id==null?'':String(r.id)),
               dw:'',cat:r.category||'中药',bp:r.cost==null?'':String(r.cost),
               p:r.price==null?'':String(r.price),st:'',
               dp:r.daily_price==null?'':String(r.daily_price),
@@ -12767,9 +12816,19 @@ var WPlan = (function(){
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
+    /* 输入框内部右侧的标签（绝对定位）：先煎等脚注 + 匹配到的仓库标准药 */
+    var hasStd = !!(it.disp && it.name);
+    var tags = '';
+    if(it.sfx || hasStd){
+      tags = '<span class="wp-nm-tags">'
+        + (it.sfx ? '<span class="wp-sfx">' + esc(it.sfx) + '</span>' : '')
+        + (hasStd ? '<span class="wp-std" title="已匹配仓库标准药：【' + esc(it.name) + '】">' + esc(it.name) + '</span>' : '')
+        + '</span>';
+    }
+    var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '');
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span></div></td>'
+      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '</div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
@@ -12972,7 +13031,7 @@ var WPlan = (function(){
   function genPayImage(list, cb){
     list = paySorted(list);
     var info = paySummary(list);
-    var W = 760, rowH = 36, headH = 116, footH = 88;
+    var W = 760, rowH = 40, headH = 122, footH = 92;
     var H = headH + 38 + list.length * rowH + footH;
     var rows = '';
     for(var i=0;i<list.length;i++){
@@ -12980,7 +13039,7 @@ var WPlan = (function(){
       rows += '<tr>'
         + '<td style="width:150px">' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
         + '<td>' + esc(String(o.guest || '').trim() || '未命名客人') + '</td>'
-        + '<td>' + esc(dishOf(o)) + '</td>'
+        + '<td class="dish">' + esc(dishOf(o)) + '</td>'
         + '<td style="width:110px;text-align:right">¥' + money(orderTotal(o)) + '</td>'
         + '</tr>';
     }
@@ -12989,9 +13048,10 @@ var WPlan = (function(){
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:26px 28px;background:#fff}'
       + '.ttl{font-size:22px;font-weight:700;letter-spacing:1px}'
       + '.sub{margin-top:7px;font-size:12px;color:#666}'
-      + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}'
-      + 'th,td{border:1px solid #d5d8dc;padding:8px 10px;text-align:left}'
+      + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;line-height:1.5}'
+      + 'th,td{border:1px solid #d5d8dc;padding:10px 12px;text-align:left}'
       + 'th{background:#f2f4f6;font-weight:700;color:#333}'
+      + '.dish{font-size:13px;font-weight:700}'
       + 'tr:nth-child(even) td{background:#fafbfc}'
       + '.sum td{background:#eef7f1!important;font-weight:700;font-size:15px}'
       + '.foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
@@ -13057,24 +13117,42 @@ var WPlan = (function(){
 
   /* ---- 订单详情 / 单方「生成表格图片」（明细行即全部费用） ---- */
   function genOrderImage(o, blocks, cb){
-    var W = 840, shown = blocks || (o.blocks || []);
+    /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
+    var W = 960, shown = blocks || (o.blocks || []);
     var items = 0, i, j;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    var H = 112 + shown.length * 106 + items * 22 + 80;
+    /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
+    var ROW_H = 47, BLOCK_H = 150, multi = 0;
+    for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
+    /* 多付时每块额外两行汇总：1付 / XX付 */
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2) * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
       var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
-      if(!(b.items || []).length) rs = '<tr><td colspan="4" style="color:#999">（药方为空）</td></tr>';
+      if(!(b.items || []).length) rs = '<tr><td colspan="5" style="color:#999">（药方为空）</td></tr>';
       for(j=0;j<(b.items || []).length;j++){
         var it = b.items[j];
         if(!it) continue;
-        var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
-        rs += '<tr><td>' + esc(it.name || '') + '</td><td>' + esc(qty) + '</td>'
-          + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
-          + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
+        /* 数量、单位拆成两列 */
+        var qn = it.zibei ? '自备' : String(Math.round(dispQty(it) * 100) / 100);
+        var un = it.zibei ? '—' : (it.unit || it.du || 'g');
+        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
+          + '<td>' + esc(qn) + '</td><td>' + esc(un) + '</td>'
+          + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
+          + '<td>' + money(amountOf(it)) + '</td></tr>';
+      }
+      /* 多付小订单：先列 1 付的数据，再列 XX 付的数据（重量 kg + 金额） */
+      if(d > 1){
+        var wT = blockWeight(b), w1 = wT / d;
+        /* 重量按 kg 展示（保留到 0.001kg，对应 1g） */
+        var kg1 = w1 > 0 ? String(Math.round(w1) / 1000) : '—';
+        var kgT = wT > 0 ? String(Math.round(wT) / 1000) : '—';
+        var uu = (w1 > 0) ? 'kg' : '—';
+        rs += '<tr class="prow"><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
+          + '<tr class="prow"><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13082,29 +13160,34 @@ var WPlan = (function(){
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th style="width:16%;text-align:right">单价</th><th style="width:16%;text-align:right">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
-        + '<div class="bf">小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
+        + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
     }
     var css = ''
       + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:24px 28px;background:#fff}'
-      + '.ttl{font-size:21px;font-weight:700;letter-spacing:1px}'
-      + '.sub{margin-top:7px;font-size:12px;color:#666}'
-      + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:14px;overflow:hidden}'
-      + '.bh{display:flex;align-items:center;gap:14px;padding:9px 12px;background:#f2f4f6;font-size:13px}'
-      + '.bn{font-weight:700;font-size:14px}'
+      + '.ttl{font-size:24px;font-weight:700;letter-spacing:1px;text-align:center}'
+      + '.sub{margin-top:8px;font-size:13px;color:#666;text-align:center}'
+      + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:16px;overflow:hidden}'
+      + '.bh{display:flex;align-items:center;gap:14px;padding:11px 12px;background:#f2f4f6;font-size:14px}'
+      + '.bn{font-weight:700;font-size:15px}'
       + '.bd{color:#555}'
       + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
-      + 'table{width:100%;border-collapse:collapse;font-size:12px}'
-      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:5px 10px;text-align:left}'
-      + 'th{background:#fafbfc;font-weight:600;color:#333}'
-      + '.bf{padding:7px 12px;font-size:12px;color:#555}'
+      + 'table{width:100%;border-collapse:collapse;font-size:16px;line-height:1.5}'
+      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:9px 10px;text-align:center}'
+      + 'th{background:#fafbfc;font-weight:700;color:#333;font-size:16px}'
+      /* 药名列重点突出：18px 加粗 */
+      + '.dr{font-size:18px;font-weight:700;color:#111}'
+      /* 多付汇总行：1付 / XX付 */
+      + '.prow td{background:#fafbfc;font-weight:700}'
+      + '.prow .plb{color:#555}'
+      + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
-      + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:14px}'
-      + '.sum b{font-size:19px;color:#12693a}'
-      + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
+      + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
+      + '.sum b{font-size:22px;color:#12693a}'
+      + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#888}';
     var inner = '<div class="wrap"><div class="ttl">订单明细</div>'
       + '<div class="sub">客户：' + esc(String(o.guest || '').trim() || '—') + '　｜　单据：' + esc(o.no || '—')
       + '　｜　日期：' + esc(o.date || '—') + '　｜　共 ' + shown.length + ' 个药方</div>'
@@ -13119,7 +13202,7 @@ var WPlan = (function(){
     img.onload = function(){
       try{
         var cv = document.createElement('canvas');
-        cv.width = W * 2; cv.height = H * 2;
+        cv.width = W; cv.height = H;
         var g = cv.getContext('2d');
         g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
         g.drawImage(img, 0, 0, cv.width, cv.height);
@@ -13360,6 +13443,8 @@ var WPlan = (function(){
   }
   function setItemName(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return; var it = b.items[i];
+    /* 用户手动改了输入框 → 不再沿用导入时的客户原名映射 */
+    if(it.disp && String(v) !== String(it.disp)){ it.disp = null; it.sid = null; }
     it.name = v;
     if(!it.manual){ it.price = priceFor(it.name, curGuest(), it.du); }
     saveDebounced(); updateAmt(bid,i); recount();
@@ -13585,7 +13670,7 @@ var WPlan = (function(){
     el.style.display = 'block';
     var rows = el.querySelectorAll('.r');
     for(var k=0;k<rows.length;k++){
-      (function(r){ r.onmousedown = function(e){ e.preventDefault(); acPick(r.getAttribute('data-nm')); }; })(rows[k]);
+      (function(r){ r.onmousedown = function(e){ e.preventDefault(); var pick = _ac && _ac.pick; if(pick) pick(r.getAttribute('data-nm')); }; })(rows[k]);
     }
     /* 定位：按浮层【实际高度】贴着输入框摆放（下方放不下就紧贴上沿翻上去，不再用固定高度估算） */
     var rect = _ac.el.getBoundingClientRect();
@@ -13640,7 +13725,7 @@ var WPlan = (function(){
       if(t2 && acNorm(t2) && t2 !== term) list = acSearch(t2);
     }
     if(!list.length){ closeAc(); return; }
-    _ac = { bid: bid, i: i, el: el, list: list, idx: 0, term: term };
+    _ac = { bid: bid, i: i, el: el, list: list, idx: 0, term: term, pick: acPick };
     acRender();
   }
   function nameInput(bid, i, el){
@@ -13684,6 +13769,7 @@ var WPlan = (function(){
     if(!b.items[_ac.i]) b.items[_ac.i] = BLANK_ITEM();
     var it = b.items[_ac.i];
     it.name = name;
+    it.disp = null; it.sid = null;     /* 从备选里重新选药 → 以标准药名为准 */
     it.price = priceFor(name, curGuest(), it.du);
     it.unit = it.du;
     it.manual = false;
@@ -13703,22 +13789,134 @@ var WPlan = (function(){
     if(ni) ni.focus();
   }
 
-  /* ---- Excel / CSV 导入 ---- */
-  var _aliasHit=[];        /* 本次导入里「别名 → 正名」的对应，导入完提示一下 */
-  function openExcel(bid){ _tgt = bid; var f = document.getElementById('wpFile'); if(f) f.click(); }
-  function readBuf(file, cb){
-    var fr = new FileReader();
-    fr.onload = function(){ cb(fr.result); };
-    fr.onerror = function(){ toast('读取文件失败'); };
-    fr.readAsArrayBuffer(file);
+  /* ---- Excel / CSV 导入（别名智能映射 + 预览校验） ----
+     流程：读文件 → 解析行（保留客户原始药名 / 备注）→ 智能匹配仓库标准药
+          → 「导入预览与匹配确认」表格（绿=匹配，红=未匹配可下拉选药）
+          → 确认后按标准药名 + 仓库价落账；输入框保留客户原名 it.disp，计价/库存仍走标准药名/sid。
+     手动选药时，自动把客户药名存为仓库药的【别名】，下次直接命中。 */
+  var IMP_TAG_ALTS={
+    '炒':['炒','清炒','麸炒'], '麸炒':['麸炒','炒'], '盐':['盐','盐水'],
+    '醋':['醋','醋制'], '酒':['酒','酒炙'], '蜜炙':['蜜炙','蜜'], '蜜':['蜜','蜜炙'],
+    '姜':['姜','姜制'], '炙':['炙','蜜炙'], '制':['制'], '生':['生'], '炭':['炭'], '煅':['煅']
+  };
+  var IMP_SYN={
+    '牛子':['牛蒡子','炒牛蒡子'], '川仲':['川牛膝'], '故纸':['补骨脂','破故纸'],
+    '夜交藤':['首乌藤','夜交藤'], '申姜':['骨碎补'], '银花':['金银花'],
+    '二花':['金银花'], '元胡':['延胡索'], '玄胡':['延胡索'], '瓜萎':['瓜蒌'],
+    '黄苓':['黄芩'], '厚补':['厚朴'], '紫苑':['紫菀'], '牡丹皮':['丹皮'],
+    '辛夷花':['辛夷'], '薏苡仁':['炒薏仁','薏仁','薏米'], '川断':['续断','川续断'],
+    '莱菔子':['炒莱菔子','莱菔子'], '莱服子':['炒莱菔子','莱菔子']
+  };
+  var _imp = { rows: [], tgt: null, guest: '' };
+
+  /* 药名分段：body（去方括号脚注）/ core（去规格括号）/ tag（括号内容）/ sfx */
+  function impSplit(raw){
+    var s = String(raw || '').trim(), sfx = '', body = s;
+    var m = s.match(/^(.*?)([\[［][^\]］]*[\]］])$/);
+    if(m){ body = m[1]; sfx = m[2]; }
+    var core = body, tag = '';
+    var pm = body.match(/^([^()（）]*)[（(]([^（）()]*)[）)]$/);
+    if(pm){ core = pm[1]; tag = pm[2]; }
+    return { body: body.trim(), core: core.trim(), tag: tag.trim(), sfx: sfx };
   }
-  function parseExcelItems(text){
+  function impDrugs(){
+    var out = [], seen = {};
+    for(var i=0;i<drugsList.length;i++){
+      var d = drugsList[i];
+      if(!d || !String(d.n || '').trim()) continue;
+      if((d.cat || '中药') !== '中药') continue;
+      var k = normName(d.n); if(seen[k]) continue; seen[k] = 1;
+      out.push(d);
+    }
+    return out;
+  }
+  function impExactName(name){
+    var key = normName(name); if(!key) return null;
+    for(var i=0;i<drugsList.length;i++){
+      var d = drugsList[i];
+      if(d && d.n && normName(d.n) === key) return d;
+    }
+    return null;
+  }
+  function impAliasName(name){
+    var key = normName(name); if(!key) return null;
+    for(var i=0;i<drugsList.length;i++){
+      var d = drugsList[i]; if(!d || !d.n) continue;
+      var al = Array.isArray(d.al) ? d.al : [];
+      for(var j=0;j<al.length;j++){ if(al[j] && normName(al[j]) === key) return d; }
+    }
+    return null;
+  }
+  function impContains(core){
+    var key = normName(core); if(!key || key.length < 2) return null;
+    var arr = impDrugs(), best = null, bl = 0;
+    for(var i=0;i<arr.length;i++){
+      var k = normName(arr[i].n);
+      if(k.length < 2 || k.indexOf(key) < 0) continue;
+      /* 取包含核心名的「最短」候选：地黄 → 地黄，而不是熟地黄 */
+      if(!best || k.length < bl){ best = arr[i]; bl = k.length; }
+    }
+    return best;
+  }
+  /* 智能匹配：返回 { drug, how }；how = exact / alias / dict / tag / core / syn / contain
+     顺序原则：原名 → 别名记忆 → 内置别名表 → 「炒/醋/盐…」炮制写法 → 去掉括号的主干
+              → 括号内容本身 → 俗称 → 包含兜底。 */
+  function impMatch(raw){
+    var p = impSplit(raw), d = null, i, j, combos, alts, t;
+    /* ① 原名精确 */
+    d = impExactName(p.body); if(d) return { drug: d, how: 'exact' };
+    /* ② 别名记忆（药物管理里手工存下的别名） */
+    d = impAliasName(p.body) || impAliasName(p.core); if(d) return { drug: d, how: 'alias' };
+    /* ③ 内置别名表（normKey 已处理 [先煎] 等脚注） */
+    if(_idx){ d = _idx[normKey(p.body)]; if(d) return { drug: d, how: 'dict' }; }
+    /* ④ 括号内是炮制方式 → 拼成「炒鸡内金 / 醋香附 / 蜜远志」等仓库写法（优先于主干） */
+    alts = (p.tag && IMP_TAG_ALTS[p.tag]) ? IMP_TAG_ALTS[p.tag] : [];
+    for(i=0;i<alts.length;i++){
+      t = alts[i];
+      combos = [t + p.core, p.core + t];
+      for(j=0;j<combos.length;j++){ d = impExactName(combos[j]); if(d) return { drug: d, how: 'tag' }; }
+    }
+    /* ⑤ 去掉括号后的主干精确匹配（如 姜半夏（姜水旱半夏）→ 姜半夏） */
+    d = impExactName(p.core); if(d) return { drug: d, how: 'core' };
+    /* ⑥ 括号内容本身就是仓库药名（故纸（补骨脂）→ 补骨脂、夜交藤（首乌藤）→ 首乌藤） */
+    if(p.tag && p.tag.length >= 2){ d = impExactName(p.tag); if(d) return { drug: d, how: 'tag' }; }
+    if(_idx){ d = _idx[normKey(p.core)]; if(d) return { drug: d, how: 'dict' }; }
+    /* ⑦ 常见俗称 → 正名；炮制词 + 俗称组合（薏苡仁（炒）→ 炒薏仁） */
+    var syn = IMP_SYN[p.core] || [];
+    for(i=0;i<alts.length;i++){
+      for(j=0;j<syn.length;j++){ d = impExactName(alts[i] + syn[j]); if(d) return { drug: d, how: 'syn' }; }
+    }
+    for(i=0;i<syn.length;i++){ d = impExactName(syn[i]); if(d) return { drug: d, how: 'syn' }; }
+    /* ⑧ 兜底：主干被仓库名包含（放宽到最长公共） */
+    d = impContains(p.core); if(d) return { drug: d, how: 'contain' };
+    return { drug: null, how: 'none' };
+  }
+  /* 把客户药名存成仓库药（stdName）的别名；已有同名别名/与正名相同则跳过 */
+  function impRememberAlias(stdName, alias){
+    var a = String(alias || '').trim();
+    if(!a) return false;
+    var d = null;
+    for(var i=0;i<drugsList.length;i++){
+      if(drugsList[i] && String(drugsList[i].n || '').trim() === String(stdName || '').trim()){ d = drugsList[i]; break; }
+    }
+    if(!d || normName(a) === normName(d.n)) return false;
+    var al = Array.isArray(d.al) ? d.al : [];
+    for(var j=0;j<al.length;j++){ if(normName(al[j]) === normName(a)) return false; }
+    al.push(a);
+    d.al = al;
+    saveDrugsLS();                       /* 落本机 + 触发云端 drugs 整表 upsert */
+    return true;
+  }
+  function impYes(v){ return /^(是|有|要|需要|加|真|true|yes|y|1)$/i.test(String(v || '').trim()); }
+
+  /* 解析 CSV 为行数据（含原始药名、匹配结果、备注） */
+  function parseImportRows(text){
     text = String(text || '').replace(/^\ufeff/, '');
     var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
-    if(!lines.length) return [];
+    if(!lines.length) return { rows: [], miss: [] };
     function pl(l){ var out=[], cur='', q=false; for(var i=0;i<l.length;i++){ var c=l[i]; if(q){ if(c==='"'){ if(l[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; } else if(c==='"'){ q=true; } else if(c===','){ out.push(cur); cur=''; } else cur+=c; } out.push(cur); return out; }
-    var head = pl(lines[0]); var idx = {};
-    for(var hi=0;hi<head.length;hi++) idx[String(head[hi]).trim()] = hi;
+    var head = pl(lines[0]), idx = {}, hi;
+    for(hi=0;hi<head.length;hi++) idx[String(head[hi]).trim()] = hi;
     function col(){
       for(var a=0;a<arguments.length;a++){ if(idx[arguments[a]] != null) return idx[arguments[a]]; }
       for(var key in idx){ for(var m=0;m<arguments.length;m++){ if(idx.hasOwnProperty(key) && key.indexOf(arguments[m]) >= 0) return idx[key]; } }
@@ -13726,35 +13924,178 @@ var WPlan = (function(){
     }
     var cn = col('药名','名称','品名','药材','药品'), cq = col('数量','克数','重量','剂量','克','量'), cu = col('单位','规格');
     if(cn < 0){ toastErr('没找到药名列（表头需含 药名/名称/品名）'); return null; }
+    var cr = col('备注','说明');
+    /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
+    var extras = [];
+    for(hi=0;hi<head.length;hi++){
+      var hd = String(head[hi] || '').trim();
+      if(!hd || hi === cn || hi === cq || hi === cu || hi === cr) continue;
+      if(/签名|签字|经手|制表|序号|编号|行号|单号/.test(hd)) continue;
+      extras.push(hi);
+    }
     var rows = lines.slice(1).map(pl).filter(function(a){ return a.length > 1; });
-    var parsed = [], miss = [], aliasHit = [];
+    var out = [], miss = [], cache = {};
     for(var r=0;r<rows.length;r++){
-      var nm0 = (rows[r][cn] || '').trim(); if(!nm0) continue;
-      /* 别名 → 正名：表格里写「麻黄」也能关联到「艾草黄」，列表 / 打印都用正名 */
-      var nm = drugNameByAlias(nm0);
-      if(nm !== nm0) aliasHit.push(nm0 + ' → ' + nm);
+      var nm0 = String(rows[r][cn] || '').trim(); if(!nm0) continue;
       var raw = String(cq >= 0 ? (rows[r][cq] || '') : '').trim();
       var rawU = String(cu >= 0 ? (rows[r][cu] || '') : '').trim();
       var qv = parseFloat(raw); if(isNaN(qv)) qv = 0;
       /* 数量列内联单位：15kg / 10000g / 2千克 / 0.5公斤 —— 与单位列同等对待 */
       var im = raw.match(/^([0-9]*\.?[0-9]+)\s*([^\d\s]+)$/);
       if(im){ qv = parseFloat(im[1]); if(!rawU) rawU = im[2]; }
-      /* 单位识别不区分大小写（kg/Kg/KG → kg，g/G → g，千克/公斤 → kg）；识别不到要提示，不静默处理 */
+      /** 单位识别不区分大小写（kg/Kg/KG → kg，g/G → g，千克/公斤 → kg）；识别不到要提示，不静默处理 */
       var u = rawU ? normUnit(rawU) : '';
-      if(!u || !KNOWN_UNITS[u]) miss.push('第 ' + (r + 2) + ' 行 ' + nm + (rawU ? '（' + rawU + '）' : '（未填单位）'));
-      parsed.push({ name: nm, qty: qv, unit: u || 'g' });
+      if(!u || !KNOWN_UNITS[u]) miss.push('第 ' + (r + 2) + ' 行 ' + nm0 + (rawU ? '（' + rawU + '）' : '（未填单位）'));
+      /* 特殊列 → 备注：是否加虫包=是 → 加虫包；先来=先来 → 先来 */
+      var notes = [], ei, hv, hdv;
+      for(ei=0;ei<extras.length;ei++){
+        hv = String(rows[r][extras[ei]] || '').trim(); if(!hv) continue;
+        hdv = String(head[extras[ei]] || '').trim();
+        if(/^是否/.test(hdv)){ if(impYes(hv)) notes.push(hdv.replace(/^是否/, '')); }
+        else notes.push(impYes(hv) ? hdv : hv);
+      }
+      if(cr >= 0){ hv = String(rows[r][cr] || '').trim(); if(hv) notes.push(hv); }
+      var seenNote = {}, uniq = [];
+      for(ei=0;ei<notes.length;ei++){ if(notes[ei] && !seenNote[notes[ei]]){ seenNote[notes[ei]] = 1; uniq.push(notes[ei]); } }
+      var sp = impSplit(nm0);
+      var mk2 = cache[nm0] || (cache[nm0] = impMatch(nm0));
+      var d = mk2.drug;
+      var std = d ? String(d.n) : '';
+      var price = d ? priceFor(std, curGuest(), u || 'g') : null;
+      out.push({
+        orig: nm0, qty: qv, unit: u || 'g', sfx: sp.sfx || '',
+        std: std, autoStd: std, autoHow: d ? mk2.how : 'none', drug: d, price: price, ok: !!d,
+        how: d ? mk2.how : 'none', rm: uniq.join('，')
+      });
     }
-    if(!parsed.length) return [];
-    if(miss.length){
-      var msg = '有 ' + miss.length + ' 行未识别到单位：\n' + miss.slice(0, 10).join('\n') + (miss.length > 10 ? '\n…' : '')
-        + '\n\n这些行按「g」导入，继续？\n（点「取消」中止本次导入）';
-      if(!confirm(msg)) return null;
+    return { rows: out, miss: miss };
+  }
+  function openExcel(bid){ _tgt = bid; var f = document.getElementById('wpFile'); if(f) f.click(); }
+  function readBuf(file, cb){
+    var fr = new FileReader();
+    fr.onload = function(){ cb(fr.result); };
+    fr.onerror = function(){ toast('读取文件失败'); };
+    fr.readAsArrayBuffer(file);
+  }
+  /* 预览表格：绿=已匹配，红=未匹配。每行都能下拉换药：
+     选中即确定该行药品，单价随之重算；与自动匹配结果不同时记作手动指定（确认后存别名）。 */
+  function impRender(){
+    var body = document.getElementById('wpImportBody'), sum = document.getElementById('wpImportSum');
+    if(!body) return;
+    var rows = _imp.rows, hits = 0, h = '', i;
+    for(i=0;i<rows.length;i++){
+      var r = rows[i]; if(r.ok) hits++;
+      var cls = r.ok ? 'imp-ok' : 'imp-bad';
+      var howTxt = r.ok
+        ? (r.how === 'manual' ? '手动指定' : r.how === 'alias' ? '别名记忆' : r.how === 'exact' ? '精确匹配' : '智能匹配')
+        : '未匹配';
+      var stdCell = '<div class="imp-std">' + impInputHTML(r, i) + (r.ok ? '<span class="imp-tag">' + esc(howTxt) + '</span>' : '') + '</div>';
+      var pr = (r.price == null) ? (r.ok ? '<span class="imp-noprice">无价</span>' : '—') : '¥' + money(r.price);
+      h += '<tr class="' + cls + '">'
+        + '<td>' + esc(r.orig) + '</td>'
+        + '<td>' + stdCell + '</td>'
+        + '<td class="num">' + String(r.qty) + '</td>'
+        + '<td>' + esc(r.unit) + '</td>'
+        + '<td class="num">' + pr + '</td>'
+        + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
+        + '</tr>';
     }
-    /* 保留每行原始单位：kg 行按 kg、g 行按 g，各自数量 × 该单位单价，不统一换算 */
-    var out = [];
-    for(var k=0;k<parsed.length;k++) out.push(mk(parsed[k].name, curGuest(), parsed[k].qty, parsed[k].unit, true));
-    _aliasHit = aliasHit;
-    return out;
+    body.innerHTML = h || '<tr><td colspan="6" class="imp-empty">没有可导入的药名行</td></tr>';
+    if(sum){
+      sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
+        + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）';
+    }
+  }
+  /* 每行药名格：输入即检索，备选浮层与日常打单完全一致（#wpAc / .wp-ac） */
+  function impInputHTML(r, ri){
+    return '<input class="imp-nm ' + (r.ok ? 'ok' : 'bad') + '" value="' + esc(r.std || '') + '" autocomplete="off"'
+      + ' placeholder="输入药名 / 拼音搜索"'
+      + ' onfocus="WPlan.impAcFocus(' + ri + ',this)" onclick="WPlan.impAcFocus(' + ri + ',this)"'
+      + ' oninput="WPlan.impAcInput(' + ri + ',this)"'
+      + ' onkeydown="WPlan.impAcKey(event,' + ri + ',this)" onkeyup="WPlan.impAcKey(event,' + ri + ',this)"'
+      + ' onblur="WPlan.impAcBlur(' + ri + ',this)">';
+  }
+  /* 打开与打单表格同款的药名备选浮层（按光标前文字检索） */
+  function impOpenAc(ri, el){
+    var term = acTerm(el);
+    var list = acSearch(term);
+    if(!list.length){
+      var t2 = term.replace(/\s+$/, '').replace(/[（(【\[{][^）)】\]}]*[）)】\]}]?$/, '');
+      if(t2 && acNorm(t2) && t2 !== term) list = acSearch(t2);
+    }
+    if(!list.length){ closeAc(); return; }
+    _ac = { imp: ri, el: el, list: list, idx: 0, term: term,
+      pick: function(nm){ impPickName(ri, nm); } };
+    acRender();
+  }
+  function impAcFocus(ri, el){ impOpenAc(ri, el); }
+  function impAcInput(ri, el){ impOpenAc(ri, el); }
+  function impAcBlur(ri, el){
+    closeAc();
+    var r = _imp.rows[ri];
+    if(r) el.value = r.std || '';        /* 没从备选里选 → 恢复为已确定的药，不静默改价 */
+  }
+  function impAcKey(e, ri, el){
+    if(e.type === 'keyup'){
+      var ku = e.key;
+      if(ku === 'ArrowLeft' || ku === 'ArrowRight' || ku === 'Home' || ku === 'End') impOpenAc(ri, el);
+      return;
+    }
+    var k = e.key;
+    if(_ac && _ac.imp !== undefined && _ac.list && _ac.list.length){
+      if(k === 'ArrowDown'){ _ac.idx = (_ac.idx + 1) % _ac.list.length; acRender(); e.preventDefault(); return; }
+      if(k === 'ArrowUp'){ _ac.idx = (_ac.idx - 1 + _ac.list.length) % _ac.list.length; acRender(); e.preventDefault(); return; }
+      if(k === 'Escape'){ closeAc(); impAcBlur(ri, el); return; }
+      if(k === 'Enter'){
+        var d = _ac.list[_ac.idx];
+        if(d){ e.preventDefault(); impPickName(ri, d.n); }
+        return;
+      }
+    }
+    if(k === 'Enter') e.preventDefault();
+  }
+  /* 选中某味药 = 该行确定药品：重算单价、标记手动指定 */
+  function impPickName(ri, nm){
+    var r = _imp.rows[ri]; if(!r) return;
+    var d = null;
+    for(var i=0;i<drugsList.length;i++){ if(drugsList[i] && String(drugsList[i].n || '') === String(nm)){ d = drugsList[i]; break; } }
+    if(!d) d = impExactName(nm);
+    if(!d) return;
+    r.drug = d; r.std = String(d.n); r.ok = true;
+    r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
+    r.price = priceFor(r.std, _imp.guest, r.unit);
+    closeAc();
+    impRender();
+  }
+  function impCancel(){ closeAc(); closeModal('wpImportModal'); _imp.rows = []; }
+  function impConfirm(){
+    var rows = _imp.rows, items = [], i, skipped = 0, aliased = 0, ah = [];
+    for(i=0;i<rows.length;i++){
+      var r = rows[i];
+      if(!r.ok){ skipped++; continue; }
+      var std = r.std, sfx = r.sfx || '';
+      /* 仓库标准名做计价；[先煎] 等脚注仍单独存 it.sfx，避免与药名重复展示 */
+      var it = mk(std, _imp.guest, r.qty, r.unit, true);
+      it.sfx = sfx;
+      if(r.rm) it.rm = r.rm;
+      /* 输入框保留客户原始药名（it.disp）；底层仍用仓库标准药 it.name / sid 计价与扣减 */
+      var origBody = impSplit(r.orig).body;
+      if(normName(origBody) !== normName(r.std)){ it.disp = origBody; }
+      if(r.drug && r.drug.id) it.sid = r.drug.id;
+      items.push(it);
+      /* 手动匹配 → 记忆别名（下次导入直接命中；脚注不参与别名，避免 [先煎] 变体干扰） */
+      if(r.how === 'manual' && r.std){
+        if(impRememberAlias(r.std, origBody)){ aliased++; ah.push(r.orig + ' → ' + r.std); }
+      }
+    }
+    closeModal('wpImportModal');
+    _imp.rows = [];
+    if(!items.length){ toastErr('没有任何匹配成功的行，未导入'); return; }
+    addItems(_imp.tgt, items);
+    var msg = '已导入 ' + items.length + ' 行';
+    if(skipped) msg += '，跳过 ' + skipped + ' 行未匹配';
+    if(aliased) msg += '，已记住 ' + aliased + ' 个别名（' + ah.slice(0, 3).join('、') + (ah.length > 3 ? '…' : '') + '）';
+    (skipped ? toastErr : toast)(msg);
   }
   function onExcelFile(fi){
     var f = fi.files && fi.files[0]; fi.value = ''; if(!f) return;
@@ -13764,12 +14105,18 @@ var WPlan = (function(){
         toastErr('不支持直接读取 .xlsx/.xls 二进制，请改用 Excel「另存为 → CSV（逗号分隔）」后导入'); return;
       }
       var txt = decodeCsvBuffer(buf);
-      var items = parseExcelItems(txt);
-      if(items === null) return;
-      if(!items.length){ toast('没有可导入的药名行'); return; }
-      addItems(_tgt, items);
-      var ah=_aliasHit||[];
-      toast('已导入 ' + items.length + ' 行' + (ah.length?('，'+ah.length+' 味按别名归到正名：'+ah.slice(0,3).join('、')+(ah.length>3?'…':'')):''));
+      var res = parseImportRows(txt);
+      if(res === null) return;
+      if(!res.rows.length){ toast('没有可导入的药名行'); return; }
+      if(res.miss.length){
+        var msg = '有 ' + res.miss.length + ' 行未识别到单位：\n' + res.miss.slice(0, 10).join('\n') + (res.miss.length > 10 ? '\n…' : '')
+          + '\n\n这些行按「g」导入，继续？\n（点「取消」中止本次导入）';
+        if(!confirm(msg)) return;
+      }
+      _imp.tgt = _tgt; _imp.guest = curGuest();
+      _imp.rows = res.rows;
+      impRender();
+      openModal('wpImportModal');
     });
   }
 
@@ -13777,7 +14124,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -13813,7 +14160,7 @@ var WPlan = (function(){
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
@@ -14134,9 +14481,11 @@ var WPrint=(function(){
         q=n2(it.qty)*doses;
         pr=it.zibei?0:n2(it.price);
         var nm=String(it.name).trim();
-        /* 产地来自药物目录（打印时才查，订单里不存） */
+        /* 产地来自药物目录（打印时才查，订单里不存）；查库用标准药名 */
         var dd=null; try{ dd=findDrug(nm); }catch(e){ dd=null; }
-        out.push({ name:nm, sfx:it.sfx||'',
+        /* 导入时保留了客户原始叫法：打印显示客户原名，计价/查库仍按标准药 */
+        var disp=(it.disp || it.orig) ? String(it.disp || it.orig) : nm;
+        out.push({ name:disp, sfx:it.sfx||'',
           unit:(it.du||it.unit||'g'),
           og:(dd&&dd.og)?String(dd.og):'',
           qty:q, price:pr, amount:it.zibei?0:r2(pr*q),
@@ -15063,480 +15412,5 @@ function rxMigrateLegacyLocalData(){
   },true);
 })();
 </script>
-<style id="skinA-drug-guest">
-/* =====================================================================
-   皮肤层 A：药物管理 / 客人管理（只加 CSS，不改 DOM、不改 JS、不改字段）
-   Scope：data-page="drug"、data-page="guest" 及其相关弹窗
-   ===================================================================== */
-.page[data-page="drug"], .page[data-page="guest"],
-#mDrugDetail, #gstNewModal, #gstCfModal{
-  --pri:#0E9A6A; --pri-h:#0B7F57; --pri-deep:#0B6E4D;
-  --pri-soft:#E7F7EF; --pri-line:#CFEADF;
-  --neutral-0:#F7FBF8; --neutral-1:#F3F8F5; --neutral-2:#E4ECE7; --neutral-3:#D6E3DC;
-  --neutral-4:#93A49B; --neutral-5:#5E7168; --neutral-6:#3F4650;
-  --neutral-title:#16231D; --neutral-ink:#16231D; --n-white:#FFFFFF;
-  --radius-card:14px; --radius-input:9px; --radius-item:10px;
-  --shadow-1:0 8px 26px rgba(17,45,32,.06);
-  --shadow-pop:0 18px 50px rgba(17,45,32,.18);
-  --fs-title:22px; --fs-sub:16px; --fs-body:15px; --fs-cap:13px;
-  --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --font-num:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --aux:#C08A2E; --danger:#D25B4E; --danger-soft:#FBEDEB; --danger-line:#EFCFCA;
-  --g-50:#F1FAF5; --g-100:#E7F7EF; --g-200:#CFEADF; --g-300:#9FD8BC;
-  --g-400:#35C08D; --g-500:#0E9A6A; --g-600:#0B7F57; --g-700:#0B6E4D;
-}
-.page[data-page="drug"] .pageBody,
-.page[data-page="guest"] .pageBody{ background:#F3F8F5 !important; }
-
-/* ---------------- 药物管理 ---------------- */
-.page[data-page="drug"] .dm-page{
-  background:#F3F8F5 !important;
-  padding:22px 26px 44px !important;
-}
-.page[data-page="drug"] .dm-title{
-  font-size:22px !important; font-weight:600 !important;
-  color:#16231D !important; letter-spacing:.01em !important;
-}
-.page[data-page="drug"] .dm-top{ gap:12px !important; padding-bottom:16px !important; }
-.page[data-page="drug"] .dm-searchbox{ flex:0 0 210px !important; width:210px !important; }
-.page[data-page="drug"] .dm-search{
-  height:32px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  padding:0 26px 0 12px !important; box-shadow:none !important;
-}
-.page[data-page="drug"] .dm-search:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-.page[data-page="drug"] .dm-tools{ gap:8px !important; }
-.page[data-page="drug"] .dm-tools button{
-  border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#3F4650 !important;
-  font-size:14px !important; font-weight:600 !important; line-height:1 !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  box-shadow:none !important; transform:none !important; white-space:nowrap;
-}
-.page[data-page="drug"] .dm-tools button:hover{
-  background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important;
-  transform:none !important; box-shadow:none !important;
-}
-.page[data-page="drug"] .dm-tools button.pri{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-}
-.page[data-page="drug"] .dm-tools button.pri:hover{
-  background:#0B7F57 !important; border-color:#0B7F57 !important;
-  box-shadow:0 6px 16px rgba(14,154,106,.20) !important;
-}
-.page[data-page="drug"] .dm-tools button.mini{
-  font-size:13.5px !important;
-}
-.page[data-page="drug"] .dm-tablewrap{
-  background:#FFFFFF !important;
-  border:1px solid #E4ECE7 !important; border-radius:14px !important;
-  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
-  overflow:auto !important;
-}
-.page[data-page="drug"] .dm-page .dmtable{
-  font-size:13.5px !important; background:transparent !important; min-width:1090px !important;
-}
-.page[data-page="drug"] .dm-page .dmtable thead th{
-  height:42px !important; padding:0 14px !important;
-  background:#F7FBF8 !important; color:#5E7168 !important;
-  border:none !important; border-bottom:1px solid #DDE7E1 !important;
-  font-size:12.5px !important; font-weight:600 !important; letter-spacing:.02em;
-}
-.page[data-page="drug"] .dm-page .dmtable tbody td{
-  height:44px !important; padding:0 14px !important;
-  border:none !important; border-bottom:1px solid #EDF3EF !important;
-  background:#FFFFFF !important; font-size:13.5px !important; color:#5E7168 !important;
-}
-.page[data-page="drug"] .dm-page .dmtable tbody tr:last-child td{ border-bottom:none !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody tr:hover td{ background:#F5FBF7 !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody tr.dm-hov td{ background:#F5FBF7 !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody td>span{
-  line-height:43px !important; min-height:43px !important;
-}
-.page[data-page="drug"] .dm-page .dmtable thead th.c-nm{
-  background:#F7FBF8 !important;
-}
-.page[data-page="drug"] .dm-page .dmtable tbody td.c-nm{
-  background:#FFFFFF !important; box-shadow:1px 0 0 #EDF3EF !important;
-}
-.page[data-page="drug"] .dm-page .dmtable tbody tr:hover td.c-nm,
-.page[data-page="drug"] .dm-page .dmtable tbody tr.dm-hov td.c-nm{ background:#F5FBF7 !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody td.c-money>span{ color:#16231D !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody td.c-low>span{ color:#C08A2E !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody td.c-ro>span{ color:#93A49B !important; }
-.page[data-page="drug"] .dm-page .dmtable tbody td.c-nm .dm-nmrow>span{
-  font-weight:600 !important; color:#16231D !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.dm-editing>input{
-  height:32px !important; margin:5px 0 !important;
-  border:1px solid #CFEADF !important; border-radius:7px !important;
-  background:#FFFFFF !important; color:#16231D !important;
-  font-size:13.5px !important;
-  box-shadow:0 0 0 3px rgba(14,154,106,.10) !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.dm-editing>input:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.18) !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn{
-  height:26px !important; padding:0 10px !important; margin-left:6px;
-  font-size:12.5px !important; font-weight:500 !important;
-  color:#5E7168 !important; background:#FFFFFF !important;
-  border:1px solid #D6E3DC !important; border-radius:7px !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  box-shadow:none !important; transform:none !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn:hover{
-  color:#0B7F57 !important; border-color:#CFEADF !important; background:#F1FAF5 !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn.del{
-  color:#D25B4E !important; border-color:#EFCFCA !important; background:#FBEDEB !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.c-act .dm-rowbtn.del:hover{
-  background:#F8DDD8 !important; border-color:#E3B3AA !important;
-}
-.page[data-page="drug"] .dm-page .dmtable .dm-addspec{
-  color:#0B7F57 !important; border-color:#CFEADF !important; background:#F7FBF8 !important;
-  border-radius:6px !important; font-size:11.5px !important;
-}
-.page[data-page="drug"] .dm-page .dmtable .dm-addspec:hover{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#fff !important;
-}
-.page[data-page="drug"] .dm-page .dmtable td.c-u .dm-specdel{
-  color:#D25B4E !important; background:#FBEDEB !important; border-color:#EFCFCA !important;
-}
-.page[data-page="drug"] .dm-foot #dmStat{
-  font-size:12.5px !important; color:#93A49B !important;
-}
-
-/* ---------------- 客人管理 ---------------- */
-.page[data-page="guest"] .gst-wrap{
-  background:#F3F8F5 !important; gap:16px !important; padding:16px !important;
-}
-.page[data-page="guest"] .gst-card{
-  background:#FFFFFF !important;
-  border:1px solid #E4ECE7 !important; border-radius:14px !important;
-  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
-}
-.page[data-page="guest"] .gst-left{ flex:0 0 300px !important; width:300px !important; }
-.page[data-page="guest"] .gst-left-head{
-  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
-  padding:14px !important; gap:10px !important;
-}
-.page[data-page="guest"] .gst-search input{
-  height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  padding:0 34px 0 12px !important;
-}
-.page[data-page="guest"] .gst-search input:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-.page[data-page="guest"] .gst-add-btn{
-  height:38px !important; border-radius:9px !important;
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-  font-size:14px !important; font-weight:600 !important;
-  display:flex !important; align-items:center !important; justify-content:center !important;
-  box-shadow:0 6px 16px rgba(14,154,106,.18) !important;
-}
-.page[data-page="guest"] .gst-add-btn:hover{
-  background:#0B7F57 !important; border-color:#0B7F57 !important; transform:none !important;
-}
-.page[data-page="guest"] .gst-list{ padding:8px !important; }
-.page[data-page="guest"] .gst-item{
-  border-radius:10px !important; padding:10px 12px !important; margin-bottom:6px !important;
-  border:1px solid transparent !important;
-}
-.page[data-page="guest"] .gst-item:hover{ background:#F7FBF8 !important; }
-.page[data-page="guest"] .gst-item.on{
-  background:#E7F7EF !important; border-color:#CFEADF !important;
-  box-shadow:inset 3px 0 0 #0E9A6A !important;
-}
-.page[data-page="guest"] .gst-ava{
-  flex:0 0 36px !important; width:36px !important; height:36px !important;
-  background:#E7F7EF !important; color:#0B6E4D !important;
-  font-size:14px !important; font-weight:600 !important;
-}
-.page[data-page="guest"] .gst-item-main b{ font-size:14.5px !important; color:#16231D !important; }
-.page[data-page="guest"] .gst-item-main span{ font-size:12px !important; color:#93A49B !important; }
-.page[data-page="guest"] .gst-debt{ font-size:11.5px !important; }
-.page[data-page="guest"] .gst-empty{ font-size:14.5px !important; color:#93A49B !important; }
-.page[data-page="guest"] .gst-detail-head{
-  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
-  padding:16px 20px !important; gap:16px !important;
-}
-.page[data-page="guest"] .gst-dt b{ font-size:22px !important; font-weight:600 !important; color:#16231D !important; }
-.page[data-page="guest"] .gst-meta{ font-size:12.5px !important; color:#93A49B !important; }
-.page[data-page="guest"] .gst-tab{
-  min-height:32px !important; padding:5px 16px !important; border-radius:9px !important;
-  border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important;
-  font-size:13.5px !important; font-weight:600 !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  box-shadow:none !important;
-}
-.page[data-page="guest"] .gst-tab:hover{ background:#F1FAF5 !important; color:#0B7F57 !important; }
-.page[data-page="guest"] .gst-tab.on{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-  box-shadow:0 4px 12px rgba(14,154,106,.16) !important;
-}
-.page[data-page="guest"] .gst-detail-body{ padding:18px 20px !important; }
-.page[data-page="guest"] .gst-form{ gap:14px 16px !important; }
-.page[data-page="guest"] .gst-f label{ font-size:13px !important; color:#5E7168 !important; font-weight:600 !important; }
-.page[data-page="guest"] .gst-f input,
-.page[data-page="guest"] .gst-f select,
-.page[data-page="guest"] .gst-f textarea{
-  min-height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  padding:8px 12px !important; box-shadow:none !important;
-}
-.page[data-page="guest"] .gst-f textarea{ line-height:1.7 !important; }
-.page[data-page="guest"] .gst-f input:focus,
-.page[data-page="guest"] .gst-f select:focus,
-.page[data-page="guest"] .gst-f textarea:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-.page[data-page="guest"] .gst-form-foot{ margin-top:18px !important; gap:12px !important; }
-.page[data-page="guest"] .gst-form-foot .btn{
-  border-radius:9px !important; font-size:14px !important; font-weight:600 !important;
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-}
-.page[data-page="guest"] .gst-hint{ font-size:12px !important; color:#93A49B !important; }
-.page[data-page="guest"] .gst-pane-tools{ gap:10px !important; margin-bottom:14px !important; }
-.page[data-page="guest"] .gst-mini-search{
-  height:32px !important; width:200px !important; border:1px solid #D6E3DC !important;
-  border-radius:9px !important; font-size:13px !important; background:#FFFFFF !important;
-  padding:0 12px !important;
-}
-.page[data-page="guest"] .gst-mini-search:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-.page[data-page="guest"] .gst-month{
-  height:32px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; font-size:13px !important; padding:0 12px !important;
-}
-.page[data-page="guest"] .gst-tool-hint{ font-size:12px !important; color:#93A49B !important; }
-.page[data-page="guest"] .gst-tool-lb{ font-size:13px !important; color:#5E7168 !important; }
-.page[data-page="guest"] .gst-pane-tools .btn{
-  border-radius:8px !important; font-size:13px !important; font-weight:600 !important;
-  background:#FFFFFF !important; border:1px solid #D6E3DC !important; color:#5E7168 !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-}
-.page[data-page="guest"] .gst-pane-tools .btn:hover{
-  background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important;
-}
-.page[data-page="guest"] .gst-pane-tools .btn.pri{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-}
-.page[data-page="guest"] .gst-table-wrap{
-  border:1px solid #E4ECE7 !important; border-radius:12px !important;
-  background:#FFFFFF !important; overflow:auto !important;
-}
-.page[data-page="guest"] .gst-tbl{ font-size:14px !important; }
-.page[data-page="guest"] .gst-tbl th{
-  font-size:11.5px !important; font-weight:600 !important; color:#5E7168 !important;
-  background:#F7FBF8 !important; padding:10px !important;
-  border-bottom:1px solid #DDE7E1 !important;
-}
-.page[data-page="guest"] .gst-tbl td{
-  font-size:14px !important; color:#3F4650 !important;
-  padding:10px !important; border-bottom:1px solid #EDF3EF !important;
-}
-.page[data-page="guest"] .gst-tbl tbody tr:last-child td{ border-bottom:none !important; }
-.page[data-page="guest"] .gst-tbl tbody tr:hover{ background:#F5FBF7 !important; }
-.page[data-page="guest"] .gst-tbl td.money{ color:#16231D !important; }
-.page[data-page="guest"] .gst-tbl .nm{ color:#16231D !important; }
-.page[data-page="guest"] .gst-st{ border-radius:999px !important; font-size:11.5px !important; padding:3px 9px !important; }
-.page[data-page="guest"] .gst-act button{
-  min-height:26px !important; height:26px !important; padding:2px 9px !important;
-  border-radius:7px !important; font-size:12px !important;
-  border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-}
-.page[data-page="guest"] .gst-act button:hover{ background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important; }
-.page[data-page="guest"] .gst-act button.pri{ background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important; }
-.page[data-page="guest"] .gst-act button.danger{ color:#D25B4E !important; border-color:#EFCFCA !important; background:#FBEDEB !important; }
-.page[data-page="guest"] .gst-empty-row{ color:#93A49B !important; font-size:13.5px !important; }
-.page[data-page="guest"] .gst-ordtag{ font-size:10.5px !important; }
-
-/* ---------------- 相关弹窗（只换样式） ---------------- */
-#gstNewModal, #gstCfModal, #mDrugDetail{ background:rgba(13,35,25,.35) !important; }
-#gstNewModal .dlg, #gstCfModal .dlg, #mDrugDetail .dlg{
-  background:#FFFFFF !important;
-  border:1px solid #D6E3DC !important; border-radius:16px !important;
-  box-shadow:0 18px 50px rgba(17,45,32,.18) !important;
-  overflow:hidden !important;
-}
-#gstNewModal .dlg header, #gstCfModal .dlg header, #mDrugDetail .dlg header{
-  background:#FFFFFF !important; border-bottom:1px solid #E4ECE7 !important;
-  font-size:17px !important; font-weight:600 !important;
-  color:#16231D !important;
-}
-#gstNewModal .dlg header .x, #gstCfModal .dlg header .x, #mDrugDetail .dlg header .x{
-  border-radius:8px !important; color:#93A49B !important; cursor:pointer;
-}
-#gstNewModal .dlg .body, #gstCfModal .dlg .body, #mDrugDetail .dlg .body{
-  background:#FFFFFF !important;
-}
-#gstNewModal .dlg .foot, #gstCfModal .dlg .foot, #mDrugDetail .dlg .foot{
-  background:#FFFFFF !important; border-top:1px solid #E4ECE7 !important;
-}
-#gstNewModal .dlg .foot .btn, #gstCfModal .dlg .foot .btn, #mDrugDetail .dlg .foot .btn{
-  border-radius:9px !important; font-size:14px !important; font-weight:600 !important;
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-}
-#gstNewModal .dlg .foot .btn.pri, #gstCfModal .dlg .foot .btn.pri{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-}
-#gstNewModal .dlg .foot .btn:not(.pri), #gstCfModal .dlg .foot .btn:not(.pri){
-  background:#FFFFFF !important; border:1px solid #D6E3DC !important; color:#5E7168 !important;
-}
-#gstNewModal .gst-f label, #gstCfModal .gst-f label{ font-size:13px !important; color:#5E7168 !important; font-weight:600 !important; }
-#gstNewModal .gst-f input, #gstNewModal .gst-f select,
-#gstCfModal .gst-f input, #gstCfModal .gst-f textarea{
-  min-height:38px !important; border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  padding:8px 12px !important;
-}
-#gstNewModal .gst-f input:focus, #gstNewModal .gst-f select:focus,
-#gstCfModal .gst-f input:focus, #gstCfModal .gst-f textarea:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-  outline:none !important;
-}
-#gstCfModal .gst-hint{ font-size:12px !important; color:#93A49B !important; }
-#mDrugDetail .dd-core-t{ font-size:16px !important; color:#16231D !important; }
-#mDrugDetail .dd-core-hint{ font-size:13px !important; color:#93A49B !important; }
-#mDrugDetail .dd-f label{ font-size:13px !important; color:#5E7168 !important; }
-#mDrugDetail .dd-f input{
-  border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  box-shadow:none !important; padding:0 10px !important;
-}
-#mDrugDetail .dd-f input:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-#mDrugDetail .dd-pricecard{
-  background:#F7FBF8 !important; border:1px solid #E4ECE7 !important; border-radius:12px !important;
-}
-#mDrugDetail .dd-pin>input, #mDrugDetail .dd-rate-in>input{
-  border:1px solid #D6E3DC !important; border-radius:9px !important;
-  background:#FFFFFF !important; color:#16231D !important; font-size:14px !important;
-  box-shadow:none !important;
-}
-#mDrugDetail .dd-pin>input:focus, #mDrugDetail .dd-rate-in>input:focus{
-  border-color:#0E9A6A !important; box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-#mDrugDetail .dd-grow{ background:#FFFFFF !important; border:1px solid #E4ECE7 !important; border-radius:9px !important; }
-#mDrugDetail .dd-grow-nm b{ font-size:13px !important; color:#16231D !important; }
-#mDrugDetail .dd-gsrc{ font-size:11px !important; color:#93A49B !important; }
-#mDrugDetail .dd-sug{ border-radius:7px !important; border:1px solid #D6E3DC !important; background:#FFFFFF !important; color:#5E7168 !important; }
-#mDrugDetail .dd-sug:hover{ background:#F1FAF5 !important; border-color:#CFEADF !important; color:#0B7F57 !important; }
-#mDrugDetail .dd-sec summary{ font-size:13px !important; color:#5E7168 !important; }
-</style>
-<style id="skinA-global">
-/* =====================================================================
-   皮肤层 A · 全局（只加 CSS；不改 DOM / JS / 字段 / 交互）
-   通过令牌 + 公共组件覆盖，把剩余页面统一到同一套 UI KIT。
-   ===================================================================== */
-:root{
-  --pri:#0E9A6A; --pri-h:#0B7F57; --pri-deep:#0B6E4D;
-  --pri-soft:#E7F7EF; --pri-line:#CFEADF;
-  --danger:#D25B4E; --danger-soft:#FBEDEB; --danger-line:#EFCFCA;
-  --aux:#C08A2E; --aux-soft:#FCF4E4;
-  --neutral-0:#FFFFFF; --neutral-1:#F3F8F5; --neutral-2:#E4ECE7; --neutral-3:#D6E3DC;
-  --neutral-4:#93A49B; --neutral-5:#5E7168; --neutral-6:#3F4650;
-  --neutral-ink:#16231D; --neutral-title:#16231D;
-  --n-white:#FFFFFF; --n-0:#FFFFFF; --n-1:#F3F8F5; --n-2:#E4ECE7; --n-3:#D6E3DC;
-  --n-4:#93A49B; --n-5:#5E7168; --n-6:#3F4650; --n-ink:#16231D; --n-title:#16231D;
-  --g-50:#F1FAF5; --g-100:#E7F7EF; --g-200:#CFEADF; --g-300:#9FD8BC;
-  --g-400:#35C08D; --g-500:#0E9A6A; --g-600:#0B7F57; --g-700:#0B6E4D; --g-800:#094A36;
-  --card:#FFFFFF; --card2:#F7FBF8; --line:#E4ECE7; --line2:#D6E3DC;
-  --ink:#16231D; --ink2:#5E7168; --ink3:#93A49B;
-  --fs-title:20px; --fs-sub:16px; --fs-body:15px; --fs-num:15px; --fs-cap:13px;
-  --f-title:18px; --f-sub:15px; --f-body:15px; --f-num:15px; --f-cap:13px;
-  --radius-card:14px; --radius-item:10px; --radius-input:9px;
-  --r-xl:16px; --r-lg:14px; --r-md:10px; --r-sm:8px; --r-xs:6px; --r-pill:999px;
-  --shadow-1:0 8px 26px rgba(17,45,32,.06);
-  --shadow-2:0 14px 36px rgba(17,45,32,.08);
-  --shadow-pop:0 18px 50px rgba(17,45,32,.18);
-  --sh-1:0 8px 26px rgba(17,45,32,.06);
-  --sh-2:0 14px 36px rgba(17,45,32,.08);
-  --sh-pop:0 18px 50px rgba(17,45,32,.18);
-  --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --font-num:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-}
-body{
-  background:#F3F8F5 !important;
-  color:#16231D !important;
-  font-size:15px !important;
-}
-.topbar{
-  background:#FFFFFF !important;
-  border-bottom:1px solid #E4ECE7 !important;
-}
-.topbar .brand{ font-size:16px !important; color:#16231D !important; }
-.navItem{ font-size:14px !important; border-radius:9px !important; }
-.navItem.on{ background:#E7F7EF !important; color:#0B6E4D !important; }
-button{
-  border-radius:9px !important;
-  font-size:14px !important;
-  text-align:center;
-}
-button.sm, button.mini, .mini, .wps button.mini{ font-size:12.5px !important; }
-button.pri{
-  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
-}
-@media (hover:hover) and (pointer:fine){
-  button.pri:hover{ background:#0B7F57 !important; border-color:#0B7F57 !important; }
-}
-input, select, textarea{
-  border-radius:9px !important;
-  font-size:14px !important;
-}
-input:focus, select:focus, textarea:focus{
-  border-color:#0E9A6A !important;
-  box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
-}
-.wplan button, .wps button, .dlg .foot button, .pur-ma button, .wp-mw button{
-  border-radius:9px !important;
-  font-size:14px !important;
-}
-.wps button.mini{ font-size:12.5px !important; }
-.dlg, .wp-mw, .pur-mw{
-  background:#FFFFFF !important;
-  border:1px solid #E4ECE7 !important;
-  border-radius:16px !important;
-  box-shadow:0 18px 50px rgba(17,45,32,.18) !important;
-}
-.modal{ background:rgba(13,35,25,.35) !important; }
-.wps{ background:#F3F8F5 !important; }
-.wplan{ background:#F3F8F5 !important; }
-.pageBody{ background:#F3F8F5 !important; }
-.panel, .wp-list, .wp-order, .wp-block, .wp-foot, .wp-card, .pur-tablewrap{
-  background:#FFFFFF !important;
-  border-color:#E4ECE7 !important;
-}
-.pltable th, .dtable th, .wp-tbl th, .pur-table th, .gst-tbl th{
-  background:#F7FBF8 !important;
-  color:#5E7168 !important;
-  border-color:#DDE7E1 !important;
-}
-.pltable td, .dtable td, .wp-tbl td, .pur-table td, .gst-tbl td{
-  border-color:#EDF3EF !important;
-}
-.pltable, .dtable, .wp-tbl, .pur-table{ font-size:13.5px !important; }
-.pltable tbody tr:hover td, .dtable tbody tr:hover td,
-.wp-tbl tbody tr:hover td, .pur-table tbody tr:hover td{ background:#F5FBF7 !important; }
-.wp-list-count, .wp-hint, .gst-tool-hint, .gst-hint, .gst-meta{
-  color:#93A49B !important;
-}
-.wp-detail-head, .wps-side-h, .wps-bar{ background:#FFFFFF !important; border-color:#E4ECE7 !important; }
-.wps-side{ background:#FFFFFF !important; border-color:#E4ECE7 !important; }
-.wps-main{ background:#EFF6F2 !important; }
-.wp-search, .pur-search, .gst-search input, .dm-search, .gst-mini-search, .wps-row input[type=text], .wps-row select{
-  background:#FFFFFF !important;
-  border-color:#D6E3DC !important;
-}
-</style>
 </body>
 </html>
