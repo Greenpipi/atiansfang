@@ -361,9 +361,9 @@ table.data .sub{display:block;font-size:10px;color:var(--ink3);font-weight:400;m
 .tplpick .t .nm{font-size:9.5px;color:var(--ink2);text-align:center}
 
 /* ================= 弹层 / 抽屉 / Toast ================= */
-.mask{position:fixed;inset:0;background:rgba(13,35,25,.34);z-index:40;opacity:0;pointer-events:none;transition:opacity .22s ease}
+.mask{position:fixed;inset:0;background:rgba(13,35,25,.34);z-index:55;opacity:0;pointer-events:none;transition:opacity .22s ease}
 .mask.on{opacity:1;pointer-events:auto}
-.modal{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;background:var(--card);border-radius:16px;box-shadow:var(--sh2);width:min(700px,92vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .24s ease,transform .28s var(--ease)}
+.modal{position:fixed;z-index:56;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;background:var(--card);border-radius:16px;box-shadow:var(--sh2);width:min(700px,92vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .24s ease,transform .28s var(--ease)}
 .modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
 .modal .mh{display:flex;align-items:center;gap:8px;padding:15px 18px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
 .modal .mh .x{margin-left:auto;width:28px;height:28px;border:0;background:var(--card2);border-radius:8px;color:var(--ink3);font-size:16px;cursor:pointer;transition:all .15s}
@@ -507,6 +507,241 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
 .psPaper.hide-page .psPageNo{display:none}
 .psPaper.hide-note .psPFoot .psFootNote{display:none}
 .psPaper.hide-weight .psSum .psWeight{display:none}
+.datePopG{position:fixed;z-index:70;width:284px;background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:0 18px 44px rgba(17,45,32,.16);padding:12px;display:none}
+.datePopG.on{display:block;animation:dateIn .2s var(--ease)}
+/* ============ 高保真日常页 · 四栏 ============ */
+.daily4{flex:1;display:flex;gap:10px;padding:12px;min-height:0}
+.daily4 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:0 4px 16px rgba(17,45,32,.05)}
+.daily4 .panel.left{width:272px;flex:0 0 272px}
+.daily4 .panel.plpanel{width:330px;flex:0 0 330px}
+.daily4 .panel.dpanel{width:330px;flex:0 0 330px}
+.daily4 .panel.center{flex:1;min-width:0}
+.daily4 .phead{height:48px;flex:0 0 48px;font-size:15.5px;padding:0 14px}
+.daily4 .phead .cap{font-size:12.5px}
+.daily4 .pbody{padding:10px;gap:9px}
+.hrowX{display:flex;align-items:center;gap:8px}
+.hrowX label{width:58px;flex:0 0 58px;text-align:right;font-size:12.5px;color:var(--ink2)}
+.hrowX .input{flex:1;height:34px;font-size:13.5px}
+.dateRowX{gap:6px}
+.dateRowX .dateTriggerS{flex:1;min-width:0}
+.dateTriggerS{height:34px;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 8px;border:1px solid var(--line2);border-radius:8px;background:var(--card2);color:var(--ink);font-size:12px;cursor:pointer;transition:all .16s ease;white-space:nowrap}
+.dateTriggerS:hover{border-color:var(--pri);background:var(--card)}
+.dateTriggerS svg{width:13px;height:13px;color:var(--ink3);flex:0 0 13px}
+.toX{font-size:11px;color:var(--ink3)}
+.hbtnsX{display:flex;gap:6px}
+.hbtnsX .btn{flex:1;min-width:0;height:32px;font-size:13px}
+.daily4 .hlist{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.daily4 .hitem{font-size:13.5px;padding:8px 9px}
+.daily4 .hitem .tm{font-size:11px}
+.daily4 .statline{font-size:12px}
+.rxcard{padding:15px 17px 12px;border-radius:12px;box-shadow:none}
+.rxc-head{padding-bottom:9px;margin-bottom:7px}
+.rxid{gap:6px;font-size:12.5px}
+.rxid .lbl{color:var(--ink3);font-size:13px;font-weight:500}
+.rxNameInput{width:128px;height:28px;border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font-size:15.5px;font-weight:600;color:var(--ink);padding:0 3px;outline:none}
+.rxNameInput:hover{border-bottom-color:var(--line2)}
+.rxNameInput:focus{border-bottom-color:var(--pri)}
+.dateInlineBtn{height:28px;border:0;border-radius:6px;background:transparent;color:var(--ink);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:0 4px;transition:background .15s ease}
+.dateInlineBtn:hover{background:var(--soft2)}
+.dateInlineBtn svg{width:13px;height:13px;color:var(--ink3)}
+.herbgrid{row-gap:4px;column-gap:16px}
+.herb{font-size:14.5px;padding:3px 5px}
+.herb .g{font-size:12.5px}
+.herb .sfx{font-size:10.5px}
+.herb.blank .nm{font-size:13px}
+.rxc-foot{padding-top:9px}
+.line1{font-size:12.5px;gap:7px;margin-bottom:7px}
+.line1 .stepper button{width:24px;height:26px}
+.line1 .stepper span{min-width:29px;font-size:13px}
+.line1 .note{font-size:12.5px;height:30px}
+.rxmoneyX{display:flex;align-items:center;gap:26px;font-size:12.5px;color:var(--ink2);margin-bottom:7px;flex-wrap:wrap}
+.rxmoneyX .mf{display:flex;align-items:center;gap:5px}
+.rxmoneyX .rxPerInput{width:72px;height:26px;border:0;border-bottom:1px solid var(--line2);border-radius:0;background:transparent;text-align:right;font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;outline:none;padding:0 3px}
+.rxmoneyX #grandTotal{font-size:18px;color:var(--pri2);font-variant-numeric:tabular-nums;font-weight:600}
+.feeRowX{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;padding:5px 0 2px;font-size:12.5px;color:var(--ink2)}
+.feeRowX .fx{display:flex;align-items:center;gap:5px;white-space:nowrap;min-width:0}
+.feeRowX .check{font-size:12.5px;gap:5px}
+.feeRowX .feeAmt{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--ink3)}
+.feeRowX .feeInput{width:56px;height:26px;border:1px solid var(--line);border-radius:5px;background:var(--card);font-size:11.5px;padding:0 5px;outline:none;color:var(--ink)}
+.feeRowX .feeInput:focus{border-color:var(--pri)}
+.rxweightX{display:flex;gap:22px;font-size:12px;color:var(--ink3);margin-top:6px}
+.rxweightX b{color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:600}
+.rxaddrX{margin-top:8px;padding:7px 9px;background:var(--soft2);border:1px solid #D7EDE3;border-radius:8px;font-size:12px}
+.addrHeadX{display:flex;align-items:center;gap:7px}
+.addrHeadX .lb{font-weight:600;color:var(--ink)}
+.addrHeadX .asum{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.addrBarX{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.addrBarX .input{flex:1;min-width:140px;height:30px;font-size:12px}
+.addrListX{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.addrRowX{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);padding:2px 0;border-top:1px dashed var(--line)}
+.addrRowX .atx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addrRowX .arp{color:var(--pri2);font-variant-numeric:tabular-nums}
+.cbarX{display:flex;gap:9px;flex:0 0 auto;margin-top:2px}
+.cbarX .btn{height:40px;font-size:14px;padding:0 22px}
+.cbarX .btn.pri{padding:0 28px}
+.plpanel .phead #plState{font-size:11.5px}
+.pltable{font-size:13.5px}
+.pltable th{font-size:11px}
+.pltable td{padding:6px 0}
+.plsum{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line2);font-size:11.5px;color:var(--ink2);flex:0 0 auto}
+.plsum .sp{flex:1}
+.plsum .plt b{color:var(--pri2);font-size:15px;font-variant-numeric:tabular-nums}
+.plbtns{display:flex;gap:6px;flex:0 0 auto}
+.plbtns .btn{flex:1;height:36px;font-size:13.5px;padding:0 6px}
+.dsearchX{display:flex;gap:6px}
+.dsearchX .input{flex:1;min-width:0;height:34px;font-size:12.5px}
+.dhintX{font-size:11.5px;line-height:1.65;color:var(--ink3);padding:0 2px}
+.dhintX b{color:var(--ink2)}
+.dtablebox{flex:1;min-height:0;overflow:auto;border-top:1px solid var(--line)}
+.dtableX{width:100%;border-collapse:collapse;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.dtableX th{text-align:left;font-size:11px;color:var(--ink3);font-weight:500;padding:6px 4px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
+.dtableX th.r,.dtableX td.r{text-align:right}
+.dtableX td{padding:7px 4px;border-bottom:1px solid var(--line)}
+.dtableX tbody tr{cursor:pointer;transition:background .14s ease}
+.dtableX tbody tr:hover{background:var(--soft2)}
+.dtableX .dn{color:var(--ink);font-weight:500}
+.daily4 .dpanel .pbody{gap:8px}
+
+/* ============ 高保真药方打印 · 列表/详情 ============ */
+.wplanX{flex:1;padding:20px 24px 36px;overflow:auto;background:var(--bg)}
+.wpHeadX{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.wpTitleX{font-size:21px;font-weight:600;letter-spacing:.01em;color:var(--ink)}
+.wpListCard{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:hidden}
+.wpListBar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card);flex-wrap:wrap}
+.wpListBar .search{width:300px;flex:0 0 300px}
+.wpListBar .seg{padding:3px}
+.wpListBar .seg button{height:28px;font-size:12.5px}
+.wpCount{margin-left:auto;font-size:12px;color:var(--ink3)}
+.wpRow{display:grid;grid-template-columns:34px 150px .9fr 1.1fr 62px 118px 82px 92px;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s ease}
+.wpRow:last-child{border-bottom:0}
+.wpRow:hover{background:var(--soft2)}
+.wpRow.head{cursor:default;background:var(--card2);font-size:11.5px;color:var(--ink3);font-weight:600}
+.wpRow.head:hover{background:var(--card2)}
+.wpRow.head .wpC{font-size:11.5px;color:var(--ink3)}
+.wpRow .ck{display:flex;align-items:center}
+.wpRow input[type=checkbox]{width:15px;height:15px}
+.wpRow .time{font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wpRow .guest{font-size:13.5px;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wpRow .dish{font-size:13.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wpRow .dish .sub{display:block;font-size:10.5px;color:var(--ink3);margin-top:1px}
+.wpRow .cnt{font-size:12.5px;color:var(--ink3)}
+.wpRow .total{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.wpRow .status{text-align:left}
+.wpRow .act{text-align:right}
+.wpRow .act .btn{height:28px;font-size:12px;padding:0 10px}
+.tagStatus{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:99px;font-size:11px;border:1px solid var(--line);color:var(--ink2);background:var(--card2)}
+.tagStatus.done{background:var(--soft);border-color:#CFEADF;color:var(--pri2);font-weight:600}
+.tagStatus.undone{background:var(--warn-soft);border-color:#EEDDBB;color:var(--warn);font-weight:600}
+.wpDetailX{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;flex-direction:column}
+.wpDetailX.on{display:flex;animation:pageIn .3s var(--ease)}
+.wpDetailHead{height:58px;flex:0 0 58px;display:flex;align-items:center;gap:10px;padding:0 22px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:nowrap}
+.wpDetailHead .sp{flex:1}
+.wpDTitle{font-size:17px;font-weight:600;color:var(--ink);white-space:nowrap}
+.wpDNo{font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.wpDetailBody{flex:1;min-height:0;overflow:auto;padding:20px 24px 44px}
+.wpOrderCard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh);margin-bottom:16px}
+.wpOrderRow{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.wpField{display:flex;flex-direction:column;gap:5px}
+.wpField label{font-size:12px;color:var(--ink3);font-weight:600}
+.wpField .wpIn{height:38px;border:1px solid var(--line2);border-radius:8px;background:var(--card2);color:var(--ink);font-size:14px;padding:0 10px;outline:none;min-width:170px;transition:all .15s ease}
+.wpField .wpIn:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12);background:var(--card)}
+.wpFieldDish .wpIn{min-width:270px}
+.wpBlocks{display:flex;flex-direction:column;gap:16px}
+.wpBlockX{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:hidden}
+.wpBlockHead{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--card2);flex-wrap:wrap}
+.wpBlockTitle{font-size:15px;font-weight:600;color:var(--ink);border:0;border-bottom:1px dotted var(--line2);background:transparent;padding:2px 4px;min-width:150px;outline:none}
+.wpBlockTitle:focus{border-bottom-color:var(--pri)}
+.wpDose{font-size:12px;color:var(--ink3);display:inline-flex;align-items:center;gap:4px}
+.wpDose input{width:46px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--card);font-size:12.5px;text-align:center;outline:none}
+.wpBi{font-size:12px;color:var(--ink3);display:inline-flex;align-items:center;gap:4px}
+.wpBi .dateInlineBtn{font-size:12.5px;font-weight:500;height:28px}
+.wpSub{font-size:12px;color:var(--ink3);white-space:nowrap}
+.wpSub b{color:var(--ink);font-variant-numeric:tabular-nums}
+.wpBlockHead .check{font-size:12px;color:var(--ink2)}
+.wpBlockTools{display:flex;gap:8px;padding:9px 18px;border-bottom:1px solid var(--line);background:var(--card2);flex-wrap:wrap}
+.wpBlockTools .btn{height:30px;font-size:12.5px;padding:0 11px}
+.wpTableWrap{overflow:auto;padding-bottom:10px}
+.wpTbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13.5px}
+.wpTbl th{text-align:left;font-size:11.5px;color:var(--ink3);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line);background:var(--card);white-space:nowrap}
+.wpTbl th.r,.wpTbl td.r{text-align:right}
+.wpTbl td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.wpTbl tbody tr:last-child td{border-bottom:0}
+.wpTbl input{height:30px;border:1px solid transparent;border-radius:5px;background:transparent;font-size:13px;color:var(--ink);padding:0 6px;outline:none;width:100%;transition:all .15s ease}
+.wpTbl input:hover{background:var(--card2);border-color:var(--line)}
+.wpTbl input:focus{background:var(--card);border-color:var(--pri);box-shadow:0 0 0 2px rgba(14,154,106,.11)}
+.wpTbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.wpTbl .plus{width:24px;height:24px;border:1px solid var(--line2);border-radius:50%;background:var(--card);color:var(--ink3);font-size:14px;cursor:pointer;transition:all .15s ease}
+.wpTbl .plus:hover{background:var(--pri);border-color:var(--pri);color:#fff}
+.wpTbl .amt{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wpTbl .rm .btn{height:26px;font-size:11px;padding:0 8px}
+.wpAdd{margin:16px 0}
+.wpFootX{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--sh);margin-top:16px}
+.wpLine{display:flex;justify-content:space-between;font-size:14px;color:var(--ink2);margin-bottom:6px}
+.wpLine b{color:var(--ink);font-variant-numeric:tabular-nums}
+.wpLine.grand{margin-top:4px;font-size:16px}
+.wpLine.grand b{color:var(--pri2);font-size:20px}
+.wpFootActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.wpFootActions .btn{height:38px;font-size:14px}
+.wpHintX{font-size:12px;color:var(--ink3);line-height:1.8;margin-top:12px}
+.wpDetailX .wpDate{height:38px;border:1px solid var(--line2);border-radius:8px;background:var(--card2);font-size:14px;font-weight:500;padding:0 10px}
+
+/* ============ 字体整体放大 / 按钮居中 ============ */
+body{font-size:16px;line-height:1.6}
+.brand{font-size:15px}
+.navItem{font-size:14.5px;height:38px;padding:0 13px}
+.tagA{font-size:10.5px}
+.btn{font-size:14px;justify-content:center;text-align:center;padding:0 18px;height:38px}
+.btn.sm{font-size:13px;height:32px;padding:0 13px}
+.btn.xs{font-size:12px;height:28px;padding:0 9px}
+.btn.icon{width:34px;height:34px;padding:0}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.btn.pri:hover{background:var(--pri2);border-color:var(--pri2);color:#fff;box-shadow:0 8px 20px rgba(14,154,106,.22)}
+.btn.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.pageHead h1{font-size:22px}
+.pageHead .sub{font-size:13px}
+.crumb{font-size:12px}
+.input{font-size:14px}
+.phead{font-size:15.5px}
+input,select,textarea{font-size:14px}
+.setCard .sh,.setCard .srow,.setCard .srow .lab,.stage .cardhead,.tablecard,.fbCard{font-size:13.5px}
+.mini-stat .m{font-size:12px}
+.tablecard table.data{font-size:14px}
+table.data th{font-size:11.5px}
+.kpi .k{font-size:12px}
+.kpi .d{font-size:11.5px}
+.gcard .gname{font-size:14px}
+.gcard .phone{font-size:11px}
+.gcard .metrics div{font-size:11px}
+.wplanX,.wpDetailX,.dmeta,.outPreview{font-size:14px}
+.psSideHead{height:54px;flex:0 0 54px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--card)}
+.psSideHead b{font-size:16px;font-weight:600}
+.psSideHead span{font-size:12px;color:var(--ink3)}
+.psSideHead .psClose{margin-left:auto}
+.psSideFoot{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.psFootRow{display:flex;gap:8px}
+.psFootRow .btn{flex:1}
+.psPrintBtn{width:100%;height:38px;font-size:14px}
+.psTpl b{font-size:12.5px}
+.psTpl span{font-size:10.5px}
+.psTpl .tag{font-size:9.5px}
+.psSecH{font-size:12.5px}
+.psSecH .mini{font-size:10.5px}
+.psRow>label{font-size:12px}
+.psInput{height:32px;font-size:13px}
+.psField label{font-size:10.5px}
+.psChecks{font-size:12px}
+.psRange .val{font-size:11px}
+.psBar{font-size:12px}
+.psBar b{font-size:13.5px}
+.psBar .chip{font-size:10px}
+.psCreateBtn{font-size:11px;height:30px}
+.psSideFoot .btn{font-size:12.5px;height:34px}
+.psPaper{--psFs:12px}
+.modal .mh{font-size:15px}
+.modal .mf .btn{font-size:14px}
+.drawer .dh{font-size:15px}
+@media(max-width:1320px){.daily4 .panel.left{width:240px;flex-basis:240px}.daily4 .panel.plpanel{width:300px;flex-basis:300px}.daily4 .panel.dpanel{width:280px;flex-basis:280px}}
+@media(max-width:1120px){.daily4{flex-wrap:wrap;overflow:auto}.daily4 .panel.left,.daily4 .panel.plpanel,.daily4 .panel.dpanel{flex:1 1 300px;width:auto}.daily4 .panel.center{flex:1 1 100%}}
 </style>
 </head>
 <body>
@@ -514,7 +749,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
   <header class="topbar">
     <div class="brand"><span class="logo">田</span>阿田药方打印<span class="tagA">方案 A · 预览</span></div>
     <nav id="nav">
-      <button class="navItem on" data-page="daily"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3" width="11" height="11" rx="1.6"/><path d="M5 3V2h6v1M2.5 6.5h11M5.5 9.5h5M5.5 11.5h3"/></svg>日常药方</button>
+      <button class="navItem on" data-page="daily"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3" width="11" height="11" rx="1.6"/><path d="M5 3V2h6v1M2.5 6.5h11M5.5 9.5h5M5.5 11.5h3"/></svg>日常药方打印</button>
       <button class="navItem" data-page="print"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1"/><path d="M4.5 10h7v4.5h-7z"/></svg>药方打印</button>
       <button class="navItem" data-page="drug"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="5.5" width="11" height="5" rx="2.5" transform="rotate(-45 8 8)"/><path d="M6.3 3.4 12.6 9.7"/></svg>药物管理</button>
       <button class="navItem" data-page="purchase"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 4h11v8.5h-11zM2.5 7h11"/></svg>进货单</button>
@@ -531,23 +766,21 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
   <div id="pages">
     <!-- ============== 日常药方 ============== -->
     <section class="page on" id="page-daily">
-      <div class="daily">
+      <div class="daily4">
         <aside class="panel left">
           <div class="phead"><span>历史处方</span><span class="cap">左键调方</span></div>
           <div class="pbody">
-            <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="hSearch" placeholder="姓名或拼音"><span class="kbd">/</span></div>
-            <div class="dateX" id="dateWrapX">
-              <button class="dateTriggerX" id="histDateBtn" type="button"><span id="histDateText">2026-10-31</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button>
-              <button class="btn sm" id="histToday">今日</button>
-              <div class="datePopX" id="datePopX">
-                <div class="calXHead"><button class="calXNav" data-calx="-1">‹</button><b id="calXTitle">2026 年 10 月</b><button class="calXNav" data-calx="1">›</button></div>
-                <div class="calXWeek"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-                <div class="calXGrid" id="calXGrid"></div>
-                <div class="calXFoot"><button class="calXLink" id="calXToday">今天</button><button class="calXLink muted" id="calXClear">清空</button></div>
-              </div>
+            <div class="hrowX"><label>姓名</label><input class="input" id="hSearch" placeholder="姓名或拼音"></div>
+            <div class="hrowX"><label>日期范围</label>
+              <button class="dateTriggerS" style="flex:1" data-date-field="rangeFrom"><span id="rangeFromText">2026-10-01</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button>
             </div>
+            <div class="hrowX"><label>至</label>
+              <button class="dateTriggerS" style="flex:1" data-date-field="rangeTo"><span id="rangeToText">2026-10-31</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button>
+            </div>
+            <div class="hbtnsX"><button class="btn sm" id="hQuery">查 询</button><button class="btn sm" id="hToday">今日患者</button></div>
+            <div class="hbtnsX"><button class="btn sm" id="hAll">历史处方</button><button class="btn sm" id="hPrev">&lt;&lt;</button><button class="btn sm" id="hNext">&gt;&gt;</button></div>
             <div class="hlist" id="hList"></div>
-            <div class="statline"><span>共 <b>12</b> 条</span><span>今日 <b>5</b> 单</span><span style="margin-left:auto" id="hCountLabel">命中 6</span></div>
+            <div class="statline"><span>共 <b>12</b> 条</span><span>今日 <b>5</b> 单</span><span style="margin-left:auto" id="hCountLabel">命中 12</span></div>
           </div>
         </aside>
 
@@ -555,16 +788,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
           <div class="phead">
             <span>处方录入</span>
             <div class="tools" style="margin-left:auto">
-              <button class="btn sm ghost">新建</button>
+              <button class="btn sm pri">新建处方</button>
               <button class="btn sm">复 用</button>
               <button class="btn sm" title="保留核心内容续开新单">续 开</button>
+              <button class="btn sm" id="btnClear">清 空</button>
             </div>
           </div>
-          <div class="pbody" style="gap:12px">
+          <div class="pbody" style="gap:10px">
             <div class="rxcard">
               <div class="rxc-head">
-                <div class="rxid"><span>姓名</span><b id="rxName">陈女士</b><span class="sep"></span><span>日期</span><b>2026-10-31</b></div>
-                <span class="rxtag" id="rxTag">小柴胡汤加减</span>
+                <div class="rxid"><span class="lbl">姓名：</span><input class="rxNameInput" id="rxNameInput" value="陈女士"><span class="sep"></span><span class="lbl">日期：</span><button class="dateInlineBtn" data-date-field="rxDate"><span id="rxDateText">2026-10-31</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button></div>
               </div>
               <div class="herbgrid" id="herbGrid"></div>
               <div class="rxc-foot">
@@ -583,36 +816,71 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
                     </div>
                   </span>
                 </div>
-                <div class="moneyrow">
-                  <span>单剂药费 <b id="perDose">¥0.00</b></span>
-                  <span class="total">合计 <b id="grandTotal">¥0.00</b></span>
-                  <span class="weight" id="weights">单剂 0g · 总重 0g</span>
+                <div class="rxmoneyX">
+                  <div class="mf"><span>单剂药费：</span><input class="rxPerInput" id="perDoseInput" readonly><span>元</span></div>
+                  <div class="mf"><span>合计：</span><b id="grandTotal">¥0.00</b></div>
+                </div>
+                <div class="feeRowX">
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbProcess" data-fee="process"> 加工费用</label><span class="feeAmt" id="feeProcess" style="display:none"><input class="feeInput" id="fProcess" type="number" min="0" step="0.01" placeholder="金额"> 元</span></div>
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbDaijian" data-fee="daijian"> 代煎费</label><span class="feeAmt" id="feeDaijian" style="display:none"><input class="feeInput" id="fDaijian" type="number" min="0" step="0.01" placeholder="金额"> 元</span></div>
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbPaotui" data-fee="paotui"> 跑腿费</label><span class="feeAmt" id="feePaotui" style="display:none"><input class="feeInput" id="fPaotui" type="number" min="0" step="0.01" placeholder="金额"> 元</span></div>
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbExpress" data-fee="express"> 闪送费</label><span class="feeAmt" id="feeExpress" style="display:none"><input class="feeInput" id="fExpress" type="number" min="0" step="0.01" placeholder="金额"> 元</span></div>
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbKuaidi" data-fee="kuaidi"> 快递费</label><span class="feeAmt" id="feeKuaidi" style="display:none"><input class="feeInput" id="fKuaidi" type="number" min="0" step="0.01" placeholder="顺丰/邮政等"> 元</span></div>
+                  <div class="fx"><label class="check"><input type="checkbox" id="cbGoods" data-fee="goods"> 物品费用</label><span class="feeAmt" id="feeGoods" style="display:none"><input class="feeInput" id="fGoods" type="number" min="0" step="0.01" placeholder="金额"> 元</span></div>
+                </div>
+                <div class="rxweightX">
+                  <span>单剂重量：<b id="wPerDose">0</b>g</span>
+                  <span>总重量：<b id="wTotal">0</b>g</span>
+                </div>
+                <div class="rxaddrX" id="addrRow" style="display:none">
+                  <div class="addrHeadX"><span class="lb">配送地址：</span><span class="asum" id="addrSum">未填写</span><button class="btn xs" id="addrFold">展开 ▾</button></div>
+                  <div class="addrBodyX" id="addrBody" style="display:none">
+                    <div class="addrBarX"><input class="input" id="fAddr" placeholder="输入新地址"><button class="btn xs" id="addrAdd">新增并保存</button><button class="btn xs" id="addrClear">清空</button></div>
+                    <div class="addrListX">
+                      <div class="addrRowX"><span class="atx">广州市天河区 · 陈女士 138****2610</span><span class="arp">¥12.00</span><button class="btn xs">使用</button></div>
+                      <div class="addrRowX"><span class="atx">广州市越秀区 · 陈女士 138****2610</span><span class="arp">¥18.00</span><button class="btn xs">使用</button></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="cbar">
-              <button class="btn primary" id="btnSave">保存处方</button>
+            <div class="cbarX">
+              <button class="btn pri" id="btnSave">保 存</button>
               <button class="btn" id="btnImage">处方图片</button>
               <button class="btn" id="btnPrint">打印处方</button>
-              <button class="btn ghost" id="btnReceipt">复制小票</button>
-              <button class="btn ghost" id="btnClear">清 空</button>
+              <button class="btn" id="btnReceipt">复制小票</button>
             </div>
           </div>
         </section>
 
-        <aside class="panel right">
-          <div class="phead"><span>价格清单</span><span class="cap" id="plCap">0 味</span>
-            <div class="tools"><button class="btn sm ghost">图片</button><button class="btn sm ghost">打印</button></div>
+        <aside class="panel plpanel">
+          <div class="phead"><span>价格清单</span><span class="cap" id="plState">自动划价后显示</span>
+            <div class="tools"><button class="btn icon" title="复制清单图片"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><circle cx="6" cy="6" r="1.2"/><path d="M3.5 12 6.5 9l2 2 2-2.5 2.5 3"/></svg></button><button class="btn icon" title="打印清单"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1"/><path d="M4.5 10h7v4.5h-7z"/></svg></button></div>
           </div>
           <div class="pbody">
             <div class="plscroll"><table class="pltable"><thead><tr><th>药名</th><th class="r">数量</th><th>单位</th><th class="r">单价</th><th class="r">金额</th></tr></thead><tbody id="plBody"></tbody></table></div>
-            <div class="plfoot">
-              <div class="rowline"><span>单剂药费</span><b id="footPer">¥0.00</b></div>
-              <div class="rowline total"><span>合计 · <span id="footDoses">5</span> 剂</span><b id="footTotal">¥0.00</b></div>
-              <div class="plbtns"><button class="btn primary" id="btnCalc">自动划价</button><button class="btn" id="btnSend">发 药</button></div>
+            <div class="plsum">
+              <span id="plCount">中药共 0 味</span>
+              <span>总重量：<b id="plWeight">0</b>g</span>
+              <span class="sp"></span>
+              <span class="plt">合计：<b id="plTotal">0.00</b></span>
             </div>
-            <div class="drugsearch search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="dSearch" placeholder="输入药名，如 阿胶"><span class="kbd">双击</span></div>
-            <div class="druglist" id="dList"></div>
+            <div class="plbtns"><button class="btn pri" id="btnCalc">自动划价</button><button class="btn" id="btnSend">发 药</button><button class="btn" id="btnUnsend">撤消发药</button></div>
+          </div>
+        </aside>
+
+        <aside class="panel dpanel">
+          <div class="phead"><span>药品目录</span><span class="cap">双击插入</span></div>
+          <div class="pbody">
+            <div class="dsearchX">
+              <input class="input" id="dSearch" placeholder="输入药名，如 阿胶">
+              <input class="input" id="dDose" placeholder="克数" style="width:64px;flex:0 0 64px">
+            </div>
+            <div class="dhintX">输入药名 → 回车跳到「克数」→ 填克数 → <b>双击</b>下方词条插入处方（仅中药）</div>
+            <div class="dtablebox">
+              <table class="dtableX"><thead><tr><th>药名</th><th>单位</th><th class="r">单价</th><th class="r">常用量</th></tr></thead><tbody id="dBody"></tbody></table>
+            </div>
+            <div class="statline" id="dStat">共 1039 味</div>
           </div>
         </aside>
       </div>
@@ -620,47 +888,51 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
 
     <!-- ============== 药方打印 ============== -->
     <section class="page" id="page-print">
-      <div class="printPage">
-        <div class="orderlist">
-          <div class="phead"><span>药方打印 · 订单列表</span><span class="cap" id="orderCount">5 单</span></div>
-          <div class="pbody">
-            <div class="obar">
-              <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="oSearch" placeholder="搜索客人 / 订单 / 状态"></div>
-            </div>
-            <div class="seg" id="oFilter" style="margin-bottom:9px"><button class="on" data-f="all">全部</button><button data-f="done">已发药</button><button data-f="undone">未发药</button></div>
-            <div id="orderList" style="flex:1;overflow:auto;min-height:0"></div>
-          </div>
+      <div class="wplanX">
+        <div class="wpHeadX">
+          <div class="wpTitleX">药方打印 · 订单列表</div>
+          <span class="sp"></span>
+          <button class="btn">批量结款</button>
+          <button class="btn" id="btnTpl">打印设置</button>
+          <button class="btn pri" id="btnNewOrder">新建订单</button>
         </div>
-
-        <div class="detail">
-          <div class="phead"><span id="dTitle">订单详情</span><span class="cap" id="dNo">A-261031</span>
-            <div class="tools" style="margin-left:auto">
-              <button class="btn sm" id="btnTpl">打印设置</button>
-              <button class="btn sm primary" id="btnGen">生成表格图片</button>
-            </div>
+        <div class="wpListCard">
+          <div class="wpListBar">
+            <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="oSearch" placeholder="搜索 客人 / 订单名称 / 时间 / 状态"></div>
+            <div class="seg" id="oStatus"><button class="on" data-f="all">全部状态</button><button data-f="done">已发药</button><button data-f="undone">未发药</button></div>
+            <div class="seg" id="oView"><button class="on" data-v="flat">全部单据</button><button data-v="plan">按计划分组</button></div>
+            <span class="wpCount" id="orderCount">5 单</span>
           </div>
-          <div class="dhead">
-            <span class="title" id="dGuest">陈女士</span>
-            <span class="no" id="dMeta">2026-10-31 · 共 2 个药方 · 已发药</span>
-          </div>
-          <div class="dbody">
-            <div class="dmeta">
-              <div id="dFields"></div>
-              <div class="fieldSel">
-                <div style="font-size:10px;color:var(--ink3);margin-bottom:6px">出图模板</div>
-                <div class="seg" id="tplTabs" style="margin-bottom:0">
-                  <button data-tpl="a">标准</button><button data-tpl="b">票据</button><button class="on" data-tpl="c">极简</button>
-                </div>
-              </div>
-            </div>
-            <div class="outPreview">
-              <div class="outLabel"><span>出图预览</span><span class="chip green"><i></i>2x 清晰导出</span><span class="sp"></span><span>切模板只换装帧，不改数据</span></div>
-              <div class="bill tpl-c" id="bill"><div class="b-in" id="billBody"></div></div>
-            </div>
-          </div>
+          <div class="wpListBody" id="orderList"></div>
         </div>
       </div>
     </section>
+
+    <div class="wpDetailX" id="orderDetail">
+      <div class="wpDetailHead">
+        <button class="btn" id="backToList">← 返回列表</button>
+        <b class="wpDTitle">订单详情</b>
+        <span class="wpDNo" id="wpDNo">A-261031</span>
+        <span class="sp"></span>
+        <button class="btn" id="btnGen">生成表格图片</button>
+        <button class="btn" id="btnPrintOrder">打印本单</button>
+        <button class="btn danger" id="btnDelOrder">删除本单</button>
+      </div>
+      <div class="wpDetailBody">
+        <div class="wpOrderCard">
+          <div class="wpOrderRow">
+            <div class="wpField wpFieldDish"><label>订单名称 *</label><input class="wpIn" id="wpDish" value="小柴胡汤加减"></div>
+            <div class="wpField"><label>日期 *</label><button class="dateInlineBtn wpDate" data-date-field="orderDate"><span id="orderDateText">2026-10-31</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button></div>
+            <div class="wpField"><label>客人 / 医生</label><input class="wpIn" id="wpGuest" value="陈女士"></div>
+            <div class="wpField"><label>单据编号</label><input class="wpIn" id="wpNo" value="A-261031" readonly></div>
+          </div>
+        </div>
+        <div class="wpBlocks" id="wpBlocks"></div>
+        <div class="wpAdd"><button class="btn pri" id="btnAddBlock">+ 添加药方</button></div>
+        <div class="wpFootX" id="wpFoot"></div>
+        <div class="wpHintX">提示：在药名格直接输入药名、耗材名或拼音（如 md）即可检索选药，自动带出单价；打细粉 / 包装袋 / 无纺布袋等加工耗材也按同一行录入，按「数量 × 单价」计入总价。回车换下一行连续录入。数据自动存入云端，刷新不丢。</div>
+      </div>
+    </div>
 
     <!-- ============== 药物管理 ============== -->
     <section class="page" id="page-drug">
@@ -878,13 +1150,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
 </div>
 
 <div class="psFull" id="printSheet">
-  <div class="psTop">
-    <div class="psBrand"><span class="psLogo">田</span><div><b>打印设置</b><span>药方打印 · 发货单 / 清单模板</span></div></div>
-    <div class="psTopChips"><span class="chip green"><i></i>实时预览</span><span class="chip">A5 · 纵向</span></div>
-    <button class="psClose" id="psClose" title="关闭">×</button>
-  </div>
   <div class="psBody">
     <aside class="psSide">
+      <div class="psSideHead"><b>打印设置</b><span>发货单 / 清单模板</span><button class="psClose" id="psClose" title="关闭">×</button></div>
       <div class="psSideBody">
         <div class="psSec">
           <div class="psSecH">模板选择<span class="sp"></span><span class="mini">2 个</span></div>
@@ -940,9 +1208,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
         </div>
       </div>
       <div class="psSideFoot">
-        <button class="btn sm" id="psSaveTpl">另存为模板</button>
-        <button class="btn sm" id="psSave">保存</button>
-        <button class="btn sm primary" id="psPrint">立即打印</button>
+        <div class="psFootRow">
+          <button class="btn sm" id="psSaveTpl">另存为模板</button>
+          <button class="btn sm" id="psSave">保存</button>
+        </div>
+        <button class="btn sm pri psPrintBtn" id="psPrint">立即打印</button>
       </div>
     </aside>
     <div class="psMain">
@@ -977,6 +1247,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--pri)}
 </div>
 
 <div class="cselMenuX" id="cselMenu"></div>
+<div class="datePopG" id="datePopG">
+  <div class="calXHead"><button class="calXNav" id="calGPrev">‹</button><b id="calGTitle">2026 年 10 月</b><button class="calXNav" id="calGNext">›</button></div>
+  <div class="calXWeek"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+  <div class="calXGrid" id="calGGrid"></div>
+  <div class="calXFoot"><button class="calXLink" id="calGToday">今天</button><button class="calXLink muted" id="calGClose">关闭</button></div>
+</div>
 
 <div id="toast"><i></i><span id="toastTx">已保存</span></div>
 
@@ -1078,8 +1354,7 @@ function loadPreset(p){
   state.items = p.items.map(function(x){ return {name:x[0], dose:x[1]}; });
   state.doses = p.doses;
   state.note = p.note;
-  document.getElementById('rxName').textContent = p.name;
-  document.getElementById('rxTag').textContent = p.tag;
+  document.getElementById('rxNameInput').value = p.name;
   document.getElementById('rxNote').value = p.note;
   document.getElementById('doses').textContent = state.doses;
   renderAll();
@@ -1097,7 +1372,7 @@ function renderHerbs(freshName){
       (d.sfx?'<span class="sfx">'+d.sfx+'</span>':'')+
       '<button class="del" title="移除">×</button></div>';
   });
-  while(cells.length < 36) cells.push('<div class="herb blank"><span class="nm">药名</span><span class="g"></span></div>');
+  while(cells.length < 27) cells.push('<div class="herb blank"><span class="nm">药名</span><span class="g"></span></div>');
   document.getElementById('herbGrid').innerHTML = cells.join('');
   document.querySelectorAll('.herb[data-name] .del').forEach(function(btn){
     btn.addEventListener('click', function(e){
@@ -1119,15 +1394,26 @@ function renderPrice(){
   }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:24px 0">暂无药味</td></tr>';
 }
 function renderTotals(){
-  var per = totalPerDose(), w = weightPerDose(), total = per*state.doses;
-  document.getElementById('perDose').textContent = money(per);
-  document.getElementById('footPer').textContent = money(per);
+  var per = totalPerDose(), w = weightPerDose(), fees = feeTotal(), total = per*state.doses + fees;
+  document.getElementById('perDoseInput').value = per.toFixed(2);
   document.getElementById('grandTotal').textContent = money(total);
-  document.getElementById('footTotal').textContent = money(total);
-  document.getElementById('footDoses').textContent = state.doses;
   document.getElementById('doses').textContent = state.doses;
-  document.getElementById('weights').textContent = '单剂 '+Math.round(w)+'g · 总重 '+Math.round(w*state.doses)+'g';
-  document.getElementById('plCap').textContent = state.items.length+' 味';
+  document.getElementById('plCount').textContent = '中药共 '+state.items.length+' 味';
+  document.getElementById('plWeight').textContent = Math.round(w*state.doses);
+  document.getElementById('plTotal').textContent = total.toFixed(2);
+  document.getElementById('wPerDose').textContent = Math.round(w);
+  document.getElementById('wTotal').textContent = Math.round(w*state.doses);
+  document.getElementById('plState').textContent = '共 '+state.items.length+' 味';
+}
+function feeTotal(){
+  var map = [['cbProcess','fProcess'],['cbDaijian','fDaijian'],['cbPaotui','fPaotui'],['cbExpress','fExpress'],['cbKuaidi','fKuaidi'],['cbGoods','fGoods']];
+  var s = 0;
+  map.forEach(function(p){
+    var cb = document.getElementById(p[0]);
+    var inp = document.getElementById(p[1]);
+    if(cb && cb.checked && inp) s += +(inp.value || 0);
+  });
+  return s;
 }
 function renderAll(freshName){
   renderHerbs(freshName);
@@ -1141,25 +1427,72 @@ document.getElementById('minus').addEventListener('click', function(){ if(state.
 /* ================== 药名目录 ================== */
 function renderDrugList(){
   var q = (document.getElementById('dSearch').value||'').trim().toLowerCase();
-  var list = DRUGS.filter(function(d){ return !q || d.name.indexOf(q)>=0 || d.alias.indexOf(q)>=0 || d.cat.indexOf(q)>=0; }).slice(0,10);
-  document.getElementById('dList').innerHTML = list.map(function(d){
-    return '<div class="drow" data-n="'+d.name+'"><span class="dn">'+d.name+'</span><span class="dp">'+d.unit+'</span><span class="dp">'+d.price.toFixed(2)+'</span><button class="plus">＋</button></div>';
-  }).join('') || '<div class="empty" style="padding:14px">没有匹配药名</div>';
-  document.querySelectorAll('.drow[data-n]').forEach(function(row){
-    var n = row.getAttribute('data-n');
-    function insert(){
+  var list = DRUGS.filter(function(d){ return !q || d.name.indexOf(q)>=0 || d.alias.indexOf(q)>=0 || d.cat.indexOf(q)>=0; }).slice(0,12);
+  var body = document.getElementById('dBody');
+  body.innerHTML = list.map(function(d){
+    return '<tr data-n="'+d.name+'"><td class="dn">'+d.name+'</td><td style="color:var(--ink3);font-size:11.5px">'+d.unit+'</td><td class="r">'+d.price.toFixed(2)+'</td><td class="r">'+d.dose+'</td></tr>';
+  }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--ink3);padding:22px 0">没有匹配药名</td></tr>';
+  body.querySelectorAll('tr[data-n]').forEach(function(row){
+    row.addEventListener('dblclick', function(){
+      var n = row.getAttribute('data-n');
       var d = drug(n);
+      var doseEl = document.getElementById('dDose');
+      var dose = parseFloat(doseEl && doseEl.value) || d.dose;
       var exists = state.items.find(function(it){ return it.name===n; });
       if(exists){ showToast(n+' 已在处方中'); renderHerbs(n); return; }
-      state.items.push({name:n,dose:d.dose});
+      state.items.push({name:n, dose:dose});
       renderAll(n);
-      showToast('已插入 '+n+' '+d.dose+(d.unit==='枚'?'枚':'g'));
-    }
-    row.addEventListener('dblclick', insert);
-    row.querySelector('.plus').addEventListener('click', function(e){ e.stopPropagation(); insert(); });
+      showToast('已插入 '+n+' '+dose+(d.unit==='枚'?'枚':'g'));
+    });
   });
+  document.getElementById('dStat').textContent = '共 1039 味 · 当前 '+list.length+' 条';
 }
 document.getElementById('dSearch').addEventListener('input', renderDrugList);
+document.getElementById('dDose').addEventListener('keydown', function(e){
+  if(e.key==='Enter'){
+    var first = document.querySelector('#dBody tr[data-n]');
+    if(first) first.dispatchEvent(new MouseEvent('dblclick', {bubbles:true}));
+  }
+});
+
+/* 费用勾选与地址 */
+document.querySelectorAll('[data-fee]').forEach(function(cb){
+  cb.addEventListener('change', function(){
+    var key = cb.getAttribute('data-fee');
+    var wrap = document.getElementById('fee'+key.charAt(0).toUpperCase()+key.slice(1));
+    if(wrap) wrap.style.display = cb.checked ? 'inline-flex' : 'none';
+    var paotui = document.getElementById('cbPaotui');
+    var express = document.getElementById('cbExpress');
+    document.getElementById('addrRow').style.display = (paotui.checked || express.checked) ? 'block' : 'none';
+    renderTotals();
+  });
+});
+document.querySelectorAll('.feeInput').forEach(function(inp){
+  inp.addEventListener('input', renderTotals);
+});
+document.getElementById('addrFold').addEventListener('click', function(){
+  var body = document.getElementById('addrBody');
+  var on = body.style.display !== 'none';
+  body.style.display = on ? 'none' : 'block';
+  this.textContent = on ? '展开 ▾' : '收起 ▴';
+});
+document.getElementById('addrAdd').addEventListener('click', function(){
+  var v = document.getElementById('fAddr').value.trim();
+  if(!v){ showToast('请输入地址'); return; }
+  document.getElementById('addrSum').textContent = v;
+  showToast('地址已保存');
+});
+document.getElementById('addrClear').addEventListener('click', function(){
+  document.getElementById('fAddr').value = '';
+  document.getElementById('addrSum').textContent = '未填写';
+});
+document.querySelectorAll('.addrRowX .btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.getElementById('fAddr').value = b.parentNode.querySelector('.atx').textContent;
+    document.getElementById('addrSum').textContent = b.parentNode.querySelector('.atx').textContent;
+    showToast('已填入地址');
+  });
+});
 
 /* ================== 日常页按钮 ================== */
 document.getElementById('btnSave').addEventListener('click', function(){
@@ -1174,6 +1507,9 @@ document.getElementById('btnCalc').addEventListener('click', function(){
 document.getElementById('btnSend').addEventListener('click', function(){
   showToast('已标记发药 · 记录到历史处方');
 });
+document.getElementById('btnUnsend').addEventListener('click', function(){
+  showToast('已撤销发药标记');
+});
 document.getElementById('btnClear').addEventListener('click', function(){
   state.items = []; state.doses = 1;
   document.getElementById('rxNote').value = '';
@@ -1183,73 +1519,13 @@ document.getElementById('btnClear').addEventListener('click', function(){
 document.getElementById('btnPrint').addEventListener('click', function(){ openDrawer('sheet'); });
 document.getElementById('btnImage').addEventListener('click', function(){ openImageModal('sheet'); });
 document.getElementById('btnReceipt').addEventListener('click', function(){ showToast('小票图片已复制，可直接粘贴'); });
+['hQuery','hToday','hAll','hPrev','hNext'].forEach(function(id){
+  var b = document.getElementById(id);
+  if(b) b.addEventListener('click', function(){ showToast(id==='hToday'?'已切换到今日患者':id==='hAll'?'已显示全部历史处方':'已按日期范围查询'); });
+});
 
 /* ================== 日期 / 备注 / 下拉 / 全屏打印设置 ================== */
 (function(){
-  var TODAY = '2026-10-31';
-  var cal = { y:2026, m:9, sel:TODAY };
-  var pop = document.getElementById('datePopX');
-  var btn = document.getElementById('histDateBtn');
-  var txt = document.getElementById('histDateText');
-  function pad(n){ return (n<10?'0':'')+n; }
-  function ds(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
-  function closeDate(){ pop.classList.remove('on'); btn.classList.remove('on'); }
-  function renderCal(){
-    document.getElementById('calXTitle').textContent = cal.y+' 年 '+(cal.m+1)+' 月';
-    var first = new Date(cal.y, cal.m, 1).getDay();
-    var dim = new Date(cal.y, cal.m+1, 0).getDate();
-    var prevDim = new Date(cal.y, cal.m, 0).getDate();
-    var html = '', cy, cm, d, out, str, cls;
-    for(var i=0;i<42;i++){
-      out = false;
-      if(i<first){ d = prevDim-first+i+1; cm=cal.m-1; cy=cal.y; if(cm<0){cm=11;cy--;} out=true; }
-      else if(i>=first+dim){ d = i-(first+dim)+1; cm=cal.m+1; cy=cal.y; if(cm>11){cm=0;cy++;} out=true; }
-      else { d = i-first+1; cm=cal.m; cy=cal.y; }
-      str = ds(cy,cm,d);
-      cls = 'calXCell'+(out?' out':'')+(str===TODAY?' today':'')+(str===cal.sel?' sel':'');
-      html += '<button class="'+cls+'" data-d="'+str+'">'+d+'</button>';
-    }
-    var grid = document.getElementById('calXGrid');
-    grid.innerHTML = html;
-    grid.querySelectorAll('.calXCell').forEach(function(cell){
-      cell.addEventListener('click', function(){
-        var v = cell.getAttribute('data-d');
-        var parts = v.split('-');
-        cal.y = +parts[0]; cal.m = +parts[1]-1; cal.sel = v;
-        txt.textContent = v;
-        renderCal();
-        closeDate();
-      });
-    });
-  }
-  btn.addEventListener('click', function(e){
-    e.stopPropagation();
-    var on = pop.classList.contains('on');
-    if(on){ closeDate(); } else { pop.classList.add('on'); btn.classList.add('on'); renderCal(); }
-  });
-  pop.addEventListener('click', function(e){ e.stopPropagation(); });
-  document.addEventListener('click', closeDate);
-  document.querySelectorAll('.calXNav').forEach(function(n){
-    n.addEventListener('click', function(){
-      cal.m += +n.getAttribute('data-calx');
-      if(cal.m<0){cal.m=11;cal.y--;}
-      if(cal.m>11){cal.m=0;cal.y++;}
-      renderCal();
-    });
-  });
-  document.getElementById('calXToday').addEventListener('click', function(){
-    cal.y=2026; cal.m=9; cal.sel=TODAY; txt.textContent=TODAY; renderCal(); closeDate();
-  });
-  document.getElementById('calXClear').addEventListener('click', function(){
-    cal.sel=''; txt.textContent=''; renderCal(); closeDate();
-  });
-  document.getElementById('histToday').addEventListener('click', function(e){
-    e.stopPropagation();
-    cal.y=2026; cal.m=9; cal.sel=TODAY; txt.textContent=TODAY; renderCal(); closeDate();
-  });
-  renderCal();
-
-  /* 常用备注备选 */
   var nbtn = document.getElementById('noteBtnX');
   var nmenu = document.getElementById('noteMenuX');
   var ninp = document.getElementById('rxNote');
@@ -1262,11 +1538,92 @@ document.getElementById('btnReceipt').addEventListener('click', function(){ show
   document.addEventListener('click', function(){ nmenu.classList.remove('on'); });
 })();
 
+/* 通用日期选择器：全站日期统一使用，不调用浏览器原生日历 */
+(function(){
+  var TODAY = '2026-10-31';
+  var cal = { y:2026, m:9, sel:'' };
+  var target = null;
+  var pop = document.getElementById('datePopG');
+  function pad(n){ return (n<10?'0':'')+n; }
+  function ds(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
+  function closeDate(){ pop.classList.remove('on'); target = null; }
+  function position(btn){
+    var r = btn.getBoundingClientRect();
+    var w = 284, h = 320;
+    var left = Math.min(Math.max(8, r.left), innerWidth - w - 8);
+    var top = r.bottom + 6;
+    if(top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+    pop.style.left = left+'px';
+    pop.style.top = top+'px';
+  }
+  function render(){
+    document.getElementById('calGTitle').textContent = cal.y+' 年 '+(cal.m+1)+' 月';
+    var first = new Date(cal.y, cal.m, 1).getDay();
+    var dim = new Date(cal.y, cal.m+1, 0).getDate();
+    var prevDim = new Date(cal.y, cal.m, 0).getDate();
+    var html = '', cy, cm, d, out, str, cls;
+    for(var i=0;i<42;i++){
+      out = false;
+      if(i<first){ d=prevDim-first+i+1; cm=cal.m-1; cy=cal.y; if(cm<0){cm=11;cy--;} out=true; }
+      else if(i>=first+dim){ d=i-(first+dim)+1; cm=cal.m+1; cy=cal.y; if(cm>11){cm=0;cy++;} out=true; }
+      else { d=i-first+1; cm=cal.m; cy=cal.y; }
+      str = ds(cy,cm,d);
+      cls = 'calXCell'+(out?' out':'')+(str===TODAY?' today':'')+(str===cal.sel?' sel':'');
+      html += '<button class="'+cls+'" data-gd="'+str+'">'+d+'</button>';
+    }
+    var grid = document.getElementById('calGGrid');
+    grid.innerHTML = html;
+    grid.querySelectorAll('.calXCell').forEach(function(cell){
+      cell.addEventListener('click', function(){
+        var v = cell.getAttribute('data-gd');
+        if(target){
+          var sp = target.querySelector('span');
+          if(sp) sp.textContent = v;
+          var parts = v.split('-');
+          cal.y = +parts[0]; cal.m = +parts[1]-1; cal.sel = v;
+        }
+        closeDate();
+      });
+    });
+  }
+  pop.addEventListener('click', function(e){ e.stopPropagation(); });
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-date-field]');
+    if(btn){
+      if(target === btn && pop.classList.contains('on')){ closeDate(); return; }
+      target = btn;
+      var sp = btn.querySelector('span');
+      var v = sp ? sp.textContent.trim() : '';
+      var m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if(m){ cal.y=+m[1]; cal.m=+m[2]-1; cal.sel=ds(+m[1], +m[2]-1, +m[3]); }
+      render();
+      position(btn);
+      pop.classList.add('on');
+      return;
+    }
+    if(e.target.closest('#datePopG')) return;
+    closeDate();
+  });
+  document.getElementById('calGPrev').addEventListener('click', function(){
+    cal.m--; if(cal.m<0){cal.m=11;cal.y--;} render();
+  });
+  document.getElementById('calGNext').addEventListener('click', function(){
+    cal.m++; if(cal.m>11){cal.m=0;cal.y++;} render();
+  });
+  document.getElementById('calGToday').addEventListener('click', function(){
+    cal.y=2026; cal.m=9; cal.sel=TODAY;
+    if(target){ var sp=target.querySelector('span'); if(sp) sp.textContent=TODAY; }
+    render(); closeDate();
+  });
+  document.getElementById('calGClose').addEventListener('click', closeDate);
+})();
+
 /* 自定义下拉 */
 (function(){
   var OPTS = {
     paper:['A5 · 148×210mm','A4 · 210×297mm','小票 58mm','小票 80mm'],
-    psPaper:['A5 · 148×210mm','A4 · 210×297mm','小票 58mm','小票 80mm']
+    psPaper:['A5 · 148×210mm','A4 · 210×297mm','小票 58mm','小票 80mm'],
+    ship:['自取','跑腿','闪送','快递','代煎']
   };
   var menu = document.getElementById('cselMenu');
   var cur = null;
@@ -1563,7 +1920,7 @@ var ORDERS = [
   ]}
 ];
 var curOrder = ORDERS[0], orderTpl='c', orderFilter='all';
-
+function orderDosesOf(o){ return o.blocks.reduce(function(s,b){ return s+(b.doses||1); },0); }
 function renderOrders(){
   var q = (document.getElementById('oSearch').value||'').trim().toLowerCase();
   var list = ORDERS.filter(function(o){
@@ -1572,38 +1929,114 @@ function renderOrders(){
     return okF && okQ;
   });
   document.getElementById('orderCount').textContent = list.length+' 单';
-  document.getElementById('orderList').innerHTML = list.map(function(o){
-    return '<div class="ocard '+(curOrder.id===o.id?'sel':'')+'" data-id="'+o.id+'">'+
-      '<div class="l1"><span class="guest">'+o.guest+'</span><span class="amt">'+money(o.amount)+'</span></div>'+
-      '<div class="dish">'+o.dish+'</div>'+
-      '<div class="l2"><span>'+o.no+'</span><span>·</span><span>'+o.date+'</span><span class="sp"></span><span class="chip '+(o.status==='已发药'?'green':(o.status==='待结款'?'warn':''))+'">'+o.status+'</span></div></div>';
-  }).join('') || '<div class="empty"><span class="g">空</span>没有符合条件的订单</div>';
-  document.querySelectorAll('.ocard[data-id]').forEach(function(el){
-    el.addEventListener('click', function(){
-      curOrder = ORDERS.find(function(x){return x.id===el.getAttribute('data-id')});
-      renderOrders(); renderDetail();
-    });
+  var head = '<div class="wpRow head"><div class="ck"><input type="checkbox"></div><div class="wpC">订单时间</div><div class="wpC">客人</div><div class="wpC">订单名称</div><div class="wpC">方数</div><div class="wpC" style="text-align:right">总价</div><div class="wpC">状态</div><div class="wpC" style="text-align:right">操作</div></div>';
+  var rows = list.map(function(o){
+    var done = o.status==='已发药';
+    var dishes = o.blocks.map(function(b){ return b.title; }).join(' · ');
+    return '<div class="wpRow" data-id="'+o.id+'">'+
+      '<div class="ck"><input type="checkbox" onclick="event.stopPropagation()"></div>'+
+      '<div class="time">'+o.date+'　09:30</div>'+
+      '<div class="guest">'+o.guest+'</div>'+
+      '<div class="dish">'+dishes+'<span class="sub">付数 '+orderDosesOf(o)+'</span></div>'+
+      '<div class="cnt">'+o.blocks.length+' 方</div>'+
+      '<div class="total">¥'+o.amount.toFixed(2)+'</div>'+
+      '<div class="status"><span class="tagStatus '+(done?'done':'undone')+'">'+(done?'已发':'未发')+'</span></div>'+
+      '<div class="act"><button class="btn sm" data-print>打印</button></div></div>';
+  }).join('');
+  document.getElementById('orderList').innerHTML = head + (rows || '<div style="padding:30px;text-align:center;color:var(--ink3)">没有符合条件的订单</div>');
+  document.querySelectorAll('#orderList .wpRow[data-id]').forEach(function(row){
+    row.addEventListener('click', function(){ openOrder(row.getAttribute('data-id')); });
+    var pb = row.querySelector('[data-print]');
+    if(pb) pb.addEventListener('click', function(e){ e.stopPropagation(); showToast('已发送到打印助手：'+row.querySelector('.guest').textContent); });
   });
 }
 document.getElementById('oSearch').addEventListener('input', renderOrders);
-document.querySelectorAll('#oFilter button').forEach(function(b){
+document.querySelectorAll('#oStatus button').forEach(function(b){
   b.addEventListener('click', function(){
-    document.querySelectorAll('#oFilter button').forEach(function(x){ x.classList.toggle('on',x===b); });
+    document.querySelectorAll('#oStatus button').forEach(function(x){ x.classList.toggle('on', x===b); });
     orderFilter = b.getAttribute('data-f');
     renderOrders();
   });
 });
+document.querySelectorAll('#oView button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#oView button').forEach(function(x){ x.classList.toggle('on', x===b); });
+    if(b.getAttribute('data-v')==='plan') showToast('按计划分组视图仅演示');
+  });
+});
+function openOrder(id){
+  curOrder = ORDERS.find(function(o){ return o.id===id; });
+  renderDetail();
+  document.getElementById('orderDetail').classList.add('on');
+}
 function renderDetail(){
-  document.getElementById('dTitle').textContent = '订单详情';
-  document.getElementById('dNo').textContent = curOrder.no;
-  document.getElementById('dGuest').textContent = curOrder.guest;
-  document.getElementById('dMeta').textContent = curOrder.date+' · 共 '+curOrder.blocks.length+' 个药方 · '+curOrder.status;
-  document.getElementById('dFields').innerHTML =
-    '<div class="field" style="margin-bottom:10px"><label>订单名称</label><input class="input" value="'+curOrder.dish.split(' · ')[0]+'"></div>'+
-    '<div class="field" style="margin-bottom:10px"><label>客人 / 医生</label><input class="input" value="'+curOrder.guest+'"></div>'+
-    '<div class="field" style="margin-bottom:10px"><label>单据编号</label><input class="input" value="'+curOrder.no+'" readonly style="color:var(--ink3)"></div>'+
-    '<div class="field" style="margin-bottom:10px"><label>状态</label><span class="chip '+(curOrder.status==='已发药'?'green':(curOrder.status==='待结款'?'warn':''))+'">'+curOrder.status+'</span></div>';
-  renderOrderBill();
+  document.getElementById('wpDNo').textContent = curOrder.no;
+  document.getElementById('wpDish').value = curOrder.blocks.map(function(b){ return b.title; }).join(' · ');
+  document.getElementById('orderDateText').textContent = curOrder.date;
+  document.getElementById('wpGuest').value = curOrder.guest;
+  document.getElementById('wpNo').value = curOrder.no;
+  document.getElementById('wpBlocks').innerHTML = curOrder.blocks.map(blockHTML).join('');
+  bindBlockActions();
+  renderFoot();
+}
+function blockHTML(b, i){
+  var sub = b.total;
+  var rows = b.items.map(function(it){
+    var qty = it[1].replace(/[^0-9.]/g,'');
+    var unit = it[1].replace(/[0-9.\s]/g,'') || 'g';
+    return '<tr>'+
+      '<td><button class="plus" type="button">+</button></td>'+
+      '<td><input value="'+it[0]+'" placeholder="药名 / 耗材 / 拼音"></td>'+
+      '<td><input class="num" value="'+qty+'" style="width:58px"><input value="'+unit+'" style="width:40px;margin-left:4px"></td>'+
+      '<td><input class="num" value="'+it[2].toFixed(2)+'"></td>'+
+      '<td class="amt">'+money(it[3])+'</td>'+
+      '<td><input placeholder="备注（选填）"></td>'+
+      '<td class="rm"><button class="btn danger sm" type="button">删除</button></td></tr>';
+  }).join('');
+  return '<div class="wpBlockX" data-bi="'+i+'">'+
+    '<div class="wpBlockHead">'+
+      '<input class="wpBlockTitle" value="'+b.title+'">'+
+      '<span class="wpDose">付数 <input type="number" min="1" value="'+(b.doses||1)+'"></span>'+
+      '<label class="wpBi">日期 <button class="dateInlineBtn" data-date-field="blockDate'+i+'"><span>'+curOrder.date+'</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3.5" width="11" height="10" rx="1.6"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2"/></svg></button></label>'+
+      '<label class="wpBi">配送 <button class="cselBtnX" data-csel="ship" style="width:104px;height:28px;font-size:12px"><span>'+(b.ships||'自取')+'</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></button></label>'+
+      '<span class="wpSub">单付 <b>'+money(sub)+'</b> × '+(b.doses||1)+'付 = <b>'+money(sub*(b.doses||1))+'</b></span>'+
+      '<span class="sp" style="flex:1"></span>'+
+      '<label class="check"><input type="checkbox" checked> 存为药方</label>'+
+      '<button class="btn sm" type="button">导图</button>'+
+      '<button class="btn danger sm" type="button" data-delblock>删除药方</button>'+
+    '</div>'+
+    '<div class="wpBlockTools"><button class="btn sm" type="button">从历史药方复用</button><button class="btn sm" type="button">粘贴文本制表</button><button class="btn sm" type="button">导入Excel</button></div>'+
+    '<div class="wpTableWrap"><table class="wpTbl"><colgroup><col style="width:42px"><col style="width:28%"><col style="width:180px"><col style="width:104px"><col style="width:104px"><col><col style="width:88px"></colgroup>'+
+      '<thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table></div></div>';
+}
+function bindBlockActions(){
+  document.querySelectorAll('#wpBlocks [data-delblock]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var bi = +btn.closest('.wpBlockX').getAttribute('data-bi');
+      curOrder.blocks.splice(bi,1);
+      renderDetail(); showToast('已删除药方');
+    });
+  });
+}
+function renderFoot(){
+  var lines = curOrder.blocks.map(function(b){
+    return '<div class="wpLine"><span>'+b.title+'（'+b.doses+'付）</span><b>'+money(b.total*b.doses)+'</b></div>';
+  }).join('');
+  document.getElementById('wpFoot').innerHTML = lines +
+    '<div class="wpLine grand"><span>合计总价</span><b>'+money(curOrder.amount)+'</b></div>'+
+    '<div class="wpFootActions">'+
+      '<button class="btn pri" id="wpSave">保存</button>'+
+      '<button class="btn pri" id="wpSaveBack">保存并返回列表</button>'+
+      '<button class="btn '+(curOrder.status==='已发药'?'danger':'')+'" id="wpToggleFy">'+(curOrder.status==='已发药'?'取消发药':'标记发药')+'</button>'+
+    '</div>';
+  document.getElementById('wpSave').addEventListener('click', function(){ showToast('订单已保存'); });
+  document.getElementById('wpSaveBack').addEventListener('click', function(){ document.getElementById('orderDetail').classList.remove('on'); showToast('已保存并返回列表'); });
+  document.getElementById('wpToggleFy').addEventListener('click', function(){
+    curOrder.status = curOrder.status==='已发药' ? '未发药' : '已发药';
+    renderDetail(); renderOrders(); showToast(curOrder.status);
+  });
 }
 function orderBillHTML(){
   var body = '';
@@ -1622,26 +2055,23 @@ function orderBillHTML(){
     body + totalBlock +
     '<div class="b-foot"><span>制表 2026-10-31</span><span>明细以药方打印单为准</span></div>';
 }
-function renderOrderBill(){
-  var bill = document.getElementById('bill');
-  bill.className = 'bill tpl-'+orderTpl;
-  if(orderTpl==='b'){
-    bill.innerHTML = '<div class="b-headband"><div class="b-title">订单明细</div><div class="mini">阿田药方 · '+curOrder.no+'</div></div><div class="b-in">'+orderBillHTML().replace(/<div class="b-title">.*?<\/div><div class="b-sub">.*?<\/div>/, '')+'</div>';
-  }else{
-    bill.innerHTML = '<div class="b-in">'+orderBillHTML()+'</div>';
-  }
-}
-document.querySelectorAll('#tplTabs button').forEach(function(b){
-  b.addEventListener('click', function(){
-    document.querySelectorAll('#tplTabs button').forEach(function(x){ x.classList.toggle('on',x===b); });
-    orderTpl = b.getAttribute('data-tpl');
-    renderOrderBill();
-  });
-});
-document.getElementById('btnGen').addEventListener('click', function(){
-  openImageModal('order');
-});
+document.getElementById('btnGen').addEventListener('click', function(){ openImageModal('order'); });
 document.getElementById('btnTpl').addEventListener('click', function(){ openPrintSheet(); });
+document.getElementById('backToList').addEventListener('click', function(){
+  document.getElementById('orderDetail').classList.remove('on');
+});
+document.getElementById('btnPrintOrder').addEventListener('click', function(){
+  showToast('已发送到打印助手：'+curOrder.no);
+});
+document.getElementById('btnDelOrder').addEventListener('click', function(){
+  document.getElementById('orderDetail').classList.remove('on');
+  showToast('订单已删除（预览）');
+});
+document.getElementById('btnAddBlock').addEventListener('click', function(){
+  curOrder.blocks.push({title:'新药方', doses:5, ships:'', total:0, items:[]});
+  renderDetail(); showToast('已添加药方');
+});
+document.getElementById('btnNewOrder').addEventListener('click', function(){ showToast('已新建空白订单（预览）'); });
 
 /* ================== 药物管理 ================== */
 var drugCat = '全部';
