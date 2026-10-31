@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阿田药方打印 · 风格方案预览</title>
+<style>
+*{box-sizing:border-box;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif!important}
+html,body{margin:0;background:#EEF2EF;color:#17231D}
+body{padding:38px 0 60px}
+.board{width:1320px;margin:0 auto 46px;padding:0 40px}
+.bhead{display:flex;align-items:flex-end;gap:18px;margin-bottom:16px;padding:0 4px}
+.bhead .name{font-size:22px;font-weight:600;letter-spacing:.02em}
+.bhead .en{font-size:10.5px;letter-spacing:.16em;color:#7C8D84;text-transform:uppercase;padding-bottom:5px}
+.bhead .desc{flex:1;font-size:12.5px;color:#5F7167;line-height:1.7;padding-bottom:2px}
+.bhead .spec{font-size:10.5px;color:#8B9A92;text-align:right;line-height:1.7;letter-spacing:.03em}
+.bhead .chips{display:flex;gap:5px;align-items:center;padding-bottom:3px}
+.chip{width:18px;height:18px;border-radius:6px;box-shadow:0 0 0 1px rgba(20,40,30,.10) inset}
+.ui{
+  position:relative;width:1240px;height:760px;overflow:hidden;display:flex;flex-direction:column;
+  border-radius:20px;background:var(--bg);color:var(--ink);
+  border:1px solid var(--line);
+  box-shadow:0 24px 60px rgba(16,42,30,.13),0 2px 8px rgba(16,42,30,.05);
+  font-size:13px;
+}
+/* ============ 主题变量 ============ */
+.t-a{--bg:#F3F8F5;--card:#FFFFFF;--card2:#F7FBF8;--line:#E4ECE7;--line2:#D6E3DC;
+ --ink:#16231D;--ink2:#5E7168;--ink3:#93A49B;--pri:#0E9A6A;--pri2:#0B7F57;--soft:#E7F7EF;--soft2:#F1FAF5;
+ --head:#FFFFFF;--headink:#1B2C24;--r:14px;--r-sm:9px;--btn-r:9px;
+ --sh:0 8px 26px rgba(17,45,32,.06);--sh2:0 14px 36px rgba(17,45,32,.10);--hair:1px solid var(--line);
+ --num:#0B6E4D}
+.t-b{--bg:#EEF4F1;--card:#FFFFFF;--card2:#F6FAF8;--line:#E1EAE5;--line2:#CFDDD6;
+ --ink:#101E18;--ink2:#566A60;--ink3:#8B9C93;--pri:#12B76A;--pri2:#0A7A4C;--soft:#E6F8EF;--soft2:#F0FBF5;
+ --head:#0B2E22;--headink:#EAF4EE;--r:12px;--r-sm:8px;--btn-r:8px;
+ --sh:0 6px 20px rgba(10,32,23,.05);--sh2:0 14px 36px rgba(10,32,23,.09);--hair:1px solid var(--line);
+ --num:#0D7A52}
+.t-c{--bg:#FBFDFC;--card:#FFFFFF;--card2:#F8FBFA;--line:#EAF0EC;--line2:#DDE7E1;
+ --ink:#16231D;--ink2:#64756C;--ink3:#9AA8A0;--pri:#08A47A;--pri2:#068561;--soft:#EAF8F2;--soft2:#F6FCF9;
+ --head:#FFFFFF;--headink:#1B2C24;--r:8px;--r-sm:6px;--btn-r:7px;
+ --sh:0 2px 8px rgba(18,40,30,.035);--sh2:0 10px 26px rgba(18,40,30,.07);--hair:1px solid var(--line);
+ --num:#077A5C}
+.t-d{--bg:#F3F8F7;--card:#FFFFFF;--card2:#F7FBFA;--line:#E0E9E6;--line2:#D2E0DC;
+ --ink:#13221E;--ink2:#5B6E68;--ink3:#90A09B;--pri:#0D9488;--pri2:#0F766E;--soft:#E5F6F3;--soft2:#F2FBF9;
+ --head:#FFFFFF;--headink:#16302A;--r:10px;--r-sm:7px;--btn-r:7px;
+ --sh:0 6px 20px rgba(16,44,40,.05);--sh2:0 14px 34px rgba(16,44,40,.09);--hair:1px solid var(--line);
+ --num:#0E7168}
+
+/* ============ 顶栏 ============ */
+.topbar{
+  height:54px;flex:0 0 54px;display:flex;align-items:center;gap:28px;padding:0 20px;
+  background:var(--head);color:var(--headink);border-bottom:var(--hair);
+}
+.t-b .topbar{border-bottom:1px solid rgba(255,255,255,.00)}
+.brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;letter-spacing:.03em;white-space:nowrap}
+.logo{
+  width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  background:var(--pri);color:#fff;font-size:13px;font-weight:600;letter-spacing:0;
+}
+.t-b .logo{background:var(--pri);color:#062116}
+nav{display:flex;gap:4px;font-size:12.5px;color:var(--ink2)}
+.t-b nav{color:#A9C3B5}
+nav a{padding:7px 12px;border-radius:7px;cursor:pointer;transition:background .18s ease,color .18s ease;position:relative}
+nav a:hover{background:var(--soft);color:var(--pri2)}
+.t-b nav a:hover{background:rgba(255,255,255,.08);color:#EAF4EE}
+nav a.on{color:var(--pri2);font-weight:600;background:var(--soft)}
+.t-b nav a.on{color:#0B2E22;background:#DDF5E7;font-weight:600}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.sync{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);padding:5px 10px;border:var(--hair);border-radius:999px;background:var(--card2)}
+.sync i{width:5px;height:5px;border-radius:50%;background:var(--pri);display:block;box-shadow:0 0 0 3px var(--soft)}
+.t-b .sync{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#B7CEC1}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--soft);color:var(--pri2);display:grid;place-items:center;font-size:11.5px;font-weight:600}
+.t-b .avatar{background:#134A36;color:#DFF3E7}
+
+/* ============ 主体 ============ */
+.main{flex:1;display:flex;gap:14px;padding:14px;min-height:0}
+.panel{background:var(--card);border:var(--hair);border-radius:var(--r);display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:var(--sh)}
+.left{width:242px;flex:0 0 242px}
+.right{width:304px;flex:0 0 304px}
+.center{flex:1;min-width:0}
+.phead{
+  height:44px;flex:0 0 44px;display:flex;align-items:center;gap:9px;padding:0 14px;
+  border-bottom:var(--hair);font-size:12.5px;font-weight:600;color:var(--ink);background:var(--card);
+}
+.phead .cap{font-size:10.5px;font-weight:400;color:var(--ink3);letter-spacing:.02em}
+.pactions{margin-left:auto;display:flex;gap:6px}
+.tools{margin-left:auto;display:flex;gap:2px}
+.pbody{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+
+/* 搜索 */
+.search{
+  display:flex;align-items:center;gap:8px;height:36px;padding:0 11px;
+  border:var(--hair);border-radius:var(--r-sm);background:var(--card2);color:var(--ink3);
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.search:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px var(--soft)}
+.search svg{width:14px;height:14px;flex:0 0 14px}
+.search input{border:0;outline:0;background:transparent;flex:1;min-width:0;font-size:12px;color:var(--ink)}
+.search input::placeholder{color:var(--ink3)}
+.search .kbd{font-size:9px;color:var(--ink3);border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--card)}
+
+/* 历史 */
+.daterow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink2)}
+.daterow .dt{flex:1;height:32px;border:var(--hair);border-radius:var(--r-sm);display:flex;align-items:center;padding:0 10px;background:var(--card2);font-variant-numeric:tabular-nums}
+.hlist{display:flex;flex-direction:column;border:var(--hair);border-radius:var(--r-sm);overflow:hidden;background:var(--card)}
+.hitem{display:flex;align-items:center;gap:7px;padding:9px 10px;font-size:11.5px;color:var(--ink2);border-bottom:1px solid var(--line);cursor:pointer;transition:background .16s ease,color .16s ease}
+.hitem:last-child{border-bottom:0}
+.hitem:hover{background:var(--card2)}
+.hitem.sel{background:var(--soft);color:var(--pri2);font-weight:600;box-shadow:inset 2px 0 0 var(--pri)}
+.hitem .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem .tm{font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.hitem .flag{font-style:normal;font-size:9px;color:var(--pri2);background:var(--soft2);border-radius:4px;padding:1px 4px;font-weight:600}
+.stat{font-size:10px;color:var(--ink3);padding:0 2px}
+
+/* 按钮 */
+.btn{
+  height:34px;padding:0 15px;border-radius:var(--btn-r);border:1px solid var(--line2);
+  background:var(--card);color:var(--ink2);font-size:12px;font-weight:500;cursor:pointer;
+  transition:transform .16s cubic-bezier(.22,1,.36,1),background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease;
+}
+.btn:hover{background:var(--card2);border-color:var(--line2);color:var(--pri2);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.99)}
+.btn.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--pri2);border-color:var(--pri2);box-shadow:0 6px 16px rgba(14,154,106,.22)}
+.btn.sm{height:29px;padding:0 11px;font-size:11px}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--soft);color:var(--pri2);transform:none}
+.t-b .btn.primary:hover{box-shadow:0 6px 16px rgba(18,183,106,.24)}
+.t-c .btn{box-shadow:none}
+.t-c .btn:hover{transform:none}
+
+/* 处方卡片 */
+.center-body{gap:12px}
+.rxcard{
+  flex:1;min-height:0;background:var(--card);border:var(--hair);border-radius:var(--r);
+  padding:18px 20px 14px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+  box-shadow:var(--sh);
+}
+.rxc-head{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--line2);margin-bottom:10px}
+.rxid{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink3)}
+.rxid b{color:var(--ink);font-size:13px;font-weight:600}
+.rxid .sep{width:1px;height:12px;background:var(--line2);margin:0 2px}
+.rxtag{margin-left:auto;font-size:10.5px;color:var(--pri2);background:var(--soft);padding:4px 9px;border-radius:6px;font-weight:500}
+.herbgrid{display:grid;grid-template-columns:repeat(3,1fr);column-gap:22px;row-gap:4px;align-content:start;flex:1;min-height:0;padding:2px 0}
+.herb{display:flex;align-items:baseline;gap:6px;font-size:13px;color:var(--ink);padding:4px 6px;border-radius:5px;transition:background .16s ease}
+.herb:hover{background:var(--soft2)}
+.herb .nm{flex:0 1 auto;min-width:5em}
+.herb .g{font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.herb .sfx{font-size:9.5px;color:var(--ink3)}
+.herb.blank .nm{color:transparent}
+.rxc-foot{border-top:1px solid var(--line2);padding-top:11px;margin-top:8px}
+.line1{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink2);margin-bottom:9px}
+.line1 b{color:var(--ink);font-size:12.5px}
+.line1 .note{color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.moneyrow{display:flex;align-items:baseline;gap:26px;font-size:11.5px;color:var(--ink2)}
+.moneyrow b{color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
+.moneyrow .total b{color:var(--num);font-size:20px;letter-spacing:-.01em}
+.moneyrow .weight{margin-left:auto;font-size:10px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.cbar{display:flex;gap:8px;flex:0 0 auto}
+
+/* 价格表 */
+.pltable{width:100%;border-collapse:collapse;font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pltable th{font-size:9.5px;letter-spacing:.08em;font-weight:500;color:var(--ink3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--line2)}
+.pltable th.r,.pltable td.r{text-align:right}
+.pltable td{padding:7px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.pltable td.nm{color:var(--ink);font-weight:500}
+.pltable tbody tr{transition:background .16s ease}
+.pltable tbody tr:hover td{background:var(--soft2)}
+.pltable .sum td{background:var(--soft);color:var(--pri2);font-weight:600;border-bottom:0}
+.pltable .sum td.r{font-size:13px}
+.pltable .u{color:var(--ink3);font-size:10px}
+.plbtns{display:flex;gap:7px;margin-top:2px}
+.plbtns .btn{flex:1;padding:0 8px;font-size:11px}
+.subhead{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--ink3);margin-top:4px}
+.subhead:before{content:"";flex:1;height:1px;background:var(--line)}
+.subhead:after{content:"";flex:1;height:1px;background:var(--line)}
+.drug{display:flex;flex-direction:column;border:var(--hair);border-radius:var(--r-sm);overflow:hidden}
+.drow{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:11px;color:var(--ink2);border-bottom:1px solid var(--line)}
+.drow:last-child{border-bottom:0}
+.drow .dn{flex:1;color:var(--ink)}
+.drow .dp{font-variant-numeric:tabular-nums;font-size:10.5px;color:var(--ink3)}
+.drow.hit{background:var(--soft);color:var(--pri2)}
+.drow.hit .dn{color:var(--pri2);font-weight:600}
+
+/* 动效标签 */
+.motion{display:flex;align-items:center;gap:7px;font-size:10px;color:#7D8F85;letter-spacing:.02em}
+.motion .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);display:inline-block;box-shadow:0 0 0 3px var(--soft)}
+.board .bhead .spec{color:#88998F}
+
+/* 入场上浮 */
+.panel,.btn{will-change:transform}
+.rxcard{animation:rise .55s cubic-bezier(.22,1,.36,1) .10s both}
+.left{animation:rise .55s cubic-bezier(.22,1,.36,1) .04s both}
+.right{animation:rise .55s cubic-bezier(.22,1,.36,1) .16s both}
+.center{animation:rise .55s cubic-bezier(.22,1,.36,1) .08s both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* 每套略作差异 */
+.t-b .panel{box-shadow:0 4px 16px rgba(10,32,23,.045)}
+.t-b .rxcard{background:#fff}
+.t-c .panel,.t-c .rxcard,.t-c .hlist,.t-c .search,.t-c .daterow{box-shadow:none}
+.t-c .phead{border-bottom-color:#EFF4F1}
+.t-c .btn.primary{box-shadow:none}
+.t-d .logo{border-radius:9px}
+.t-d .rxcard{box-shadow:0 8px 26px rgba(16,44,40,.055)}
+
+/* 页面说明 */
+.page-title{width:1240px;margin:0 auto 26px;padding:0 4px}
+.page-title h1{margin:0;font-size:26px;font-weight:600;letter-spacing:.02em;color:#17231D}
+.page-title p{margin:8px 0 0;font-size:12.5px;color:#64756C;line-height:1.8}
+.page-title .tag{display:inline-block;font-size:10px;letter-spacing:.12em;color:#0E9A6A;border:1px solid #CFE8DD;background:#F2FAF6;border-radius:999px;padding:4px 10px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <span class="tag">STYLE EXPLORATION · 4 DIRECTIONS</span>
+  <h1>四种绿色风格小样，先选方向</h1>
+  <p>共同点：苹方字体、纯色/无材质、无纸纹、绿色主调、统一布局与控件；差异在主色深浅、顶栏明暗、圆角与阴影轻重、信息密度。选中后我再出完整版预览（含动效）。</p>
+</div>
+
+<div id="boards"></div>
+
+<script>
+var STYLES = [
+  {
+    cls:'t-a', name:'A · 翡翠清透', en:'CLEAR EMERALD',
+    desc:'最接近现版，只做减法：白卡片更干净、阴影更轻、绿更沉稳，圆角统一到 14px。适合每天长时间录入，眼睛不累。',
+    chips:['#0E9A6A','#E7F7EF','#F3F8F5','#16231D'],
+    spec:'动效 200ms · cubic-bezier(.22,1,.36,1)<br>卡片上浮 10px / 列表交错 40ms',
+    num:'¥93.15'
+  },
+  {
+    cls:'t-b', name:'B · 深林墨绿', en:'DEEP FOREST',
+    desc:'深绿顶栏压住整体重心，内容区回到白与浅绿。层级更清楚、气质更稳，适合想比现版更「专业一点」的方向。',
+    chips:['#0B2E22','#12B76A','#E6F8EF','#EEF4F1'],
+    spec:'动效 220ms · cubic-bezier(.22,1,.36,1)<br>顶栏渐变入场 / 列表交错 50ms',
+    num:'¥93.15'
+  },
+  {
+    cls:'t-c', name:'C · 极简白绿', en:'MINIMAL MINT',
+    desc:'几乎纯白，靠 1px 线与留白分区，阴影几乎为零；圆角收到 8px，信息更紧凑。最轻、最快、最不容易有「装饰感」。',
+    chips:['#08A47A','#EAF8F2','#FBFDFC','#16231D'],
+    spec:'动效 150ms · cubic-bezier(.4,0,.2,1)<br>只做淡入与位移 6px / 不做悬浮上浮',
+    num:'¥93.15'
+  },
+  {
+    cls:'t-d', name:'D · 青瓷冷绿', en:'CELADON',
+    desc:'青绿偏冷，白里带一点灰绿，数字用深青强调。比 A 更冷静克制，比 C 多一点层次，适合偏理性的药房账目感。',
+    chips:['#0D9488','#E5F6F3','#F3F8F7','#13221E'],
+    spec:'动效 200ms · cubic-bezier(.22,1,.36,1)<br>卡片上浮 8px / 表格行高亮过渡',
+    num:'¥93.15'
+  }
+];
+
+function herbs(){
+  var list = [
+    ['柴胡','9g',''],['黄芩','9g',''],['半夏','9g',''],
+    ['党参','12g',''],['炙甘草','6g',''],['生姜','9g','先煎'],
+    ['大枣','4枚',''],['茯苓','12g',''],['白术','10g',''],
+    ['陈皮','6g',''],['','',''],['','','']
+  ];
+  return list.map(function(h){
+    return '<div class="herb'+(h[0]?'':' blank')+'"><span class="nm">'+(h[0]||'药名')+'</span><span class="g">'+h[1]+'</span>'+(h[2]?'<span class="sfx">'+h[2]+'</span>':'')+'</div>';
+  }).join('');
+}
+
+function ui(){
+  return `
+  <div class="topbar">
+    <div class="brand"><span class="logo">田</span>阿田药方打印</div>
+    <nav><a class="on">处方</a><a>药方打印</a><a>采购</a><a>药品</a><a>统计</a><a>设置</a></nav>
+    <div class="top-right">
+      <span class="sync"><i></i>已同步</span>
+      <span class="avatar">田</span>
+    </div>
+  </div>
+  <div class="main">
+    <aside class="panel left">
+      <div class="phead"><span>历史处方</span><span class="cap">左键调方</span></div>
+      <div class="pbody">
+        <div class="search">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg>
+          <input placeholder="姓名或拼音"><span class="kbd">/</span>
+        </div>
+        <div class="daterow"><span class="dt">2026-10-31</span><button class="btn sm ghost">今日</button></div>
+        <div class="hlist">
+          <div class="hitem sel"><span class="nm">陈女士 · 四物汤</span><span class="tm">10:24</span><i class="flag">发</i></div>
+          <div class="hitem"><span class="nm">李先生 · 小柴胡汤</span><span class="tm">09:52</span></div>
+          <div class="hitem"><span class="nm">王阿姨 · 二陈汤</span><span class="tm">09:18</span><i class="flag">发</i></div>
+          <div class="hitem"><span class="nm">张先生 · 六味地黄</span><span class="tm">08:47</span></div>
+          <div class="hitem"><span class="nm">周女士 · 逍遥散</span><span class="tm">08:12</span><i class="flag">发</i></div>
+          <div class="hitem"><span class="nm">吴先生 · 葛根汤</span><span class="tm">昨天</span></div>
+        </div>
+        <div class="stat">共 12 条 · 今日 5 单</div>
+      </div>
+    </aside>
+
+    <section class="panel center">
+      <div class="phead">
+        <span>处方录入</span>
+        <div class="pactions">
+          <button class="btn sm ghost">新建</button>
+          <button class="btn sm">复 用</button>
+          <button class="btn sm primary">保存</button>
+        </div>
+      </div>
+      <div class="pbody center-body">
+        <div class="rxcard">
+          <div class="rxc-head">
+            <div class="rxid"><span>姓名</span><b>陈女士</b><span class="sep"></span><span>日期</span><b>2026-10-31</b></div>
+            <span class="rxtag">小柴胡汤加减</span>
+          </div>
+          <div class="herbgrid">${herbs()}</div>
+          <div class="rxc-foot">
+            <div class="line1"><span>共 <b>5</b> 剂</span><span class="note">水煎温服，日一剂，分早晚</span></div>
+            <div class="moneyrow">
+              <span>单剂药费 <b>¥18.63</b></span>
+              <span class="total">合计 <b>¥93.15</b></span>
+              <span class="weight">单剂 43g · 总重 215g</span>
+            </div>
+          </div>
+        </div>
+        <div class="cbar">
+          <button class="btn primary">保存处方</button>
+          <button class="btn">处方图片</button>
+          <button class="btn">打印处方</button>
+          <button class="btn ghost">复制小票</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel right">
+      <div class="phead">
+        <span>价格清单</span><span class="cap">5 味 · 43g</span>
+        <div class="tools">
+          <button class="btn sm ghost">图片</button>
+          <button class="btn sm ghost">打印</button>
+        </div>
+      </div>
+      <div class="pbody">
+        <table class="pltable">
+          <thead><tr><th>药名</th><th class="r">数量</th><th>单位</th><th class="r">单价</th><th class="r">金额</th></tr></thead>
+          <tbody>
+            <tr><td class="nm">柴胡</td><td class="r">9</td><td class="u">g</td><td class="r">0.35</td><td class="r">3.15</td></tr>
+            <tr><td class="nm">黄芩</td><td class="r">9</td><td class="u">g</td><td class="r">0.32</td><td class="r">2.88</td></tr>
+            <tr><td class="nm">半夏</td><td class="r">9</td><td class="u">g</td><td class="r">0.40</td><td class="r">3.60</td></tr>
+            <tr><td class="nm">党参</td><td class="r">12</td><td class="u">g</td><td class="r">0.55</td><td class="r">6.60</td></tr>
+            <tr><td class="nm">大枣</td><td class="r">4</td><td class="u">枚</td><td class="r">0.60</td><td class="r">2.40</td></tr>
+            <tr class="sum"><td>合计</td><td colspan="3" class="r">5 味 · 43g</td><td class="r">18.63</td></tr>
+          </tbody>
+        </table>
+        <div class="plbtns">
+          <button class="btn primary">自动划价</button>
+          <button class="btn">发 药</button>
+        </div>
+        <div class="subhead">药品目录</div>
+        <div class="search" style="height:32px">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg>
+          <input placeholder="输入药名，如 阿胶">
+        </div>
+        <div class="drug">
+          <div class="drow hit"><span class="dn">阿胶</span><span class="dp">g</span><span class="dp">6.80</span></div>
+          <div class="drow"><span class="dn">阿胶珠</span><span class="dp">g</span><span class="dp">7.20</span></div>
+          <div class="drow"><span class="dn">艾叶</span><span class="dp">g</span><span class="dp">0.18</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>`;
+}
+
+var host = document.getElementById('boards');
+STYLES.forEach(function(s){
+  var el = document.createElement('div');
+  el.className = 'board';
+  el.innerHTML =
+    '<div class="bhead">' +
+      '<span class="name">'+s.name+'</span>' +
+      '<span class="en">'+s.en+'</span>' +
+      '<span class="desc">'+s.desc+'</span>' +
+      '<span class="chips">'+s.chips.map(function(c){return '<span class="chip" style="background:'+c+'"></span>'}).join('')+'</span>' +
+      '<span class="spec">'+s.spec+'</span>' +
+    '</div>' +
+    '<div class="ui '+s.cls+'">'+ui()+'</div>';
+  host.appendChild(el);
+});
+
+/* 动效演示：悬停之外，入场完成后可再次触发 */
+window.addEventListener('load', function(){
+  document.querySelectorAll('.ui').forEach(function(u){
+    u.addEventListener('mouseenter', function(){
+      u.querySelectorAll('.panel,.rxcard').forEach(function(p){
+        p.style.animation='none'; void p.offsetWidth;
+        p.style.animation='rise .5s cubic-bezier(.22,1,.36,1) both';
+      });
+    }, {once:false});
+  });
+});
+</script>
+</body>
+</html>
