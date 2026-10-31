@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阿田药方打印 · 方案 A 组件与弹窗</title>
+<style>
+*{box-sizing:border-box;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif!important}
+:root{
+  --bg:#F3F8F5;--card:#FFFFFF;--card2:#F7FBF8;--line:#E4ECE7;--line2:#D6E3DC;
+  --ink:#16231D;--ink2:#5E7168;--ink3:#93A49B;
+  --pri:#0E9A6A;--pri2:#0B7F57;--soft:#E7F7EF;--soft2:#F1FAF5;
+  --danger:#D25B4E;--danger-soft:#FBEDEB;
+  --warn:#C08A2E;--warn-soft:#FCF4E4;
+  --r:14px;--r-sm:9px;--r-xs:6px;
+  --sh:0 8px 26px rgba(17,45,32,.06);--sh2:0 18px 50px rgba(17,45,32,.16);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.01em}
+button,input,select,textarea{font-family:inherit}
+input[type=checkbox],input[type=radio]{accent-color:var(--pri);cursor:pointer;width:14px;height:14px}
+::selection{background:#CDEEDF}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#CFDFD7;border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============ 顶栏 ============ */
+.libbar{
+  height:58px;display:flex;align-items:center;gap:20px;padding:0 30px;
+  background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30;
+}
+.brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;white-space:nowrap}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600;letter-spacing:0}
+.tag{font-size:9.5px;letter-spacing:.1em;color:var(--pri2);background:var(--soft);border-radius:99px;padding:3px 9px;font-weight:500}
+.jump{display:flex;gap:2px;align-items:center}
+.jump a{font-size:12.5px;color:var(--ink2);text-decoration:none;padding:6px 11px;border-radius:8px;transition:background .18s ease,color .18s ease}
+.jump a:hover{background:var(--soft2);color:var(--pri2)}
+.jump a.on{background:var(--soft);color:var(--pri2);font-weight:600}
+.libRight{margin-left:auto;display:flex;align-items:center;gap:10px}
+.glink{font-size:12px;color:var(--pri2);text-decoration:none;border:1px solid #CFE8DD;background:var(--soft2);border-radius:8px;padding:7px 12px;transition:all .18s ease;white-space:nowrap}
+.glink:hover{background:var(--soft);border-color:#B9E2D3}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--soft);color:var(--pri2);display:grid;place-items:center;font-size:11.5px;font-weight:600}
+
+/* ============ 布局 ============ */
+.shell{max-width:1360px;margin:0 auto;padding:34px 34px 90px;display:grid;grid-template-columns:212px 1fr;gap:44px;align-items:start}
+.toc{position:sticky;top:82px}
+.toc .cap{font-size:10px;letter-spacing:.16em;color:var(--ink3);padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.toc a{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink2);padding:9px 0;font-size:12.5px;border-bottom:1px solid transparent;transition:color .15s ease}
+.toc a .n{font-size:10px;color:var(--ink3);letter-spacing:.05em}
+.toc a:hover{color:var(--pri2)}
+.toc a.on{color:var(--pri2);font-weight:600}
+.toc a.on .n{color:var(--pri)}
+.toc .note{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;line-height:1.8;color:var(--ink3)}
+main{min-width:0}
+
+/* ============ 介绍 ============ */
+.intro{padding-bottom:26px}
+.intro .crumb{font-size:10.5px;letter-spacing:.08em;color:var(--ink3);margin-bottom:10px}
+.intro h1{margin:0;font-size:30px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
+.intro p{max-width:720px;margin:12px 0 0;font-size:13.5px;line-height:1.9;color:var(--ink2)}
+.intro .metas{display:flex;gap:7px;flex-wrap:wrap;margin-top:18px}
+.metaChip{font-size:10.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 11px}
+.metaChip b{color:var(--pri2);font-weight:600}
+
+/* ============ 区块 ============ */
+.sec{padding-bottom:56px;scroll-margin-top:80px}
+.secHead{display:flex;align-items:flex-end;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line2);margin-bottom:8px}
+.secHead .no{font-size:11px;color:var(--pri);letter-spacing:.06em;padding-bottom:5px}
+.secHead h2{margin:0;font-size:20px;font-weight:600}
+.secHead .en{margin-left:auto;font-size:10px;letter-spacing:.16em;color:var(--ink3);padding-bottom:3px;white-space:nowrap}
+.secLead{margin:14px 0 20px;font-size:12.5px;line-height:1.85;color:var(--ink2);max-width:780px}
+.secLead b{color:var(--ink);font-weight:600}
+
+/* 标本卡 */
+.spec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px 22px;box-shadow:var(--sh);margin-bottom:16px}
+.specHead{display:flex;align-items:center;gap:9px;margin-bottom:18px}
+.specHead b{font-size:12.5px;font-weight:600}
+.specHead span{font-size:10.5px;color:var(--ink3)}
+.specHead .idx{margin-left:auto;font-size:9.5px;letter-spacing:.08em;color:var(--ink3)}
+.subnote{margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);font-size:11px;line-height:1.8;color:var(--ink3)}
+.subnote b{color:var(--pri2);font-weight:600}
+
+/* ============ 控件 ============ */
+.demoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.demoCell{padding:12px 0 2px}
+.demoCell .cap{font-size:10px;letter-spacing:.08em;color:var(--ink3);margin-bottom:8px}
+.btnRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{
+  height:36px;padding:0 15px;border-radius:9px;border:1px solid var(--line2);background:var(--card);
+  color:var(--ink2);font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:transform .16s var(--ease),background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;
+  white-space:nowrap;
+}
+.btn svg{width:14px;height:14px;flex:0 0 14px}
+.btn:hover{background:var(--card2);border-color:#C9DBD2;color:var(--pri2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(17,45,32,.06)}
+.btn:active{transform:translateY(0) scale(.99)}
+.btn.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--pri2);border-color:var(--pri2);color:#fff;box-shadow:0 8px 20px rgba(14,154,106,.22)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--soft);color:var(--pri2);transform:none;box-shadow:none}
+.btn.danger{background:var(--card);border-color:#EFCFCA;color:var(--danger)}
+.btn.danger:hover{background:var(--danger-soft);border-color:#E7B9B2;transform:none}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px;border-radius:8px}
+.btn.xs{height:26px;padding:0 9px;font-size:10.5px;border-radius:7px}
+.btn.icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;background:transparent;border-color:transparent;color:var(--ink3)}
+.btn.icon:hover{background:var(--soft);color:var(--pri2);transform:none;box-shadow:none}
+.btn.force-hover{background:var(--card2);border-color:#C9DBD2;color:var(--pri2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(17,45,32,.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.spinner{width:13px;height:13px;border:1.7px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:0 0 13px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.fieldGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 18px}
+.demoField .cap{font-size:10px;color:var(--ink3);margin-bottom:6px;display:flex;align-items:baseline;gap:6px}
+.demoField .cap em{font-style:normal;font-size:9px;color:var(--ink3);opacity:.8}
+.inputWrap{position:relative;display:flex;align-items:center}
+.input{
+  height:38px;width:100%;padding:0 12px;border:1px solid var(--line2);border-radius:9px;background:var(--card);
+  color:var(--ink);font-size:12.5px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.input::placeholder{color:var(--ink3)}
+.input:hover{border-color:#CADBD3}
+.input:focus,.input.force-focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12);background:var(--card)}
+.input.err{border-color:#E7B9B2;box-shadow:0 0 0 3px rgba(210,91,78,.09)}
+.input:disabled,.input.disabled{background:var(--card2);color:var(--ink3);cursor:not-allowed;opacity:.85}
+.input.prefix{padding-left:27px}
+.prefixTxt{position:absolute;left:12px;font-size:12px;color:var(--ink3);pointer-events:none}
+.suffixTxt{position:absolute;right:12px;font-size:11px;color:var(--ink3);pointer-events:none}
+.input.suffix{padding-right:32px}
+.selWrap{position:relative}
+.selWrap .chev{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--ink3);pointer-events:none}
+.selWrap select{-webkit-appearance:none;appearance:none;padding-right:30px;cursor:pointer}
+.searchWrap{position:relative}
+.searchWrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ink3);pointer-events:none}
+.searchWrap .input{padding-left:33px}
+.searchWrap .kbd{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--ink3);border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--card2)}
+.suggest{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 40px rgba(17,45,32,.13);padding:4px;z-index:5}
+.sugRow{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;font-size:11.5px;color:var(--ink2);cursor:pointer;transition:background .14s ease}
+.sugRow:hover{background:var(--soft2)}
+.sugRow .n{flex:1;color:var(--ink)}
+.sugRow .p{font-size:10.5px;color:var(--ink3)}
+.sugRow .u{font-size:9.5px;color:var(--ink3)}
+.help{font-size:10px;color:var(--ink3);margin-top:5px;line-height:1.5}
+.help.error{color:var(--danger)}
+.help.ok{color:var(--pri2)}
+.textarea{width:100%;min-height:76px;resize:vertical;padding:10px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--card);font-size:12.5px;line-height:1.7;color:var(--ink);outline:none;transition:border-color .18s ease,box-shadow .18s ease}
+.textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12)}
+.textarea::placeholder{color:var(--ink3)}
+.textareaWrap{position:relative}
+.counter{position:absolute;right:10px;bottom:8px;font-size:9.5px;color:var(--ink3)}
+
+.selectRow{display:flex;gap:8px;flex-wrap:wrap}
+.checkRow{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.check{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);cursor:pointer;user-select:none}
+.check input{appearance:none;width:15px;height:15px;border:1px solid var(--line2);border-radius:4px;background:var(--card);margin:0;position:relative;cursor:pointer;transition:all .16s ease;flex:0 0 15px}
+.check input:checked{background:var(--pri);border-color:var(--pri)}
+.check input:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:1.8px solid #fff;border-top:0;border-left:0;transform:rotate(42deg)}
+.check input:focus-visible{box-shadow:0 0 0 3px rgba(14,154,106,.15)}
+.radio{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);cursor:pointer}
+.radio input{appearance:none;width:15px;height:15px;border:1px solid var(--line2);border-radius:50%;background:var(--card);margin:0;position:relative;cursor:pointer;transition:all .16s ease;flex:0 0 15px}
+.radio input:checked{border-color:var(--pri)}
+.radio input:checked::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--pri)}
+.switch{position:relative;width:36px;height:20px;flex:0 0 36px;border:0;border-radius:99px;background:#DCE6E1;cursor:pointer;transition:background .2s ease;padding:0}
+.switch:after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.16);transition:transform .2s var(--ease)}
+.switch.on{background:var(--pri)}
+.switch.on:after{transform:translateX(16px)}
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{height:28px;padding:0 12px;border:0;background:transparent;border-radius:6px;color:var(--ink2);font-size:11.5px;cursor:pointer;transition:all .18s ease;white-space:nowrap}
+.seg button.on{background:var(--card);color:var(--pri2);font-weight:600;box-shadow:0 1px 3px rgba(17,45,32,.08)}
+.seg button:hover{color:var(--pri2)}
+.seg.small button{height:24px;padding:0 9px;font-size:10.5px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--card2);overflow:hidden}
+.stepper button{width:28px;height:30px;border:0;background:transparent;color:var(--ink2);font-size:14px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.stepper button:hover{background:var(--soft);color:var(--pri2)}
+.stepper span{min-width:34px;text-align:center;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.rangeWrap{display:flex;align-items:center;gap:10px;width:100%}
+.rangeWrap input[type=range]{flex:1;accent-color:var(--pri);height:4px;cursor:pointer}
+.rangeWrap .val{width:40px;text-align:right;font-size:10.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tags{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:99px;font-size:10.5px;color:var(--ink2);background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.tag i{width:5px;height:5px;border-radius:50%;background:var(--pri);display:block}
+.tag.green{background:var(--soft);border-color:#CFEADF;color:var(--pri2)}
+.tag.warn{background:var(--warn-soft);border-color:#EEDDBB;color:var(--warn)}
+.tag.danger{background:var(--danger-soft);border-color:#EFCFCA;color:var(--danger)}
+.tag.muted{color:var(--ink3)}
+.tag.outline{background:transparent}
+.kbdTag{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border:1px solid var(--line);border-radius:4px;background:var(--card2);font-size:9px;color:var(--ink3)}
+.avatar-xs{width:24px;height:24px;border-radius:50%;background:var(--soft);color:var(--pri2);display:inline-grid;place-items:center;font-size:10px;font-weight:600}
+
+/* ============ 表单 ============ */
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.formCard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column}
+.fcHead{display:flex;align-items:center;gap:9px;padding:15px 18px 11px}
+.fcHead b{font-size:12.5px;font-weight:600}
+.fcHead span{font-size:10px;color:var(--ink3)}
+.fcBody{padding:0 18px 16px;display:flex;flex-direction:column;gap:13px;flex:1}
+.fRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fRow.three{grid-template-columns:1fr 1fr 1fr}
+.fld label{display:flex;align-items:baseline;gap:5px;font-size:10.5px;color:var(--ink3);margin-bottom:5px}
+.fld label .req{color:var(--danger);font-size:11px;line-height:1}
+.fld .help{margin-top:4px}
+.fld.full{grid-column:1/-1}
+.fcFoot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--card2);margin-top:auto}
+.fcFoot .sp{flex:1}
+.feeRow{display:flex;flex-wrap:wrap;gap:8px 16px}
+.feeOpt{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2)}
+@media(max-width:1180px){.formGrid{grid-template-columns:1fr}}
+.printFormBody{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.printFormLeft{display:flex;flex-direction:column;gap:12px}
+.paperMini{background:var(--card2);border:1px dashed var(--line2);border-radius:10px;padding:14px;display:flex;align-items:flex-start;justify-content:center}
+.paperSheet{width:100%;max-width:240px;background:#fff;border:1px solid var(--line);border-radius:3px;padding:13px 14px;box-shadow:0 6px 18px rgba(17,45,32,.07)}
+.paperSheet .pt{font-size:10px;font-weight:600;text-align:center;letter-spacing:.08em}
+.paperSheet .ps{font-size:7px;color:var(--ink3);text-align:center;margin-top:2px}
+.paperSheet table{width:100%;border-collapse:collapse;font-size:6.5px;color:var(--ink2);margin-top:8px}
+.paperSheet th{text-align:left;border-bottom:1px solid var(--line2);padding:2px 0;font-weight:500;color:var(--ink3)}
+.paperSheet td{padding:2px 0;border-bottom:1px solid #F1F5F2}
+.paperSheet .pr{font-size:8px;display:flex;justify-content:space-between;margin-top:7px;font-weight:600}
+.paperSheet .pf{font-size:5.5px;color:var(--ink3);margin-top:8px;display:flex;justify-content:space-between}
+
+/* ============ 弹窗画廊 ============ */
+.modalGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mcard{
+  text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;
+  cursor:pointer;box-shadow:0 4px 16px rgba(17,45,32,.04);transition:transform .2s var(--ease),box-shadow .2s ease,border-color .2s ease;
+  font-family:inherit;display:flex;flex-direction:column;
+}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(17,45,32,.09);border-color:#CBDFD5}
+.mpv{height:104px;background:linear-gradient(180deg,#F5FAF7,#EEF6F1);border-bottom:1px solid var(--line);padding:14px 16px;position:relative;overflow:hidden}
+.mpv .frame{position:absolute;left:16px;right:16px;top:14px;bottom:-10px;background:var(--card);border:1px solid var(--line);border-radius:8px 8px 0 0;box-shadow:0 6px 16px rgba(17,45,32,.06);padding:9px 10px;display:flex;flex-direction:column;gap:5px}
+.mpv .bar{height:7px;border-radius:2px;background:var(--soft)}
+.mpv .ln{height:3px;border-radius:2px;background:#E8F0EB}
+.mpv .ln.s{width:38%}
+.mpv .ln.m{width:62%}
+.mpv .ln.l{width:82%}
+.mpv .row{display:flex;gap:5px;align-items:center}
+.mpv .row .ln{flex:1}
+.mpv .btnMini{margin-top:auto;display:flex;gap:4px;justify-content:flex-end}
+.mpv .b1{height:12px;width:34px;border-radius:3px;background:var(--pri)}
+.mpv .b2{height:12px;width:26px;border-radius:3px;background:#EDF2EF}
+.mpv .split{display:flex;gap:7px;flex:1}
+.mpv .col{flex:1;display:flex;flex-direction:column;gap:4px}
+.mpv .paper{flex:1;background:#fff;border:1px solid var(--line);border-radius:3px;padding:5px;display:flex;flex-direction:column;gap:3px}
+.mpv .paper .ln{background:#EDF3EF}
+.mpv .check{width:14px;height:14px;border-radius:50%;background:var(--soft);border:1px solid #CFE8DD;margin:0 auto}
+.mcardBody{padding:12px 15px 13px;display:flex;align-items:center;gap:10px}
+.mcardBody b{display:block;font-size:12.5px;color:var(--ink);font-weight:600}
+.mcardBody span{display:block;font-size:10px;color:var(--ink3);margin-top:2px}
+.mcardBody .open{margin-left:auto;font-size:10.5px;color:var(--pri2);border:1px solid #CFE8DD;background:var(--soft2);border-radius:99px;padding:4px 9px;white-space:nowrap}
+
+/* ============ 反馈 ============ */
+.fbGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fbCard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 18px;box-shadow:var(--sh)}
+.fbCard .cap{font-size:10px;letter-spacing:.08em;color:var(--ink3);margin-bottom:12px}
+.alert{display:flex;gap:9px;padding:10px 12px;border-radius:8px;font-size:11.5px;line-height:1.7;margin-bottom:8px;border:1px solid transparent}
+.alert.success{background:var(--soft);border-color:#CFEADF;color:var(--pri2)}
+.alert.warn{background:var(--warn-soft);border-color:#EEDDBB;color:#9A6E1F}
+.alert.error{background:var(--danger-soft);border-color:#EFCFCA;color:var(--danger)}
+.alert.info{background:var(--card2);border-color:var(--line);color:var(--ink2)}
+.alert i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 6px;margin-top:6px}
+.toastDemo{display:flex;gap:8px;flex-wrap:wrap}
+.toast{display:flex;align-items:center;gap:8px;background:#11251C;color:#F1FAF5;border-radius:9px;padding:9px 13px;font-size:11px;box-shadow:0 10px 28px rgba(17,45,32,.18)}
+.toast i{width:5px;height:5px;border-radius:50%;background:#48D39C;display:block}
+.skeleton{display:flex;flex-direction:column;gap:8px}
+.sk{height:10px;border-radius:4px;background:linear-gradient(90deg,#EEF3F0 25%,#E5EEE9 37%,#EEF3F0 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+.sk.w40{width:40%}.sk.w60{width:60%}.sk.w80{width:80%}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.emptyState{border:1px dashed var(--line);border-radius:9px;padding:22px;text-align:center;color:var(--ink3);font-size:11px;background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(214,227,220,.14) 8px 9px)}
+.emptyState b{display:block;font-size:12px;color:var(--ink2);margin-bottom:3px}
+.tooltipDemo{position:relative;display:inline-flex}
+.tooltip{
+  position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+  background:#11251C;color:#EAF4EE;font-size:10px;white-space:nowrap;padding:5px 8px;border-radius:6px;box-shadow:0 8px 22px rgba(17,45,32,.18);
+  opacity:1;pointer-events:none;
+}
+.tooltip::after{content:"";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%) rotate(45deg);width:8px;height:8px;background:#11251C;border-radius:1px}
+.ctxMenu{width:210px;background:var(--card);border:1px solid var(--line2);border-radius:9px;box-shadow:0 14px 34px rgba(17,45,32,.13);padding:4px;font-size:11.5px}
+.ctxItem{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;color:var(--ink2);cursor:pointer;transition:background .14s ease}
+.ctxItem:hover{background:var(--soft2);color:var(--pri2)}
+.ctxItem .kk{margin-left:auto;font-size:9px;color:var(--ink3)}
+.ctxItem.danger{color:var(--danger)}
+.ctxItem.danger:hover{background:var(--danger-soft)}
+.ctxSep{height:1px;background:var(--line);margin:3px 0}
+.progressDemo{height:6px;background:#EFF4F1;border-radius:99px;overflow:hidden}
+.progressDemo i{display:block;height:100%;width:64%;background:var(--pri);border-radius:99px}
+.progressCap{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:5px}
+.stepDemo{display:flex;align-items:center;gap:0}
+.stepDot{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--pri2);display:grid;place-items:center;font-size:9px;font-weight:600;border:1px solid #CFE8DD}
+.stepDot.dim{background:var(--card2);color:var(--ink3);border-color:var(--line)}
+.stepLine{height:1px;flex:1;background:var(--line)}
+
+/* ============ 动效 ============ */
+.motionGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.motionCard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 15px;box-shadow:0 2px 8px rgba(17,45,32,.03)}
+.motionCard .k{font-size:10px;color:var(--ink3);letter-spacing:.06em}
+.motionCard .v{font-size:15px;font-weight:600;color:var(--ink);margin-top:5px;font-variant-numeric:tabular-nums}
+.motionCard .e{font-size:9.5px;color:var(--ink3);margin-top:3px}
+.motionDemoWrap{display:flex;align-items:center;gap:14px;margin-top:16px;padding:14px;border:1px dashed var(--line2);border-radius:10px;background:var(--card2)}
+.demoCard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:11px 13px;font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:9px}
+.demoCard .dlogo{width:22px;height:22px;border-radius:7px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600}
+.demoCard .dp{flex:1}
+.demoCard .dchip{font-size:9px;color:var(--pri2);background:var(--soft);border-radius:99px;padding:3px 7px}
+.playBtn{height:32px;padding:0 13px;border-radius:8px;border:1px solid var(--line2);background:var(--card);color:var(--ink2);font-size:11.5px;cursor:pointer;transition:all .16s ease}
+.playBtn:hover{border-color:#C9DBD2;color:var(--pri2);background:var(--soft2)}
+.demoCard.run{animation:rise .5s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.a11y{margin-top:14px;font-size:11px;line-height:1.8;color:var(--ink3)}
+.a11y b{color:var(--ink2)}
+
+/* ============ 弹窗 ============ */
+.mask{position:fixed;inset:0;background:rgba(13,35,25,.35);z-index:40;opacity:0;pointer-events:none;transition:opacity .22s ease}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{
+  position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);
+  opacity:0;pointer-events:none;background:var(--card);border-radius:16px;box-shadow:var(--sh2);
+  max-height:90vh;display:flex;flex-direction:column;overflow:hidden;
+  transition:opacity .24s ease,transform .28s var(--ease);width:min(92vw,640px);
+}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.modal.mw-sm{width:min(92vw,468px)}
+.modal.mw-md{width:min(92vw,640px)}
+.modal.mw-lg{width:min(94vw,980px)}
+.mhead{display:flex;align-items:center;gap:8px;padding:15px 18px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;flex:0 0 auto}
+.mhead .mx{margin-left:auto;width:28px;height:28px;border:0;background:var(--card2);border-radius:8px;color:var(--ink3);font-size:16px;line-height:1;cursor:pointer;transition:all .15s ease}
+.mhead .mx:hover{background:var(--soft);color:var(--pri2)}
+.mbody{padding:16px 18px;overflow:auto;min-height:0}
+.mfoot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--card);flex:0 0 auto}
+.mfoot .sp{flex:1}
+.mfoot .mchip{font-size:10px;color:var(--ink3);background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:4px 9px}
+
+/* 弹窗内表单 */
+.mField label{display:block;font-size:10px;color:var(--ink3);margin-bottom:5px}
+.mField .input{height:34px;font-size:11.5px;background:var(--card2)}
+.mField{margin-bottom:11px}
+.mField .help{margin-top:4px}
+.mGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.mGrid2 .mField{margin-bottom:0}
+.mSection{font-size:10px;letter-spacing:.06em;color:var(--ink3);margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.mSection:after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* 图片模板 */
+.mTabs{display:flex;justify-content:center;margin-bottom:12px}
+.billPrev{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 22px 15px;box-shadow:0 10px 26px rgba(17,45,32,.08);max-width:560px;margin:0 auto;color:var(--ink);transition:box-shadow .2s ease}
+.billPrev .bpTop{display:flex;align-items:flex-start}
+.billPrev .bpTitle{font-size:15px;font-weight:600}
+.billPrev .bpSub{font-size:9px;color:var(--ink3);margin-top:3px}
+.billPrev .bpBrand{margin-left:auto;font-size:8px;letter-spacing:.18em;color:var(--ink3)}
+.billPrev .bpMeta{display:flex;gap:14px;flex-wrap:wrap;font-size:9px;color:var(--ink2);margin:10px 0 12px}
+.billPrev .bpMeta b{color:var(--ink);font-weight:600}
+.billPrev .bpBlock{display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:9.5px;color:var(--ink2)}
+.billPrev .bpBlock .b1{font-weight:600;color:var(--ink)}
+.billPrev .bpBlock .b2{margin-left:auto;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+.billPrev table{width:100%;border-collapse:collapse;font-size:9px;font-variant-numeric:tabular-nums}
+.billPrev th{text-align:left;font-size:7.5px;letter-spacing:.08em;color:var(--ink3);font-weight:500;padding:5px 4px;border-bottom:1px solid var(--line)}
+.billPrev th.r,.billPrev td.r{text-align:right}
+.billPrev td{padding:4px 4px;color:var(--ink2);border-bottom:1px dashed #EFF4F1}
+.billPrev .bpTotal{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:9px 12px;border-radius:7px;background:var(--soft);font-size:10px;color:var(--ink2)}
+.billPrev .bpTotal b{font-size:17px;color:var(--pri2);font-variant-numeric:tabular-nums}
+.billPrev .bpFoot{display:flex;justify-content:space-between;font-size:7.5px;color:var(--ink3);margin-top:9px}
+.billPrev.b{border-radius:4px;border-color:var(--line2);padding:0;overflow:hidden;box-shadow:0 8px 22px rgba(17,45,32,.09)}
+.billPrev.b .bHead{background:var(--soft);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.billPrev.b .bpTitle{font-size:12px}
+.billPrev.b .bHead .bpBrand{margin-left:auto;font-size:8px}
+.billPrev.b .bBody{padding:0 16px 14px}
+.billPrev.b .bpTop,.billPrev.b .bpSub{display:none}
+.billPrev.b .bpMeta{padding:8px 0}
+.billPrev.b table{border:1px solid var(--line);border-top:0}
+.billPrev.b th{background:#F3F8F5;padding:5px 6px;border-bottom:1px solid var(--line)}
+.billPrev.b td{border-bottom:1px solid #EEF3F0;padding:4px 6px}
+.billPrev.b .bpTotal{background:transparent;border:1px solid var(--line);border-radius:0}
+.billPrev.c{border:0;box-shadow:0 6px 20px rgba(17,45,32,.07);padding:26px 30px 20px}
+.billPrev.c .bpTitle{font-size:14px;letter-spacing:.12em}
+.billPrev.c .bpMeta{border-bottom:1px solid var(--line2);padding-bottom:8px}
+.billPrev.c td{border-bottom:1px solid #F0F4F2}
+.billPrev.c .bpTotal{background:transparent;border-top:1px solid var(--line2);border-radius:0;padding:10px 0 0;margin-top:12px}
+.billPrev.c .bpTotal b{font-size:20px;color:var(--ink)}
+
+/* 打印弹窗 */
+.printModal{display:grid;grid-template-columns:300px 1fr;gap:18px}
+.pmCfg{display:flex;flex-direction:column;gap:11px;border-right:1px solid var(--line);padding-right:18px}
+.pmRow label{display:block;font-size:10px;color:var(--ink3);margin-bottom:5px}
+.pmRow .seg{width:100%}
+.pmRow .seg button{flex:1}
+.pmStage{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;justify-content:center;align-items:flex-start;min-height:360px}
+.paperBig{width:100%;max-width:300px;background:#fff;border:1px solid var(--line);border-radius:2px;padding:22px 24px;box-shadow:0 10px 30px rgba(17,45,32,.10);transition:padding .2s ease}
+.paperBig .pt{text-align:center;font-size:13px;font-weight:600;letter-spacing:.1em}
+.paperBig .ps{text-align:center;font-size:8px;color:var(--ink3);margin-top:3px}
+.paperBig .pinfo{display:flex;justify-content:space-between;font-size:7.5px;color:var(--ink2);margin-top:12px;padding-bottom:6px;border-bottom:1px solid var(--ink)}
+.paperBig table{width:100%;border-collapse:collapse;font-size:7.5px;margin-top:6px;color:var(--ink2)}
+.paperBig th{text-align:left;padding:3px 0;border-bottom:1px solid var(--line2);font-weight:500;color:var(--ink3)}
+.paperBig td{padding:3px 0;border-bottom:1px solid #F1F5F2}
+.paperBig .ptot{display:flex;justify-content:space-between;font-size:10px;font-weight:600;margin-top:9px;padding-top:6px;border-top:1px solid var(--ink)}
+.paperBig .pfoot{display:flex;justify-content:space-between;font-size:6.5px;color:var(--ink3);margin-top:14px}
+
+/* 确认/删除 */
+.confirmSum{display:flex;align-items:center;gap:10px;background:var(--soft2);border:1px solid #D7EDE3;border-radius:9px;padding:11px 13px;margin-bottom:11px}
+.confirmSum .who{font-size:12.5px;font-weight:600;color:var(--ink)}
+.confirmSum .what{font-size:10px;color:var(--ink3);margin-top:1px}
+.confirmSum .amt{margin-left:auto;font-size:16px;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+.miniTable{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.miniTable th{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line2);font-size:9px;color:var(--ink3);font-weight:500}
+.miniTable th.r,.miniTable td.r{text-align:right}
+.miniTable td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.miniTable tr:last-child td{border-bottom:0}
+.miniTable .sum td{background:var(--soft);color:var(--pri2);font-weight:600}
+.deleteBox{text-align:center;padding:6px 4px 2px}
+.deleteIcon{width:48px;height:48px;border-radius:50%;background:var(--danger-soft);color:var(--danger);display:grid;place-items:center;margin:0 auto 12px;font-size:22px;font-weight:600}
+.deleteBox .dtitle{font-size:14px;font-weight:600;color:var(--ink)}
+.deleteBox .dtext{font-size:11.5px;line-height:1.8;color:var(--ink3);margin-top:7px}
+.deleteBox .dmeta{display:inline-flex;gap:8px;align-items:center;margin-top:12px;padding:7px 11px;border:1px solid var(--line);border-radius:7px;background:var(--card2);font-size:10.5px;color:var(--ink2)}
+
+/* 结款/历史/文本 */
+.payHead{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+.payHead b{font-size:13px;font-weight:600}
+.payHead span{font-size:10px;color:var(--ink3)}
+.payTable{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.payTable th{border:1px solid var(--line);background:var(--card2);font-size:9.5px;color:var(--ink3);font-weight:500;text-align:left;padding:7px 9px}
+.payTable th.r,.payTable td.r{text-align:right}
+.payTable td{border:1px solid var(--line);padding:7px 9px;color:var(--ink2)}
+.payTable .sum td{background:var(--soft);font-weight:600;color:var(--pri2)}
+.payNote{font-size:9.5px;color:var(--ink3);margin-top:9px;display:flex;justify-content:space-between}
+.histList{display:flex;flex-direction:column;gap:8px}
+.histRow{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer;transition:all .16s ease;background:var(--card)}
+.histRow:hover{border-color:#CFE8DD;background:var(--soft2)}
+.histRow.on{border-color:#B9E2D3;background:var(--soft2);box-shadow:0 0 0 2px rgba(14,154,106,.08)}
+.histRow .hbody{flex:1;min-width:0}
+.histRow .hname{font-size:12px;font-weight:600;color:var(--ink)}
+.histRow .hmeta{font-size:9.5px;color:var(--ink3);margin-top:2px;font-variant-numeric:tabular-nums}
+.histRow .hamt{font-size:12.5px;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+.textAreaBig{width:100%;min-height:130px;resize:vertical;padding:11px 12px;border:1px solid var(--line2);border-radius:9px;font-size:12px;line-height:1.8;color:var(--ink);background:var(--card2);outline:none}
+.textAreaBig:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12);background:var(--card)}
+.textHint{font-size:10px;color:var(--ink3);margin:7px 0 11px;line-height:1.7}
+.parseTable{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}
+.parseTable th{text-align:left;font-size:9px;color:var(--ink3);font-weight:500;padding:5px 4px;border-bottom:1px solid var(--line2)}
+.parseTable td{padding:5px 4px;border-bottom:1px solid var(--line);color:var(--ink2)}
+.drugModalGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.drugModalGrid .mField.full{grid-column:1/-1}
+.switchRow{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ink2);margin-top:4px}
+.mErr{display:none;font-size:10px;color:var(--danger);margin-top:4px}
+.mErr.show{display:block}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);opacity:0;pointer-events:none;background:#11251C;color:#F1FAF5;font-size:11.5px;letter-spacing:.03em;padding:10px 16px;border-radius:9px;box-shadow:var(--sh2);z-index:60;transition:opacity .2s ease,transform .24s var(--ease);display:flex;align-items:center;gap:8px}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast i{width:5px;height:5px;border-radius:50%;background:#48D39C;display:block}
+#toast.err i{background:#F08A7E}
+
+/* footer */
+.foot{border-top:1px solid var(--line2);background:rgba(255,255,255,.4)}
+.footIn{max-width:1360px;margin:0 auto;padding:22px 34px 30px;display:flex;align-items:center;gap:10px;font-size:10.5px;letter-spacing:.06em;color:var(--ink3)}
+.footIn .logoMini{width:22px;height:22px;border-radius:6px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600}
+.footIn .sp{flex:1}
+.footIn .st{font-size:9.5px;color:var(--ink3)}
+
+@media(max-width:1080px){
+  .shell{grid-template-columns:1fr;gap:26px;padding:24px 22px 70px}
+  .toc{position:static;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .toc .cap,.toc .note{display:none}
+  .toc a{border:1px solid var(--line);border-radius:99px;padding:5px 10px;font-size:11px}
+  .jump{display:none}
+  .libbar{padding:0 20px}
+  .formGrid,.fbGrid,.modalGrid{grid-template-columns:1fr}
+  .fieldGrid,.demoGrid{grid-template-columns:repeat(2,1fr)}
+  .printModal{grid-template-columns:1fr}
+  .pmCfg{border-right:0;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:14px}
+  .motionGrid{grid-template-columns:repeat(2,1fr)}
+  .shell{padding-top:24px}
+}
+@media(max-width:640px){
+  .intro h1{font-size:24px}
+  .fieldGrid,.demoGrid,.motionGrid{grid-template-columns:1fr}
+  .drugModalGrid,.mGrid2,.fRow,.fRow.three{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="libbar">
+  <div class="brand"><span class="logo">田</span>阿田药方打印<span class="tag">方案 A · 组件与弹窗</span></div>
+  <nav class="jump">
+    <a href="#c1" class="on">控件</a>
+    <a href="#c2">表单</a>
+    <a href="#c3">弹窗</a>
+    <a href="#c4">状态</a>
+    <a href="#c5">动效</a>
+  </nav>
+  <div class="libRight">
+    <a class="glink" href="preview-A.html">打开完整应用预览 →</a>
+    <span class="avatar">田</span>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="cap">CONTENTS / 目录</div>
+    <a href="#c1" class="on"><span class="n">01</span>基础控件</a>
+    <a href="#c2"><span class="n">02</span>表单设计</a>
+    <a href="#c3"><span class="n">03</span>弹窗设计</a>
+    <a href="#c4"><span class="n">04</span>状态与反馈</a>
+    <a href="#c5"><span class="n">05</span>动效与落地</a>
+    <div class="note">所有控件与弹窗都对应现网站的真实功能；点击「打开」可直接体验。色值与尺寸可直接抽取落地。</div>
+  </aside>
+
+  <main>
+    <div class="intro">
+      <div class="crumb">方案 A / DESIGN SYSTEM</div>
+      <h1>控件、表单、弹窗</h1>
+      <p>按「翡翠清透」把现网站每天用到的交互逐项重画：处方录入、打印设置、生成图片、发药确认、新增药品、粘贴制表等。控件尺寸统一，表单状态完整，弹窗可直接打开体验。</p>
+      <div class="metas">
+        <span class="metaChip">控件高度 <b>30 / 36 / 38</b></span>
+        <span class="metaChip">圆角 <b>9px · 卡片 14px</b></span>
+        <span class="metaChip">字体 <b>PingFang SC</b></span>
+        <span class="metaChip">弹窗 <b>16px · 280ms</b></span>
+        <span class="metaChip">主色 <b>#0E9A6A</b></span>
+      </div>
+    </div>
+
+    <!-- 01 控件 -->
+    <section class="sec" id="c1">
+      <div class="secHead"><span class="no">01</span><h2>基础控件</h2><span class="en">CONTROLS</span></div>
+      <p class="secLead">按钮、输入、选择、分段与状态标签，全部按现网站的操作密度设计。<b>主按钮永远只有一个</b>；悬停只做轻微上浮与颜色变化，点击即时反馈。</p>
+
+      <div class="spec">
+        <div class="specHead"><b>按钮 Button</b><span>默认 / 悬浮 / 禁用 / 加载</span><span class="idx">01 / 04</span></div>
+        <div class="btnRow" style="margin-bottom:16px">
+          <button class="btn primary">保存处方</button>
+          <button class="btn">新建处方</button>
+          <button class="btn ghost">清 空</button>
+          <button class="btn danger">删除订单</button>
+          <button class="btn force-hover">悬浮态</button>
+          <button class="btn" disabled>已发药</button>
+          <button class="btn primary" disabled style="opacity:1;background:#8FCBBA;border-color:#8FCBBA"><span class="spinner"></span>保存中</button>
+        </div>
+        <div class="btnRow" style="margin-bottom:16px">
+          <button class="btn primary sm">自动划价</button>
+          <button class="btn sm">发 药</button>
+          <button class="btn xs">编辑</button>
+          <button class="btn sm ghost">取消</button>
+          <button class="btn icon" title="搜索"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg></button>
+          <button class="btn icon" title="打印"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1"/><path d="M4.5 10h7v4.5h-7z"/></svg></button>
+          <button class="btn icon" title="图片"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><circle cx="6" cy="6" r="1.2"/><path d="M3.5 12 6.5 9l2 2 2-2.5 2.5 3"/></svg></button>
+          <button class="btn icon" title="更多"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="3.5" cy="8" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="12.5" cy="8" r="1.1"/></svg></button>
+        </div>
+        <div class="subnote">主按钮用于页面唯一主动作；次要操作用描边按钮；危险动作统一朱砂红；图标按钮静止无边框，悬停只换底色。</div>
+      </div>
+
+      <div class="spec">
+        <div class="specHead"><b>输入 Input</b><span>默认 / 聚焦 / 错误 / 禁用 / 前后缀</span><span class="idx">02 / 04</span></div>
+        <div class="fieldGrid">
+          <div class="demoField">
+            <div class="cap">默认 <em>text</em></div>
+            <input class="input" placeholder="输入药名，如 阿胶">
+          </div>
+          <div class="demoField">
+            <div class="cap">聚焦 <em>focus</em></div>
+            <input class="input force-focus" value="柴胡">
+          </div>
+          <div class="demoField">
+            <div class="cap">错误 <em>error</em></div>
+            <input class="input err" value="阿胶 12">
+            <div class="help error">请填写克数后再插入</div>
+          </div>
+          <div class="demoField">
+            <div class="cap">禁用 <em>disabled</em></div>
+            <input class="input disabled" value="已发药 · 不可编辑" disabled>
+          </div>
+          <div class="demoField">
+            <div class="cap">金额 <em>prefix</em></div>
+            <span class="inputWrap"><span class="prefixTxt">¥</span><input class="input prefix" value="18.63"></span>
+          </div>
+          <div class="demoField">
+            <div class="cap">克数 <em>suffix</em></div>
+            <span class="inputWrap"><input class="input suffix" value="12"><span class="suffixTxt">g</span></span>
+          </div>
+          <div class="demoField">
+            <div class="cap">日期 <em>date</em></div>
+            <input class="input" type="date" value="2026-10-31">
+          </div>
+          <div class="demoField">
+            <div class="cap">下拉 <em>select</em></div>
+            <span class="selWrap"><select class="input"><option>A5 · 148×210mm</option><option>A4 · 210×297mm</option><option>小票 58mm</option></select><svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></span>
+          </div>
+          <div class="demoField">
+            <div class="cap">搜索 + 建议 <em>search</em></div>
+            <div class="searchWrap">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg>
+              <input class="input" value="阿" style="padding-right:30px"><span class="kbd">/</span>
+            </div>
+            <div class="suggest">
+              <div class="sugRow"><span class="n">阿胶</span><span class="u">g</span><span class="p">6.80</span></div>
+              <div class="sugRow"><span class="n">阿胶珠</span><span class="u">g</span><span class="p">7.20</span></div>
+            </div>
+          </div>
+          <div class="demoField" style="grid-column:1/-1">
+            <div class="cap">备注 <em>textarea · 0/120</em></div>
+            <div class="textareaWrap"><textarea class="textarea" placeholder="用法 / 备注（如：山萸肉另包自己酒制）">水煎温服，日一剂，分早晚</textarea><span class="counter">0 / 120</span></div>
+          </div>
+        </div>
+        <div class="subnote">输入框统一 38px 高、9px 圆角；聚焦只用淡绿光环；错误态用浅朱砂描边+行内说明，<b>不在弹窗里弹二次错误</b>。</div>
+      </div>
+
+      <div class="spec">
+        <div class="specHead"><b>选择与数据</b><span>勾选 / 单选 / 开关 / 分段 / 步进 / 滑杆 / 标签</span><span class="idx">03 / 04</span></div>
+        <div class="fieldGrid" style="gap:20px 24px">
+          <div class="demoField">
+            <div class="cap">复选框 <em>checkbox</em></div>
+            <div class="checkRow">
+              <label class="check"><input type="checkbox" checked> 加工费用</label>
+              <label class="check"><input type="checkbox"> 代煎费</label>
+              <label class="check"><input type="checkbox" checked> 跑腿费</label>
+            </div>
+          </div>
+          <div class="demoField">
+            <div class="cap">单选框 <em>radio</em></div>
+            <div class="checkRow">
+              <label class="radio"><input type="radio" name="paper" checked> A5</label>
+              <label class="radio"><input type="radio" name="paper"> A4</label>
+              <label class="radio"><input type="radio" name="paper"> 小票</label>
+            </div>
+          </div>
+          <div class="demoField">
+            <div class="cap">开关 <em>switch</em></div>
+            <div class="inline">
+              <label class="check" style="font-size:11.5px">显示单剂重量</label>
+              <button class="switch on" data-switch></button>
+              <label class="check" style="font-size:11.5px">自动划价</label>
+              <button class="switch" data-switch></button>
+            </div>
+          </div>
+          <div class="demoField">
+            <div class="cap">分段 <em>segmented</em></div>
+            <div class="seg" data-seg><button class="on">全部</button><button>已发药</button><button>未发药</button></div>
+          </div>
+          <div class="demoField">
+            <div class="cap">剂数步进 <em>stepper</em></div>
+            <span class="stepper"><button>−</button><span>5</span><button>+</button></span>
+          </div>
+          <div class="demoField">
+            <div class="cap">边距滑杆 <em>range</em></div>
+            <div class="rangeWrap"><input type="range" value="20" max="40" data-range><span class="val">20mm</span></div>
+          </div>
+          <div class="demoField" style="grid-column:1/-1">
+            <div class="cap">状态标签 <em>tag / chip</em></div>
+            <div class="tags">
+              <span class="tag green"><i></i>已发药</span>
+              <span class="tag"><i style="background:var(--ink3)"></i>未发药</span>
+              <span class="tag warn"><i style="background:var(--warn)"></i>待结款</span>
+              <span class="tag danger"><i style="background:var(--danger)"></i>缺药</span>
+              <span class="tag outline">先煎</span>
+              <span class="tag outline">后下</span>
+              <span class="tag outline">另包</span>
+              <span class="tag muted">共 5 味</span>
+              <span class="avatar-xs">陈</span>
+              <span class="kbdTag">/</span>
+            </div>
+          </div>
+        </div>
+        <div class="subnote">所有选择控件都有明确的 on/off 动画；分段用于 2–3 个互斥选项，超过 3 个改用标签或下拉。</div>
+      </div>
+    </section>
+
+    <!-- 02 表单 -->
+    <section class="sec" id="c2">
+      <div class="secHead"><span class="no">02</span><h2>表单设计</h2><span class="en">FORMS</span></div>
+      <p class="secLead">按现网站的四类真实表单整理：<b>处方基础信息、药品新增、打印设置、订单信息</b>。标签统一在上方，控件 38px，两列栅格，必填项标红，费用区按勾选展开。</p>
+
+      <div class="formGrid">
+        <div class="formCard">
+          <div class="fcHead"><b>处方基础信息</b><span>日常药方 · 顶部</span></div>
+          <div class="fcBody">
+            <div class="fRow">
+              <div class="fld"><label>姓名<span class="req">*</span></label><input class="input" value="陈女士"></div>
+              <div class="fld"><label>日期</label><input class="input" type="date" value="2026-10-31"></div>
+            </div>
+            <div class="fRow three">
+              <div class="fld"><label>性别</label><span class="selWrap"><select class="input"><option>女</option><option>男</option></select><svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></span></div>
+              <div class="fld"><label>年龄</label><input class="input" value="38"></div>
+              <div class="fld"><label>电话</label><input class="input" value="138****2610"></div>
+            </div>
+            <div class="fld"><label>用法 / 备注</label><textarea class="textarea" style="min-height:62px">水煎温服，日一剂，分早晚</textarea><div class="help">常用备注可保存为模板，下次一键填入。</div></div>
+            <div class="fld">
+              <label>费用项 <span style="color:var(--ink3);font-size:9.5px">勾选后展开金额</span></label>
+              <div class="feeRow">
+                <label class="feeOpt"><input type="checkbox" checked> 加工费</label>
+                <label class="feeOpt"><input type="checkbox"> 代煎费</label>
+                <label class="feeOpt"><input type="checkbox" checked> 跑腿费</label>
+                <label class="feeOpt"><input type="checkbox"> 快递费</label>
+                <label class="feeOpt"><input type="checkbox"> 物品费用</label>
+              </div>
+            </div>
+          </div>
+          <div class="fcFoot"><button class="btn sm ghost">清 空</button><span class="sp"></span><button class="btn sm">保存草稿</button><button class="btn sm primary">保存处方</button></div>
+        </div>
+
+        <div class="formCard">
+          <div class="fcHead"><b>新增药品</b><span>药物管理 · 弹窗表单</span></div>
+          <div class="fcBody">
+            <div class="fRow">
+              <div class="fld"><label>药名<span class="req">*</span></label><input class="input" placeholder="如 阿胶"></div>
+              <div class="fld"><label>别名 / 拼音</label><input class="input" value="ejiao"></div>
+            </div>
+            <div class="fRow three">
+              <div class="fld"><label>分类</label><span class="selWrap"><select class="input"><option>根茎</option><option>果实</option><option>矿物</option></select><svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></span></div>
+              <div class="fld"><label>单位</label><span class="selWrap"><select class="input"><option>g</option><option>枚</option><option>ml</option></select><svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></span></div>
+              <div class="fld"><label>单价</label><span class="inputWrap"><span class="prefixTxt">¥</span><input class="input prefix" value="6.80"></span></div>
+            </div>
+            <div class="fRow">
+              <div class="fld"><label>常用量</label><span class="inputWrap"><input class="input suffix" value="9"><span class="suffixTxt">g</span></span></div>
+              <div class="fld"><label>初始库存</label><span class="inputWrap"><input class="input suffix" value="500"><span class="suffixTxt">g</span></span></div>
+            </div>
+            <div class="fld"><label>备注</label><input class="input" placeholder="产地、炮制方式等选填"></div>
+          </div>
+          <div class="fcFoot"><span style="font-size:10px;color:var(--ink3)">保存后立即加入药品目录</span><span class="sp"></span><button class="btn sm">取消</button><button class="btn sm primary">保存药品</button></div>
+        </div>
+
+        <div class="formCard" style="grid-column:1/-1">
+          <div class="fcHead"><b>打印设置</b><span>药方打印 · 发货单 / 清单模板</span></div>
+          <div class="fcBody printFormBody">
+            <div class="printFormLeft">
+              <div class="fRow">
+                <div class="fld"><label>纸张</label><span class="selWrap"><select class="input"><option>A5 · 148×210mm</option><option>A4 · 210×297mm</option><option>小票 58mm</option></select><svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></span></div>
+                <div class="fld"><label>方向</label><div class="seg" data-seg style="width:100%"><button class="on" style="flex:1">纵向</button><button style="flex:1">横向</button></div></div>
+              </div>
+              <div class="fRow">
+                <div class="fld"><label>左右边距</label><div class="rangeWrap"><input type="range" value="20" max="40" data-range><span class="val">20mm</span></div></div>
+                <div class="fld"><label>上下边距</label><div class="rangeWrap"><input type="range" value="12" max="40" data-range><span class="val">12mm</span></div></div>
+              </div>
+              <div class="fRow">
+                <div class="fld"><label>分页</label><div class="seg" data-seg style="width:100%"><button class="on" style="flex:1">连续</button><button style="flex:1">分页</button><button style="flex:1">分页+小计</button></div></div>
+                <div class="fld"><label>字号 / 行高</label><div class="rangeWrap"><input type="range" value="11" max="18" data-range><span class="val">11pt</span></div></div>
+              </div>
+              <div class="inline" style="gap:16px">
+                <label class="check"><input type="checkbox" checked> 显示页号</label>
+                <label class="check"><input type="checkbox" checked> 合计重量</label>
+                <label class="check"><input type="checkbox"> 店名 / 电话</label>
+              </div>
+            </div>
+            <div class="paperMini">
+              <div class="paperSheet">
+                <div class="pt">发 货 单</div>
+                <div class="ps">阿田药方 · 138****2610</div>
+                <div style="display:flex;justify-content:space-between;font-size:6.5px;color:var(--ink2);margin-top:8px"><span>客人：陈女士</span><span>2026-10-31</span></div>
+                <table><thead><tr><th>药名</th><th style="text-align:right">数量</th><th style="text-align:right">金额</th></tr></thead><tbody>
+                  <tr><td>柴胡</td><td style="text-align:right">9 g</td><td style="text-align:right">3.15</td></tr>
+                  <tr><td>黄芩</td><td style="text-align:right">9 g</td><td style="text-align:right">2.88</td></tr>
+                  <tr><td>半夏</td><td style="text-align:right">9 g</td><td style="text-align:right">3.60</td></tr>
+                  <tr><td>党参</td><td style="text-align:right">12 g</td><td style="text-align:right">6.60</td></tr>
+                </tbody></table>
+                <div class="pr"><span>合计</span><span>¥93.15</span></div>
+                <div class="pf"><span>制表 2026-10-31</span><span>第 1 页 / 共 1 页</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="fcFoot"><button class="btn sm ghost">恢复默认</button><span class="sp"></span><button class="btn sm">另存为模板</button><button class="btn sm primary">保存设置</button></div>
+        </div>
+
+        <div class="formCard" style="grid-column:1/-1">
+          <div class="fcHead"><b>订单信息</b><span>药方打印 · 详情</span></div>
+          <div class="fcBody">
+            <div class="fRow">
+              <div class="fld"><label>订单名称<span class="req">*</span></label><input class="input" value="小柴胡汤加减"></div>
+              <div class="fld"><label>日期<span class="req">*</span></label><input class="input" type="date" value="2026-10-31"></div>
+              <div class="fld"><label>客人 / 医生</label><input class="input" value="陈女士"></div>
+              <div class="fld"><label>单据编号</label><input class="input disabled" value="A-261031" disabled></div>
+            </div>
+            <div class="fRow">
+              <div class="fld"><label>配送方式</label><div class="seg" data-seg style="width:100%"><button class="on" style="flex:1">自取</button><button style="flex:1">跑腿</button><button style="flex:1">闪送</button><button style="flex:1">快递</button></div></div>
+              <div class="fld"><label>状态</label><div class="inline" style="height:38px"><span class="tag green"><i></i>已发药</span><span class="tag muted">可撤销</span></div></div>
+            </div>
+            <div class="fld full">
+              <label>药方明细 <span style="color:var(--ink3);font-size:9.5px">5 味 · 5 剂</span></label>
+              <table class="miniTable" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+                <thead><tr><th>药名</th><th class="r">克数</th><th class="r">单价</th><th class="r">金额</th></tr></thead>
+                <tbody>
+                  <tr><td>柴胡</td><td class="r">9 g</td><td class="r">0.35</td><td class="r">3.15</td></tr>
+                  <tr><td>黄芩</td><td class="r">9 g</td><td class="r">0.32</td><td class="r">2.88</td></tr>
+                  <tr><td>半夏</td><td class="r">9 g</td><td class="r">0.40</td><td class="r">3.60</td></tr>
+                  <tr class="sum"><td>合计</td><td class="r">5 剂</td><td class="r">—</td><td class="r">¥93.15</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="fcFoot"><button class="btn sm danger">删除本单</button><span class="sp"></span><button class="btn sm">生成表格图片</button><button class="btn sm primary">保存订单</button></div>
+        </div>
+      </div>
+      <div class="subnote" style="border:0;padding-left:0">表单布局：标签在上、8px 间距、38px 控件、两列自适应；费用与地址按需展开，避免一屏堆满。<b>提交只用页面底部唯一主按钮</b>。</div>
+    </section>
+
+    <!-- 03 弹窗 -->
+    <section class="sec" id="c3">
+      <div class="secHead"><span class="no">03</span><h2>弹窗设计</h2><span class="en">MODALS</span></div>
+      <p class="secLead">覆盖现网站出现频率最高的 8 个弹窗。点击任意卡片即可打开真实弹窗，遮罩、宽度、页脚按钮与动效都已按方案 A 统一。</p>
+
+      <div class="modalGrid">
+        <button class="mcard" data-modal="image">
+          <div class="mpv"><div class="frame"><div class="bar"></div><div class="row"><div class="ln l"></div><div class="ln s"></div></div><div class="row"><div class="ln m"></div><div class="ln m"></div><div class="ln s"></div></div><div class="row"><div class="ln m"></div><div class="ln m"></div><div class="ln s"></div></div><div class="btnMini"><div class="b2"></div><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>生成表格图片</b><span>三种出图模板 · 复制 / 下载</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="print">
+          <div class="mpv"><div class="frame"><div class="split"><div class="col"><div class="ln l"></div><div class="ln l"></div><div class="ln m"></div><div class="ln m"></div><div class="ln s"></div></div><div class="paper"><div class="ln" style="background:var(--soft);height:7px"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln s"></div><div class="btnMini"><div class="b1"></div></div></div></div></div></div>
+          <div class="mcardBody"><div><b>打印设置</b><span>纸张 / 边距 / 模板 · 实时预览</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="dispatch">
+          <div class="mpv"><div class="frame" style="align-items:center;justify-content:center;gap:8px"><div class="check">✓</div><div class="ln l"></div><div class="ln m"></div><div class="btnMini" style="width:100%;justify-content:center"><div class="b2"></div><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>确认发药</b><span>处方摘要 · 库存扣减 · 二次确认</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="del">
+          <div class="mpv"><div class="frame" style="align-items:center;justify-content:center;gap:7px"><div class="check" style="background:var(--danger-soft);border-color:#EFCFCA;color:var(--danger)">!</div><div class="ln l"></div><div class="ln s"></div><div class="btnMini"><div class="b2"></div><div class="b1" style="background:var(--danger)"></div></div></div></div>
+          <div class="mcardBody"><div><b>删除确认</b><span>订单 / 处方 · 不可撤销提示</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="pay">
+          <div class="mpv"><div class="frame"><div class="bar"></div><div class="row"><div class="ln m"></div><div class="ln s"></div></div><div class="row"><div class="ln m"></div><div class="ln s"></div></div><div class="row"><div class="ln l"></div><div class="ln s"></div></div><div class="btnMini"><div class="b2"></div><div class="b2"></div><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>批量结款</b><span>结款明细图片 · 复制 / 下载</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="hist">
+          <div class="mpv"><div class="frame"><div class="bar"></div><div class="row"><div class="check" style="width:10px;height:10px"></div><div class="ln m"></div><div class="ln s"></div></div><div class="row"><div class="check" style="width:10px;height:10px"></div><div class="ln m"></div><div class="ln s"></div></div><div class="row"><div class="check" style="width:10px;height:10px"></div><div class="ln m"></div><div class="ln s"></div></div><div class="btnMini"><div class="b2"></div><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>历史药方复用</b><span>按客人检索 · 选择后带入</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="text">
+          <div class="mpv"><div class="frame"><div class="ln l"></div><div style="flex:1;border:1px solid var(--line);border-radius:4px;background:var(--card2);padding:5px;display:flex;flex-direction:column;gap:3px"><div class="ln l"></div><div class="ln m"></div><div class="ln s"></div></div><div class="btnMini"><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>粘贴文本制表</b><span>自动识别药名 / 克数 / 单位</span></div><span class="open">打开</span></div>
+        </button>
+
+        <button class="mcard" data-modal="drug">
+          <div class="mpv"><div class="frame"><div class="bar"></div><div class="split"><div class="col"><div class="ln m"></div><div class="ln l"></div><div class="ln s"></div></div><div class="col"><div class="ln m"></div><div class="ln l"></div><div class="ln s"></div></div></div><div class="btnMini"><div class="b2"></div><div class="b1"></div></div></div></div>
+          <div class="mcardBody"><div><b>新增药品</b><span>名称 / 分类 / 单价 / 库存</span></div><span class="open">打开</span></div>
+        </button>
+      </div>
+      <div class="subnote">弹窗尺寸分三档：<b>468px 确认类</b>、<b>640px 表单/图片类</b>、<b>980px 打印设置类</b>。页脚固定右下角，危险操作主按钮用朱砂红；关闭仅用右上角 × 或遮罩。</div>
+    </section>
+
+    <!-- 04 状态 -->
+    <section class="sec" id="c4">
+      <div class="secHead"><span class="no">04</span><h2>状态与反馈</h2><span class="en">STATES</span></div>
+      <p class="secLead">保存、发药、复制、错误与空态，全部沿用同一套提示。提示不打断录入，重要结果用底部 Toast；需要用户确认的动作才用弹窗。</p>
+      <div class="fbGrid">
+        <div class="fbCard">
+          <div class="cap">TOAST / 轻提示</div>
+          <div class="toastDemo">
+            <button class="btn sm" data-toast="处方已保存并同步到云端">保存成功</button>
+            <button class="btn sm danger" data-toast="请先填写克数再插入" data-toast-err="1">错误提示</button>
+          </div>
+          <div style="margin-top:12px"><div class="toast"><i></i>处方已保存并同步到云端</div></div>
+        </div>
+        <div class="fbCard">
+          <div class="cap">INLINE ALERT / 行内提示</div>
+          <div class="alert success"><i></i>已完成自动划价，合计 ¥93.15。</div>
+          <div class="alert warn"><i></i>打印助手未连接，将改用浏览器打印。</div>
+          <div class="alert error"><i></i>药名「阿胶珠」未找到，请检查拼写。</div>
+        </div>
+        <div class="fbCard">
+          <div class="cap">LOADING / 加载</div>
+          <div class="skeleton" style="margin-bottom:12px"><div class="sk w60"></div><div class="sk w80"></div><div class="sk w40"></div></div>
+          <button class="btn sm" disabled style="opacity:1;background:var(--card2);color:var(--ink2)"><span class="spinner" style="border-color:#D6E3DC;border-top-color:var(--pri)"></span>正在生成图片…</button>
+        </div>
+        <div class="fbCard">
+          <div class="cap">EMPTY / 空态</div>
+          <div class="emptyState"><b>暂无历史处方</b>输入姓名或日期后查询</div>
+        </div>
+        <div class="fbCard">
+          <div class="cap">TOOLTIP & PROGRESS</div>
+          <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
+            <span class="tooltipDemo"><button class="btn sm">复制处方</button><span class="tooltip">复制后可粘贴到微信</span></span>
+            <span class="tag green"><i></i>2x 清晰导出</span>
+          </div>
+          <div class="progressDemo"><i></i></div>
+          <div class="progressCap"><span>本月营业额</span><span>¥8,642 / ¥13,000</span></div>
+        </div>
+        <div class="fbCard">
+          <div class="cap">CONTEXT MENU / 右键菜单</div>
+          <div class="ctxMenu">
+            <div class="ctxItem">复制该药方<span class="kk">⌘C</span></div>
+            <div class="ctxItem">粘贴到当前处方<span class="kk">⌘V</span></div>
+            <div class="ctxItem">按药名排序<span class="kk">S</span></div>
+            <div class="ctxSep"></div>
+            <div class="ctxItem danger">删除这一行<span class="kk">⌫</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 动效 -->
+    <section class="sec" id="c5">
+      <div class="secHead"><span class="no">05</span><h2>动效与落地</h2><span class="en">MOTION</span></div>
+      <p class="secLead">动效克制但顺滑：页面只做 8px 位移淡入，面板逐级 50ms 交错，悬停只上浮 1px。所有过渡使用同一条缓动曲线，避免「忽快忽慢」。</p>
+      <div class="motionGrid">
+        <div class="motionCard"><div class="k">页面切换</div><div class="v">300ms</div><div class="e">cubic-bezier(.22,1,.36,1)</div></div>
+        <div class="motionCard"><div class="k">卡片 / 面板入场</div><div class="v">500ms</div><div class="e">位移 10px · 交错 50ms</div></div>
+        <div class="motionCard"><div class="k">按钮 / 行悬浮</div><div class="v">160–200ms</div><div class="e">上浮 1px · 只改颜色与阴影</div></div>
+        <div class="motionCard"><div class="k">弹窗</div><div class="v">280ms</div><div class="e">缩放 0.97 → 1 · 淡入</div></div>
+        <div class="motionCard"><div class="k">抽屉</div><div class="v">300ms</div><div class="e">右侧滑入 · 同步遮罩</div></div>
+        <div class="motionCard"><div class="k">图表 / 进度</div><div class="v">700–800ms</div><div class="e">从左或从底生长 · 依次延迟</div></div>
+      </div>
+      <div class="motionDemoWrap">
+        <div class="demoCard" id="demoCard"><span class="dlogo">田</span><div class="dp"><div style="font-weight:600;color:var(--ink);font-size:11.5px">处方已保存</div><div style="font-size:9.5px;color:var(--ink3)">陈女士 · 小柴胡汤加减 · 5 剂</div></div><span class="dchip">云端已同步</span></div>
+        <button class="playBtn" id="replay">重播动效</button>
+      </div>
+      <div class="a11y"><b>落地说明：</b>使用令牌替代现有页面里多层 !important 覆盖；表单控件与弹窗先统一，再替换业务页样式。所有动效在 `prefers-reduced-motion` 下自动降级为淡入。</div>
+    </section>
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="footIn"><span class="logoMini">田</span><span>阿田药方打印 · 方案 A 组件与弹窗</span><span class="sp"></span><span class="st">LOCAL PREVIEW · NOT DEPLOYED · 2026-10-31</span></div>
+</footer>
+
+<div class="mask" id="mask"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="mhead"><span id="mTitle">弹窗</span><button class="mx" data-close>×</button></div>
+  <div class="mbody" id="mBody"></div>
+  <div class="mfoot" id="mFoot"></div>
+</div>
+<div id="toast"><i></i><span id="toastTx">已保存</span></div>
+
+<script>
+/* ================= 基础交互 ================= */
+var toast = document.getElementById('toast'), toastTx = document.getElementById('toastTx'), tErr = false, toastTimer;
+function showToast(msg, err){
+  toastTx.textContent = msg;
+  tErr = !!err; toast.classList.toggle('err', tErr);
+  toast.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toast.classList.remove('on'); }, 1900);
+}
+document.querySelectorAll('[data-toast]').forEach(function(b){
+  b.addEventListener('click', function(){ showToast(b.getAttribute('data-toast'), b.hasAttribute('data-toast-err')); });
+});
+
+/* 分段 / 开关 / 滑杆 */
+document.querySelectorAll('[data-seg]').forEach(function(seg){
+  seg.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    seg.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); });
+  });
+});
+document.querySelectorAll('[data-switch]').forEach(function(sw){
+  sw.addEventListener('click', function(){ sw.classList.toggle('on'); });
+});
+document.querySelectorAll('[data-range]').forEach(function(r){
+  var out = r.parentNode.querySelector('.val');
+  r.addEventListener('input', function(){
+    out.textContent = r.value + (out.textContent.indexOf('pt')>=0 ? 'pt' : 'mm');
+    if(out.textContent.indexOf('pt')<0 && r.closest('.pmRow')) updatePaperMargin(r);
+  });
+});
+
+/* 菜单高亮 */
+var jlinks = Array.prototype.slice.call(document.querySelectorAll('.jump a'));
+var tlinks = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+var secs = ['c1','c2','c3','c4','c5'].map(function(id){ return document.getElementById(id); });
+function spy(){
+  var y = scrollY + 110, idx = 0;
+  secs.forEach(function(s,i){ if(s.offsetTop <= y) idx = i; });
+  [jlinks, tlinks].forEach(function(grp){
+    grp.forEach(function(a,i){ a.classList.toggle('on', i===idx); });
+  });
+}
+addEventListener('scroll', spy, {passive:true}); spy();
+
+/* 重播动效 */
+document.getElementById('replay').addEventListener('click', function(){
+  var d = document.getElementById('demoCard');
+  d.classList.remove('run'); void d.offsetWidth; d.classList.add('run');
+});
+
+/* ================= 弹窗内容 ================= */
+function billHTML(){
+  return '<div class="bpTop"><div><div class="bpTitle">订单明细</div><div class="bpSub">陈女士 · A-261031 · 2026-10-31</div></div><div class="bpBrand">阿 田 药 方</div></div>'+
+    '<div class="bpMeta"><span>共 <b>2</b> 个药方</span><span>合计 <b>¥194.37</b></span><span>状态 <b>已发药</b></span></div>'+
+    '<div class="bpBlock"><span class="b1">1. 小柴胡汤加减</span><span>5 剂</span><span class="b2">¥93.15</span></div>'+
+    '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th class="r" style="width:16%">单价</th><th class="r" style="width:16%">金额</th></tr></thead><tbody>'+
+    '<tr><td>柴胡</td><td>9 g</td><td class="r">0.35</td><td class="r">3.15</td></tr>'+
+    '<tr><td>黄芩</td><td>9 g</td><td class="r">0.32</td><td class="r">2.88</td></tr>'+
+    '<tr><td>半夏</td><td>9 g</td><td class="r">0.40</td><td class="r">3.60</td></tr>'+
+    '<tr><td>党参</td><td>12 g</td><td class="r">0.55</td><td class="r">6.60</td></tr>'+
+    '<tr><td>大枣</td><td>4 枚</td><td class="r">0.60</td><td class="r">2.40</td></tr>'+
+    '</tbody></table>'+
+    '<div class="bpBlock"><span class="b1">2. 四物汤</span><span>7 剂</span><span class="b2">¥101.22</span></div>'+
+    '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th class="r" style="width:16%">单价</th><th class="r" style="width:16%">金额</th></tr></thead><tbody>'+
+    '<tr><td>熟地黄</td><td>12 g</td><td class="r">0.32</td><td class="r">3.84</td></tr>'+
+    '<tr><td>当归</td><td>10 g</td><td class="r">0.65</td><td class="r">6.50</td></tr>'+
+    '<tr><td>白芍</td><td>10 g</td><td class="r">0.28</td><td class="r">2.80</td></tr>'+
+    '<tr><td>川芎</td><td>6 g</td><td class="r">0.22</td><td class="r">1.32</td></tr>'+
+    '</tbody></table>'+
+    '<div class="bpTotal"><span>合计金额</span><b>¥194.37</b></div>'+
+    '<div class="bpFoot"><span>制表 2026-10-31</span><span>明细以药方打印单为准</span></div>';
+}
+
+var MODALS = {
+  image: {
+    title:'生成表格图片', size:'mw-md',
+    body:'<div class="mTabs"><div class="seg" id="mTplTabs"><button class="on" data-tpl="a">标准</button><button data-tpl="b">票据</button><button data-tpl="c">极简</button></div></div>'+
+      '<div class="billPrev" id="mBill">'+billHTML()+'</div>'+
+      '<div style="font-size:9.5px;color:var(--ink3);text-align:center;margin-top:10px">同一数据仅换装帧，列宽与金额不变。</div>',
+    foot:'<span class="mchip">2x · PNG</span><span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="copy">复制图片</button><button class="btn sm" data-action="download">下载 PNG</button>'
+  },
+  print: {
+    title:'打印设置', size:'mw-lg',
+    body:'<div class="printModal">'+
+      '<div class="pmCfg">'+
+        '<div class="pmRow"><label>纸张</label><select class="input" style="height:34px;font-size:11.5px"><option>A5 · 148×210mm</option><option>A4 · 210×297mm</option><option>小票 58mm</option></select></div>'+
+        '<div class="pmRow"><label>方向</label><div class="seg" data-seg style="width:100%"><button class="on" style="flex:1">纵向</button><button style="flex:1">横向</button></div></div>'+
+        '<div class="pmRow"><label>左右边距</label><div class="rangeWrap"><input type="range" value="20" max="40" data-range data-pad><span class="val">20mm</span></div></div>'+
+        '<div class="pmRow"><label>上下边距</label><div class="rangeWrap"><input type="range" value="12" max="40" data-range><span class="val">12mm</span></div></div>'+
+        '<div class="pmRow"><label>分页</label><div class="seg" data-seg style="width:100%"><button class="on" style="flex:1">连续</button><button style="flex:1">分页</button><button style="flex:1">分页+小计</button></div></div>'+
+        '<div class="inline" style="gap:12px"><label class="check"><input type="checkbox" checked> 显示页号</label><label class="check"><input type="checkbox" checked> 合计重量</label></div>'+
+        '<div style="font-size:9.5px;color:var(--ink3);line-height:1.7;margin-top:2px">店名、电话与落款可在下方「表头内容」继续填写；模板可另存复用。</div>'+
+      '</div>'+
+      '<div class="pmStage"><div class="paperBig" id="paperBig">'+
+        '<div class="pt">发 货 单</div><div class="ps">阿田药方 · 138****2610 · 广州市天河区</div>'+
+        '<div class="pinfo"><span>客人：陈女士</span><span>2026-10-31</span></div>'+
+        '<table><thead><tr><th>药名</th><th style="text-align:right">数量</th><th style="text-align:right">金额</th></tr></thead><tbody>'+
+          '<tr><td>柴胡</td><td style="text-align:right">9 g</td><td style="text-align:right">3.15</td></tr>'+
+          '<tr><td>黄芩</td><td style="text-align:right">9 g</td><td style="text-align:right">2.88</td></tr>'+
+          '<tr><td>半夏</td><td style="text-align:right">9 g</td><td style="text-align:right">3.60</td></tr>'+
+          '<tr><td>党参</td><td style="text-align:right">12 g</td><td style="text-align:right">6.60</td></tr>'+
+          '<tr><td>大枣</td><td style="text-align:right">4 枚</td><td style="text-align:right">2.40</td></tr>'+
+        '</tbody></table>'+
+        '<div class="ptot"><span>合计 · 5 剂</span><span>¥93.15</span></div>'+
+        '<div class="pfoot"><span>制表 2026-10-31</span><span>第 1 页 / 共 1 页</span></div>'+
+      '</div></div>'+
+      '</div>',
+    foot:'<button class="btn sm ghost" data-action="reset">恢复默认</button><span class="sp"></span><button class="btn sm" data-action="saveTpl">另存为模板</button><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="print">立即打印</button>'
+  },
+  dispatch: {
+    title:'确认发药', size:'mw-sm',
+    body:'<div class="confirmSum"><div><div class="who">陈女士</div><div class="what">小柴胡汤加减 · 5 剂</div></div><div class="amt">¥246.55</div></div>'+
+      '<table class="miniTable"><thead><tr><th>药名</th><th class="r">数量</th><th class="r">金额</th></tr></thead><tbody>'+
+      '<tr><td>柴胡</td><td class="r">9 g</td><td class="r">3.15</td></tr>'+
+      '<tr><td>黄芩</td><td class="r">9 g</td><td class="r">2.88</td></tr>'+
+      '<tr><td>半夏</td><td class="r">9 g</td><td class="r">3.60</td></tr>'+
+      '<tr><td>党参</td><td class="r">12 g</td><td class="r">6.60</td></tr>'+
+      '<tr class="sum"><td>合计</td><td class="r">5 剂</td><td class="r">¥93.15</td></tr>'+
+      '</tbody></table>'+
+      '<label class="check" style="margin-top:12px"><input type="checkbox" checked> 同时扣减药材库存</label>'+
+      '<div class="help" style="margin-top:7px">发药后历史处方会标记为「已发药」，可在价格清单里撤销。</div>',
+    foot:'<span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="ok">确认发药</button>'
+  },
+  del: {
+    title:'删除订单', size:'mw-sm',
+    body:'<div class="deleteBox"><div class="deleteIcon">!</div><div class="dtitle">确定删除这张订单？</div><div class="dtext">删除后不可恢复，处方图片与打印记录也会一并移除。</div><div class="dmeta"><span>A-261031</span><span>·</span><span>陈女士</span><span>·</span><span>¥194.37</span></div></div>',
+    foot:'<span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm danger" data-action="delOk">确认删除</button>'
+  },
+  pay: {
+    title:'批量结款 · 结款明细', size:'mw-md',
+    body:'<div class="payHead"><b>结款明细</b><span>客户：陈女士　｜　期间：2026-10-01 至 10-31　｜　共 12 单</span></div>'+
+      '<table class="payTable"><thead><tr><th>时间</th><th>客人</th><th>订单名称</th><th class="r">金额</th></tr></thead><tbody>'+
+      '<tr><td>10-31</td><td>陈女士</td><td>小柴胡汤加减</td><td class="r">93.15</td></tr>'+
+      '<tr><td>10-31</td><td>陈女士</td><td>四物汤</td><td class="r">101.22</td></tr>'+
+      '<tr><td>10-30</td><td>李先生</td><td>二陈汤</td><td class="r">58.80</td></tr>'+
+      '<tr class="sum"><td colspan="3">合计</td><td class="r">¥253.17</td></tr>'+
+      '</tbody></table><div class="payNote"><span>制表 2026-10-31</span><span>请核对无误后付款</span></div>'+
+      '<div style="font-size:9.5px;color:var(--ink3);margin-top:10px;text-align:center">图片以 2x 输出，粘贴到微信仍清晰。</div>',
+    foot:'<button class="btn sm" data-close>关 闭</button><span class="sp"></span><button class="btn sm" data-action="copy">复制图片</button><button class="btn sm primary" data-action="download">下载 PNG</button>'
+  },
+  hist: {
+    title:'从该客人历史药方复用', size:'mw-md',
+    body:'<div style="font-size:10.5px;color:var(--ink3);margin-bottom:10px">陈女士 · 共 3 条可用药方</div>'+
+      '<div class="histList">'+
+      '<label class="histRow on"><input type="radio" name="hist" checked><div class="hbody"><div class="hname">小柴胡汤加减</div><div class="hmeta">2026-10-31 · 5 剂 · 15 味</div></div><span class="tag green"><i></i>已发药</span><span class="hamt">¥246.55</span></label>'+
+      '<label class="histRow"><input type="radio" name="hist"><div class="hbody"><div class="hname">四物汤</div><div class="hmeta">2026-10-24 · 7 剂 · 4 味</div></div><span class="tag"><i style="background:var(--ink3)"></i>未发药</span><span class="hamt">¥101.22</span></label>'+
+      '<label class="histRow"><input type="radio" name="hist"><div class="hbody"><div class="hname">八珍汤</div><div class="hmeta">2026-10-18 · 5 剂 · 8 味</div></div><span class="tag green"><i></i>已发药</span><span class="hamt">¥186.40</span></label>'+
+      '</div>',
+    foot:'<span class="mchip">带入药味与剂数</span><span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="reuse">复用所选</button>'
+  },
+  text: {
+    title:'粘贴药方文本制表', size:'mw-md',
+    body:'<textarea class="textAreaBig">桂枝 10g　甘草 5g\n麦冬[另包] 10g　白芍 10g\n柴胡 9g　黄芩 9g</textarea>'+
+      '<div class="textHint">每行或空格分隔均可，自动识别药名 / 数量 / 单位 / 煎煮法。</div>'+
+      '<div class="mSection">解析结果<span style="letter-spacing:0">4 味</span></div>'+
+      '<table class="parseTable"><thead><tr><th>药名</th><th>数量</th><th>单位</th><th>煎法</th></tr></thead><tbody>'+
+      '<tr><td>桂枝</td><td>10</td><td>g</td><td>—</td></tr>'+
+      '<tr><td>甘草</td><td>5</td><td>g</td><td>—</td></tr>'+
+      '<tr><td>麦冬</td><td>10</td><td>g</td><td>另包</td></tr>'+
+      '<tr><td>白芍</td><td>10</td><td>g</td><td>—</td></tr>'+
+      '</tbody></table>',
+    foot:'<span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="parse">生成表格行</button>'
+  },
+  drug: {
+    title:'新增药品', size:'mw-md',
+    body:'<div class="drugModalGrid">'+
+      '<div class="mField" id="newDrugNameField"><label>药名 <span style="color:var(--danger)">*</span></label><input class="input" id="newDrugName" placeholder="如 阿胶"><div class="mErr" id="nameErr">请填写药名</div></div>'+
+      '<div class="mField"><label>别名 / 拼音</label><input class="input" placeholder="ejiao"></div>'+
+      '<div class="mField"><label>分类</label><select class="input"><option>根茎</option><option>果实</option><option>矿物</option><option>其他</option></select></div>'+
+      '<div class="mField"><label>单位</label><select class="input"><option>g</option><option>枚</option><option>ml</option><option>袋</option></select></div>'+
+      '<div class="mField"><label>单价</label><div class="inputWrap"><span class="prefixTxt">¥</span><input class="input prefix" placeholder="0.00"></div></div>'+
+      '<div class="mField"><label>常用量</label><div class="inputWrap"><input class="input suffix" placeholder="9"><span class="suffixTxt">g</span></div></div>'+
+      '<div class="mField"><label>初始库存</label><div class="inputWrap"><input class="input suffix" placeholder="500"><span class="suffixTxt">g</span></div></div>'+
+      '<div class="mField"><label>状态</label><div class="switchRow"><button class="switch on" data-switch></button><span>启用该药品</span></div></div>'+
+      '<div class="mField full"><label>备注</label><input class="input" placeholder="产地、炮制方式等选填"></div>'+
+      '</div>',
+    foot:'<span class="sp"></span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" data-action="saveDrug">保存药品</button>'
+  }
+};
+
+var mask = document.getElementById('mask');
+var modal = document.getElementById('modal');
+var mTitle = document.getElementById('mTitle');
+var mBody = document.getElementById('mBody');
+var mFoot = document.getElementById('mFoot');
+
+function openModal(type){
+  var cfg = MODALS[type]; if(!cfg) return;
+  modal.className = 'modal on ' + cfg.size;
+  mTitle.textContent = cfg.title;
+  mBody.innerHTML = cfg.body;
+  mFoot.innerHTML = cfg.foot;
+  mask.classList.add('on');
+  bindModal();
+}
+function closeModal(){
+  modal.classList.remove('on');
+  mask.classList.remove('on');
+}
+
+document.querySelectorAll('[data-modal]').forEach(function(card){
+  card.addEventListener('click', function(){ openModal(card.getAttribute('data-modal')); });
+});
+document.addEventListener('click', function(e){
+  if(e.target.closest('[data-close]')){ closeModal(); return; }
+  var act = e.target.closest('[data-action]');
+  if(act) handleAction(act.getAttribute('data-action'));
+});
+mask.addEventListener('click', closeModal);
+addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+function bindModal(){
+  // 弹窗内分段 / 开关 / 滑杆
+  mBody.querySelectorAll('[data-seg]').forEach(function(seg){
+    seg.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      seg.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); });
+    });
+  });
+  mBody.querySelectorAll('[data-switch]').forEach(function(sw){
+    sw.addEventListener('click', function(){ sw.classList.toggle('on'); });
+  });
+  mBody.querySelectorAll('[data-range]').forEach(function(r){
+    var out = r.parentNode.querySelector('.val');
+    r.addEventListener('input', function(){
+      if(!out) return;
+      out.textContent = r.value + 'mm';
+      var paper = document.getElementById('paperBig');
+      if(paper && r.hasAttribute('data-pad')){
+        paper.style.paddingLeft = (22 + (r.value-20)*0.3) + 'px';
+        paper.style.paddingRight = (22 + (r.value-20)*0.3) + 'px';
+      }
+    });
+  });
+  // 出图模板切换
+  var tabs = mBody.querySelector('#mTplTabs');
+  if(tabs){
+    tabs.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){
+        tabs.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x===b); });
+        var t = b.getAttribute('data-tpl');
+        var bill = mBody.querySelector('#mBill');
+        bill.className = 'billPrev ' + (t==='a'?'':t);
+        if(t==='b'){
+          bill.innerHTML = '<div class="bHead"><div class="bpTitle">订单明细</div><div class="bpBrand">阿田药方 · A-261031</div></div><div class="bBody">'+billHTML().replace(/<div class="bpTop">[\s\S]*?<div class="bpMeta">/, '<div class="bpMeta">')+'</div>';
+        }else{
+          bill.innerHTML = billHTML();
+        }
+      });
+    });
+  }
+  // 历史行选中
+  mBody.querySelectorAll('.histRow').forEach(function(row){
+    row.addEventListener('click', function(){
+      mBody.querySelectorAll('.histRow').forEach(function(x){ x.classList.remove('on'); });
+      row.classList.add('on');
+    });
+  });
+}
+
+function handleAction(action){
+  if(action==='copy'){ showToast('图片已复制，可直接粘贴发送'); }
+  else if(action==='download'){ showToast('PNG 已开始下载'); closeModal(); }
+  else if(action==='print'){ showToast('已发送到打印助手'); closeModal(); }
+  else if(action==='saveTpl'){ showToast('模板已另存'); closeModal(); }
+  else if(action==='reset'){ showToast('已恢复默认设置'); }
+  else if(action==='ok'){ closeModal(); showToast('已发药并标记历史处方'); }
+  else if(action==='delOk'){ closeModal(); showToast('订单已删除'); }
+  else if(action==='reuse'){ closeModal(); showToast('已带入所选药方'); }
+  else if(action==='parse'){ closeModal(); showToast('已生成 4 行表格'); }
+  else if(action==='saveDrug'){
+    var f = document.getElementById('newDrugNameField');
+    var err = document.getElementById('nameErr');
+    var inp = document.getElementById('newDrugName');
+    if(inp && !inp.value.trim()){
+      f.classList.add('err'); inp.classList.add('err'); err.classList.add('show');
+      inp.focus();
+      return;
+    }
+    closeModal(); showToast('药品已保存到目录');
+  }
+}
+</script>
+</body>
+</html>
