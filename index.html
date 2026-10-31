@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='aff300ce26';
+  var V='9d7142554c';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -10831,29 +10831,51 @@ function acAccept(idx){
   }else{
     inp.value=inp.value.slice(0,tk.start)+d.n+inp.value.slice(tk.end);
   }
+  /* 选中行要带出的计价单位与该单位的价格 */
+  var wantU=(d.u||'g'), wantP=(d.p!=null&&d.p!=='')?n(d.p):null;
   var dsIn=cell?cell.querySelector('.ds'):null;
-  if(dsIn && !dsIn.value.trim() && d.c!=null && String(d.c).trim()!==''){
-    /* 常用量原样带出：纯数字才补单位（「10」→「10g」），已经是「10g」「1盒」就直接用，
-       否则子规格会拼成「10g盒」 */
-    var cv0=String(d.c).trim();
-    dsIn.value=/^\d+(\.\d+)?$/.test(cv0) ? (cv0+(d.u||'g')) : cv0;
-    cell.classList.remove('zibei');
+  if(dsIn){
+    var curDs=String(dsIn.value||'').trim();
+    if(!curDs){
+      if(d.c!=null && String(d.c).trim()!==''){
+        /* 常用量原样带出：纯数字才补单位（「10」→「10g」），已经是「10g」「1盒」就直接用，
+           否则子规格会拼成「10g盒」 */
+        var cv0=String(d.c).trim();
+        dsIn.value=/^\d+(\.\d+)?$/.test(cv0) ? (cv0+wantU) : cv0;
+        cell.classList.remove('zibei');
+      }
+    }else if(curDs!=='自备'){
+      /* 已填剂量：把单位换成选中规格的单位，数量原样保留（2g → 2盒）。
+         否则剂量框还写着 g，主输入框旁就永远显示旧单位。 */
+      var dm0=curDs.match(/^(\d+(?:\.\d+)?)(.*)$/);
+      if(dm0 && !/[0-9]/.test(dm0[2])) dsIn.value=dm0[1]+wantU;
+    }
   }
   /* 记住用户选中的那条（单位 + 该单位的价格），后续计价按它算。
      ⚠ readCell 在药名变化时会把 du/dp 清空，所以要在它之后再写回去。 */
-  var wantU=(d.u||'g'), wantP=(d.p!=null&&d.p!=='')?n(d.p):null;
   acHide();
   dupMerged=-1;
   readCell(k);
-  if(items[k]&&!items[k].zibei){ items[k].du=wantU; items[k].dp=wantP; }
+  if(items[k]&&!items[k].zibei){
+    items[k].du=wantU; items[k].dp=wantP;
+    /* 换规格 = 换单价：已划价时立刻清掉这味药的旧价并按新单位重取，
+       否则清单里仍按旧的 g 价（1.6）算，金额不会跟着变。 */
+    if(priced){
+      items[k].price=null;
+      items[k].price=priceOf(items[k]);
+    }
+  }
   if(dupMerged>=0){
     toastErr('「'+d.n+'」重复了，已把剂量合并到第 '+(dupMerged+1)+' 格');
+    if(priced) $('fPerDose').value=money(perDoseFee());
     renderSheet(); growCells(); recalc();
     return true;
   }
   if(dsIn && !dsIn.value.trim()){ dsIn.focus(); }
   else { inp.focus(); try{ inp.setSelectionRange(inp.value.length,inp.value.length); }catch(e){} }
   growCells();
+  /* 已划价：该行金额与订单总价立刻按新单价重算（未划价则等用户点「自动划价」） */
+  if(priced) $('fPerDose').value=money(perDoseFee());
   recalc();
   return true;
 }
