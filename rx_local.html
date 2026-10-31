@@ -15648,6 +15648,16 @@ function rxMigrateLegacyLocalData(){
   font-size:13.5px !important;
   padding:0 8px !important;
 }
+/* 保留药名格右侧的「仓库标准药 / 先煎」灰色小标签空间，避免被换肤覆盖 */
+.page[data-page="print"] .wplan .wp-nm-wrap.has-std .wp-nm{
+  padding-right:92px !important;
+}
+.page[data-page="print"] .wplan .wp-nm-wrap.has-sfx .wp-nm{
+  padding-right:52px !important;
+}
+.page[data-page="print"] .wplan .wp-nm-wrap.has-std.has-sfx .wp-nm{
+  padding-right:124px !important;
+}
 .page[data-page="print"] .wplan .wp-tbl .wp-nm:hover,
 .page[data-page="print"] .wplan .wp-tbl .num:hover,
 .page[data-page="print"] .wplan .wp-tbl .wp-unit-in:hover,
