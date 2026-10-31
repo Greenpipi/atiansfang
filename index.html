@@ -3069,8 +3069,8 @@ body{ --navw:0px; }
 .wp-imp-tbl .imp-nm:focus{ border-color:var(--pri)!important; box-shadow:0 0 0 3px rgba(52,192,106,.14); outline:none; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
-/* 客户原始药名保留在明细行（与仓库标准名不同时展示） */
-.wp-tbl .wp-orig{ max-width:44%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:var(--neutral-4); border-left:1px solid var(--neutral-2); padding-left:8px; }
+/* 订单详情：客户原名旁的「匹配：标准药」极简小胶囊（超长单行省略，悬停看全名） */
+.wp-tbl .wp-std{ flex:0 1 auto; max-width:110px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 7px; }
 .wp-results{ margin-top:12px; max-height:50vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:var(--radius-input); }
 .wp-results .r{ display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--neutral-2); cursor:pointer; gap:10px; }
 .wp-results .r:hover{ background:var(--pri-soft); }
@@ -12813,7 +12813,7 @@ var WPlan = (function(){
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span>' + (it.disp ? '<span class="wp-orig" title="对应仓库标准药">→ ' + esc(it.name || '') + '</span>' : '') + '</div></td>'
+      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span>' + (it.disp && it.name ? '<span class="wp-std" title="已匹配仓库标准药：【' + esc(it.name) + '】">匹配：' + esc(it.name) + '</span>' : '') + '</div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
