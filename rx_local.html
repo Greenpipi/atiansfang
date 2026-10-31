@@ -3504,6 +3504,19 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-f input:focus, .gst-f select:focus, .gst-f textarea:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
 .gst-form-foot{ margin-top:18px; display:flex; align-items:center; gap:12px; }
 .gst-hint{ font-size:11px; color:var(--neutral-4); line-height:1.6; }
+/* 图片模板设置：宽度 + 展示列 */
+.gst-imgtpl{ margin-top:4px; padding:14px 16px; border:1px solid var(--neutral-2); border-radius:12px; background:var(--neutral-0); }
+.gst-imgtpl-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.gst-imgtpl-head b{ font-size:13px; color:var(--neutral-title); }
+.gst-imgtpl-head span{ font-size:11px; color:var(--neutral-4); }
+.gst-imgtpl-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.gst-imgtpl-row label{ flex:0 0 auto; }
+.gst-imgtpl-row input[type=range]{ flex:1 1 180px; width:auto; max-width:340px; min-height:0; height:6px; padding:0; border:0; background:transparent; accent-color:var(--pri); }
+.gst-imgtpl-num{ flex:0 0 92px!important; width:92px!important; min-height:34px!important; padding:4px 8px!important; text-align:center; }
+.gst-imgtpl-px{ font-size:12px; color:var(--neutral-4); }
+.gst-imgtpl-cols{ margin-top:14px; display:flex; flex-wrap:wrap; gap:10px 20px; }
+.gst-imgtpl-cols label{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:400; color:var(--neutral-6); cursor:pointer; min-height:0; }
+.gst-imgtpl-cols input[type=checkbox]{ width:16px; height:16px; min-height:0; margin:0; accent-color:var(--pri); }
 .gst-pane-tools{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
 .gst-mini-search{ height:32px; width:200px; box-sizing:border-box; border:1px solid var(--neutral-3);
   border-radius:var(--r-pill); padding:0 12px; font-size:12px; font-family:inherit; }
@@ -4669,6 +4682,24 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                         </select>
                       </div>
                       <div class="gst-f gst-full"><label>备注</label><textarea id="gstFNote" rows="4" placeholder="口味偏好 / 忌口 / 结算习惯…"></textarea></div>
+                      <div class="gst-f gst-full gst-imgtpl">
+                        <div class="gst-imgtpl-head"><b>图片模板设置</b><span>生成订单 / 结款图片时按此配置渲染</span></div>
+                        <div class="gst-imgtpl-row">
+                          <label>表格宽度</label>
+                          <input type="range" id="gstImgW" min="600" max="900" step="10" value="800" oninput="Guest.setImgWidth(this.value)">
+                          <input class="gst-imgtpl-num" type="number" id="gstImgWN" min="600" max="900" step="10" value="800" onchange="Guest.setImgWidth(this.value)">
+                          <span class="gst-imgtpl-px">px</span>
+                        </div>
+                        <div class="gst-imgtpl-cols" id="gstImgCols">
+                          <label><input type="checkbox" data-col="name" checked>药名</label>
+                          <label><input type="checkbox" data-col="unit" checked>单位</label>
+                          <label><input type="checkbox" data-col="qty" checked>数量</label>
+                          <label><input type="checkbox" data-col="price" checked>单价</label>
+                          <label><input type="checkbox" data-col="sell" checked>售价</label>
+                          <label><input type="checkbox" data-col="amt" checked>金额</label>
+                          <label><input type="checkbox" data-col="rm" checked>备注</label>
+                        </div>
+                      </div>
                     </div>
                     <div class="gst-form-foot">
                       <button class="btn pri" type="button" onclick="Guest.saveInfo()">保存信息</button>
@@ -6751,13 +6782,15 @@ function guestRowOf(g){
   keep.ctype=g.ctype||'散客';
   keep.pins=(g.pins||[]).slice(0,3);
   keep.stars=(g.stars||{});
+  keep.imgTpl=g.imgTpl||null;      /* 图片模板：宽度 + 展示列，随客户档案一起存库 */
   return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
   var p=(r&&r.prices)||{};
   return {name:r.name, discount:p.discount||0, note:p.note||'',
           phone:p.phone||'', addr:p.addr||'', ctype:p.ctype||'散客',
-          pins:(p.pins||[]).slice(0,3), stars:(p.stars||{})};
+          pins:(p.pins||[]).slice(0,3), stars:(p.stars||{}),
+          imgTpl:(p.imgTpl && typeof p.imgTpl==='object') ? p.imgTpl : null};
 }
 function gstCacheSave(){
   try{ localStorage.setItem('rx_guests_cache_v1', JSON.stringify(GUESTS)); }catch(e){}
@@ -6785,7 +6818,7 @@ function guestLoadAll(){
       var p=r.prices||{}, dp={}, has=false;
       for(var k in p){
         if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates'||
-           k==='phone'||k==='addr'||k==='ctype') continue;
+           k==='phone'||k==='addr'||k==='ctype'||k==='imgTpl') continue;
         if(p[k]==null || p[k]==='') continue;
         dp[k]=p[k]; has=true;
       }
@@ -6998,6 +7031,34 @@ var Guest=(function(){
     for(var i=0;i<os.length;i++){ if(!gstIsPaid(os[i])) unpaid+=gstOrderAmount(os[i]); }
     return (g.ctype||'散客')+' · '+os.length+' 单 · 未结 ¥'+money(unpaid)+(g.phone?(' · '+g.phone):'');
   }
+  /* 图片模板：宽度 600–900，展示列按客户保存 */
+  function clampImgW(v){
+    var w=n(v)||800;
+    w=Math.max(600,Math.min(900,Math.round(w/10)*10));
+    return w;
+  }
+  function setImgWidth(v){
+    var w=clampImgW(v);
+    if($('gstImgW')) $('gstImgW').value=w;
+    if($('gstImgWN')) $('gstImgWN').value=w;
+  }
+  function fillImgTpl(g){
+    var tp=(g&&g.imgTpl)||{};
+    var w=clampImgW(tp.w);
+    if($('gstImgW')) $('gstImgW').value=w;
+    if($('gstImgWN')) $('gstImgWN').value=w;
+    var boxes=document.querySelectorAll('#gstImgCols input[data-col]');
+    for(var i=0;i<boxes.length;i++){
+      var k=boxes[i].getAttribute('data-col');
+      boxes[i].checked = tp.cols ? (tp.cols[k]!==false) : true;
+    }
+  }
+  function readImgTpl(){
+    var cols={};
+    var boxes=document.querySelectorAll('#gstImgCols input[data-col]');
+    for(var i=0;i<boxes.length;i++){ cols[boxes[i].getAttribute('data-col')]=!!boxes[i].checked; }
+    return {w:clampImgW($('gstImgWN') ? $('gstImgWN').value : 800), cols:cols};
+  }
   function fillForm(g){
     if(!g) return;
     if($('gstFName')) $('gstFName').value=g.name||'';
@@ -7005,6 +7066,7 @@ var Guest=(function(){
     if($('gstFAddr')) $('gstFAddr').value=g.addr||'';
     if($('gstFType')) $('gstFType').value=g.ctype||'散客';
     if($('gstFNote')) $('gstFNote').value=g.note||'';
+    fillImgTpl(g);
   }
   function renderDetail(fill){
     var g=GUESTS[GUEST_CUR];
@@ -7059,6 +7121,7 @@ var Guest=(function(){
     g.addr=String($('gstFAddr').value||'').trim();
     g.ctype=$('gstFType').value||'散客';
     g.note=String($('gstFNote').value||'').trim();
+    g.imgTpl=readImgTpl();
     guestSave(g).then(function(){
       renderList(); renderDetail(true);
       if($('gstSaveHint')) $('gstSaveHint').textContent='已保存 · '+nowStr();
@@ -7078,7 +7141,7 @@ var Guest=(function(){
     if(GUESTS[nm]){ toastErr('客户「'+nm+'」已存在'); return; }
     var g={name:nm, phone:String($('gstNewPhone') ? $('gstNewPhone').value : '').trim(),
            ctype:$('gstNewType') ? ($('gstNewType').value||'散客') : '散客',
-           addr:'', note:'', discount:0, pins:[], stars:{}};
+           addr:'', note:'', discount:0, pins:[], stars:{}, imgTpl:null};
     guestSave(g).then(function(){
       var m=$('gstNewModal'); if(m) m.classList.remove('on');
       GUEST_CUR=nm; _tab='info';
@@ -7294,6 +7357,7 @@ var Guest=(function(){
   return {
     ensure:ensure, setSearch:setSearch, clearSearch:clearSearch, pick:pick, tab:tab,
     saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
+    setImgWidth:setImgWidth,
     renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
     previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
     renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
@@ -12962,6 +13026,50 @@ var WPlan = (function(){
   }
 
   /* ---- 批量结款：把勾选的多张单据生成一张高清表格图片 ---- */
+  /* 图片模板：按客户读取宽度 / 展示列，未配置时默认 800px + 全部列 */
+  var IMG_COLS=[
+    {k:'name', t:'药名', w:'30%'},
+    {k:'unit', t:'单位', w:'9%'},
+    {k:'qty',  t:'数量', w:'10%', num:true},
+    {k:'price',t:'单价', w:'12%', num:true},
+    {k:'sell', t:'售价', w:'12%', num:true},
+    {k:'amt',  t:'金额', w:'12%', num:true},
+    {k:'rm',   t:'备注', w:''}
+  ];
+  function imgTplFor(guest){
+    var name=String(guest||'').trim();
+    var g=(name && typeof GUESTS!=='undefined' && GUESTS[name]) ? GUESTS[name] : null;
+    if(!g && name){
+      /* 没进过客人管理页时 GUESTS 可能还没装载，直接从本机档案缓存兜底 */
+      try{
+        var cache=JSON.parse(localStorage.getItem('rx_guests_cache_v1')||'{}');
+        g=(cache && cache[name]) ? cache[name] : null;
+      }catch(e){ g=null; }
+    }
+    var tp=(g && g.imgTpl) ? g.imgTpl : null;
+    var w=Math.max(600,Math.min(900,n(tp&&tp.w)||800));
+    var cols={}, i, k;
+    for(i=0;i<IMG_COLS.length;i++){
+      k=IMG_COLS[i].k;
+      cols[k]=tp&&tp.cols ? (tp.cols[k]!==false) : true;
+    }
+    return { w:Math.round(w), cols:cols };
+  }
+  function imgColsOf(tpl){
+    var out=[], i, any=false;
+    for(i=0;i<IMG_COLS.length;i++){
+      if(tpl.cols[IMG_COLS[i].k]){ out.push(IMG_COLS[i]); any=true; }
+    }
+    if(!any) out.push(IMG_COLS[0]);   /* 全不勾时至少保留药名，避免出现空表 */
+    return out;
+  }
+  function imgCatPrice(it){
+    if(!it || it.zibei) return null;
+    try{
+      var r=dirPricePerUnit(it.name, it.unit||it.du||'g');
+      return r ? r.price : null;
+    }catch(e){ return null; }
+  }
   function paySorted(list){
     return list.slice().sort(function(a,b){
       var x = String((a.date || '') + ' ' + (a.createdAt || ''));
@@ -12989,7 +13097,9 @@ var WPlan = (function(){
   function genPayImage(list, cb){
     list = paySorted(list);
     var info = paySummary(list);
-    var W = 760, rowH = 36, headH = 116, footH = 88;
+    var tplGuest = info.guests.length === 1 ? info.guests[0] : '';
+    var W = imgTplFor(tplGuest).w;
+    var rowH = 36, headH = 142, footH = 88;
     var H = headH + 38 + list.length * rowH + footH;
     var rows = '';
     for(var i=0;i<list.length;i++){
@@ -13004,7 +13114,11 @@ var WPlan = (function(){
     var css = ''
       + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:26px 28px;background:#fff}'
+      + '.hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}'
       + '.ttl{font-size:22px;font-weight:700;letter-spacing:1px}'
+      + '.hs{text-align:right;flex:0 0 auto}'
+      + '.hc{font-size:12px;color:#888}'
+      + '.ht{margin-top:2px;font-size:20px;font-weight:700;color:#111;white-space:nowrap}'
       + '.sub{margin-top:7px;font-size:12px;color:#666}'
       + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}'
       + 'th,td{border:1px solid #d5d8dc;padding:8px 10px;text-align:left}'
@@ -13012,7 +13126,9 @@ var WPlan = (function(){
       + 'tr:nth-child(even) td{background:#fafbfc}'
       + '.sum td{background:#eef7f1!important;font-weight:700;font-size:15px}'
       + '.foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
-    var inner = '<div class="wrap"><div class="ttl">结款明细</div>'
+    var inner = '<div class="wrap"><div class="hdr"><div class="ttl">结款明细</div>'
+      + '<div class="hs"><div class="hc">共 ' + info.count + ' 个订单</div>'
+      + '<div class="ht">总计：¥' + money(info.total) + '</div></div></div>'
       + '<div class="sub">客户：' + esc(info.guests.join('、')) + '　｜　期间：' + esc(info.range) + '　｜　共 ' + info.count + ' 单</div>'
       + '<table><thead><tr><th>时间</th><th style="width:120px">客人</th><th>订单名称</th><th style="width:110px;text-align:right">金额(元)</th></tr></thead><tbody>'
       + rows
@@ -13074,24 +13190,42 @@ var WPlan = (function(){
 
   /* ---- 订单详情 / 单方「生成表格图片」（明细行即全部费用） ---- */
   function genOrderImage(o, blocks, cb){
-    var W = 840, shown = blocks || (o.blocks || []);
-    var items = 0, i, j;
+    var shown = blocks || (o.blocks || []);
+    var tpl = imgTplFor(o.guest);
+    var W = tpl.w;
+    var colList = imgColsOf(tpl);
+    var colCount = colList.length;
+    var items = 0, i, j, k;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    var H = 112 + shown.length * 106 + items * 22 + 80;
+    var H = 210 + shown.length * 128 + items * 26;
     var total = 0, body = '';
+    var th = '';
+    for(k=0;k<colList.length;k++){
+      var c = colList[k];
+      th += '<th' + (c.w ? ' style="width:' + c.w + '"' : '') + (c.num ? ' class="n"' : '') + '>' + c.t + '</th>';
+    }
+    function cell(col, it){
+      if(col.k === 'name') return '<td>' + esc(it.name || '') + (it.sfx ? (' <span class="sfx">' + esc(it.sfx) + '</span>') : '') + '</td>';
+      if(col.k === 'unit') return '<td>' + esc(it.zibei ? '' : (it.unit || it.du || 'g')) + '</td>';
+      if(col.k === 'qty') return '<td class="n">' + (it.zibei ? '自备' : (Math.round(dispQty(it) * 100) / 100)) + '</td>';
+      if(col.k === 'price'){ var cp = imgCatPrice(it); return '<td class="n">' + (cp == null ? '' : money(cp)) + '</td>'; }
+      if(col.k === 'sell') return '<td class="n">' + (it.price == null ? '' : money(it.price)) + '</td>';
+      if(col.k === 'amt') return '<td class="n">' + money(amountOf(it)) + '</td>';
+      if(col.k === 'rm') return '<td>' + esc(it.rm || '') + '</td>';
+      return '<td></td>';
+    }
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
       var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
-      if(!(b.items || []).length) rs = '<tr><td colspan="4" style="color:#999">（药方为空）</td></tr>';
+      if(!(b.items || []).length) rs = '<tr><td colspan="' + colCount + '" style="color:#999">（药方为空）</td></tr>';
       for(j=0;j<(b.items || []).length;j++){
         var it = b.items[j];
         if(!it) continue;
-        var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
-        rs += '<tr><td>' + esc(it.name || '') + '</td><td>' + esc(qty) + '</td>'
-          + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
-          + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
+        rs += '<tr>';
+        for(k=0;k<colList.length;k++) rs += cell(colList[k], it);
+        rs += '</tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13099,7 +13233,7 @@ var WPlan = (function(){
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th style="width:16%;text-align:right">单价</th><th style="width:16%;text-align:right">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr>' + th + '</tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
@@ -13107,22 +13241,30 @@ var WPlan = (function(){
     var css = ''
       + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:24px 28px;background:#fff}'
+      + '.hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}'
       + '.ttl{font-size:21px;font-weight:700;letter-spacing:1px}'
+      + '.hs{text-align:right;flex:0 0 auto}'
+      + '.hc{font-size:12px;color:#888}'
+      + '.ht{margin-top:2px;font-size:20px;font-weight:700;color:#111;white-space:nowrap}'
       + '.sub{margin-top:7px;font-size:12px;color:#666}'
       + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:14px;overflow:hidden}'
-      + '.bh{display:flex;align-items:center;gap:14px;padding:9px 12px;background:#f2f4f6;font-size:13px}'
+      + '.bh{display:flex;align-items:center;gap:12px;padding:9px 12px;background:#f2f4f6;font-size:13px;flex-wrap:wrap}'
       + '.bn{font-weight:700;font-size:14px}'
       + '.bd{color:#555}'
       + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
-      + 'table{width:100%;border-collapse:collapse;font-size:12px}'
-      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:5px 10px;text-align:left}'
+      + 'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}'
+      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:5px 8px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
       + 'th{background:#fafbfc;font-weight:600;color:#333}'
+      + 'td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}'
+      + '.sfx{color:#777;font-size:11px}'
       + '.bf{padding:7px 12px;font-size:12px;color:#555}'
       + '.bf b{color:#12693a}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:14px}'
       + '.sum b{font-size:19px;color:#12693a}'
       + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
-    var inner = '<div class="wrap"><div class="ttl">订单明细</div>'
+    var inner = '<div class="wrap"><div class="hdr"><div class="ttl">订单明细</div>'
+      + '<div class="hs"><div class="hc">共 ' + shown.length + ' 个订单</div>'
+      + '<div class="ht">总计：¥' + money(total) + '</div></div></div>'
       + '<div class="sub">客户：' + esc(String(o.guest || '').trim() || '—') + '　｜　单据：' + esc(o.no || '—')
       + '　｜　日期：' + esc(o.date || '—') + '　｜　共 ' + shown.length + ' 个药方</div>'
       + body
