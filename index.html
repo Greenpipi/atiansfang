@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='aff300ce26';
+  var V='0af478b551';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -4694,6 +4694,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <div class="gst-pane" id="gstPaneCommon" style="display:none">
                     <div class="gst-pane-tools">
                       <button class="btn pri" type="button" onclick="Guest.newCommon()">+ 新建常用方</button>
+                      <button class="btn sm" type="button" onclick="Guest.syncCommon()" title="把本机常用方全量写回云端">同步到云端</button>
                       <input class="gst-mini-search sch" id="gstCommonSearch" placeholder="搜索方名 / 药名" oninput="Guest.renderCommon()">
                       <span class="gst-tool-hint" id="gstCommonCount"></span>
                     </div>
@@ -6752,13 +6753,17 @@ function collectRecord(no){
 /* ================= 客人管理（2026-10-30 重写） =================
    布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
    数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
-        常用方  → localStorage rx_gcommon_v1（随 RX_CLOUD 同步）
+        常用方  → 本机 localStorage rx_gcommon_v1 + 云端 doctors.prices.__gcommon（双向同步）
         历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
 var GUESTS={};
 var GUEST_CUR='';
 var GST_CF_LS='rx_gcommon_v1';
 var GST_CF=[];
 var GST_CF_EDIT='';
+/* 云端 doctors.prices.__gcommon 缓存：客户名 → 常用方数组 */
+var GUEST_GC={};
+/* 只有先成功拉过一次云端，编辑后才允许自动回写，避免拿本机残缺数据覆盖云端 */
+var GST_CF_CLOUD_READY=false;
 
 /* ---------- 客户档案数据层（沿用 doctors 表，prices jsonb 承载档案字段） ---------- */
 function guestRowOf(g){
@@ -6774,6 +6779,8 @@ function guestRowOf(g){
   keep.ctype=g.ctype||'散客';
   keep.pins=(g.pins||[]).slice(0,3);
   keep.stars=(g.stars||{});
+  /* 常用方存在 prices.__gcommon；保存客户档案时原样带回，避免被清空 */
+  if(GUEST_GC[g.name] && GUEST_GC[g.name].length) keep.__gcommon=GUEST_GC[g.name];
   return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
@@ -6788,8 +6795,20 @@ function gstCacheSave(){
 function guestSave(g){
   GUESTS[g.name]=g; gstCacheSave();
   if(!(window.SUPA && SUPA.on)) return Promise.resolve();
-  return SUPA.q('doctors?on_conflict=name',{method:'POST',body:guestRowOf(g)})
-    .catch(function(e){ toastErr('客户资料写库失败：'+e.message); });
+  var row=guestRowOf(g);
+  /* 云端已有常用方、但本机还没拉到（网络失败/新设备）时，先取回来再写，
+     避免保存客户档案把 prices.__gcommon 整段清空。 */
+  var ready=Promise.resolve(row);
+  if(!row.prices.__gcommon){
+    ready=SUPA.q('doctors?select=prices&name=eq.'+encodeURIComponent(g.name)).then(function(rows){
+      var p=(rows && rows[0] && rows[0].prices) || null;
+      if(p && p.__gcommon) row.prices.__gcommon=p.__gcommon;
+      return row;
+    }).catch(function(){ return row; });
+  }
+  return ready.then(function(r){
+    return SUPA.q('doctors?on_conflict=name',{method:'POST',body:r});
+  }).catch(function(e){ toastErr('客户资料写库失败：'+e.message); });
 }
 function guestLoadAll(){
   /* 先用本机缓存秒开，再用云端覆盖（换设备时云端才是最新的） */
@@ -6808,13 +6827,41 @@ function guestLoadAll(){
       var p=r.prices||{}, dp={}, has=false;
       for(var k in p){
         if(k==='discount'||k==='note'||k==='pins'||k==='stars'||k==='__rates'||
-           k==='phone'||k==='addr'||k==='ctype') continue;
+           k==='phone'||k==='addr'||k==='ctype'||k==='__gcommon') continue;
         if(p[k]==null || p[k]==='') continue;
         dp[k]=p[k]; has=true;
       }
       if(has) CLOUD_DOC_PRICES[r.name]=dp;
       if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
     });
+    /* 常用方：从 doctors.prices.__gcommon 还原到本机，换设备/清缓存后不再空白。
+       同一方若本机克数更全则保留本机，避免被云端 qty=0 的副本覆盖。 */
+    GUEST_GC={};
+    var cloudCf=[], anyCloud=false;
+    (rows||[]).forEach(function(r){
+      var p=r.prices||{}, list=p.__gcommon;
+      if(!Array.isArray(list)) return;
+      GUEST_GC[r.name]=list; anyCloud=true;
+      for(var i=0;i<list.length;i++){ if(list[i] && list[i].id) cloudCf.push(list[i]); }
+    });
+    if(anyCloud){
+      if(!GST_CF.length) gstLoadCf();
+      function cfWeight(c){
+        var w=0, its=(c&&c.items)||[];
+        for(var x=0;x<its.length;x++){ if(its[x] && !its[x].zibei) w+=n(its[x].qty); }
+        return w;
+      }
+      var byId={}, i2, c2;
+      for(i2=0;i2<GST_CF.length;i2++){ c2=GST_CF[i2]; if(c2 && c2.id) byId[c2.id]=c2; }
+      for(i2=0;i2<cloudCf.length;i2++){
+        c2=cloudCf[i2];
+        var old=byId[c2.id], wc=cfWeight(c2), wo=old?cfWeight(old):-1;
+        if(!old || wc>wo || (wc===wo && String(c2.updatedAt||'')>String(old.updatedAt||''))) byId[c2.id]=c2;
+      }
+      GST_CF=Object.keys(byId).map(function(k){ return byId[k]; });
+      try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
+    }
+    GST_CF_CLOUD_READY=true;
     try{ purgeTestGuests(); }catch(e){}
   }).catch(function(e){ console.warn('客户资料拉取失败:',e.message); });
 }
@@ -6832,6 +6879,33 @@ function gstLoadCf(){
 function gstCfPersist(){
   try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
   if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push(GST_CF_LS); }catch(e){} }
+  if(GST_CF_CLOUD_READY){ try{ supaPushCommon(); }catch(e){} }
+}
+/* 常用方 → 云端 doctors.prices.__gcommon（按客户名分组，内置 guest 标签）。
+   修改一个方会自动防抖同步；也可在「常用方」页点「同步到云端」全量推送。 */
+var _gcPushTimer=null;
+function gstCfPushCloud(){
+  if(!(window.SUPA && SUPA.on)) return Promise.resolve(0);
+  var groups={}, i;
+  for(i=0;i<GST_CF.length;i++){
+    var c=GST_CF[i];
+    if(!c || !c.guest) continue;
+    (groups[c.guest]=groups[c.guest]||[]).push(c);
+  }
+  var names=Object.keys(groups);
+  if(!names.length) return Promise.resolve(0);
+  return Promise.all(names.map(function(nm){
+    GUEST_GC[nm]=groups[nm].slice();
+    return SUPA.saveGuestCommon(nm, groups[nm]);
+  })).then(function(){ return names.length; });
+}
+function supaPushCommon(){
+  if(!(window.SUPA && SUPA.on)) return;
+  if(_gcPushTimer) clearTimeout(_gcPushTimer);
+  _gcPushTimer=setTimeout(function(){
+    _gcPushTimer=null;
+    gstCfPushCloud().catch(function(e){ console.warn('常用方写库失败:',e.message); });
+  },800);
 }
 function gstCfId(){ return 'CF'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 function gstCfFor(guest){
@@ -7229,6 +7303,13 @@ var Guest=(function(){
     GST_CF=GST_CF.filter(function(x){ return x.id!==id; });
     gstCfPersist(); renderCommon(); toast('已删除');
   }
+  function syncCommon(){
+    if(!(window.SUPA && SUPA.on)){ toastErr('数据库未连接，无法同步'); return; }
+    if(!GST_CF.length){ toastErr('本机没有常用方可同步'); return; }
+    gstCfPushCloud().then(function(k){
+      toast('已同步 '+GST_CF.length+' 个常用方到云端（'+k+' 位客户）');
+    }).catch(function(e){ toastErr('同步失败：'+e.message); });
+  }
   function filteredHistory(){
     var os=gstGuestOrders(GUEST_CUR);
     if(_month){
@@ -7318,7 +7399,7 @@ var Guest=(function(){
     ensure:ensure, setSearch:setSearch, clearSearch:clearSearch, pick:pick, tab:tab,
     saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
     renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
-    previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
+    previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon, syncCommon:syncCommon,
     renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
     exportBill:exportBill, togglePaid:togglePaid
   };
@@ -7911,6 +7992,16 @@ SUPA.loadDoctors=function(){
     var m={};
     (rows||[]).forEach(function(r){ m[r.name]=r; });
     return m;
+  });
+};
+/* 常用方全量写入：按客户名把数组放进 prices.__gcommon，其他价格字段原样保留 */
+SUPA.saveGuestCommon=function(name, list){
+  name=String(name||'').trim();
+  if(!name) return Promise.resolve(null);
+  return SUPA.q('doctors?select=name,prices&name=eq.'+encodeURIComponent(name)).then(function(rows){
+    var p=(rows && rows[0] && rows[0].prices) || {};
+    p.__gcommon=Array.isArray(list)?list:[];
+    return SUPA.q('doctors?on_conflict=name',{method:'POST',body:{name:name, prices:p}});
   });
 };
 /* ---------- 8. 云端是否已加「批发价 / 各价格倍率」列 ----------
