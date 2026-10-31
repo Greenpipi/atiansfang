@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var V='aff300ce26';
+  var V='1d826246bd';
   try{
     var old=localStorage.getItem("rx_build_ver");
     if(old && old!==V && !sessionStorage.getItem("rx_reloaded")){
@@ -3495,10 +3495,11 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .gst-detail{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
 .gst-detail-head{ flex:0 0 auto; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
   padding:16px 20px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
-.gst-dt{ min-width:0; }
-.gst-dt b{ font-size:18px; color:var(--neutral-title); font-weight:700; margin-right:10px; }
-.gst-dt span{ font-size:12px; color:var(--neutral-4); }
-.gst-tabs{ display:flex; gap:6px; margin-left:auto; }
+.gst-dt{ display:flex; align-items:center; min-width:0; }
+.gst-dt b{ font-size:20px; color:var(--neutral-title); font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gst-meta{ flex:0 0 auto; font-size:12px; color:var(--neutral-4); white-space:nowrap; }
+.gst-tabs{ display:flex; gap:6px; margin-left:auto; flex-wrap:wrap; }
 .gst-tab{ min-height:32px; padding:5px 16px; border:1px solid var(--neutral-3); background:var(--n-white);
   color:var(--neutral-6); border-radius:var(--r-pill); font-size:13px; font-weight:600;
   font-family:inherit; cursor:pointer; }
@@ -3540,6 +3541,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
   font-family:inherit; line-height:1.5; min-height:0; }
 .gst-st.paid{ color:var(--pri-deep); background:var(--pri-soft); border:1px solid var(--pri-line); }
 .gst-st.unpaid{ color:var(--aux,#b5462f); background:#fff3ef; border:1px solid #f3d4c8; }
+.gst-st.plain{ cursor:default; }
+.gst-ordtag{ display:inline-block; margin-left:4px; padding:0 5px; border-radius:4px;
+  font-size:10px; font-weight:600; color:var(--neutral-5); background:var(--neutral-1);
+  border:1px solid var(--neutral-3); vertical-align:1px; }
 .gst-act{ text-align:right; white-space:nowrap; }
 .gst-act button{ font-size:11px; min-height:26px; padding:2px 9px; margin-left:6px;
   border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6);
@@ -4657,15 +4662,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="gst-empty" id="gstEmpty">从左侧选择一位客户，查看 360° 档案</div>
               <div class="gst-detail" id="gstDetail" style="display:none">
                 <div class="gst-detail-head">
-                  <div class="gst-dt">
-                    <b id="gstName">—</b>
-                    <span id="gstMeta"></span>
-                  </div>
+                  <div class="gst-dt"><b id="gstName">—</b></div>
                   <div class="gst-tabs">
-                    <button class="gst-tab on" type="button" data-t="info" onclick="Guest.tab('info')">基础信息</button>
                     <button class="gst-tab" type="button" data-t="common" onclick="Guest.tab('common')">常用方</button>
+                    <button class="gst-tab" type="button" data-t="daily" onclick="Guest.tab('daily')">日常处方</button>
                     <button class="gst-tab" type="button" data-t="history" onclick="Guest.tab('history')">历史订单</button>
                   </div>
+                  <span class="gst-meta" id="gstMeta"></span>
                 </div>
                 <div class="gst-detail-body">
                   <!-- 基础信息 -->
@@ -4674,14 +4677,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                       <div class="gst-f"><label>姓名</label><input id="gstFName" placeholder="客户姓名"></div>
                       <div class="gst-f"><label>电话</label><input id="gstFPhone" placeholder="手机 / 微信同号"></div>
                       <div class="gst-f gst-full"><label>地址</label><input id="gstFAddr" placeholder="收货 / 配送地址"></div>
-                      <div class="gst-f">
-                        <label>客户类型</label>
-                        <select id="gstFType">
-                          <option value="散客">散客</option>
-                          <option value="批发">批发</option>
-                          <option value="月结">月结</option>
-                        </select>
-                      </div>
                       <div class="gst-f gst-full"><label>备注</label><textarea id="gstFNote" rows="4" placeholder="口味偏好 / 忌口 / 结算习惯…"></textarea></div>
                     </div>
                     <div class="gst-form-foot">
@@ -4698,6 +4693,16 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                       <span class="gst-tool-hint" id="gstCommonCount"></span>
                     </div>
                     <div class="gst-table-wrap" id="gstCommonList"></div>
+                  </div>
+
+                  <!-- 日常处方 -->
+                  <div class="gst-pane" id="gstPaneDaily" style="display:none">
+                    <div class="gst-pane-tools">
+                      <span class="gst-tool-hint" id="gstDailyCount"></span>
+                      <span class="gst-spacer"></span>
+                      <button class="btn sm" type="button" onclick="Guest.refreshDaily()">刷新</button>
+                    </div>
+                    <div class="gst-table-wrap" id="gstDailyList"></div>
                   </div>
 
                   <!-- 历史订单 -->
@@ -6949,6 +6954,56 @@ function gstGuestOrders(guest){
   return out;
 }
 
+/* ---------- 日常处方（该客户名下的处方记录） ----------
+   数据源两条腿：
+   1) 本机处方（allRx：本机保存 SAVED + 书剑历史 HISTORY_ORIG）
+   2) Supabase prescriptions 表，按姓名精确查（换设备也能看到同一客户的全部处方）
+   表里没有独立的「客户表 / 客户ID」：处方用 name 字段就是客户/医生姓名，
+   所以按姓名查是该表唯一可用的关联方式。 */
+var GST_RX_CLOUD={};          /* 客户姓名 → 云端处方记录（页面记录格式） */
+function gstRxBelongsTo(r, guest){
+  var nm=String((r&&r.n)||'').trim();
+  if(!guest) return false;
+  if(nm===guest) return true;
+  /* 「李医生 张三」这类复合姓名也归到李医生 */
+  return nm.indexOf(guest+' ')==0 || nm.indexOf(guest+'　')==0;
+}
+function gstCloudRxLoad(guest){
+  guest=String(guest||'').trim();
+  if(!guest || !(window.SUPA && SUPA.on)) return Promise.resolve(false);
+  if(GST_RX_CLOUD[guest]) return Promise.resolve(false);
+  return SUPA.qAll('prescriptions?select=*&name=eq.'+encodeURIComponent(guest)+'&order=dt.desc')
+    .then(function(rows){
+      GST_RX_CLOUD[guest]=(rows||[]).map(supaRowToRec);
+      return true;
+    })
+    .catch(function(e){
+      console.warn('客户处方拉取失败:', e.message);
+      return false;
+    });
+}
+function gstGuestRx(guest){
+  guest=String(guest||'').trim();
+  var out=[], seen={};
+  function add(r){
+    if(!r) return;
+    var k=String(r.no||'').trim();
+    if(!k) k=String(r.dt||'')+'|'+String(r.tm||'')+'|'+String(r.m||'');
+    if(seen[k]) return;
+    seen[k]=1; out.push(r);
+  }
+  var all=(typeof allRx==='function')?allRx():[];
+  for(var i=0;i<all.length;i++){ if(gstRxBelongsTo(all[i], guest)) add(all[i]); }
+  var cl=GST_RX_CLOUD[guest]||[];
+  for(var j=0;j<cl.length;j++) add(cl[j]);
+  out.sort(function(a,b){
+    var x=String((a.dt||'')+' '+(a.tm||''));
+    var y=String((b.dt||'')+' '+(b.tm||''));
+    return x>y?-1:1;
+  });
+  return out;
+}
+
 /* ---------- 客人管理页面模块 ---------- */
 var Guest=(function(){
   var _tab='info', _search='', _month='';
@@ -7026,7 +7081,6 @@ var Guest=(function(){
     if($('gstFName')) $('gstFName').value=g.name||'';
     if($('gstFPhone')) $('gstFPhone').value=g.phone||'';
     if($('gstFAddr')) $('gstFAddr').value=g.addr||'';
-    if($('gstFType')) $('gstFType').value=g.ctype||'散客';
     if($('gstFNote')) $('gstFNote').value=g.note||'';
   }
   function renderDetail(fill){
@@ -7042,14 +7096,26 @@ var Guest=(function(){
     if($('gstName')) $('gstName').textContent=g.name;
     if($('gstMeta')) $('gstMeta').textContent=metaText(g);
     if(fill) fillForm(g);
-    var panes={info:'gstPaneInfo',common:'gstPaneCommon',history:'gstPaneHistory'};
+    var panes={info:'gstPaneInfo',common:'gstPaneCommon',daily:'gstPaneDaily',history:'gstPaneHistory'};
     for(var k in panes){ if($(panes[k])) $(panes[k]).style.display=(k===_tab?'':'none'); }
     var tabs=document.querySelectorAll('.gst-tab');
     for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-t')===_tab); }
     if(_tab==='common') renderCommon();
+    if(_tab==='daily') renderDaily();
     if(_tab==='history') renderHistory();
   }
-  function tab(t){ _tab=t||'info'; renderDetail(false); }
+  /* 没有「基础信息」按钮了：再点一次当前按钮即回到默认的基础信息表单 */
+  function tab(t){
+    t=t||'info';
+    _tab=(_tab===t)?'info':t;
+    renderDetail(false);
+    if(_tab==='daily' || _tab==='history'){
+      var guest=GUEST_CUR;
+      gstCloudRxLoad(guest).then(function(ok){
+        if(ok && _tab===(t) && GUEST_CUR===guest) renderDetail(false);
+      });
+    }
+  }
   function saveInfo(){
     var g=GUESTS[GUEST_CUR];
     if(!g){ toastErr('请先选择客户'); return; }
@@ -7074,13 +7140,16 @@ var Guest=(function(){
       var cfChanged=false;
       for(var j=0;j<GST_CF.length;j++){ if(GST_CF[j] && GST_CF[j].guest===old){ GST_CF[j].guest=nm; cfChanged=true; } }
       if(cfChanged) gstCfPersist();
+      if(GST_RX_CLOUD[old]){ GST_RX_CLOUD[nm]=GST_RX_CLOUD[old]; delete GST_RX_CLOUD[old]; }
       if(window.SUPA && SUPA.on){
+        /* 处方是靠 name 关联客户的，改名必须同步改处方的 name，否则日常处方会断掉 */
+        SUPA.q('prescriptions?name=eq.'+encodeURIComponent(old),{method:'PATCH',body:{name:nm}}).catch(function(){});
         SUPA.q('doctors?name=eq.'+encodeURIComponent(old),{method:'DELETE'}).catch(function(){});
       }
     }
     g.phone=String($('gstFPhone').value||'').trim();
     g.addr=String($('gstFAddr').value||'').trim();
-    g.ctype=$('gstFType').value||'散客';
+    g.ctype=g.ctype||'散客';
     g.note=String($('gstFNote').value||'').trim();
     guestSave(g).then(function(){
       renderList(); renderDetail(true);
@@ -7142,6 +7211,49 @@ var Guest=(function(){
     }
     h+='</tbody></table>';
     box.innerHTML=h;
+  }
+  /* ---------- 日常处方 ---------- */
+  function rxIsFayao(r){ return String((r&&r.fy)||'').indexOf('发')>=0; }
+  function rxDrugText(r){
+    var s=String((r&&r.m)||'').replace(/\s+/g,' ').trim();
+    return s.length>56 ? (s.slice(0,56)+'…') : (s||'—');
+  }
+  function renderDaily(){
+    var box=$('gstDailyList'); if(!box) return;
+    if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
+    var list=gstGuestRx(GUEST_CUR);
+    if($('gstDailyCount')){
+      $('gstDailyCount').textContent='共 '+list.length+' 张处方'+((window.SUPA&&SUPA.on)?'（本机 + 云端）':'（本机）');
+    }
+    if(!list.length){
+      box.innerHTML='<div class="gst-empty-row">该客户还没有处方记录</div>';
+      return;
+    }
+    var h='<table class="gst-tbl"><thead><tr><th>日期</th><th>处方号</th><th>药味</th><th class="num">付数</th><th class="num">总金额</th><th style="text-align:right">状态</th></tr></thead><tbody>';
+    for(var i=0;i<list.length;i++){
+      var r=list[i], a=statAmount(r), fy=rxIsFayao(r);
+      h+='<tr>'
+        +'<td>'+esc(gstFmtTime((r.dt||'')+(r.tm?(' '+r.tm):''))) +'</td>'
+        +'<td class="nm">'+esc(r.no||'未编号')+'</td>'
+        +'<td>'+esc(rxDrugText(r))+'</td>'
+        +'<td class="num">'+a.j+' 付</td>'
+        +'<td class="money">¥'+money(a.total)+'</td>'
+        +'<td style="text-align:right"><span class="gst-st plain '+(fy?'paid':'unpaid')+'">'+(fy?'已发':'未发')+'</span></td>'
+        +'</tr>';
+    }
+    h+='</tbody></table>';
+    box.innerHTML=h;
+  }
+  function refreshDaily(){
+    var guest=GUEST_CUR;
+    if(!guest) return;
+    delete GST_RX_CLOUD[guest];
+    renderDaily();
+    gstCloudRxLoad(guest).then(function(ok){
+      if(guest!==GUEST_CUR) return;
+      if(ok) toast('已同步云端处方');
+      renderDaily();
+    });
   }
   function newCommon(){
     if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
@@ -7241,24 +7353,64 @@ var Guest=(function(){
     }
     return os;
   }
+  function filteredRx(){
+    var rx=gstGuestRx(GUEST_CUR);
+    if(!_month) return rx;
+    var out=[];
+    for(var i=0;i<rx.length;i++){
+      if(String((rx[i]&&rx[i].dt)||'').indexOf(_month)===0) out.push(rx[i]);
+    }
+    return out;
+  }
+  /* 历史订单 = 本机药方打印单 + 该客户未被打印单引用的处方（云端按姓名查回来的）。
+     打印单的 blocks 里存了 fromRxNo：已被某张打印单用过的处方不再重复计一单。 */
+  function historyRows(){
+    var covered={}, all=gstOrdersRaw(), i, j, bs;
+    for(i=0;i<all.length;i++){
+      bs=(all[i]&&all[i].blocks)||[];
+      for(j=0;j<bs.length;j++){ if(bs[j]&&bs[j].fromRxNo) covered[String(bs[j].fromRxNo)]=1; }
+    }
+    var rows=[], os=filteredHistory();
+    for(i=0;i<os.length;i++) rows.push({kind:'order', dt:String(os[i].createdAt||os[i].date||''), o:os[i]});
+    var rx=filteredRx();
+    for(i=0;i<rx.length;i++){
+      var r=rx[i];
+      if(r && r.no && covered[String(r.no)]) continue;
+      rows.push({kind:'rx', dt:String((r&&r.dt)||'')+((r&&r.tm)?(' '+r.tm):''), r:r});
+    }
+    rows.sort(function(a,b){ return a.dt>b.dt?-1:(a.dt<b.dt?1:0); });
+    return rows;
+  }
   function renderHistory(){
     var box=$('gstHistoryList'); if(!box) return;
     if(!GUEST_CUR){ box.innerHTML='<div class="gst-empty-row">请先选择客户</div>'; return; }
-    var os=filteredHistory();
-    if($('gstHistCount')) $('gstHistCount').textContent='共 '+os.length+' 单' + (_month?('（'+_month+'）'):'');
-    var h='<table class="gst-tbl"><thead><tr><th>时间</th><th>单名</th><th>付数</th><th>总金额</th><th style="text-align:right">状态</th></tr></thead><tbody>';
-    if(!os.length){
+    var rows=historyRows();
+    if($('gstHistCount')) $('gstHistCount').textContent='共 '+rows.length+' 单' + (_month?('（'+_month+'）'):'');
+    var h='<table class="gst-tbl"><thead><tr><th>时间</th><th>单名</th><th class="num">付数</th><th class="num">总金额</th><th style="text-align:right">状态</th></tr></thead><tbody>';
+    if(!rows.length){
       h+='<tr><td colspan="5" class="gst-empty-row">'+(_month?'该年月没有单据':'该客户还没有历史订单')+'</td></tr>';
     }
-    for(var i=0;i<os.length;i++){
-      var o=os[i], paid=gstIsPaid(o), key=o.id||o.no||'';
-      h+='<tr>'
-        +'<td>'+esc(gstFmtTime(o.createdAt||o.date))+'</td>'
-        +'<td class="nm">'+esc(gstOrderName(o))+'</td>'
-        +'<td class="num">'+gstOrderDoses(o)+' 付</td>'
-        +'<td class="money">¥'+money(gstOrderAmount(o))+'</td>'
-        +'<td style="text-align:right"><button type="button" class="gst-st '+(paid?'paid':'unpaid')+'" title="点击切换已结/未结" onclick="Guest.togglePaid(\''+esc(key)+'\')">'+(paid?'已结':'未结')+'</button></td>'
-        +'</tr>';
+    for(var i=0;i<rows.length;i++){
+      var row=rows[i];
+      if(row.kind==='order'){
+        var o=row.o, paid=gstIsPaid(o), key=o.id||o.no||'';
+        h+='<tr>'
+          +'<td>'+esc(gstFmtTime(o.createdAt||o.date))+'</td>'
+          +'<td class="nm">'+esc(gstOrderName(o))+'</td>'
+          +'<td class="num">'+gstOrderDoses(o)+' 付</td>'
+          +'<td class="money">¥'+money(gstOrderAmount(o))+'</td>'
+          +'<td style="text-align:right"><button type="button" class="gst-st '+(paid?'paid':'unpaid')+'" title="点击切换已结/未结" onclick="Guest.togglePaid(\''+esc(key)+'\')">'+(paid?'已结':'未结')+'</button></td>'
+          +'</tr>';
+      }else{
+        var r=row.r, a=statAmount(r), fy=rxIsFayao(r);
+        h+='<tr>'
+          +'<td>'+esc(gstFmtTime(row.dt))+'</td>'
+          +'<td class="nm">'+esc(r.no||'未编号')+'<span class="gst-ordtag">处方</span></td>'
+          +'<td class="num">'+a.j+' 付</td>'
+          +'<td class="money">¥'+money(a.total)+'</td>'
+          +'<td style="text-align:right"><span class="gst-st plain '+(fy?'paid':'unpaid')+'">'+(fy?'已发':'未发')+'</span></td>'
+          +'</tr>';
+      }
     }
     h+='</tbody></table>';
     box.innerHTML=h;
@@ -7281,15 +7433,23 @@ var Guest=(function(){
   function safeFile(s){ return String(s||'').replace(/[\\/:*?"<>|]/g,'_'); }
   function exportBill(){
     if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
-    var g=GUESTS[GUEST_CUR], os=filteredHistory();
-    if(!os.length){ toastErr('没有可导出的单据'); return; }
-    var total=0, unpaid=0, rows='';
-    for(var i=0;i<os.length;i++){
-      var o=os[i], amt=gstOrderAmount(o), paid=gstIsPaid(o);
-      total+=amt; if(!paid) unpaid+=amt;
-      rows+='<tr><td>'+(i+1)+'</td><td>'+esc(gstFmtTime(o.createdAt||o.date))+'</td>'
-        +'<td>'+esc(gstOrderName(o))+'</td><td>'+gstOrderDoses(o)+'</td>'
-        +'<td style="text-align:right">'+money(amt)+'</td><td>'+(paid?'已结':'未结')+'</td></tr>';
+    var g=GUESTS[GUEST_CUR], rows=historyRows();
+    if(!rows.length){ toastErr('没有可导出的单据'); return; }
+    var total=0, unpaid=0, body='';
+    for(var i=0;i<rows.length;i++){
+      var row=rows[i], amt=0, name='', doses='', st='';
+      if(row.kind==='order'){
+        var o=row.o, paid=gstIsPaid(o);
+        amt=gstOrderAmount(o); name=gstOrderName(o); doses=gstOrderDoses(o); st=paid?'已结':'未结';
+        if(!paid) unpaid+=amt;
+      }else{
+        var r=row.r, a=statAmount(r);
+        amt=a.total; name=(r.no||'未编号')+'（处方）'; doses=a.j; st=rxIsFayao(r)?'已发':'未发';
+      }
+      total+=amt;
+      body+='<tr><td>'+(i+1)+'</td><td>'+esc(gstFmtTime(row.dt))+'</td>'
+        +'<td>'+esc(name)+'</td><td>'+doses+'</td>'
+        +'<td style="text-align:right">'+money(amt)+'</td><td>'+st+'</td></tr>';
     }
     var title=(_month?_month+' ':'')+(g.name||'')+' 历史账单';
     var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
@@ -7302,7 +7462,7 @@ var Guest=(function(){
       +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')+'　类型：'+esc(g.ctype||'散客')
       +'　导出时间：'+esc(nowStr())+'</div>'
       +'<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:86pt">总金额(元)</th><th style="width:52pt">状态</th></tr></thead><tbody>'
-      +rows+'</tbody></table>'
+      +body+'</tbody></table>'
       +'<div class="tot">本页合计：<b>¥'+money(total)+'</b>　未结：¥'+money(unpaid)+'</div>'
       +'</body></html>';
     var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
@@ -7319,6 +7479,7 @@ var Guest=(function(){
     saveInfo:saveInfo, newCustomer:newCustomer, createCustomer:createCustomer,
     renderCommon:renderCommon, newCommon:newCommon, editCommon:editCommon, saveCommon:saveCommon,
     previewCommon:previewCommon, reuseCommon:reuseCommon, delCommon:delCommon,
+    renderDaily:renderDaily, refreshDaily:refreshDaily,
     renderHistory:renderHistory, setMonth:setMonth, clearMonth:clearMonth,
     exportBill:exportBill, togglePaid:togglePaid
   };
