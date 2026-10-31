@@ -3061,8 +3061,11 @@ body{ --navw:0px; }
 .wp-imp-tbl tbody td{ padding:6px 10px; border-bottom:1px solid var(--neutral-1); vertical-align:middle; }
 .wp-imp-tbl tbody tr.imp-ok td{ background:#eaf7ee; color:#146c38; }
 .wp-imp-tbl tbody tr.imp-bad td{ background:#fdecea; color:#b42318; }
-.wp-imp-tbl .imp-tag{ margin-left:6px; padding:1px 6px; border-radius:10px; font-size:11px; background:rgba(21,163,74,.14); color:#15803d; }
-.wp-imp-tbl .imp-sel{ width:100%; box-sizing:border-box; border:1px solid var(--danger)!important; border-radius:6px!important; background:#fff!important; color:#b42318!important; padding:4px 6px!important; font-size:12px!important; }
+.wp-imp-tbl .imp-tag{ flex:none; margin-left:0; padding:1px 6px; border-radius:10px; font-size:11px; background:rgba(21,163,74,.14); color:#15803d; }
+.wp-imp-tbl .imp-std{ display:flex; align-items:center; gap:6px; min-width:0; }
+.wp-imp-tbl .imp-sel{ flex:1 1 auto; min-width:0; box-sizing:border-box; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; padding:4px 6px!important; font-size:12px!important; }
+.wp-imp-tbl .imp-sel.bad{ border-color:var(--danger)!important; color:#b42318!important; }
+.wp-imp-tbl .imp-sel.ok{ border-color:#9fcfae!important; color:#146c38!important; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
 /* 客户原始药名保留在明细行（与仓库标准名不同时展示） */
@@ -13918,7 +13921,7 @@ var WPlan = (function(){
       var price = d ? priceFor(std, curGuest(), u || 'g') : null;
       out.push({
         orig: nm0, qty: qv, unit: u || 'g', sfx: sp.sfx || '',
-        std: std, drug: d, price: price, ok: !!d,
+        std: std, autoStd: std, autoHow: d ? mk2.how : 'none', drug: d, price: price, ok: !!d,
         how: d ? mk2.how : 'none', rm: uniq.join('，')
       });
     }
@@ -13931,7 +13934,8 @@ var WPlan = (function(){
     fr.onerror = function(){ toast('读取文件失败'); };
     fr.readAsArrayBuffer(file);
   }
-  /* 预览表格：绿=已匹配，红=未匹配（可下拉选仓库药，选中即记住别名） */
+  /* 预览表格：绿=已匹配，红=未匹配。每行都能下拉换药：
+     选中即确定该行药品，单价随之重算；与自动匹配结果不同时记作手动指定（确认后存别名）。 */
   function impRender(){
     var body = document.getElementById('wpImportBody'), sum = document.getElementById('wpImportSum');
     if(!body) return;
@@ -13942,16 +13946,7 @@ var WPlan = (function(){
       var howTxt = r.ok
         ? (r.how === 'manual' ? '手动指定' : r.how === 'alias' ? '别名记忆' : r.how === 'exact' ? '精确匹配' : '智能匹配')
         : '未匹配';
-      var stdCell;
-      if(r.ok){
-        stdCell = esc(r.std) + (r.sfx ? ' ' + esc(r.sfx) : '') + ' <span class="imp-tag">' + esc(howTxt) + '</span>';
-      }else{
-        var opts = impOptions(r.orig), oh = '<option value="">请选择仓库药品…</option>';
-        for(var o=0;o<opts.length;o++){
-          oh += '<option value="' + opts[o] + '">' + esc(_imp.drugs[opts[o]].n) + '</option>';
-        }
-        stdCell = '<select class="imp-sel" onchange="WPlan.impPick(' + i + ',this.value)">' + oh + '</select>';
-      }
+      var stdCell = '<div class="imp-std">' + impSelectHTML(r, i) + (r.ok ? '<span class="imp-tag">' + esc(howTxt) + '</span>' : '') + '</div>';
       var pr = (r.price == null) ? (r.ok ? '<span class="imp-noprice">无价</span>' : '—') : '¥' + money(r.price);
       h += '<tr class="' + cls + '">'
         + '<td>' + esc(r.orig) + '</td>'
@@ -13965,8 +13960,35 @@ var WPlan = (function(){
     body.innerHTML = h || '<tr><td colspan="6" class="imp-empty">没有可导入的药名行</td></tr>';
     if(sum){
       sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
-        + (rows.length - hits ? '（可直接在下拉框中选择仓库药品，选中后自动记住为别名）' : '');
+        + '（可点药名下拉换药，选中即确定并按该药单价计算）';
     }
+  }
+  /* 该行下拉框：先给 40 个相关候选，点开时再展开全部药品（避免上千行 DOM 拖慢弹窗） */
+  function impSelectHTML(r, ri){
+    var cur = -1, i;
+    if(r.std){ for(i=0;i<_imp.drugs.length;i++){ if(normName(_imp.drugs[i].n) === normName(r.std)){ cur = i; break; } } }
+    var opts = impOptions(r.orig), list = opts.slice(0, 40);
+    if(cur >= 0 && list.indexOf(cur) < 0) list.push(cur);
+    var oh = '';
+    if(!r.ok) oh = '<option value="">请选择仓库药品…</option>';
+    else if(cur < 0) oh = '<option value="" selected>' + esc(r.std) + '</option>';
+    for(i=0;i<list.length;i++){
+      oh += '<option value="' + list[i] + '"' + (list[i] === cur ? ' selected' : '') + '>' + esc(_imp.drugs[list[i]].n) + '</option>';
+    }
+    return '<select class="imp-sel ' + (r.ok ? 'ok' : 'bad') + '" onchange="WPlan.impPick(' + ri + ',this.value)" onmousedown="WPlan.impExpand(this,' + ri + ')" onfocus="WPlan.impExpand(this,' + ri + ')">' + oh + '</select>';
+  }
+  function impExpand(sel, ri){
+    if(!sel || sel.getAttribute('data-full')) return;
+    sel.setAttribute('data-full', '1');
+    var r = _imp.rows[ri]; if(!r) return;
+    var cur = sel.value, opts = impOptions(r.orig), oh = '';
+    if(!r.ok) oh = '<option value="">请选择仓库药品…</option>';
+    else if(cur === '' && r.std) oh = '<option value="" selected>' + esc(r.std) + '</option>';
+    for(var i=0;i<opts.length;i++){
+      oh += '<option value="' + opts[i] + '">' + esc(_imp.drugs[opts[i]].n) + '</option>';
+    }
+    sel.innerHTML = oh;
+    sel.value = cur;
   }
   /* 未匹配行的候选药品：与该行主干有关的排在前面，其余按药名排列 */
   function impOptions(orig){
@@ -13981,7 +14003,9 @@ var WPlan = (function(){
   function impPick(ri, optIdx){
     var r = _imp.rows[ri]; if(!r || optIdx === '') return;
     var d = _imp.drugs[parseInt(optIdx, 10)]; if(!d) return;
-    r.drug = d; r.std = String(d.n); r.ok = true; r.how = 'manual';
+    r.drug = d; r.std = String(d.n); r.ok = true;
+    /* 改回系统自动匹配的那味药 → 不记为手动；否则手动指定 */
+    r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
     r.price = priceFor(r.std, _imp.guest, r.unit);
     impRender();
   }
@@ -14078,7 +14102,7 @@ var WPlan = (function(){
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, impPick: impPick, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, impPick: impPick, impExpand: impExpand, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
