@@ -15641,18 +15641,27 @@ function rxMigrateLegacyLocalData(){
 .page[data-page="print"] .wplan .wp-tbl .num,
 .page[data-page="print"] .wplan .wp-tbl .wp-unit-in,
 .page[data-page="print"] .wplan .wp-tbl .wp-rm-in{
-  border:1px solid #D6E3DC !important;
-  border-radius:9px !important;
-  background:#FFFFFF !important;
+  border:1px solid transparent !important;
+  border-radius:5px !important;
+  background:transparent !important;
   color:#16231D !important;
   font-size:13.5px !important;
+  padding:0 8px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm:hover,
+.page[data-page="print"] .wplan .wp-tbl .num:hover,
+.page[data-page="print"] .wplan .wp-tbl .wp-unit-in:hover,
+.page[data-page="print"] .wplan .wp-tbl .wp-rm-in:hover{
+  background:#F7FBF8 !important;
+  border-color:#E4ECE7 !important;
 }
 .page[data-page="print"] .wplan .wp-tbl .wp-nm:focus,
 .page[data-page="print"] .wplan .wp-tbl .num:focus,
 .page[data-page="print"] .wplan .wp-tbl .wp-unit-in:focus,
 .page[data-page="print"] .wplan .wp-tbl .wp-rm-in:focus{
+  background:#FFFFFF !important;
   border-color:#0E9A6A !important;
-  box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+  box-shadow:0 0 0 2px rgba(14,154,106,.11) !important;
   outline:none !important;
 }
 .page[data-page="print"] .wplan .wp-tbl .wp-amt{
