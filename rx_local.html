@@ -14,204 +14,42 @@
 <meta name="theme-color" content="var(--pri)">
 <script>
 (function(){
-  // 云端实时同步（AES 加密版）
-  // 仅当通过发布链接(同域)且带 ?k= 密钥打开时启用；本地双击 file:// 或链接无 ?k= → 纯离线
-  // 云端 rx_sync 表只存 AES-GCM 密文，无 ?k= 密钥任何人都解不开、也进不了同步
-  var CLOUD={endpoint:'https://981e1563f5a544b79d51d44ea503fbe8.app.workbuddy.host',publishableKey:'wbpk_lLkp6U542Ah3OsP4sctPRy_2e6tHqbDsgH6IDo5L03XoWxzCH9vFlM0'};
-  /* 同域判定：不能用 `location.origin===CLOUD.endpoint` 写死比较。
-     重新部署会换沙箱域名，旧保留域名(rx-print.app.workbuddy.host)已整体 404，
-     写死比较会让 CLOUD_OK 永远为 false → SYNC_ON 永远为 false →
-     **处方只会留在本机、绝不上传云端，而且界面照常显示、不报错**（2026-10-06 20:08 实测）。
-     判定改为：https + 主机名属于 workbuddy 应用子域。真正的边界交给下面的探针。 */
-  function cloudHostOk(){
+  /* 旧版 WorkBuddy 加密同步层已移除（2026-10-31）。
+     它把 RX_STORE 当主存储、再往 rx_sync 做加密镜像，既与「云端唯一数据源」冲突，
+     也会在换设备/清缓存时出现合并覆盖。业务数据现在一律由 Supabase 读写。 */
+  function dbBadge(){
     try{
-      if(location.protocol!=='https:') return false;
-      return /(^|\.)app\.workbuddy\.host$/.test(location.hostname);
-    }catch(e){ return false; }
-  }
-  var CLOUD_OK=cloudHostOk();
-  function getPass(){try{return new URLSearchParams(location.search).get('k')||'';}catch(e){return '';}}
-  var RX_PASS=getPass();
-  var SYNC_ON=(CLOUD_OK && !!RX_PASS && (typeof crypto!=='undefined') && !!crypto.subtle);
-  var KEYS=['rx_saved_v3','rx_drugs_v3','rx_set_v3','rx_addr_v1','rx_notes_v1','rx_doctors_v1','rx_wplan_v1','rx_wplan_docs_v1','rx_wptpl_v1','rx_sfx_v1','rx_gcommon_v1'];
-  var _cpromise=null;
-  function deriveKey(pass){
-    if(_cpromise) return _cpromise;
-    var enc=new TextEncoder();
-    _cpromise=crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']).then(function(bk){
-      return crypto.subtle.deriveKey({name:'PBKDF2',salt:enc.encode('rx-sync-salt-v1'),iterations:100000,hash:'SHA-256'},bk,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-    });
-    return _cpromise;
-  }
-  function b64u(bytes){var bin='',chunk=0x8000;for(var i=0;i<bytes.length;i+=chunk){bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}return btoa(bin);}
-  function unb64(b){var bin=atob(b),out=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
-  async function encryptText(plain,pass){
-    var key=await deriveKey(pass);
-    var iv=crypto.getRandomValues(new Uint8Array(12));
-    var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(plain));
-    var merged=new Uint8Array(iv.length+ct.byteLength);merged.set(iv,0);merged.set(new Uint8Array(ct),iv.length);
-    return 'v1:'+b64u(merged);
-  }
-  async function decryptText(b64,pass){
-    var s=(b64||'').indexOf('v1:')===0?b64.slice(3):b64;
-    var bin=unb64(s),iv=bin.subarray(0,12),ct=bin.subarray(12);
-    var key=await deriveKey(pass);
-    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);
-    return new TextDecoder().decode(pt);
-  }
-  window.RX_CLOUD={CLOUD:CLOUD,OK:CLOUD_OK,SYNC_ON:SYNC_ON,cloud:null,push:function(){},pullAll:function(){return Promise.resolve(false);}};
-  // 所有端安装 setItem 钩子：写入同步键时自动推送（push 内部判断就绪）
-  var timers={};var origSet=Storage.prototype.setItem;
-  Storage.prototype.setItem=function(k,v){
-    try{origSet.call(this,k,v);}catch(e){}
-    if(SYNC_ON&&KEYS.indexOf(k)>=0){
-      /* 空值不上传：页面初始化时药物目录会先被写成 []，若照传会把云端已有数据清空
-         （rx_drugs_v3 154KB -> 45 字节，实际发生过两次）。真正的清空操作走
-         push(k, force)，显式允许。 */
-      if(v!=='[]'&&v!=='{}'){
-        clearTimeout(timers[k]);timers[k]=setTimeout(function(){try{window.RX_CLOUD.push(k);}catch(e){}},500);
+      var host=document.getElementById('rxSyncBar');
+      if(!host){ host=document.createElement('span'); var tb=document.querySelector('.topbar'); if(!tb) return; tb.appendChild(host); }
+      var d=document.createElement('span');
+      d.id='rxSyncBadge'; d.className='rxchrome';
+      d.style.cssText='font-size:11px;margin-left:10px;white-space:nowrap;font-weight:400;color:var(--aux)';
+      if(location.protocol==='file:'){
+        d.textContent='⚠ 本地文件·未连数据库';
+        d.title='浏览器禁止本地文件访问网络。请改用网址打开。';
+      }else{
+        d.textContent='正在连接数据库…';
+        var tries=0;
+        (function probe(){
+          if(typeof SUPA==='undefined'){ d.textContent='⚠ 未连接数据库'; return; }
+          SUPA.ping().then(function(){
+            d.style.color='var(--pri-deep)'; d.textContent='✓ 已连接数据库';
+            d.title='数据存在你自己的 Supabase 里，所有设备看到同一份';
+          }).catch(function(e){
+            tries++;
+            if(tries<3){ setTimeout(probe,1500); return; }
+            d.textContent='⚠ 数据库连不上';
+            d.title='连不上 Supabase：'+e.message+'\n页面会按空数据显示，不会读取本机旧缓存。';
+          });
+        })();
       }
-    }
-  };
+      host.appendChild(d);
+    }catch(e){}
+  }
   window.addEventListener('DOMContentLoaded',function(){
-    /* ---- 关键操作图标（纯装饰，不改任何功能）----
-       用内联 SVG 精灵按需克隆，图标颜色继承 currentColor。 */
     try{ injectActionIcons(); }catch(e){}
-    /* 顶栏显示**真实的数据库连接状态**。
-       旧徽标写的是沙箱加密同步，和现在真正用的 Supabase 无关，
-       会让人以为「已连接」其实没连上——必须按 Supabase 的真实结果显示。
-       本地文件（file://）打开时直接点名，因为浏览器禁止本地文件跨域。 */
-    var host=$('rxSyncBar');
-    if(!host){ host=document.createElement('span'); document.querySelector('.topbar').appendChild(host); }
-    var d=document.createElement('span');
-    d.id='rxSyncBadge'; d.className='rxchrome';
-    d.style.cssText='font-size:11px;margin-left:10px;white-space:nowrap;font-weight:400';
-    if(location.protocol==='file:'){
-      d.style.color='var(--aux)'; d.textContent='⚠ 本地文件·未连数据库';
-      d.title='你现在打开的是电脑上的文件，不是网址。浏览器禁止本地文件访问网络，所以读不到也写不进云端。请改用网址打开。';
-    } else {
-      d.style.color='var(--aux)'; d.textContent='正在连接数据库…';
-      d.title='正在连接你自己的 Supabase 数据库';
-      var tries=0;
-      (function probe(){
-        if(typeof SUPA==='undefined'){ d.textContent='⚠ 未连接数据库'; return; }
-        SUPA.ping().then(function(){
-          d.style.color='var(--pri-deep)'; d.textContent='✓ 已连接数据库';
-          d.title='数据存在你自己的 Supabase 里：手机、Mac、Windows 打开都能看到同一份';
-        }).catch(function(e){
-          tries++;
-          if(tries<3){ setTimeout(probe,1500); return; }
-          d.style.color='var(--aux)'; d.textContent='⚠ 数据库连不上';
-          d.title='连不上你的 Supabase：'+e.message+'\n处方仍会存在本机浏览器，但换设备看不到。检查网络或代理。';
-        });
-      })();
-    }
-    host.appendChild(d);
+    dbBadge();
   });
-  if(!SYNC_ON)return; // 离线/无密钥：不加载 SDK、不走云端
-  function initCloud(){
-    if(typeof WorkBuddyCloud==='undefined')return;
-    /* endpoint 用**当前页面 origin**：后端只在自己被绑定的那个域名下提供服务，
-       写死的 endpoint 在换域名后会指向一个已失效的地址。 */
-    var cloud=WorkBuddyCloud.createWorkBuddyCloud({endpoint:location.origin,publishableKey:CLOUD.publishableKey});
-    window.RX_CLOUD.cloud=cloud;
-    function mergeValues(localRaw, cloudVal){
-      var local; try{local=JSON.parse(localRaw);}catch(e){local=undefined;}
-      if(local===undefined) return cloudVal;
-      if(Array.isArray(local)&&Array.isArray(cloudVal)){
-        var keyf=function(x){return (x&&(x.no||x.n||x.id))+'';};
-        var hasKey=local.concat(cloudVal).some(function(x){var k=keyf(x);return k&&k!=='undefined';});
-        if(hasKey){
-          var seen={},out=[];
-          cloudVal.concat(local).forEach(function(x){var k=keyf(x);if(k&&k!=='undefined'){if(!seen[k]){seen[k]=1;out.push(x);}}else{var j=JSON.stringify(x);if(!seen[j]){seen[j]=1;out.push(x);}}});
-          return out;
-        }else{
-          var seen2={},out2=[];
-          cloudVal.concat(local).forEach(function(x){var j=JSON.stringify(x);if(!seen2[j]){seen2[j]=1;out2.push(x);}});
-          return out2;
-        }
-      }
-      if(local&&typeof local==='object'&&cloudVal&&typeof cloudVal==='object'&&!Array.isArray(local)&&!Array.isArray(cloudVal)){
-        var m={};
-        for(var pk in local) m[pk]=local[pk];
-        for(var pk2 in cloudVal) m[pk2]=cloudVal[pk2];
-        return m;
-      }
-      return cloudVal;
-    }
-    function plainFromCloud(stored){
-      if(typeof stored==='string'){
-        if(stored.indexOf('v1:')===0){ try{return decryptText(stored,RX_PASS);}catch(e){ return null; } }
-        try{JSON.parse(stored);return stored;}catch(e){ return null; } // 旧版明文
-      }
-      try{return JSON.stringify(stored);}catch(e){ return null; } // 旧版直接存对象/数组
-    }
-    window.RX_CLOUD.pullAll=async function(){
-      var changed=false;
-      try{
-        for(var i=0;i<KEYS.length;i++){
-          var k=KEYS[i];
-          var r=await cloud.database.from('rx_sync').select('value').eq('key',k).maybeSingle();
-          if(r.error||!r.data)continue;
-          var plain=plainFromCloud(r.data.value);
-          if(plain===null) continue; // 解密失败（别的密钥/损坏）→ 跳过，保留本地
-          /* 云端存的是空容器（被误清或换设备前没数据）→ 跳过，不要用空覆盖本地。
-             否则 mergeValues 会把云端的[]排到前面，把本机的真实数据挤掉。 */
-          if(plain==='[]'||plain==='{}') continue;
-          var merged=mergeValues(localStorage.getItem(k), plain);
-          var mv=JSON.stringify(merged);
-          if(localStorage.getItem(k)!==mv){try{localStorage.setItem(k,mv);}catch(e){}changed=true;}
-        }
-        /* 只把「本地本来就有内容」的键写回云端。
-           ⚠ 曾经无条件 push 全部键，结果：换设备/清缓存后 localStorage 是空的，
-           空值把云端已有的数据覆盖掉（rx_drugs_v3 从 154KB 被写成 45 字节，
-           2026-10-06 20:13 与 20:31 各发生一次）。
-           空数组/空对象没有信息量，绝不能覆盖云端。 */
-        for(var j=0;j<KEYS.length;j++){
-          var lk=KEYS[j], lv=null;
-          try{ lv=localStorage.getItem(lk); }catch(e){}
-          if(lv===null) continue;
-          if(lv==='[]'||lv==='{}') continue;      /* 空容器不上传 */
-          try{window.RX_CLOUD.push(lk);}catch(e){}
-        }
-      }catch(e){changed=false;}
-      return changed;
-    };
-    window.RX_CLOUD.push=async function(k){
-      try{
-        var raw=localStorage.getItem(k);if(raw==null)return;
-        var enc=await encryptText(raw,RX_PASS);
-        await cloud.database.from('rx_sync').upsert({key:k,value:enc}).select();
-      }catch(e){}
-    };
-    /* 定期把云端拉回本地（合并，不覆盖本机未同步的改动）。
-       为什么必需：原来只在「首次打开」拉一次，之后另一台设备改了药价/新增处方，
-       本机永远看不到（用户要求「任何改动也同步」）。sessionStorage 的
-       rx_synced 只用于避免首次重载循环，与周期同步分开。 */
-    if(SYNC_ON){
-      setInterval(function(){
-        if(document.hidden) return;          /* 后台标签页不拉，省流量 */
-        window.RX_CLOUD.pullAll().then(function(changed){
-          if(changed) location.reload();      /* 云端有更新 → 重载让界面反映 */
-        });
-      }, 45000);
-      window.addEventListener('focus', function(){
-        window.RX_CLOUD.pullAll().then(function(changed){ if(changed) location.reload(); });
-      });
-    }
-    // 首次打开：拉云端，有变化则重载一次让应用用云端数据初始化
-    if(!sessionStorage.getItem('rx_synced')){
-      window.RX_CLOUD.pullAll().then(function(changed){
-        try{sessionStorage.setItem('rx_synced','1');}catch(e){}
-        if(changed){location.reload();}
-      });
-    }
-  }
-  var s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js';
-  s.onload=initCloud;
-  s.onerror=function(){ /* 离线或 CDN 不可达，跳过云端 */ };
-  document.head.appendChild(s);
 })();
 
 /* =====================================================================
@@ -5002,8 +4840,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 html.sc-on::-webkit-scrollbar-thumb{background:var(--pri)!important}
 </style>
 
-<script src="drugs_data.js"></script>
-<script src="history_data.js"></script>
+<!-- 数据全部来自 Supabase；不再加载本地内置数据文件。 -->
 <script>
 /* =========================================================
    阿田药方打印
@@ -5013,25 +4850,82 @@ html.sc-on::-webkit-scrollbar-thumb{background:var(--pri)!important}
         单剂药费 = Σ(单价×数量)
         合计 = 单剂药费×剂数 + 加工费用 + 物品费用 + 代煎费 + 跑腿费
    ========================================================= */
-var LS_DRUGS='rx_drugs_v3', LS_SAVED='rx_saved_v3', LS_SET='rx_set_v3', LS_HISTEDIT='rx_hist_edit_v1';
+var LS_SET='rx_set_v3', LS_HISTEDIT='rx_hist_edit_v1';
+/* =====================================================================
+   ☁ 云端存储层（唯一数据源：Supabase）
+   ---------------------------------------------------------------------
+   业务数据不再写浏览器 RX_STORE / sessionStorage / IndexedDB。
+   这里提供一套同步 API（getItem / setItem / removeItem），启动时从
+   Supabase 的 guests 表读取 KV 数据到内存，写入时按 key 防抖 upsert。
+   页面读取的是「云端数据的内存副本」，云端才是唯一事实来源。
+   ===================================================================== */
+var RX_STORE=(function(){
+  var mem={}, timers={}, PREFIX='__kv__';
+  function has(k){ return Object.prototype.hasOwnProperty.call(mem,k); }
+  function getItem(k){
+    k=String(k);
+    return has(k)?mem[k]:null;
+  }
+  function setItem(k,v){
+    k=String(k); v=(v==null?'':String(v));
+    mem[k]=v;
+    schedule(k,false);
+  }
+  function removeItem(k){
+    k=String(k);
+    if(has(k)) delete mem[k];
+    schedule(k,true);
+  }
+  function clear(){
+    for(var k in mem){ if(has(k)){ delete mem[k]; schedule(k,true); } }
+  }
+  function keys(){ var out=[]; for(var k in mem){ if(has(k)) out.push(k); } return out; }
+  function schedule(k,del){
+    if(typeof SUPA==='undefined' || !SUPA.on) return;
+    if(timers[k]) clearTimeout(timers[k]);
+    timers[k]=setTimeout(function(){ timers[k]=null; push(k,del); }, 600);
+  }
+  function push(k,del){
+    if(typeof SUPA==='undefined' || !SUPA.on) return;
+    var nm=PREFIX+k;
+    if(del){
+      SUPA.q('guests?name=eq.'+encodeURIComponent(nm),{method:'DELETE'})
+        .catch(function(e){ console.warn('云端删除失败:',k, e&&e.message); });
+      return;
+    }
+    if(!has(k)) return;
+    SUPA.q('guests?on_conflict=name',{method:'POST',body:{name:nm,prices:{v:mem[k]}}})
+      .catch(function(e){ console.warn('云端保存失败:',k, e&&e.message); });
+  }
+  /* 启动时一次性把云端 KV 载入内存；失败则内存保持空（页面就显示为空，绝不读本地） */
+  function load(){
+    if(typeof SUPA==='undefined') return Promise.reject(new Error('SUPA 未定义'));
+    return SUPA.qAll('guests?select=name,prices').then(function(rows){
+      mem={};
+      (rows||[]).forEach(function(r){
+        var nm=String((r&&r.name)||'');
+        if(nm.indexOf(PREFIX)!==0) return;
+        var k=nm.slice(PREFIX.length), p=(r&&r.prices)||{};
+        if(typeof p.v==='string') mem[k]=p.v;
+        else if(p.v!=null) mem[k]=JSON.stringify(p.v);
+      });
+      return keys().length;
+    });
+  }
+  return { getItem:getItem, setItem:setItem, removeItem:removeItem, clear:clear,
+           keys:keys, load:load, push:push, PREFIX:PREFIX,
+           _mem:function(){ return mem; } };
+})();
 /* ---------------- 已删除处方「墓碑」（2026-10-14）----------------
-   事故：用户把一条处方删掉后，它过一会儿又冒出来。
-   两个原因叠加：
-   ① 删除只做了 SAVED.splice + 写本机，**没删云端** → 下次 loadNew
-      从云端拉回来，等于没删。
-   ② 云端若被从别处删掉，本机 localStorage 还留着 → 「本地补推云端」
-      又把它当新记录插回云端。
-   对策：删除时把编号记进墓碑表，之后本机合并、补推、云端拉取
-        一律跳过墓碑编号 —— 删了就是删了，不会复活。
-   墓碑只认处方编号（每条处方编号唯一，重新保存也会是新编号），
-   误删可在浏览器控制台执行 localStorage.removeItem('rx_deleted_v3') 撤销。 */
+   删除后把编号记进云端墓碑表，之后本机合并、补推、云端拉取
+   一律跳过墓碑编号 —— 删了就是删了，不会复活。 */
 var LS_DEL='rx_deleted_v3';
-function delTomb(){ try{ var o=JSON.parse(localStorage.getItem(LS_DEL)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
+function delTomb(){ try{ var o=JSON.parse(RX_STORE.getItem(LS_DEL)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
 function isDelNo(no){ return !!delTomb()[no]; }
-function markDelNo(no){ if(!no) return; var m=delTomb(); m[no]=Date.now(); try{ localStorage.setItem(LS_DEL, JSON.stringify(m)); }catch(e){} }
-/* 数据文件顶层变量用 var（RX_DRUGS_SRC / RX_HISTORY_SRC），兼容旧的 const 名字。 */
-var DRUGS_ORIG  = (typeof RX_DRUGS_SRC!=='undefined'?RX_DRUGS_SRC:(typeof DRUGS!=='undefined'?DRUGS:[])).slice();
-var HISTORY_ORIG= (typeof RX_HISTORY_SRC!=='undefined'?RX_HISTORY_SRC:(typeof HISTORY!=='undefined'?HISTORY:[])).slice();
+function markDelNo(no){ if(!no) return; var m=delTomb(); m[no]=Date.now(); RX_STORE.setItem(LS_DEL, JSON.stringify(m)); }
+/* 内置数据文件（drugs_data.js / history_data.js）不再加载：
+   一切以 Supabase 为准，云端没有就显示为空。 */
+var HISTORY_ORIG=[];
 
 var SAVED=[];            // 本机保存的处方
 var HIST_EDIT={};        // 书剑历史处方的就地修改（key=rxKey），保存时覆盖原记录而不新建
@@ -5133,16 +5027,15 @@ function toastErr(m){ toast(m,'err'); }
 
 /* ---------------- 备注常用词（可增删） ---------------- */
 var NOTE_KEY='rx_notes_v1';
-var ADDR_KEY='rx_addr_v1';        /* 姓名 → [{a:地址, p:跑腿价, e:闪送价}]，隐私数据，仅本机 */
+var ADDR_KEY='rx_addr_v1';        /* 姓名 → [{a:地址, p:跑腿价, e:闪送价}]，存 Supabase addresses 表 */
+var ADDR_MAP={};                  /* 云端 addresses 表的内存副本 */
+var NOTE_LIST=[];                 /* 云端 notes 表的内存副本 */
 
 /* 自动本地备份已移除：数据统一存 Supabase 云端，不再写本机备份文件。
    保留 autoBackup() 空函数，避免核心保存路径（处方/药价/设置）调用报错。 */
 function autoBackup(){}
-function loadAddrs(){
-  try{ var s=localStorage.getItem(ADDR_KEY); var o=s?JSON.parse(s):{};
-    return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; }
-}
-function saveAddrMap(m){ localStorage.setItem(ADDR_KEY,JSON.stringify(m||{})); autoBackup(); }
+function loadAddrs(){ return ADDR_MAP; }
+function saveAddrMap(m){ ADDR_MAP=(m&&typeof m==='object')?m:{}; }
 function addrsOf(name){
   var m=loadAddrs(), k=String(name||'').trim();
   if(!k) return [];
@@ -5208,13 +5101,7 @@ function supaPushAddr(k, list){
 function supaPushNotes(list){
   if(!SUPA.on) return;
   if(!list||!list.length){ console.warn('⛔ 备注列表为空，跳过上传'); return; }
-  /* 只推用户自己加的：loadNotes() 在本机无记录时会返回内置默认 NOTE_DEF，
-     原样上云会导致「用户删掉的默认备注在别的设备上复活」。 */
-  var mine=(Array.isArray(list)?list:[]).filter(function(t){
-    return t && NOTE_DEF.indexOf(t)<0;
-  });
-  if(!mine.length){ console.log('只有内置默认备注，无需上云'); return; }
-  SUPA.saveNotes(mine).catch(function(e){ console.warn('备注上云失败:', e.message); supaSaveFail('备注：'+e.message); });
+  SUPA.saveNotes(list).catch(function(e){ console.warn('备注上云失败:', e.message); supaSaveFail('备注：'+e.message); });
 }
 function supaDelAddrRow(name, addr){
   if(!SUPA.on||!name||!addr) return;
@@ -5224,94 +5111,28 @@ function supaDelNoteRow(text){
   if(!SUPA.on||!text) return;
   SUPA.delNote(text).catch(function(e){ console.warn('备注删除同步失败:', e.message); });
 }
-/* ---------- 地址/备注：云端 ↔ 本机 合并（兼数据迁移）----------
-   2026-10-07 16:00。此前两者只存 localStorage，第一次打开新版时
-   需要把本机已有数据搬上云。
-
-   合并口径：**本机优先**（同名同地址以本机的价格为最新），
-   只把「云端有、本机没有」的补进本机，并把「本机有、云端没有」的推上云。
-   绝不用「本机全量覆盖云端」——那正是 IRON_RULES 第十条禁止的覆盖式写入，
-   会把另一台设备上更新的地址/价格冲掉。 */
+/* ---------- 地址 / 常用备注：只从云端加载 ----------
+   两者分别以 Supabase addresses / notes 表为唯一来源，本地不再保留副本。 */
 function rxMergeAddrs(cloud){
-  var local=loadAddrs();
-  cloud=(cloud&&typeof cloud==='object')?cloud:{};
-
-  /* ① 云端 → 本机（本机没有的补上；本机有的保留本机价） */
-  var addedLocal=0, pushed=[], keys={};
-  for(var k in local) keys[k]=1;
-  for(var ck in cloud){
-    if(!Array.isArray(cloud[ck])) continue;
-    if(!keys[ck]){ local[ck]=cloud[ck]; addedLocal++; continue; }
-    /* 同一患者：把云端有而本机没有的地址补进来 */
-    var have={};
-    for(var i=0;i<local[ck].length;i++) have[local[ck][i].a]=1;
-    for(var j=0;j<cloud[ck].length;j++){
-      if(!have[cloud[ck][j].a]){ local[ck].push(cloud[ck][j]); }
-    }
-  }
-  /* ② 本机 → 云端（迁移：只推本机有内容的那些患者） */
-  for(var nk in local){
-    if(Array.isArray(local[nk]) && local[nk].length) pushed.push(nk);
-  }
-  if(Object.keys(local).length) saveAddrMap(local);
-
-  /* ③ 写回本机（渲染用） */
-  for(var ak in local){
-    if(Array.isArray(local[ak])) renderAddrMenu && renderAddrMenu();
-  }
-  if(addedLocal && renderAddrMenu) renderAddrMenu();
-
-  var jobs=pushed.map(function(nm){ return SUPA.saveAddr(nm, local[nm]).catch(function(e){
-    console.warn('地址迁移上云失败('+nm+'):', e.message); return null; });
-  });
-  if(jobs.length){
-    Promise.all(jobs).then(function(){
-      console.log('地址已上云：'+pushed.length+' 位患者、'
-        +pushed.reduce(function(s,nm){ return s+local[nm].length; },0)+' 条地址');
-    });
-  }
-  return local;
+  /* addresses 表是唯一来源；云端没有就是空。 */
+  ADDR_MAP=(cloud&&typeof cloud==='object')?cloud:{};
+  if(typeof renderAddrMenu==='function') renderAddrMenu();
+  return ADDR_MAP;
 }
 function rxMergeNotes(cloud){
-  var local=loadNotes();
-  cloud=Array.isArray(cloud)?cloud:[];
-  /* ⚠ 内置默认备注（NOTE_DEF）不参与上云（2026-10-07 16:20 修）。
-     原因：loadNotes() 在本机没有记录时会返回 NOTE_DEF 这 8 条，
-     若原样上云，用户下次删掉某条默认备注 → 云端删掉了，
-     但下一台设备（或本机清缓存后）又会把默认的 8 条推回去，
-     出现「删掉的备注自己复活」。
-     真正需要迁移的只有用户**自己添加**的那些。 */
-  var mine=local.filter(function(t){ return NOTE_DEF.indexOf(t)<0; });
-
-  if(!cloud.length){
-    if(mine.length){
-      SUPA.saveNotes(mine).then(function(){
-        console.log('常用备注已上云：'+mine.length+' 条（不含内置默认）');
-      }).catch(function(e){ console.warn('备注迁移上云失败:', e.message); });
-    }
-    return local;
-  }
-  /* 云端有 → 补进本机（云端是权威来源，默认值本来就在 NOTES 里有） */
+  /* notes 表是唯一来源；云端没有就是空，不再返回内置默认备注。 */
   var seen={}, merged=[];
-  cloud.forEach(function(t){ if(t&&!seen[t]){ seen[t]=1; merged.push(t); } });
-  var added=0;
-  mine.forEach(function(t){ if(!seen[t]){ seen[t]=1; merged.push(t); added++; } });
-  saveNotes(merged);
-  if(added) console.log('从云端补回常用备注 '+added+' 条');
-  /* 合并结果整表推一次（on_conflict=text 幂等，不会产生重复） */
-  SUPA.saveNotes(merged).catch(function(e){ console.warn('备注上云失败:', e.message); });
-  renderNoteMenu && renderNoteMenu();
+  (Array.isArray(cloud)?cloud:[]).forEach(function(t){
+    t=String(t==null?'':t).trim();
+    if(t&&!seen[t]){ seen[t]=1; merged.push(t); }
+  });
+  NOTE_LIST=merged;
+  if(typeof renderNoteMenu==='function') renderNoteMenu();
   return merged;
 }
-var NOTE_DEF=['水煎服','代煎','日2次 温服','日3次 饭后服','打细粉','外用','泡脚','山萸肉另包自己酒制'];
-function loadNotes(){
-  try{
-    var s=localStorage.getItem(NOTE_KEY);
-    if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; }
-  }catch(e){}
-  return NOTE_DEF.slice();
-}
-function saveNotes(a){ localStorage.setItem(NOTE_KEY,JSON.stringify(a)); autoBackup(); }
+var NOTE_DEF=[];   /* 内置默认备注已移除：云端没有就显示为空 */
+function loadNotes(){ return NOTE_LIST.slice(); }
+function saveNotes(a){ NOTE_LIST=Array.isArray(a)?a.slice():[]; }
 function renderNoteMenu(){
   var box=$('noteMenu'); if(!box) return;
   var list=loadNotes();
@@ -5733,7 +5554,7 @@ function sfxApply(list){
 }
 function sfxLoad(){
   var raw=null;
-  try{ raw=JSON.parse(localStorage.getItem(LS_SFX)||'null'); }catch(e){ raw=null; }
+  try{ raw=JSON.parse(RX_STORE.getItem(LS_SFX)||'null'); }catch(e){ raw=null; }
   var arr=[], seen={};
   if(raw && raw.length){
     for(var i=0;i<raw.length;i++){
@@ -5745,9 +5566,7 @@ function sfxLoad(){
       arr.push({n:n, py:py||pyByChar(n)||''});
     }
   }
-  if(!arr.length){
-    for(var j=0;j<SFX_DEFAULT.length;j++) arr.push({n:SFX_DEFAULT[j], py:pyByChar(SFX_DEFAULT[j])||''});
-  }
+  /* 云端没有后缀时就是空列表，不再用内置默认值兜底 */
   sfxApply(arr);
 }
 function sfxSave(list){
@@ -5760,10 +5579,10 @@ function sfxSave(list){
     out.push({n:n, py:py||pyByChar(n)||''});
   }
   sfxApply(out);
-  try{ localStorage.setItem(LS_SFX, JSON.stringify(out)); }catch(e){}
+  RX_STORE.setItem(LS_SFX, JSON.stringify(out));
   return out;
 }
-sfxLoad();
+/* sfxLoad() 在 init() 里调用（此时云端 KV 已载入内存） */
 /* =========================================================
    后缀「使用记忆」（2026-10-30 第八轮）
    用户要求：不要再按药性给每味药无脑塞「先煎 / 后下」，只有**这味药真的用过**
@@ -6139,7 +5958,7 @@ function rxFitCols(){
    三根 .vsplit 分别调 left / pl / right 的宽度，center 用 flex:1 自动填满。
    · 用 mousedown/mousemove/mouseup + rAF 节流，拖动跟手；
    · 每栏有 minWidth，拖不塌；center 也留了 360px 下限；
-   · 宽度存 localStorage（rx_cols_v1），下次打开恢复；
+   · 宽度存 RX_STORE（rx_cols_v1），下次打开恢复；
    · 窗口变窄时若总宽超出可用空间，等比回缩三栏，保证不撑破布局。
    不改任何业务逻辑，纯布局。 */
 /* 三栏的可拖下限。与 CSS 里 .main>.panel.* 的 min-width 保持一致，
@@ -6147,7 +5966,7 @@ function rxFitCols(){
 var VS_MIN = { left:200, pl:280, right:280, center:560 };
 var VS_DEF = { left:272, pl:330, right:330 };
 var VS_KEY = 'rx_cols_v1';
-var VS_MAX = 1200;         /* 单栏上限：localStorage 被写坏时不至于把别的栏挤没 */
+var VS_MAX = 1200;         /* 单栏上限：RX_STORE 被写坏时不至于把别的栏挤没 */
 /* center 是处方笺，实测 3 列网格在 560px 时每格 190px（药名+克数+脚注都不挤）；
    240px 时每格只剩 70px、#rxSheet 内层被裁 188px，药名剂量全叠一起。
    所以 560px 是硬地板：视口不够就让三栏先让，绝不压 center。 */
@@ -6158,7 +5977,7 @@ function vsMain(){ return document.querySelector('.main'); }
 
 function vsRead(){
   var o = null;
-  try{ o = JSON.parse(localStorage.getItem(VS_KEY)||'null'); }catch(e){ o=null; }
+  try{ o = JSON.parse(RX_STORE.getItem(VS_KEY)||'null'); }catch(e){ o=null; }
   if(!o || typeof o!=='object') o = {};
   var w = { left:o.left, pl:o.pl, right:o.right };
   for(var k in VS_DEF){
@@ -6170,7 +5989,7 @@ function vsRead(){
   return w;
 }
 function vsWrite(w){
-  try{ localStorage.setItem(VS_KEY, JSON.stringify(w)); }catch(e){}
+  try{ RX_STORE.setItem(VS_KEY, JSON.stringify(w)); }catch(e){}
 }
 function vsApply(w){
   var m = vsMain(); if(!m) return;
@@ -6222,7 +6041,7 @@ function vsFit(w){
        横向滚动 350px。这与本函数注释「视口不够就让三栏先让，绝不压 center」矛盾。
        现在改成：压缩**总是执行**，只是系数不同 —— 宽裕时 k 让 center 刚好够地板
        （与原逻辑一致），紧张时 k 钳到 0 → 三栏压到 VS_MIN、center 仍保 560 地板。
-       localStorage 里的用户栏宽不变（vsFit 只写 CSS 变量，不写存储）。 */
+       RX_STORE 里的用户栏宽不变（vsFit 只写 CSS 变量，不写存储）。 */
     var room = avail - VS_WC_FLOOR;
     var over = { l:a.left-VS_MIN.left, p:a.pl-VS_MIN.pl, r:a.right-VS_MIN.right };
     var oSum = over.l + over.p + over.r;
@@ -6316,7 +6135,7 @@ function vsBind(){
     })(splits[i]);
   }
 
-  /* 窗口尺寸变化时只重排，不改 localStorage ——
+  /* 窗口尺寸变化时只重排，不改 RX_STORE ——
      用户拖出来的宽度是宝贵的，窗口临时变小不该被永久压缩掉。
      窗口变大时宽度自动就回来了（vsFit 是纯函数，且存的是绝对 px 不是比例）。 */
   var rt = 0;
@@ -6735,7 +6554,7 @@ function collectRecord(no){
 /* ================= 客人管理（2026-10-30 重写） =================
    布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
    数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
-        常用方  → 本机 localStorage rx_gcommon_v1 + 云端 doctors.prices.__gcommon（双向同步）
+        常用方  → 本机 RX_STORE rx_gcommon_v1 + 云端 doctors.prices.__gcommon（双向同步）
         历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
 var GUESTS={};
 var GUEST_CUR='';
@@ -6771,11 +6590,9 @@ function guestFromRow(r){
           phone:p.phone||'', addr:p.addr||'', ctype:p.ctype||'散客',
           pins:(p.pins||[]).slice(0,3), stars:(p.stars||{})};
 }
-function gstCacheSave(){
-  try{ localStorage.setItem('rx_guests_cache_v1', JSON.stringify(GUESTS)); }catch(e){}
-}
+function gstCacheSave(){ /* 客人档案的唯一来源是 doctors 表，不再缓存到本地 */ }
 function guestSave(g){
-  GUESTS[g.name]=g; gstCacheSave();
+  GUESTS[g.name]=g;
   if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   var row=guestRowOf(g);
   /* 云端已有常用方、但本机还没拉到（网络失败/新设备）时，先取回来再写，
@@ -6793,16 +6610,11 @@ function guestSave(g){
   }).catch(function(e){ toastErr('客户资料写库失败：'+e.message); });
 }
 function guestLoadAll(){
-  /* 先用本机缓存秒开，再用云端覆盖（换设备时云端才是最新的） */
-  try{
-    var c=JSON.parse(localStorage.getItem('rx_guests_cache_v1')||'null');
-    if(c && typeof c==='object') GUESTS=c;
-  }catch(e){}
+  /* 客人档案只从 Supabase doctors 表加载；云端没有就是空。 */
   if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?select=name,prices').then(function(rows){
     GUESTS={};
     (rows||[]).forEach(function(r){ if(r && r.name) GUESTS[r.name]=guestFromRow(r); });
-    gstCacheSave();
     /* 同一张表里 prices 还存着「药名 → 重要客人价格」，另外捞一份给 DOCTORS 用 */
     CLOUD_DOC_PRICES={}; CLOUD_DOC_RATES={};
     (rows||[]).forEach(function(r){
@@ -6841,14 +6653,14 @@ function guestLoadAll(){
         if(!old || wc>wo || (wc===wo && String(c2.updatedAt||'')>String(old.updatedAt||''))) byId[c2.id]=c2;
       }
       GST_CF=Object.keys(byId).map(function(k){ return byId[k]; });
-      try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
+      try{ RX_STORE.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
     }
     GST_CF_CLOUD_READY=true;
     try{ purgeTestGuests(); }catch(e){}
   }).catch(function(e){ console.warn('客户资料拉取失败:',e.message); });
 }
 function guestDelete(name){
-  delete GUESTS[name]; gstCacheSave();
+  delete GUESTS[name];
   if(!(window.SUPA && SUPA.on)) return Promise.resolve();
   return SUPA.q('doctors?name=eq.'+encodeURIComponent(name),{method:'DELETE'})
     .catch(function(e){ toastErr('删除失败：'+e.message); });
@@ -6856,11 +6668,11 @@ function guestDelete(name){
 
 /* ---------- 常用方数据层 ---------- */
 function gstLoadCf(){
-  try{ var a=JSON.parse(localStorage.getItem(GST_CF_LS)||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
+  try{ var a=JSON.parse(RX_STORE.getItem(GST_CF_LS)||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
 }
 function gstCfPersist(){
-  try{ localStorage.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
-  if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push(GST_CF_LS); }catch(e){} }
+  /* 常用方：Supabase KV（rx_gcommon_v1）+ doctors.prices.__gcommon 两处均为云端 */
+  RX_STORE.setItem(GST_CF_LS, JSON.stringify(GST_CF));
   if(GST_CF_CLOUD_READY){ try{ supaPushCommon(); }catch(e){} }
 }
 /* 常用方 → 云端 doctors.prices.__gcommon（按客户名分组，内置 guest 标签）。
@@ -6947,15 +6759,14 @@ function gstBuildItems(text, guest){
 /* ---------- 药方打印订单（只读汇总 + 已结/未结标记） ---------- */
 function gstOrdersRaw(){
   try{
-    var raw=JSON.parse(localStorage.getItem('rx_wplan_v1')||'[]');
+    var raw=JSON.parse(RX_STORE.getItem('rx_wplan_v1')||'[]');
     if(Array.isArray(raw)) return raw;
     if(raw && Array.isArray(raw.orders)) return raw.orders;
   }catch(e){}
   return [];
 }
 function gstOrdersWrite(arr){
-  try{ localStorage.setItem('rx_wplan_v1', JSON.stringify(arr)); }catch(e){}
-  if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push('rx_wplan_v1'); }catch(e){} }
+  RX_STORE.setItem('rx_wplan_v1', JSON.stringify(arr));
 }
 function gstIsPaid(o){ return !!(o && (o.paid==='1' || o.paid===true || o.paid==='paid')); }
 function gstOrderAmount(o){
@@ -7662,7 +7473,7 @@ function openStat(){ STAT_KIND=0; statRender(); $('mStat').classList.add('on'); 
    医生识别：**从姓名自动提取**。同一姓名第一次以医生身份保存后即建立档案，
    之后处方笺里再出现这个名字，就自动按该医生的专属价库计价。
 
-   数据结构（localStorage: rx_doctors_v1，也参与云端加密同步）：
+   数据结构（RX_STORE: rx_doctors_v1，也参与云端加密同步）：
    {
      "陈医生": {
        n:"陈医生", at:"2026-10-05 12:00",     // 建档时间
@@ -7804,12 +7615,11 @@ function joinItems(items){
   }).join('     ');
 }
 
-/* ---------- 1. 拉取全部历史处方，替换页面内置数据 ---------- */
+/* ---------- 1. 拉取全部历史处方（唯一来源：Supabase，云端没有则为空） ---------- */
 SUPA.loadHist=function(){
   return SUPA.qAll('prescriptions?select=*&is_hist=eq.true&order=dt.asc')
   .then(function(rows){
-    if(!rows||!rows.length) throw new Error('云端没有历史处方');
-    HISTORY_ORIG=rows.map(supaRowToRec);
+    HISTORY_ORIG=(rows||[]).map(supaRowToRec);
     SUPA.on=true;
     return HISTORY_ORIG.length;
   });
@@ -7824,7 +7634,7 @@ function rxCalibDrugFloor(n){
   if(c>RX_DRUG_FLOOR) RX_DRUG_FLOOR=c;   /* 只升不降，避免异常低值把门槛拉低 */
 }
 /* noSave=true：只读刷新（划价前实时拉库用）——换 drugsList + 重建索引，
-   不写 localStorage、不触发整表 upsert、不写备份，纯读取零副作用。 */
+   不写 RX_STORE、不触发整表 upsert、不写备份，纯读取零副作用。 */
 /* ---------- 药名尾缀统一方括号（2026-10-28 用户要求）----------
    「XXX{备注}」→「XXX[备注]」；已经是 [备注] 或没有后缀的条目一律不动。
    书剑/历史数据本来就是方括号，程序里 splitSfx 也只认方括号，这里把旧名洗一遍，
@@ -7874,19 +7684,15 @@ function brkScheduleCleanup(pairs){
 SUPA.loadDrugs=function(noSave){
   return SUPA.qAll('drugs?select=*&order=name')
   .then(function(rows){
-    if(!rows||!rows.length) throw new Error('云端没有药价');
+    rows=rows||[];
     rxCalibDrugFloor(rows.length);
-    /* 云端没有 whitelist 之外的列（批发价/专属价只存本机），换表前先按药名把这两个价带过去 */
-    var prev={};
-    for(var q=0;q<drugsList.length;q++){ var pd=drugsList[q]; if(pd&&pd.n) prev[brkNormName(pd.n)]=pd; }
     drugsList=rows.map(function(r){
-      var nm=brkNormName(r.name), old=prev[nm];
-      return {n:nm,u:r.unit||'g',c:r.usage||'',tc:r.tccat||'',py:r.py||'',
+      return {n:brkNormName(r.name),u:r.unit||'g',c:r.usage||'',tc:r.tccat||'',py:r.py||'',
               dw:'',cat:r.category||'中药',bp:r.cost==null?'':String(r.cost),
               p:r.price==null?'':String(r.price),st:'',
               dp:r.daily_price==null?'':String(r.daily_price),
-              wp:(r.wp!=null)?String(r.wp):((old&&old.wp!=null)?old.wp:''),
-              rates:(r.rates&&typeof r.rates==='object')?r.rates:((old&&old.rates)||null),
+              wp:(r.wp!=null)?String(r.wp):'',
+              rates:(r.rates&&typeof r.rates==='object')?r.rates:null,
               og:r.origin||'', al:Array.isArray(r.aliases)?r.aliases:[],
               un:Array.isArray(r.units)?r.units:[]};
     });
@@ -7912,11 +7718,10 @@ SUPA.loadDrugs=function(noSave){
     /* 一药多规格：云端没有 stock 列，库存只存在 units jsonb 里 →
        主规格库存要从「同单位镜像」回读（dmNormalizeSpecs 里做），顺便清掉空/重复单位。 */
     for(var q2=0;q2<drugsList.length;q2++){ if(drugsList[q2]) dmNormalizeSpecs(drugsList[q2]); }
-    if(noSave){ buildIndex(); } else { saveDrugsLS(); }
-    /* 云端数据已经覆盖本机目录 → 启动时按「本机旧缓存」排的旧药名迁移队列作废。
-       否则 8 秒后那次 upsert 会把本机残留的旧条目（如 田七{20头}）重新插回云端。 */
+    buildIndex();
+    /* 云端数据已经加载完 → 旧药名迁移队列作废；放闸允许后续整表上传。 */
     _brkPending=[]; if(_brkTimer){ clearTimeout(_brkTimer); _brkTimer=null; }
-    SUPA.drugsPulled=true;          /* 放闸：之后才允许整表上传回云端 */
+    SUPA.drugsPulled=true;
     return drugsList.length;
   });
 };
@@ -7930,6 +7735,11 @@ SUPA.savePurchase=function(rec){
 };
 SUPA.loadCostLog=function(name){
   return SUPA.q('drug_cost_log?drug=eq.'+encodeURIComponent(name)+'&order=created_at.desc&limit=300')
+    .then(function(rows){ return rows||[]; });
+};
+/* 进货价历史全量（进货单页启动时用）：云端唯一来源 */
+SUPA.loadAllCostLogs=function(){
+  return SUPA.qAll('drug_cost_log?select=*&order=created_at.desc')
     .then(function(rows){ return rows||[]; });
 };
 SUPA.addCostLog=function(row){
@@ -7948,8 +7758,8 @@ function rxDupKey(rec){
 }
 /* ================= 一次性清理：助手验证测试数据（2026-10-07 16:50）=================
    助手做浏览器自动化验证时，用loadRx() 灌过一张名为「截图测试」的假处方，
-   当时页面把它当新处方写进了**本机 localStorage 和云端数据库**。
-   云端那条已手工 DELETE，但**各设备本机 localStorage（rx_saved_v3）里还留着**，
+   当时页面把它当新处方写进了**本机 RX_STORE 和云端数据库**。
+   云端那条已手工 DELETE，但**各设备本机 RX_STORE（rx_saved_v3）里还留着**，
    用户刷新页面仍会看到它（数据先读本机、再与云端合并）。
 
    这里做一次性清理：命中测试编号/测试姓名就从本机 SAVED 与云端一起删掉。
@@ -7966,10 +7776,7 @@ function purgeTestData(){
         if(bad){ hit++; return false; }
         return true;
       });
-      if(keep.length!==SAVED.length){
-        SAVED=keep;
-        localStorage.setItem(LS_SAVED, JSON.stringify(SAVED));
-      }
+      if(keep.length!==SAVED.length){ SAVED=keep; }
     }
   }catch(e){}
   /* 云端同样清一遍（已删过就是 204/404，幂等） */
@@ -7981,10 +7788,7 @@ function purgeTestData(){
     });
     SUPA.q('prescriptions?name=eq.'+encodeURIComponent('截图测试'), {method:'DELETE'}).catch(function(){});
   }catch(e){}
-  if(hit){
-    try{ localStorage.setItem(RX_TESTKEY,'purged'); }catch(e){}
-    console.warn('已清理测试处方数据', hit, '条');
-  }
+  if(hit){ console.warn('已清理测试处方数据', hit, '条'); }
   return hit;
 }
 SUPA.loadNew=function(){
@@ -8005,16 +7809,10 @@ SUPA.loadNew=function(){
          也绝不能少显示一条（用户根本不知道它存在）。 */
     var map={}, order=[];
     function put(r){ if(r&&r.no){ if(!(r.no in map)) order.push(r.no); map[r.no]=r; } }
-    /* 墓碑（已删除）一律跳过：不显示、不补推 —— 删了就不会复活 */
+    /* 唯一来源是云端 prescriptions 表。墓碑（已删除）一律跳过，删了就不会复活。 */
     (rows||[]).forEach(function(r){ if(isDelNo(r.no)) return; put(supaRowToRec(r)); });
-    (Array.isArray(SAVED)?SAVED:[]).forEach(function(r){ if(isDelNo(r.no)) return; put(r); });   /* 本机与云端互不覆盖 */
     SAVED=order.map(function(k){ return map[k]; });
     if(!Array.isArray(SAVED)) SAVED=[];
-    try{ localStorage.setItem(LS_SAVED, JSON.stringify(SAVED)); }catch(e){}
-    /* 注：曾在此处加过「本机有、云端没有 → 自动补推回云端」的救援逻辑，
-       用于恢复被误删的 20 条真实处方（2026-10-14 已全部恢复完毕）。
-       现已移除：它会把「用户主动从云端删掉的处方」又插回云端，造成删了又出现。
-       删除的唯一正确做法是本机+云端同时删（见 markDelNo 墓碑 + DELETE 请求）。 */
     return SAVED.length;
   });
 };
@@ -8077,7 +7875,6 @@ SUPA.saveRx=function(rec){
         if(tries>0){
           var fresh=(typeof newRxNo==='function')?newRxNo():('RX'+Date.now()+'-'+rxNoSalt());
           rec.no=fresh; row.no=fresh;
-          try{ localStorage.setItem(LS_SAVED, JSON.stringify(SAVED)); }catch(e2){}
           console.warn('编号被占用，已改为 '+fresh);
           return attempt(tries-1);
         }
@@ -8159,7 +7956,7 @@ SUPA.probeExt=function(){
 };
 
 /* ---------- 9. 配送地址（2026-10-07 16:00 上云）----------
-   🔴 之前只存 localStorage（ADDR_KEY='rx_addr_v1'），换设备看不到，
+   🔴 之前只存 RX_STORE（ADDR_KEY='rx_addr_v1'），换设备看不到，
    地址还是处方上的关键信息（跑腿/闪送要寄到哪），必须上云。
    表结构（supabase_schema.sql 第 5 节）：
      addresses(id bigserial, name text, addr text, paotui numeric,
@@ -8204,7 +8001,7 @@ SUPA.loadAddrs=function(){
   });
 };
 /* ---------- 10. 常用备注（2026-10-07 16:00 上云）----------
-   之前只存 localStorage（NOTE_KEY='rx_notes_v1'）。表结构：
+   之前只存 RX_STORE（NOTE_KEY='rx_notes_v1'）。表结构：
      notes(id bigserial, text text unique, created_at)
    text 唯一 → 重复的备注直接靠数据库去重，不用在代码里先比对。 */
 SUPA.saveNotes=function(list){
@@ -8233,12 +8030,9 @@ var CLOUD_DOC_PRICES={}; /* 云端 doctors.prices 里各客人的药价（换设
 var CLOUD_DOC_RATES={};  /* 云端 doctors.prices.__rates：各客人每味药的倍率 */
 
 function loadDoctors(){
-  var s=null;
-  try{ s=localStorage.getItem(LS_DOCTORS); }catch(e){}
-  if(s){ try{ DOCTORS=JSON.parse(s)||{}; }catch(e){ DOCTORS={}; } }
-  else DOCTORS={};
+  /* 客人档案 / 专属价只来自 Supabase doctors 表（见 guestLoadAll）。 */
   try{
-    var t=localStorage.getItem('rx_doctor_names_v1');
+    var t=RX_STORE.getItem('rx_doctor_names_v1');
     if(t){ var a=JSON.parse(t)||[]; for(var i=0;i<a.length;i++) DOCTOR_HINT[a[i]]=1; }
   }catch(e){}
   /* 云端各客人已存的药价补进来（本机有的优先，只补缺） */
@@ -8273,22 +8067,16 @@ function purgeTestGuests(){
     for(nm in GUESTS){ if(GUESTS.hasOwnProperty(nm) && re.test(nm) && hit.indexOf(nm)<0) hit.push(nm); }
   }
   if(!hit.length) return;
-  var done=false;
-  try{ done=!!localStorage.getItem(PURGE_GUEST_KEY); }catch(e){}
   for(i=0;i<hit.length;i++){
     nm=hit[i];
     try{ delete DOCTORS[nm]; }catch(e){}
     try{ if(typeof GUESTS!=='undefined' && GUESTS) delete GUESTS[nm]; }catch(e){}
   }
   try{ saveDoctors(); }catch(e){}
-  try{ localStorage.setItem(LS_DOCTORS, JSON.stringify(DOCTORS)); }catch(e){}
-  if(!done){
+  if(SUPA.on){
     for(i=0;i<hit.length;i++){
-      try{
-        if(SUPA.on) SUPA.q('doctors?name=eq.'+encodeURIComponent(hit[i]),{method:'DELETE'}).catch(function(){});
-      }catch(e){}
+      try{ SUPA.q('doctors?name=eq.'+encodeURIComponent(hit[i]),{method:'DELETE'}).catch(function(){}); }catch(e){}
     }
-    try{ localStorage.setItem(PURGE_GUEST_KEY,'1'); }catch(e){}
     try{ console.info('[清理测试客人] '+hit.join('、')); }catch(e){}
   }
 }
@@ -8305,25 +8093,16 @@ function purgeTestDrugs(){
     if(re.test(nm)){ hit.push(nm); return false; }
     return true;
   });
-  if(drugsList.length!==before){ try{ saveDrugsLS(); }catch(e){} }   /* 本机落盘 + 整目录回推云端（已不含测试药） */
-  if(!hit.length) return;
-  var done=false;
-  try{ done=!!localStorage.getItem(PURGE_DRUG_KEY); }catch(e){}
-  if(done || !SUPA.on) return;   /* 已清过 / 云端还没连上 → 跳过（连上后下次还会跑） */
+  if(drugsList.length!==before){ try{ saveDrugsLS(); }catch(e){} }   /* 内存目录已不含测试药 */
+  if(!hit.length || !SUPA.on) return;
   hit.forEach(function(nm){
     try{ SUPA.q('drugs?name=eq.'+encodeURIComponent(nm),{method:'DELETE'}).catch(function(){}); }catch(e){}
   });
-  try{ localStorage.setItem(PURGE_DRUG_KEY,'1'); }catch(e){}
   try{ console.info('[清理测试药] '+hit.join('、')); }catch(e){}
 }
 function saveDoctors(){
-  try{
-    localStorage.setItem(LS_DOCTORS, JSON.stringify(DOCTORS)); autoBackup();
-    localStorage.setItem('rx_doctor_names_v1', JSON.stringify(Object.keys(DOCTORS)));
-  }catch(e){}
-  if(typeof syncPatch==='function'){
-    try{ syncPatch(LS_DOCTORS, DOCTORS); }catch(e){}
-  }
+  /* 客人档案的权威存储在 doctors 表；这里只额外记住「被标记为医生」的姓名清单。 */
+  try{ RX_STORE.setItem('rx_doctor_names_v1', JSON.stringify(Object.keys(DOCTOR_HINT))); }catch(e){}
   /* 重要客人价格 → 写回数据库；顺带把「重要客人」页的折扣/备注/置顶/标星一起带上，
      否则只写药名价格会把那边的档案字段冲掉。 */
   try{
@@ -8496,8 +8275,7 @@ function persistCur(rec, keepFy){
   var k=idxOfSaved(rec.no);
   rec.__savedAt=Date.now();   /* 记录保存时刻：60 秒内同内容重复保存时复用编号（防重复） */
   if(k>=0) SAVED[k]=rec; else SAVED.unshift(rec);
-  localStorage.setItem(LS_SAVED,JSON.stringify(SAVED));
-  supaSaveNew(rec);     /* 新处方 → 写回自建数据库 */
+  supaSaveNew(rec);     /* 新处方 → 唯一持久化目标：Supabase prescriptions 表 */
 }
 /* 同步前的空明细拦截（2026-10-07 11:45）。
    `syncRecordNow` 由所有输入框的 input 事件经 400ms 防抖触发，
@@ -8670,7 +8448,6 @@ function setFa(mark){
   /* 撤消发药：把【发】标记清空，左侧列表同步去掉 */
   SAVED[k].fy=mark;
   curRec=SAVED[k];
-  localStorage.setItem(LS_SAVED,JSON.stringify(SAVED));
   renderHistory();
   supaFayao(curRec.no, mark);      /* 新处方发药标记 → 写回数据库 */
   toast(mark?'已发药（左侧标记【发】）':'已撤消发药（【发】已取消）');
@@ -8708,7 +8485,7 @@ function allRx(){
   }
   return out;
 }
-function saveHistEdits(){ localStorage.setItem(LS_HISTEDIT,JSON.stringify(HIST_EDIT)); autoBackup(); }
+function saveHistEdits(){ RX_STORE.setItem(LS_HISTEDIT,JSON.stringify(HIST_EDIT)); autoBackup(); }
 function rxKey(r){ return (r.no||'')+'|'+r.dt+'|'+(r.tm||'')+'|'+r.n; }
 /* 列表里的时间：同年只显示 MM-DD（省 3 个字符宽度），跨年才带年份；悬停提示仍是完整日期 */
 function histWhen(dt,tm){
@@ -8774,7 +8551,7 @@ function defaultRange(){
 /* 记住当前日期范围（下次打开若用户手动调过，可恢复） */
 function saveHRange(){
   try{
-    localStorage.setItem(LS_HRANGE, JSON.stringify({from:$('hFrom').value,to:$('hTo').value}));
+    RX_STORE.setItem(LS_HRANGE, JSON.stringify({from:$('hFrom').value,to:$('hTo').value}));
   }catch(e){}
 }
 function showToday(){
@@ -9164,7 +8941,7 @@ function printA5Silent(){
 /* 静默打小票 */
 function printRx(){
   if(!filledCount()){ toastErr('处方为空，无法打印'); return; }
-  try{ localStorage.setItem('rx_last_print','a5'); }catch(e){}
+  try{ RX_STORE.setItem('rx_last_print','a5'); }catch(e){}
   if(!AGENT_ON){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); return; }
   toast('正在打印…');
   printA5Silent().catch(function(e){
@@ -9608,24 +9385,9 @@ function copyListImage(){
    药物维护
    ========================================================= */
 function loadDrugs(){
-  var s=localStorage.getItem(LS_DRUGS);
-  if(s){ try{ drugsList=JSON.parse(s); }catch(e){ drugsList=DRUGS_ORIG.slice(); } }
-  else drugsList=DRUGS_ORIG.slice();
-  /* 离线兜底也要校准下限（2026-10-07 加）：
-     云端不可达时 SUPA.on=false，本来就不会上传；但一旦网络恢复，
-     第一批药价上传是拿本机目录去覆盖云端，下限必须已经就位。 */
-  rxCalibDrugFloor(drugsList.length);
-  /* __fresh 只是「本次会话刚新增」的临时标记，会被 saveDrugsLS 一起写进本机存储，
-     读回来时必须清掉，否则下次打开页面那行还会赖在列表末尾不走。 */
-  for(var i=0;i<drugsList.length;i++){ if(drugsList[i]) delete drugsList[i].__fresh; }
-  /* 旧药名尾缀 {备注} → [备注]：本机存储同步改掉，云端老行稍后清（见 brkScheduleCleanup） */
-  var brkPairs=brkMigrateList(drugsList);
-  if(brkPairs.length){
-    try{ localStorage.setItem(LS_DRUGS,JSON.stringify(drugsList)); }catch(e){}
-    brkScheduleCleanup(brkPairs);
-  }
-  /* 一药多规格归一：主单位的镜像条目并回 d.st 后丢掉（否则列表出现两行「g」） */
-  for(var m=0;m<drugsList.length;m++){ if(drugsList[m]) dmNormalizeSpecs(drugsList[m]); }
+  /* 药价只从 Supabase drugs 表加载（见 SUPA.loadDrugs）。
+     启动瞬间先置空，绝不读取本地内置目录文件；云端没有就显示为空。 */
+  drugsList=[];
   buildIndex();
 }
 /* 药价目录有变动 → 整目录 upsert 回数据库。
@@ -9696,7 +9458,8 @@ function supaPushDrugs(){
     }
   },1200);
 }
-function saveDrugsLS(){ localStorage.setItem(LS_DRUGS,JSON.stringify(drugsList)); buildIndex(); autoBackup(); supaPushDrugs(); }
+/* 药价目录的唯一持久化目标是 Supabase drugs 表；本函数只重建索引并触发整表写库。 */
+function saveDrugsLS(){ buildIndex(); autoBackup(); supaPushDrugs(); }
 
 /* ---------- 新增药材 → 走真正的 INSERT 写进云端（2026-10-08 加）----------
    原来新增药材只能靠 supaPushDrugs() 的「整表 upsert」顺带写进去：
@@ -9751,8 +9514,7 @@ function supaInsertNewDrugs(){
       try{ delete d.__new; }catch(e2){ d.__new=false; }
     });
   })).then(function(){
-    /* 标记清掉了，本机存储同步一次（不再触发上传，避免循环） */
-    localStorage.setItem(LS_DRUGS,JSON.stringify(drugsList));
+    /* 标记清掉了；持久化已经由 drugs 表写入完成，不再写本地副本 */
     return names.length;
   }).catch(function(e){
     console.warn('新增药材写库失败:',e.message);
@@ -11190,7 +10952,7 @@ function growCells(){
    初始化与事件
    ========================================================= */
 function loadSet(){
-  try{ SET=JSON.parse(localStorage.getItem(LS_SET)||'{}'); }catch(e){ SET={}; }
+  try{ SET=JSON.parse(RX_STORE.getItem(LS_SET)||'{}'); }catch(e){ SET={}; }
   SET.clinic=SET.clinic||''; SET.doctor=SET.doctor||''; SET.rate=SET.rate||1.5;
   SET.paper=SET.paper||'A5 portrait';
   if(SET.rcptLh==null||!(n(SET.rcptLh)>0)) SET.rcptLh=1;
@@ -11278,7 +11040,7 @@ function bind(){
     var _rlh=n($('setRxLh').value);
     SET.rxLh=(_rlh>0)?_rlh:1.6;
     SET.showPrice=$('setShowPrice').checked; SET.showClinic=$('setShowClinic').checked;
-    localStorage.setItem(LS_SET,JSON.stringify(SET)); autoBackup();
+    RX_STORE.setItem(LS_SET,JSON.stringify(SET)); autoBackup();
     if(typeof applySheetFont==='function') applySheetFont();
     /* ---- 后缀管理：和设置一起保存 ---- */
     setSfxRead();
@@ -11382,7 +11144,6 @@ function bind(){
     }
     if(!confirm('确定删除这条处方吗？\n\n'+(r.n||'未填姓名')+'　'+r.dt+' '+(r.tm||'')+'\n共 '+((r.m||'').split(/\s{2,}/).filter(Boolean).length||'?')+' 味　合计 ¥'+(r.o||'—')+'\n\n删除后不可恢复。')) return;
     SAVED.splice(idx,1);
-    localStorage.setItem(LS_SAVED,JSON.stringify(SAVED));
     /* 🔴 必须同步删云端，否则下次 loadNew 会从云端拉回来，等于没删（2026-10-14 事故）。
        同时记墓碑：即便云端别处又出现同编号，本机也不再显示/补推它。 */
     markDelNo(r.no);
@@ -12325,21 +12086,12 @@ function readCsvFile(file, cb){
 }
 function init(){
   loadSet();
+  sfxLoad();          /* 云端 KV 已在启动时载入内存 */
   loadDrugs();
-  /* 本机先把验证留下的测试药过滤掉（云端连接建立前也能清本地，连上后再清云端） */
-  try{ purgeTestDrugs(); }catch(e){}
-  /* localStorage 里的 rx_saved_v3 可能不是数组（早期版本写入过 {}，
-     或被外部改坏）。一旦SAVED 变成对象，后面 SAVED.slice()/forEach 就抛
-     TypeError，历史处方列表整个渲染不出来，且不报错。必须校验类型。 */
-  try{
-    var _sv=JSON.parse(localStorage.getItem(LS_SAVED)||'[]');
-    SAVED=(Array.isArray(_sv)?_sv.filter(function(r){return r&&r.no;}) : []);
-  }catch(e){ SAVED=[]; }
-  if(!Array.isArray(SAVED)) SAVED=[];
-  /* 一次性清理助手验证用的测试处方（必须在 SAVED 从本机读入之后、读云端之前，
-     否则 SAVED 还是空数组、过滤不到任何东西）。命中才动手，纯幂等。 */
-  try{ purgeTestData(); }catch(e){}
-  try{ HIST_EDIT=JSON.parse(localStorage.getItem(LS_HISTEDIT)||'{}'); }catch(e){ HIST_EDIT={}; }
+  /* 处方/客人数据全部在 supaBoot 里从 Supabase 拉取；启动时先保持为空。 */
+  SAVED=[];
+  HIST_EDIT={};
+  try{ HIST_EDIT=JSON.parse(RX_STORE.getItem(LS_HISTEDIT)||'{}'); }catch(e){ HIST_EDIT={}; }
   bind();
   agentPing().then(agentTips);
   setInterval(function(){ agentPing().then(agentTips); }, 30000);
@@ -12352,8 +12104,7 @@ function init(){
   loadDoctors();
   renderDrugList();
   renderPriceList();
-  if(!HISTORY_ORIG.length) toast('未加载历史处方数据（history_data.js）');
-  /* ---- 连接自建数据库：把历史处方与药价换成云端那份，改动也能写回去 ---- */
+  /* ---- 连接 Supabase：历史处方、药价、客人、地址、备注全部以云端为准 ---- */
   supaBoot();
 }
 
@@ -12372,7 +12123,7 @@ function supaLoadFail(kind, msg){
       document.body.appendChild(box);
     }
     var label={hist:'历史处方', newRx:'你新录的处方', drugs:'药价目录'}[kind]||kind;
-    box.textContent='⚠ '+label+'没能从云端加载：'+msg+'　（显示的是网页内置数据，联网后会自动恢复）';
+    box.textContent='⚠ '+label+'没能从云端加载：'+msg+'　（页面会按空数据显示，不会读取本地内置数据）';
   }catch(e){}
 }
 function supaBoot(){
@@ -12390,17 +12141,19 @@ function supaBoot(){
       SUPA.loadNew().catch(function(e){ console.warn('新处方拉取失败:', e.message); supaLoadFail('newRx', e.message); return 0; }),
       SUPA.loadDrugs().catch(function(e){ console.warn('药价拉取失败:', e.message); supaLoadFail('drugs', e.message); return 0; }),
       guestLoadAll().catch(function(e){ console.warn('重要客人数据拉取失败:', e.message); }),
-      /* 地址 + 常用备注：拉云端 → 与本机合并 → 把本机独有的补上云（= 数据迁移） */
+      /* 地址 + 常用备注：云端为唯一来源 */
       SUPA.loadAddrs().then(function(cloud){
         return rxMergeAddrs(cloud);
-      }).catch(function(e){ console.warn('地址拉取失败（仍可用本机数据）:', e.message); }),
+      }).catch(function(e){ console.warn('地址拉取失败:', e.message); return {}; }),
       SUPA.loadNotes().then(function(cloud){
         return rxMergeNotes(cloud);
-      }).catch(function(e){ console.warn('备注拉取失败（仍可用本机数据）:', e.message); })
+      }).catch(function(e){ console.warn('备注拉取失败:', e.message); return []; })
     ]);
   }).then(function(){
     renderHistory(); renderDrugList(); renderPriceList(); loadDoctors();
-    /* 云端药价（含测试药）已拉回本机，这里按药名把测试药从本机 + 云端 drugs 表一起清掉 */
+    /* 云端处方已拉回，清理历史遗留的测试处方（幂等，只删测试编号/姓名） */
+    try{ purgeTestData(); }catch(e){}
+    /* 云端药价已拉回，按药名把测试药从内存 + 云端 drugs 表一起清掉 */
     try{ purgeTestDrugs(); }catch(e){}
     /* 药物管理页（#drug）是并行渲染的：navInit 早就用本机缓存画完了，
        云端药价回来后必须重画一次，否则进货价/云端零售价要切走再切回才看得到。 */
@@ -12464,7 +12217,7 @@ function hasDoseInName(nm){ return DOSE_SUFFIX_RE.test(String(nm||'')); }
    🧭 导航与页面路由（2026-10-27）
    - 切页只改 .page 的 on 类，DOM 全部保留 → 切页不丢处方录入状态
    - hash 记忆当前页（#drug 等），刷新后停在同一页
-   - 收起/展开状态存 localStorage（rx_nav_collapsed）
+   - 收起/展开状态存 RX_STORE（rx_nav_collapsed）
    ===================================================================== */
 var NAV_ITEMS=[
   {key:'daily', tx:'日常药方打印', ico:'rx'},
@@ -12609,12 +12362,11 @@ var WPlan = (function(){
   var DOC_LS = 'rx_wplan_docs_v1';
   var WPD = {};
   function loadDocs(){
-    try{ WPD = JSON.parse(localStorage.getItem(DOC_LS)) || {}; }catch(e){ WPD = {}; }
+    try{ WPD = JSON.parse(RX_STORE.getItem(DOC_LS)) || {}; }catch(e){ WPD = {}; }
     if(WPD.orders || WPD.cur){ WPD = {}; }   /* 旧结构容错 */
   }
   function saveDocs(){
-    try{ localStorage.setItem(DOC_LS, JSON.stringify(WPD)); }catch(e){}
-    if(window.RX_CLOUD && RX_CLOUD.push){ try{ RX_CLOUD.push(DOC_LS); }catch(e){} }
+    RX_STORE.setItem(DOC_LS, JSON.stringify(WPD));
   }
   function docNames(){ var out=[], k; for(k in WPD) out.push(k); out.sort(); return out; }
   /* 往 Supabase doctors 表建独立实体（已存在则不动，避免 upsert 清掉已有价格/折扣） */
@@ -12653,7 +12405,7 @@ var WPlan = (function(){
     }
   }
   function load(){
-    try{ var s = localStorage.getItem(LS); S.orders = s ? (JSON.parse(s) || []) : []; }catch(e){ S.orders = []; }
+    try{ var s = RX_STORE.getItem(LS); S.orders = s ? (JSON.parse(s) || []) : []; }catch(e){ S.orders = []; }
     if(!Array.isArray(S.orders)) S.orders = [];
     S.orders.forEach(normalizeOrder);
     var curId = S.cur && S.cur.id;
@@ -12664,8 +12416,7 @@ var WPlan = (function(){
     loadDocs();
   }
   function save(silent){
-    try{ localStorage.setItem(LS, JSON.stringify(S.orders)); }catch(e){}
-    if(!silent && window.RX_CLOUD && window.RX_CLOUD.push){ try{ window.RX_CLOUD.push(LS); }catch(e){} }
+    RX_STORE.setItem(LS, JSON.stringify(S.orders));
   }
   function saveDebounced(){ if(_saveT) clearTimeout(_saveT); _saveT = setTimeout(function(){ save(true); }, 400); }
   function uid(){ return 'WP' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
@@ -14145,7 +13896,7 @@ var WPrint=(function(){
   function load(){
     if(S.loaded) return;
     var a=null;
-    try{ a=JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){ a=null; }
+    try{ a=JSON.parse(RX_STORE.getItem(LS)||'null'); }catch(e){ a=null; }
     if(a && a.length){
       S.tpls=a.map(function(t){
         var d=baseTpl(), k;
@@ -14158,7 +13909,7 @@ var WPrint=(function(){
     S.curId=(dft||S.tpls[0]).id;
     S.loaded=true;
   }
-  function saveLS(){ try{ localStorage.setItem(LS, JSON.stringify(S.tpls)); }catch(e){} }
+  function saveLS(){ try{ RX_STORE.setItem(LS, JSON.stringify(S.tpls)); }catch(e){} }
   function curTpl(){
     load();
     for(var i=0;i<S.tpls.length;i++){ if(S.tpls[i].id===S.curId) return S.tpls[i]; }
@@ -14615,14 +14366,14 @@ var WPrint=(function(){
 var Purchase = (function(){
   /* 进货单：录单 → 库存累加 → 进价历史 → 建议价联动；删除可回滚库存。
      ⚠ 库存严格按「药名 + 单位」匹配：同一味药的 g 和 kg 是两条独立库存。 */
-  var LS='rx_purchases_v1', LSLOG='rx_costlog_v1';
   var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[]};
   function load(){
-    try{ S.orders=JSON.parse(localStorage.getItem(LS)||'[]'); }catch(e){ S.orders=[]; }
-    try{ S.log=JSON.parse(localStorage.getItem(LSLOG)||'[]'); }catch(e){ S.log=[]; }
+    /* 进货单 / 进价历史只从 Supabase 加载（见 ensure） */
+    S.orders=[]; S.log=[];
   }
-  function saveLS(){ try{ localStorage.setItem(LS, JSON.stringify(S.orders)); }catch(e){} }
-  function saveLogLS(){ try{ localStorage.setItem(LSLOG, JSON.stringify(S.log)); }catch(e){} }
+  /* 进货单写库由 SUPA.savePurchase / SUPA.addCostLog 完成，不再保存本地副本 */
+  function saveLS(){}
+  function saveLogLS(){}
   function fmt2(x){ x=parseFloat(x)||0; return x.toFixed(2); }
   function round2(x){ return Math.round((parseFloat(x)||0)*100)/100; }
   function autoNo(){
@@ -14648,10 +14399,16 @@ var Purchase = (function(){
   }
   function ensure(){
     load();
-    if(SUPA.on){ SUPA.loadPurchases().then(function(rows){
-      if(rows&&rows.length){ rows.forEach(function(r){ upsert(S.orders,r); }); saveLS(); renderList(); }
-    }).catch(function(){}); }
     renderList();
+    if(!SUPA.on) return Promise.resolve();
+    return Promise.all([
+      SUPA.loadPurchases().catch(function(){ return []; }),
+      SUPA.loadAllCostLogs().catch(function(){ return []; })
+    ]).then(function(res){
+      S.orders=(res&&res[0])||[];
+      S.log=(res&&res[1])||[];
+      renderList();
+    });
   }
   function setSearch(v){ S.search=(v||''); renderList(); }
   function showSub(sub){
@@ -14977,8 +14734,7 @@ var Purchase = (function(){
   /* ---------- 最近一次进货价（药物管理页「建议价」用） ---------- */
   function latestCost(name){
     var nm=String(name||'').trim(); if(!nm) return null;
-    var log=S.log;
-    if(!log || !log.length){ try{ log=JSON.parse(localStorage.getItem(LSLOG)||'[]'); }catch(e){ log=[]; } }
+    var log=S.log||[];
     var best=null, bl='';
     for(var i=0;i<log.length;i++){
       var r=log[i]; if(!r) continue;
@@ -15251,7 +15007,62 @@ try{ RxCal.prepare(); }catch(e){ console.warn('Calendar prepare', e); }
   document.addEventListener('DOMContentLoaded', function(){ try{ initSch(); }catch(e){} });
 })();
 
-init();
+/* =====================================================================
+   启动：先把 Supabase 云端 KV 载入内存，再初始化页面。
+   任何失败都按「空数据」启动 —— 绝不回退到本机 localStorage / 内置数据文件。
+   ===================================================================== */
+function rxMigrateLegacyLocalData(){
+  /* 一次性迁移（只读一次，迁移后立即从浏览器删除）：
+     旧版本有些业务数据（设置/后缀/药方打印订单/常用方/模板/修改记录/墓碑）
+     只存在本机。先转存到 Supabase KV，再清除本机，避免升级后数据凭空消失。
+     处方/药价/客人/地址/备注/进货单已有独立云端表，不在迁移范围内。 */
+  var ls=null;
+  try{ ls=window.localStorage; }catch(e){ return; }
+  if(!ls) return;
+  var CORE={rx_saved_v3:1, rx_drugs_v3:1, rx_doctors_v1:1, rx_addr_v1:1,
+            rx_notes_v1:1, rx_guests_cache_v1:1, rx_purchases_v1:1, rx_costlog_v1:1};
+  var TECH={};   /* 旧构建/同步标记也一并清掉：新版本不再使用任何本地存储 */
+  var keys=[];
+  try{ for(var i=0;i<ls.length;i++){ var k=ls.key(i); if(k&&k.indexOf('rx_')===0) keys.push(k); } }catch(e){ return; }
+  var imported=[];
+  keys.forEach(function(k){
+    if(TECH[k]||CORE[k]) return;
+    var v=null; try{ v=ls.getItem(k); }catch(e){}
+    if(v==null) return;
+    if(k==='rx_deleted_v3'){
+      var old={}, loc={};
+      try{ old=JSON.parse(RX_STORE.getItem(k)||'{}')||{}; }catch(e){ old={}; }
+      try{ loc=JSON.parse(v)||{}; }catch(e){ loc={}; }
+      var m={}; for(var a in old) m[a]=old[a]; for(var b in loc) m[b]=loc[b];
+      RX_STORE.setItem(k, JSON.stringify(m));
+      imported.push(k);
+      return;
+    }
+    if(RX_STORE.getItem(k)==null){ RX_STORE.setItem(k,v); imported.push(k); }
+  });
+  /* 清空浏览器里的旧业务键（技术标记保留给构建脚本使用） */
+  keys.forEach(function(k){ if(!TECH[k]){ try{ ls.removeItem(k); }catch(e){} } });
+  if(imported.length) console.info('[迁移] 已把本机旧业务数据转存 Supabase，并清除本地：'+imported.join('、'));
+}
+(function(){
+  var started=false;
+  function start(){
+    if(started) return; started=true;
+    try{ rxMigrateLegacyLocalData(); }catch(e){ console.warn('旧数据迁移跳过:', e&&e.message); }
+    try{ init(); }catch(e){ console.error('页面初始化失败:', e); }
+  }
+  if(typeof SUPA==='undefined'){ start(); return; }
+  SUPA.ping()
+    .then(function(){ return RX_STORE.load(); })
+    .then(function(n){
+      try{ console.info('[Supabase] 已加载 '+n+' 个云端 KV 键'); }catch(e){}
+      start();
+    })
+    .catch(function(e){
+      console.warn('Supabase KV 加载失败，页面按空数据启动：', e&&e.message);
+      start();
+    });
+})();
 
 /* ===================================================================
    滚动条：只为「正在滚」的元素显示 2px 主题绿滚动条，停手 800ms 隐去。

@@ -1,35 +1,32 @@
 # 阿田药方打印
 
-纯前端单文件中药处方 / 打印工具，云端同步走 Supabase。
+纯前端中药处方 / 打印工具。**所有业务数据只存 Supabase，不写浏览器本地存储。**
 
-## 仓库内容（用于编辑 / 构建）
-- `rx_local.html` —— 主源码（界面、WPlan 模块等），日常改这个
-- `build_portable.py` —— 构建：把 `rx_local.html` + `drugs_data.js` + `history_data.js` 内联打包成单文件
-- `drugs_data.js` —— 药价目录（1039 味）
-- `history_data.js` —— 历史处方（5650 条，构建时内联，约 2.8MB）
-- `supa_client.js` —— Supabase 客户端
-- `favicon/` —— 图标源文件（构建时内嵌进页面）
-- `favicon.png` / `icon-512.png` / `apple-touch-icon.png` —— 站点图标
-- `publish.sh` —— 一键发布（构建 → 部署）
-- `deploy_github.py` —— 部署到 GitHub Pages（GitHub API 推送 `site/`）
+## 数据准则
+- 药方、客户、药价、库存、地址、常用备注、进货单、打印订单等全部从 Supabase 读写。
+- 云端没有数据时页面显示为空，不回退到 `drugs_data.js` / `history_data.js` 内置数据。
+- 本机浏览器只保留防缓存等技术标记；业务键会在升级时一次性迁移上云后删除。
+
+## 仓库内容
+- `rx_local.html` —— 主源码，日常改这个
+- `build_portable.py` —— 构建：把 `rx_local.html` 写成 `index.html`
+- `index.html` —— 构建产物 / GitHub Pages 根文档
+- `drugs_data.js` / `history_data.js` —— 历史归档文件，**页面已不再加载**
+- `supa_client.js` —— 早期独立 Supabase 客户端备份（页面内置了新版，不参与运行）
+- `favicon/`、`favicon.png`、`icon-512.png`、`apple-touch-icon.png` —— 站点图标
+- `publish.sh` / `deploy_github.py` —— 旧发布脚本（当前以 git push 为准）
 
 ## 本地构建
     python3 build_portable.py
-生成 `index.html`（静态根文档）。
 
 ## 发布到线上
-    bash publish.sh
-部署需要 GitHub Token（二选一）：
-    1) 环境变量：GH_TOKEN=ghp_xxx bash publish.sh
-    2) 脚本目录放 `.github_token`（仅一行 PAT）
+    git add .
+    git commit -m "更新说明"
+    git push
 线上地址：https://greenpipi.github.io/atiansfang/
 
-## 跨设备协作（Windows 工作室 <-> Mac 家用）
+每次上线后请用 `?_rv=时间戳` 打开一次强制刷新，例如：
+    https://greenpipi.github.io/atiansfang/?_rv=20261031
+
+## 跨设备协作
 同一仓库，改完 push、另一台 pull 即可。
-Mac 首次：
-    git clone https://github.com/Greenpipi/atiansfang.git
-    cd atiansfang
-    # 改 rx_local.html ...
-    python3 build_portable.py
-    bash publish.sh
-注意：本仓库用 GitHub API 部署（非 git push），clone 下来没有 `site/` 与构建产物，需本地构建。
