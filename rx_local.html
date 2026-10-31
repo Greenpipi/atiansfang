@@ -13102,26 +13102,30 @@ var WPlan = (function(){
 
   /* ---- 订单详情 / 单方「生成表格图片」（明细行即全部费用） ---- */
   function genOrderImage(o, blocks, cb){
-    var W = 840, shown = blocks || (o.blocks || []);
+    /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
+    var W = 960, shown = blocks || (o.blocks || []);
     var items = 0, i, j;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    /* 行高随字号放大：药名 13px 加粗、正文不低于 12px（约 33px/行） */
-    var ROW_H = 33;
-    var H = 200 + shown.length * 123 + items * ROW_H;
+    /* 正文 14px、药名 15px 加粗；单行约 39px（行高随字号放大） */
+    var ROW_H = 39, BLOCK_H = 140;
+    var H = 210 + shown.length * BLOCK_H + items * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
       var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
-      if(!(b.items || []).length) rs = '<tr><td colspan="4" style="color:#999">（药方为空）</td></tr>';
+      if(!(b.items || []).length) rs = '<tr><td colspan="5" style="color:#999">（药方为空）</td></tr>';
       for(j=0;j<(b.items || []).length;j++){
         var it = b.items[j];
         if(!it) continue;
-        var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
-        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td><td>' + esc(qty) + '</td>'
-          + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
-          + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
+        /* 数量、单位拆成两列 */
+        var qn = it.zibei ? '自备' : String(Math.round(dispQty(it) * 100) / 100);
+        var un = it.zibei ? '—' : (it.unit || it.du || 'g');
+        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
+          + '<td>' + esc(qn) + '</td><td>' + esc(un) + '</td>'
+          + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
+          + '<td>' + money(amountOf(it)) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13129,7 +13133,7 @@ var WPlan = (function(){
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th style="width:16%;text-align:right">单价</th><th style="width:16%;text-align:right">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">数量</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
@@ -13137,23 +13141,23 @@ var WPlan = (function(){
     var css = ''
       + 'body{margin:0;font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;color:#111}'
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:24px 28px;background:#fff}'
-      + '.ttl{font-size:21px;font-weight:700;letter-spacing:1px}'
-      + '.sub{margin-top:7px;font-size:12px;color:#666}'
-      + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:14px;overflow:hidden}'
-      + '.bh{display:flex;align-items:center;gap:14px;padding:10px 12px;background:#f2f4f6;font-size:13px}'
-      + '.bn{font-weight:700;font-size:14px}'
+      + '.ttl{font-size:24px;font-weight:700;letter-spacing:1px;text-align:center}'
+      + '.sub{margin-top:8px;font-size:13px;color:#666;text-align:center}'
+      + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:16px;overflow:hidden}'
+      + '.bh{display:flex;align-items:center;gap:14px;padding:11px 12px;background:#f2f4f6;font-size:14px}'
+      + '.bn{font-weight:700;font-size:15px}'
       + '.bd{color:#555}'
       + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
-      + 'table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.5}'
-      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:7px 10px;text-align:left}'
-      + 'th{background:#fafbfc;font-weight:600;color:#333}'
-      /* 药名列重点突出：13px 加粗 */
-      + '.dr{font-size:13px;font-weight:700;color:#111}'
-      + '.bf{padding:9px 12px;font-size:12px;color:#555}'
+      + 'table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}'
+      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:9px 10px;text-align:center}'
+      + 'th{background:#fafbfc;font-weight:700;color:#333;font-size:14px}'
+      /* 药名列重点突出：15px 加粗 */
+      + '.dr{font-size:15px;font-weight:700;color:#111}'
+      + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
-      + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:14px}'
-      + '.sum b{font-size:19px;color:#12693a}'
-      + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
+      + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
+      + '.sum b{font-size:22px;color:#12693a}'
+      + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#888}';
     var inner = '<div class="wrap"><div class="ttl">订单明细</div>'
       + '<div class="sub">客户：' + esc(String(o.guest || '').trim() || '—') + '　｜　单据：' + esc(o.no || '—')
       + '　｜　日期：' + esc(o.date || '—') + '　｜　共 ' + shown.length + ' 个药方</div>'
@@ -13168,7 +13172,7 @@ var WPlan = (function(){
     img.onload = function(){
       try{
         var cv = document.createElement('canvas');
-        cv.width = W * 2; cv.height = H * 2;
+        cv.width = W; cv.height = H;
         var g = cv.getContext('2d');
         g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
         g.drawImage(img, 0, 0, cv.width, cv.height);
