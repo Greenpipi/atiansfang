@@ -13122,8 +13122,10 @@ var WPlan = (function(){
     var items = 0, i, j;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
     /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
-    var ROW_H = 47, BLOCK_H = 150;
-    var H = 220 + shown.length * BLOCK_H + items * ROW_H;
+    var ROW_H = 47, BLOCK_H = 150, multi = 0;
+    for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
+    /* 多付时每块额外两行汇总：1付 / XX付 */
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2) * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
@@ -13142,15 +13144,25 @@ var WPlan = (function(){
           + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
           + '<td>' + money(amountOf(it)) + '</td></tr>';
       }
+      /* 多付小订单：先列 1 付的数据，再列 XX 付的数据（重量 kg + 金额） */
+      if(d > 1){
+        var wT = blockWeight(b), w1 = wT / d;
+        /* 重量按 kg 展示（保留到 0.001kg，对应 1g） */
+        var kg1 = w1 > 0 ? String(Math.round(w1) / 1000) : '—';
+        var kgT = wT > 0 ? String(Math.round(wT) / 1000) : '—';
+        var uu = (w1 > 0) ? 'kg' : '—';
+        rs += '<tr class="prow"><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
+          + '<tr class="prow"><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
+      }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
         + '<span class="bd">日期 ' + esc(blockDate(o, b) || '—') + '</span>'
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">数量</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
-        + '<div class="bf">小计 <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
+        + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
     }
     var css = ''
@@ -13168,6 +13180,9 @@ var WPlan = (function(){
       + 'th{background:#fafbfc;font-weight:700;color:#333;font-size:16px}'
       /* 药名列重点突出：18px 加粗 */
       + '.dr{font-size:18px;font-weight:700;color:#111}'
+      /* 多付汇总行：1付 / XX付 */
+      + '.prow td{background:#fafbfc;font-weight:700}'
+      + '.prow .plb{color:#555}'
       + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
