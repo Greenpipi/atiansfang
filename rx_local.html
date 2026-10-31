@@ -13106,9 +13106,9 @@ var WPlan = (function(){
     var W = 960, shown = blocks || (o.blocks || []);
     var items = 0, i, j;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    /* 正文 14px、药名 15px 加粗；单行约 39px（行高随字号放大） */
-    var ROW_H = 39, BLOCK_H = 140;
-    var H = 210 + shown.length * BLOCK_H + items * ROW_H;
+    /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
+    var ROW_H = 47, BLOCK_H = 150;
+    var H = 220 + shown.length * BLOCK_H + items * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
@@ -13148,11 +13148,11 @@ var WPlan = (function(){
       + '.bn{font-weight:700;font-size:15px}'
       + '.bd{color:#555}'
       + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
-      + 'table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}'
+      + 'table{width:100%;border-collapse:collapse;font-size:16px;line-height:1.5}'
       + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:9px 10px;text-align:center}'
-      + 'th{background:#fafbfc;font-weight:700;color:#333;font-size:14px}'
-      /* 药名列重点突出：15px 加粗 */
-      + '.dr{font-size:15px;font-weight:700;color:#111}'
+      + 'th{background:#fafbfc;font-weight:700;color:#333;font-size:16px}'
+      /* 药名列重点突出：18px 加粗 */
+      + '.dr{font-size:18px;font-weight:700;color:#111}'
       + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
