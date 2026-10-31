@@ -12813,7 +12813,7 @@ var WPlan = (function(){
     var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span>' + (it.orig ? '<span class="wp-orig" title="客户原始药名">' + esc(it.orig) + '</span>' : '') + '</div></td>'
+      + '<td><div class="wp-nm-wrap"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()"><span class="wp-sfx">' + (it.sfx ? esc(it.sfx) : '') + '</span>' + (it.disp ? '<span class="wp-orig" title="对应仓库标准药">→ ' + esc(it.name || '') + '</span>' : '') + '</div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
@@ -13016,7 +13016,7 @@ var WPlan = (function(){
   function genPayImage(list, cb){
     list = paySorted(list);
     var info = paySummary(list);
-    var W = 760, rowH = 36, headH = 116, footH = 88;
+    var W = 760, rowH = 40, headH = 122, footH = 92;
     var H = headH + 38 + list.length * rowH + footH;
     var rows = '';
     for(var i=0;i<list.length;i++){
@@ -13024,7 +13024,7 @@ var WPlan = (function(){
       rows += '<tr>'
         + '<td style="width:150px">' + esc(fmtTime(o.createdAt || o.date)) + '</td>'
         + '<td>' + esc(String(o.guest || '').trim() || '未命名客人') + '</td>'
-        + '<td>' + esc(dishOf(o)) + '</td>'
+        + '<td class="dish">' + esc(dishOf(o)) + '</td>'
         + '<td style="width:110px;text-align:right">¥' + money(orderTotal(o)) + '</td>'
         + '</tr>';
     }
@@ -13033,9 +13033,10 @@ var WPlan = (function(){
       + '.wrap{width:' + W + 'px;box-sizing:border-box;padding:26px 28px;background:#fff}'
       + '.ttl{font-size:22px;font-weight:700;letter-spacing:1px}'
       + '.sub{margin-top:7px;font-size:12px;color:#666}'
-      + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}'
-      + 'th,td{border:1px solid #d5d8dc;padding:8px 10px;text-align:left}'
+      + 'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px;line-height:1.5}'
+      + 'th,td{border:1px solid #d5d8dc;padding:10px 12px;text-align:left}'
       + 'th{background:#f2f4f6;font-weight:700;color:#333}'
+      + '.dish{font-size:13px;font-weight:700}'
       + 'tr:nth-child(even) td{background:#fafbfc}'
       + '.sum td{background:#eef7f1!important;font-weight:700;font-size:15px}'
       + '.foot{margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#888}';
@@ -13104,7 +13105,9 @@ var WPlan = (function(){
     var W = 840, shown = blocks || (o.blocks || []);
     var items = 0, i, j;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    var H = 112 + shown.length * 106 + items * 22 + 80;
+    /* 行高随字号放大：药名 13px 加粗、正文不低于 12px（约 33px/行） */
+    var ROW_H = 33;
+    var H = 200 + shown.length * 123 + items * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
@@ -13116,7 +13119,7 @@ var WPlan = (function(){
         var it = b.items[j];
         if(!it) continue;
         var qty = it.zibei ? '自备' : ((Math.round(dispQty(it) * 100) / 100) + ' ' + (it.unit || it.du || 'g'));
-        rs += '<tr><td>' + esc(it.name || '') + '</td><td>' + esc(qty) + '</td>'
+        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td><td>' + esc(qty) + '</td>'
           + '<td style="text-align:right">' + (it.price == null ? '' : money(it.price)) + '</td>'
           + '<td style="text-align:right">' + money(amountOf(it)) + '</td></tr>';
       }
@@ -13137,14 +13140,16 @@ var WPlan = (function(){
       + '.ttl{font-size:21px;font-weight:700;letter-spacing:1px}'
       + '.sub{margin-top:7px;font-size:12px;color:#666}'
       + '.bk{border:1px solid #d5d8dc;border-radius:6px;margin-top:14px;overflow:hidden}'
-      + '.bh{display:flex;align-items:center;gap:14px;padding:9px 12px;background:#f2f4f6;font-size:13px}'
+      + '.bh{display:flex;align-items:center;gap:14px;padding:10px 12px;background:#f2f4f6;font-size:13px}'
       + '.bn{font-weight:700;font-size:14px}'
       + '.bd{color:#555}'
       + '.ba{margin-left:auto;font-weight:700;color:#12693a}'
-      + 'table{width:100%;border-collapse:collapse;font-size:12px}'
-      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:5px 10px;text-align:left}'
+      + 'table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.5}'
+      + 'th,td{border-bottom:1px solid #e3e6ea;border-left:none;border-right:none;padding:7px 10px;text-align:left}'
       + 'th{background:#fafbfc;font-weight:600;color:#333}'
-      + '.bf{padding:7px 12px;font-size:12px;color:#555}'
+      /* 药名列重点突出：13px 加粗 */
+      + '.dr{font-size:13px;font-weight:700;color:#111}'
+      + '.bf{padding:9px 12px;font-size:12px;color:#555}'
       + '.bf b{color:#12693a}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:14px}'
       + '.sum b{font-size:19px;color:#12693a}'
@@ -13404,6 +13409,8 @@ var WPlan = (function(){
   }
   function setItemName(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return; var it = b.items[i];
+    /* 用户手动改了输入框 → 不再沿用导入时的客户原名映射 */
+    if(it.disp && String(v) !== String(it.disp)){ it.disp = null; it.sid = null; }
     it.name = v;
     if(!it.manual){ it.price = priceFor(it.name, curGuest(), it.du); }
     saveDebounced(); updateAmt(bid,i); recount();
@@ -13728,6 +13735,7 @@ var WPlan = (function(){
     if(!b.items[_ac.i]) b.items[_ac.i] = BLANK_ITEM();
     var it = b.items[_ac.i];
     it.name = name;
+    it.disp = null; it.sid = null;     /* 从备选里重新选药 → 以标准药名为准 */
     it.price = priceFor(name, curGuest(), it.du);
     it.unit = it.du;
     it.manual = false;
@@ -13750,7 +13758,7 @@ var WPlan = (function(){
   /* ---- Excel / CSV 导入（别名智能映射 + 预览校验） ----
      流程：读文件 → 解析行（保留客户原始药名 / 备注）→ 智能匹配仓库标准药
           → 「导入预览与匹配确认」表格（绿=匹配，红=未匹配可下拉选药）
-          → 确认后按标准药名 + 仓库价落账，客户原名保留在 it.orig 供展示/打印。
+          → 确认后按标准药名 + 仓库价落账；输入框保留客户原名 it.disp，计价/库存仍走标准药名/sid。
      手动选药时，自动把客户药名存为仓库药的【别名】，下次直接命中。 */
   var IMP_TAG_ALTS={
     '炒':['炒','清炒','麸炒'], '麸炒':['麸炒','炒'], '盐':['盐','盐水'],
@@ -14036,9 +14044,9 @@ var WPlan = (function(){
       var it = mk(std, _imp.guest, r.qty, r.unit, true);
       it.sfx = sfx;
       if(r.rm) it.rm = r.rm;
-      /* 客户原始叫法：与标准名不同才保留，供前端/打印同时展示（脚注已单独存 it.sfx） */
+      /* 输入框保留客户原始药名（it.disp）；底层仍用仓库标准药 it.name / sid 计价与扣减 */
       var origBody = impSplit(r.orig).body;
-      if(normName(origBody) !== normName(r.std)){ it.orig = origBody; }
+      if(normName(origBody) !== normName(r.std)){ it.disp = origBody; }
       if(r.drug && r.drug.id) it.sid = r.drug.id;
       items.push(it);
       /* 手动匹配 → 记忆别名（下次导入直接命中；脚注不参与别名，避免 [先煎] 变体干扰） */
@@ -14439,11 +14447,10 @@ var WPrint=(function(){
         q=n2(it.qty)*doses;
         pr=it.zibei?0:n2(it.price);
         var nm=String(it.name).trim();
-        /* 产地来自药物目录（打印时才查，订单里不存） */
+        /* 产地来自药物目录（打印时才查，订单里不存）；查库用标准药名 */
         var dd=null; try{ dd=findDrug(nm); }catch(e){ dd=null; }
-        /* 导入时保留了客户原始叫法：打印成「标准名（客户原名）」 */
-        var disp=nm;
-        if(it.orig && normName(it.orig)!==normName(nm)) disp=nm+'（'+String(it.orig)+'）';
+        /* 导入时保留了客户原始叫法：打印显示客户原名，计价/查库仍按标准药 */
+        var disp=(it.disp || it.orig) ? String(it.disp || it.orig) : nm;
         out.push({ name:disp, sfx:it.sfx||'',
           unit:(it.du||it.unit||'g'),
           og:(dd&&dd.og)?String(dd.og):'',
