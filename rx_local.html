@@ -13132,14 +13132,16 @@ var WPlan = (function(){
       var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
-      if(!(b.items || []).length) rs = '<tr><td colspan="5" style="color:#999">（药方为空）</td></tr>';
+      if(!(b.items || []).length) rs = '<tr><td colspan="6" style="color:#999">（药方为空）</td></tr>';
+      var seq = 0;
       for(j=0;j<(b.items || []).length;j++){
         var it = b.items[j];
         if(!it) continue;
+        seq++;
         /* 数量、单位拆成两列 */
         var qn = it.zibei ? '自备' : String(Math.round(dispQty(it) * 100) / 100);
         var un = it.zibei ? '—' : (it.unit || it.du || 'g');
-        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
+        rs += '<tr><td class="sq" style="color:#777">' + seq + '</td><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
           + '<td>' + esc(qn) + '</td><td>' + esc(un) + '</td>'
           + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
           + '<td>' + money(amountOf(it)) + '</td></tr>';
@@ -13151,8 +13153,8 @@ var WPlan = (function(){
         var kg1 = w1 > 0 ? String(Math.round(w1) / 1000) : '—';
         var kgT = wT > 0 ? String(Math.round(wT) / 1000) : '—';
         var uu = (w1 > 0) ? 'kg' : '—';
-        rs += '<tr class="prow"><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
-          + '<tr class="prow"><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
+        rs += '<tr class="prow"><td class="sq"></td><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
+          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13160,7 +13162,7 @@ var WPlan = (function(){
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr><th style="width:7%">序号</th><th style="width:35%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:18%">单价</th><th style="width:18%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
@@ -15629,7 +15631,7 @@ function rxMigrateLegacyLocalData(){
   background:#F7FBF8 !important;
   color:#5E7168 !important;
   border-bottom:1px solid #DDE7E1 !important;
-  font-size:11.5px !important;
+  font-size:13.5px !important;
 }
 .page[data-page="print"] .wplan .wp-tbl td{
   border-bottom:1px solid #EDF3EF !important;
@@ -15647,6 +15649,30 @@ function rxMigrateLegacyLocalData(){
   color:#16231D !important;
   font-size:13.5px !important;
   padding:0 8px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm{
+  font-size:15.5px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-std{
+  font-size:13px !important;
+  line-height:20px !important;
+  max-width:84px !important;
+}
+/* 详情表：药名左侧第一列自动显示序号（不新增 DOM / 不改数据结构） */
+.page[data-page="print"] .wplan .wp-tbl tbody{ counter-reset:wpx-seq; }
+.page[data-page="print"] .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{ position:relative; }
+.page[data-page="print"] .wplan .wp-tbl thead th:first-child{ position:relative; }
+.page[data-page="print"] .wplan .wp-tbl thead th:first-child::before{
+  content:'序号';
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  font-size:13.5px; font-weight:600; color:#5E7168; white-space:nowrap;
+}
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td::before{
+  content:counter(wpx-seq);
+  position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  font-size:14px; font-weight:500; color:#5E7168;
+  font-variant-numeric:tabular-nums; pointer-events:none;
 }
 /* 保留药名格右侧的「仓库标准药 / 先煎」灰色小标签空间，避免被换肤覆盖 */
 .page[data-page="print"] .wplan .wp-nm-wrap.has-std .wp-nm{
