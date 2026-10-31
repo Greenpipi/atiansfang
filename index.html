@@ -6553,13 +6553,13 @@ function collectRecord(no){
 /* ================= 客人管理（2026-10-30 重写） =================
    布局：左侧客户列表卡片 + 右侧客户详情卡片，两栏各自独立滚动。
    数据：客户档案 → Supabase doctors.prices（phone / addr / ctype 一并存）
-        常用方  → 本机 RX_STORE rx_gcommon_v1 + 云端 doctors.prices.__gcommon（双向同步）
+        常用方  → 云端 doctors.prices.__gcommon（唯一数据源，不再落本机）
         历史订单 → 药方打印订单 rx_wplan_v1（只读汇总，可标记已结/未结） */
 var GUESTS={};
 var GUEST_CUR='';
 var GST_CF=[];
 var GST_CF_EDIT='';
-/* 云端 doctors.prices.__gcommon：客户名 → 常用方数组（仅内存缓存） */
+/* 云端 doctors.prices.__gcommon 缓存：客户名 → 常用方数组 */
 var GUEST_GC={};
 /* 只有先成功拉过一次云端，编辑后才允许自动回写，避免拿本机残缺数据覆盖云端 */
 var GST_CF_CLOUD_READY=false;
@@ -6626,8 +6626,8 @@ function guestLoadAll(){
       if(has) CLOUD_DOC_PRICES[r.name]=dp;
       if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
     });
-    /* 常用方：只从云端 doctors.prices.__gcommon 读取（不再读写本机存储）。
-       同一方若内存里已有更全的克数则优先保留，避免被 qty=0 的副本覆盖。 */
+    /* 常用方：从 doctors.prices.__gcommon 还原到本机，换设备/清缓存后不再空白。
+       同一方若本机克数更全则保留本机，避免被云端 qty=0 的副本覆盖。 */
     GUEST_GC={};
     var cloudCf=[], anyCloud=false;
     (rows||[]).forEach(function(r){
@@ -6651,7 +6651,6 @@ function guestLoadAll(){
         if(!old || wc>wo || (wc===wo && String(c2.updatedAt||'')>String(old.updatedAt||''))) byId[c2.id]=c2;
       }
       GST_CF=Object.keys(byId).map(function(k){ return byId[k]; });
-      try{ RX_STORE.setItem(GST_CF_LS, JSON.stringify(GST_CF)); }catch(e){}
     }
     GST_CF_CLOUD_READY=true;
     try{ purgeTestGuests(); }catch(e){}
@@ -6666,12 +6665,12 @@ function guestDelete(name){
 
 /* ---------- 常用方数据层 ---------- */
 function gstLoadCf(){
-  try{ var a=JSON.parse(RX_STORE.getItem(GST_CF_LS)||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
+  /* 常用方不再从本机读取：数据只来自 Supabase（guestLoadAll 时写入 GST_CF） */
 }
 function gstCfPersist(){
-  /* 常用方：Supabase KV（rx_gcommon_v1）+ doctors.prices.__gcommon 两处均为云端 */
-  RX_STORE.setItem(GST_CF_LS, JSON.stringify(GST_CF));
-  if(GST_CF_CLOUD_READY){ try{ supaPushCommon(); }catch(e){} }
+  if(!(window.SUPA && SUPA.on)) return Promise.resolve(0);
+  if(!GST_CF_CLOUD_READY) return Promise.resolve(0);
+  return gstCfPushCloud().catch(function(e){ console.warn('常用方写库失败:',e.message); });
 }
 /* 常用方 → 云端 doctors.prices.__gcommon（按客户名分组，内置 guest 标签）。
    新增/编辑/删除后立即写库，不需要手动同步。 */
@@ -15001,7 +15000,8 @@ function rxMigrateLegacyLocalData(){
   try{ ls=window.localStorage; }catch(e){ return; }
   if(!ls) return;
   var CORE={rx_saved_v3:1, rx_drugs_v3:1, rx_doctors_v1:1, rx_addr_v1:1,
-            rx_notes_v1:1, rx_guests_cache_v1:1, rx_purchases_v1:1, rx_costlog_v1:1};
+            rx_notes_v1:1, rx_guests_cache_v1:1, rx_purchases_v1:1, rx_costlog_v1:1,
+            rx_gcommon_v1:1};
   var TECH={};   /* 旧构建/同步标记也一并清掉：新版本不再使用任何本地存储 */
   var keys=[];
   try{ for(var i=0;i<ls.length;i++){ var k=ls.key(i); if(k&&k.indexOf('rx_')===0) keys.push(k); } }catch(e){ return; }
