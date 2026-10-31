@@ -3063,9 +3063,10 @@ body{ --navw:0px; }
 .wp-imp-tbl tbody tr.imp-bad td{ background:#fdecea; color:#b42318; }
 .wp-imp-tbl .imp-tag{ flex:none; margin-left:0; padding:1px 6px; border-radius:10px; font-size:11px; background:rgba(21,163,74,.14); color:#15803d; }
 .wp-imp-tbl .imp-std{ display:flex; align-items:center; gap:6px; min-width:0; }
-.wp-imp-tbl .imp-sel{ flex:1 1 auto; min-width:0; box-sizing:border-box; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; padding:4px 6px!important; font-size:12px!important; }
-.wp-imp-tbl .imp-sel.bad{ border-color:var(--danger)!important; color:#b42318!important; }
-.wp-imp-tbl .imp-sel.ok{ border-color:#9fcfae!important; color:#146c38!important; }
+.wp-imp-tbl .imp-nm{ flex:1 1 auto; min-width:0; width:auto; box-sizing:border-box; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; padding:4px 8px!important; font-size:12px!important; height:28px!important; min-height:28px!important; }
+.wp-imp-tbl .imp-nm.bad{ border-color:var(--danger)!important; color:#b42318!important; }
+.wp-imp-tbl .imp-nm.ok{ border-color:#9fcfae!important; color:#146c38!important; }
+.wp-imp-tbl .imp-nm:focus{ border-color:var(--pri)!important; box-shadow:0 0 0 3px rgba(52,192,106,.14); outline:none; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
 /* 客户原始药名保留在明细行（与仓库标准名不同时展示） */
@@ -13628,7 +13629,7 @@ var WPlan = (function(){
     el.style.display = 'block';
     var rows = el.querySelectorAll('.r');
     for(var k=0;k<rows.length;k++){
-      (function(r){ r.onmousedown = function(e){ e.preventDefault(); acPick(r.getAttribute('data-nm')); }; })(rows[k]);
+      (function(r){ r.onmousedown = function(e){ e.preventDefault(); var pick = _ac && _ac.pick; if(pick) pick(r.getAttribute('data-nm')); }; })(rows[k]);
     }
     /* 定位：按浮层【实际高度】贴着输入框摆放（下方放不下就紧贴上沿翻上去，不再用固定高度估算） */
     var rect = _ac.el.getBoundingClientRect();
@@ -13683,7 +13684,7 @@ var WPlan = (function(){
       if(t2 && acNorm(t2) && t2 !== term) list = acSearch(t2);
     }
     if(!list.length){ closeAc(); return; }
-    _ac = { bid: bid, i: i, el: el, list: list, idx: 0, term: term };
+    _ac = { bid: bid, i: i, el: el, list: list, idx: 0, term: term, pick: acPick };
     acRender();
   }
   function nameInput(bid, i, el){
@@ -13764,7 +13765,7 @@ var WPlan = (function(){
     '辛夷花':['辛夷'], '薏苡仁':['炒薏仁','薏仁','薏米'], '川断':['续断','川续断'],
     '莱菔子':['炒莱菔子','莱菔子'], '莱服子':['炒莱菔子','莱菔子']
   };
-  var _imp = { rows: [], drugs: [], tgt: null, guest: '' };
+  var _imp = { rows: [], tgt: null, guest: '' };
 
   /* 药名分段：body（去方括号脚注）/ core（去规格括号）/ tag（括号内容）/ sfx */
   function impSplit(raw){
@@ -13946,7 +13947,7 @@ var WPlan = (function(){
       var howTxt = r.ok
         ? (r.how === 'manual' ? '手动指定' : r.how === 'alias' ? '别名记忆' : r.how === 'exact' ? '精确匹配' : '智能匹配')
         : '未匹配';
-      var stdCell = '<div class="imp-std">' + impSelectHTML(r, i) + (r.ok ? '<span class="imp-tag">' + esc(howTxt) + '</span>' : '') + '</div>';
+      var stdCell = '<div class="imp-std">' + impInputHTML(r, i) + (r.ok ? '<span class="imp-tag">' + esc(howTxt) + '</span>' : '') + '</div>';
       var pr = (r.price == null) ? (r.ok ? '<span class="imp-noprice">无价</span>' : '—') : '¥' + money(r.price);
       h += '<tr class="' + cls + '">'
         + '<td>' + esc(r.orig) + '</td>'
@@ -13960,56 +13961,71 @@ var WPlan = (function(){
     body.innerHTML = h || '<tr><td colspan="6" class="imp-empty">没有可导入的药名行</td></tr>';
     if(sum){
       sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
-        + '（可点药名下拉换药，选中即确定并按该药单价计算）';
+        + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）';
     }
   }
-  /* 该行下拉框：先给 40 个相关候选，点开时再展开全部药品（避免上千行 DOM 拖慢弹窗） */
-  function impSelectHTML(r, ri){
-    var cur = -1, i;
-    if(r.std){ for(i=0;i<_imp.drugs.length;i++){ if(normName(_imp.drugs[i].n) === normName(r.std)){ cur = i; break; } } }
-    var opts = impOptions(r.orig), list = opts.slice(0, 40);
-    if(cur >= 0 && list.indexOf(cur) < 0) list.push(cur);
-    var oh = '';
-    if(!r.ok) oh = '<option value="">请选择仓库药品…</option>';
-    else if(cur < 0) oh = '<option value="" selected>' + esc(r.std) + '</option>';
-    for(i=0;i<list.length;i++){
-      oh += '<option value="' + list[i] + '"' + (list[i] === cur ? ' selected' : '') + '>' + esc(_imp.drugs[list[i]].n) + '</option>';
-    }
-    return '<select class="imp-sel ' + (r.ok ? 'ok' : 'bad') + '" onchange="WPlan.impPick(' + ri + ',this.value)" onmousedown="WPlan.impExpand(this,' + ri + ')" onfocus="WPlan.impExpand(this,' + ri + ')">' + oh + '</select>';
+  /* 每行药名格：输入即检索，备选浮层与日常打单完全一致（#wpAc / .wp-ac） */
+  function impInputHTML(r, ri){
+    return '<input class="imp-nm ' + (r.ok ? 'ok' : 'bad') + '" value="' + esc(r.std || '') + '" autocomplete="off"'
+      + ' placeholder="输入药名 / 拼音搜索"'
+      + ' onfocus="WPlan.impAcFocus(' + ri + ',this)" onclick="WPlan.impAcFocus(' + ri + ',this)"'
+      + ' oninput="WPlan.impAcInput(' + ri + ',this)"'
+      + ' onkeydown="WPlan.impAcKey(event,' + ri + ',this)" onkeyup="WPlan.impAcKey(event,' + ri + ',this)"'
+      + ' onblur="WPlan.impAcBlur(' + ri + ',this)">';
   }
-  function impExpand(sel, ri){
-    if(!sel || sel.getAttribute('data-full')) return;
-    sel.setAttribute('data-full', '1');
+  /* 打开与打单表格同款的药名备选浮层（按光标前文字检索） */
+  function impOpenAc(ri, el){
+    var term = acTerm(el);
+    var list = acSearch(term);
+    if(!list.length){
+      var t2 = term.replace(/\s+$/, '').replace(/[（(【\[{][^）)】\]}]*[）)】\]}]?$/, '');
+      if(t2 && acNorm(t2) && t2 !== term) list = acSearch(t2);
+    }
+    if(!list.length){ closeAc(); return; }
+    _ac = { imp: ri, el: el, list: list, idx: 0, term: term,
+      pick: function(nm){ impPickName(ri, nm); } };
+    acRender();
+  }
+  function impAcFocus(ri, el){ impOpenAc(ri, el); }
+  function impAcInput(ri, el){ impOpenAc(ri, el); }
+  function impAcBlur(ri, el){
+    closeAc();
+    var r = _imp.rows[ri];
+    if(r) el.value = r.std || '';        /* 没从备选里选 → 恢复为已确定的药，不静默改价 */
+  }
+  function impAcKey(e, ri, el){
+    if(e.type === 'keyup'){
+      var ku = e.key;
+      if(ku === 'ArrowLeft' || ku === 'ArrowRight' || ku === 'Home' || ku === 'End') impOpenAc(ri, el);
+      return;
+    }
+    var k = e.key;
+    if(_ac && _ac.imp !== undefined && _ac.list && _ac.list.length){
+      if(k === 'ArrowDown'){ _ac.idx = (_ac.idx + 1) % _ac.list.length; acRender(); e.preventDefault(); return; }
+      if(k === 'ArrowUp'){ _ac.idx = (_ac.idx - 1 + _ac.list.length) % _ac.list.length; acRender(); e.preventDefault(); return; }
+      if(k === 'Escape'){ closeAc(); impAcBlur(ri, el); return; }
+      if(k === 'Enter'){
+        var d = _ac.list[_ac.idx];
+        if(d){ e.preventDefault(); impPickName(ri, d.n); }
+        return;
+      }
+    }
+    if(k === 'Enter') e.preventDefault();
+  }
+  /* 选中某味药 = 该行确定药品：重算单价、标记手动指定 */
+  function impPickName(ri, nm){
     var r = _imp.rows[ri]; if(!r) return;
-    var cur = sel.value, opts = impOptions(r.orig), oh = '';
-    if(!r.ok) oh = '<option value="">请选择仓库药品…</option>';
-    else if(cur === '' && r.std) oh = '<option value="" selected>' + esc(r.std) + '</option>';
-    for(var i=0;i<opts.length;i++){
-      oh += '<option value="' + opts[i] + '">' + esc(_imp.drugs[opts[i]].n) + '</option>';
-    }
-    sel.innerHTML = oh;
-    sel.value = cur;
-  }
-  /* 未匹配行的候选药品：与该行主干有关的排在前面，其余按药名排列 */
-  function impOptions(orig){
-    var key = normName(impSplit(orig).core), near = [], far = [], i;
-    for(i=0;i<_imp.drugs.length;i++){
-      var k = normName(_imp.drugs[i].n);
-      if(key && (k.indexOf(key) >= 0 || key.indexOf(k) >= 0 || (k.charAt(0) === key.charAt(0)))) near.push(i);
-      else far.push(i);
-    }
-    return near.concat(far);
-  }
-  function impPick(ri, optIdx){
-    var r = _imp.rows[ri]; if(!r || optIdx === '') return;
-    var d = _imp.drugs[parseInt(optIdx, 10)]; if(!d) return;
+    var d = null;
+    for(var i=0;i<drugsList.length;i++){ if(drugsList[i] && String(drugsList[i].n || '') === String(nm)){ d = drugsList[i]; break; } }
+    if(!d) d = impExactName(nm);
+    if(!d) return;
     r.drug = d; r.std = String(d.n); r.ok = true;
-    /* 改回系统自动匹配的那味药 → 不记为手动；否则手动指定 */
     r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
     r.price = priceFor(r.std, _imp.guest, r.unit);
+    closeAc();
     impRender();
   }
-  function impCancel(){ closeModal('wpImportModal'); _imp.rows = []; }
+  function impCancel(){ closeAc(); closeModal('wpImportModal'); _imp.rows = []; }
   function impConfirm(){
     var rows = _imp.rows, items = [], i, skipped = 0, aliased = 0, ah = [];
     for(i=0;i<rows.length;i++){
@@ -14056,7 +14072,7 @@ var WPlan = (function(){
         if(!confirm(msg)) return;
       }
       _imp.tgt = _tgt; _imp.guest = curGuest();
-      _imp.rows = res.rows; _imp.drugs = impDrugs();
+      _imp.rows = res.rows;
       impRender();
       openModal('wpImportModal');
     });
@@ -14102,7 +14118,7 @@ var WPlan = (function(){
     prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, impPick: impPick, impExpand: impExpand, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
