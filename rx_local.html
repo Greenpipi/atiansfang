@@ -1758,22 +1758,27 @@ td.p{text-align:right!important;font-weight:500!important}
   background:#fff;border:1px solid var(--neutral-3,#d5dae0);border-radius:9px;
   box-shadow:0 10px 28px rgba(14,30,22,.18);
 }
+/* ⚠ 全站有 `button{background/color/border:…!important}` 与 `input{background/border:…!important}`、
+   `button{min-height:34px}` 的基座规则，浮层里的输入框/按钮必须带 !important 才能压住。 */
 .dose-pop input{
-  flex:1 1 auto;min-width:0;height:30px;box-sizing:border-box;
-  padding:0 11px;font-size:13px;border:1px solid var(--neutral-3,#d5dae0);
-  border-radius:999px;background:#fff;color:var(--neutral-title,#16231d);
+  flex:1 1 auto;min-width:0;height:30px!important;min-height:30px!important;box-sizing:border-box;
+  padding:0 11px!important;font-size:13px!important;
+  border:1px solid var(--neutral-3,#d5dae0)!important;
+  border-radius:999px!important;background:#fff!important;
+  color:var(--neutral-title,#16231d)!important;
 }
-.dose-pop input::placeholder{color:var(--neutral-4,#a4abb3);font-size:11.5px}
+.dose-pop input::placeholder{color:var(--neutral-4,#a4abb3)!important;font-size:11.5px!important}
 .dose-pop .dose-pop-ok{
-  flex:0 0 28px;width:28px;height:28px;padding:0;box-sizing:border-box;
+  flex:0 0 28px;width:28px!important;height:28px!important;
+  min-height:28px!important;max-height:28px!important;padding:0!important;box-sizing:border-box;
   display:inline-flex;align-items:center;justify-content:center;
-  border:none;border-radius:50%;cursor:pointer;
-  background:#0e9a6a;color:#fff;
-  box-shadow:0 1px 2px rgba(11,110,77,.28);
+  border:none!important;border-radius:50%!important;cursor:pointer;
+  background:#0e9a6a!important;color:#fff!important;
+  box-shadow:0 1px 2px rgba(11,110,77,.28)!important;
 }
-.dose-pop .dose-pop-ok:hover{background:#0b8259}
-.dose-pop .dose-pop-ok:active{background:#096f4c}
-.dose-pop .dose-pop-ok svg{width:14px;height:14px;display:block}
+.dose-pop .dose-pop-ok:hover{background:#0b8259!important;color:#fff!important;transform:none!important}
+.dose-pop .dose-pop-ok:active{background:#096f4c!important}
+.dose-pop .dose-pop-ok svg{width:14px!important;height:14px!important;display:block}
 
 /* =====================================================================
    ⑤ 尾缀彩色标签：[先煎]/[后下]/[另包]
