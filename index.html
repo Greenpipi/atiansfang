@@ -13170,14 +13170,19 @@ var WPlan = (function(){
     return true;
   }
   function saveAndBack(){
-    if(!saveNow()) return;
-    /* 强制回到订单列表：即便 renderAll 过程中有异常也不把用户留在详情页 */
+    /* 先切回列表，再落盘：避免任何校验/渲染异常把用户卡在详情页 */
     _sub = 'list';
     showSub('list');
     var l = document.getElementById('wpSubList'), e = document.getElementById('wpSubEdit');
     if(l) l.style.display = 'block';
     if(e) e.classList.remove('on');
-    renderList();
+    var o = curOrder();
+    if(o){
+      o.updatedAt = nowStr();
+      try{ save(); }catch(err){ console.warn('保存异常:', err && err.message); }
+      try{ saveCommonFromOrder(o); }catch(err2){ console.warn('常用方保存异常:', err2 && err2.message); }
+      try{ renderList(); }catch(err3){ console.warn('列表渲染异常:', err3 && err3.message); }
+    }
     toast('已保存，已返回订单列表');
   }
   function backToList(){
