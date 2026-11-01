@@ -14044,10 +14044,10 @@ var WPlan = (function(){
     var rowU = String(it.unit || it.du || u);
     var guest = String(curGuest() || '').trim();
     var gp = guest ? docPrice(guest, d.n) : null;
-    /* 客人价按 kg 口径记录；显示时跟随当前表格行的单位（kg 原值、g 则 ÷1000） */
+    /* 客人价按目录基础单位（通常 g）记录；显示时换算到当前表格行的单位 */
     var gpShow = gp;
-    if(gp != null && /^(kg|g|斤)$/i.test(rowU)){
-      gpShow = gp * unitCoef('kg', rowU);
+    if(gp != null){
+      gpShow = gp * unitCoef(String((d && d.u) || 'g'), rowU);
     }
     /* 第一块：当前客人专属价（高亮） */
     var h = '<div class="wp-peek-hl"><div class="hl-k">' + (guest ? esc(guest) + ' 专属价' : '当前客人专属价') + '</div>'
