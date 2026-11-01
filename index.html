@@ -3000,10 +3000,15 @@ body{ --navw:0px; }
 .wp-tbl .wp-nm{ flex:1 1 auto; min-width:0; }
 /* 药名格：输入框占满整列；脚注 / 标准药以绝对定位小胶囊放在输入框内部右侧 */
 .wp-nm-wrap{ position:relative; display:block; }
-.wp-nm-tags{ position:absolute; right:7px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 22px); pointer-events:none; }
-.wp-nm-wrap.has-sfx .wp-nm{ padding-right:52px; }
-.wp-nm-wrap.has-std .wp-nm{ padding-right:92px; }
-.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:124px; }
+.wp-nm-wrap > .wp-nm{ width:calc(100% - 26px); }
+.wp-nm-tags{ position:absolute; right:30px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 58px); pointer-events:none; }
+.wp-nm-wrap.has-sfx .wp-nm{ padding-right:84px; }
+.wp-nm-wrap.has-std .wp-nm{ padding-right:116px; }
+.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:148px; }
+/* 「查看药物详情」的小感应按钮：所有行同宽，悬停行才显现 */
+.wp-nm-detail{ position:absolute; right:2px; top:50%; transform:translateY(-50%); width:20px; height:20px; padding:0; border-radius:50%; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-5); font-size:12px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; opacity:.45; cursor:pointer; z-index:2; }
+.wp-tbl tbody tr:hover .wp-nm-detail, .wp-nm-detail:focus{ opacity:1; }
+.wp-nm-detail:hover{ color:var(--pri-deep); border-color:var(--pri); }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
@@ -3076,6 +3081,28 @@ body{ --navw:0px; }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
 .wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
+/* 单价悬停：客户历史 / 其他成交 / 进货价 三档时间线 */
+.wp-price-tip{ position:fixed; z-index:9998; width:310px; max-height:380px; overflow:auto; background:#fff; border:1px solid var(--neutral-2); border-radius:10px; box-shadow:0 12px 34px rgba(13,59,31,.18); padding:10px 12px; display:none; font-size:12px; color:var(--neutral-6); }
+.wp-price-tip h4{ margin:2px 0 6px; font-size:11px; font-weight:600; color:var(--neutral-4); letter-spacing:.03em; }
+.wp-price-tip .sec{ margin-bottom:8px; }
+.wp-price-tip .sec:last-child{ margin-bottom:0; }
+.wp-price-tip .row{ display:flex; justify-content:space-between; gap:12px; padding:3px 0; border-bottom:1px dashed var(--neutral-1); }
+.wp-price-tip .row:last-child{ border-bottom:none; }
+.wp-price-tip .row .p{ font-weight:700; color:var(--pri-deep); font-variant-numeric:tabular-nums; }
+.wp-price-tip .empty{ color:var(--neutral-4); padding:2px 0; }
+/* 订单详情：轻量药物详情侧栏（不遮挡、不打断录入） */
+.wp-peek{ position:fixed; right:18px; top:86px; width:344px; max-height:72vh; overflow:auto; z-index:9997; background:#fff; border:1px solid var(--neutral-2); border-radius:12px; box-shadow:0 16px 44px rgba(13,59,31,.2); display:none; }
+.wp-peek.on{ display:block; }
+.wp-peek-hd{ display:flex; align-items:center; padding:12px 14px; border-bottom:1px solid var(--neutral-1); font-weight:700; font-size:14px; color:var(--neutral-title); }
+.wp-peek-hd .x{ margin-left:auto; border:none; background:transparent; color:var(--neutral-4); font-size:20px; line-height:1; padding:0 4px; cursor:pointer; min-height:0; }
+.wp-peek-hd .x:hover{ color:var(--danger); }
+.wp-peek-bd{ padding:12px 14px; }
+.wp-peek-kv{ display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dashed var(--neutral-1); font-size:12px; }
+.wp-peek-kv .k{ color:var(--neutral-5); }
+.wp-peek-kv .v{ font-weight:600; color:var(--neutral-title); text-align:right; }
+.wp-peek-h4{ margin:12px 0 6px; font-size:11px; font-weight:600; color:var(--neutral-4); }
+.wp-peek-cost{ font-size:12px; }
+.wp-peek-cost .row{ display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed var(--neutral-1); }
 .wp-results{ margin-top:12px; max-height:50vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:var(--radius-input); }
 .wp-results .r{ display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--neutral-2); cursor:pointer; gap:10px; }
 .wp-results .r:hover{ background:var(--pri-soft); }
@@ -3981,6 +4008,12 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             </div>
           </div>
         </div>
+        <!-- 订单详情：轻量药物详情侧栏 + 单价历史悬浮窗 -->
+        <div class="wp-peek" id="wpDrugPeek">
+          <div class="wp-peek-hd"><span id="wpPeekTitle">药物详情</span><button class="x" type="button" onclick="WPlan.closeDrugPeek()">×</button></div>
+          <div class="wp-peek-bd" id="wpPeekBody"></div>
+        </div>
+        <div class="wp-price-tip" id="wpPriceTip"></div>
         <!-- 批量结款：生成的结款明细图片（可复制 / 下载，发客户核对付款） -->
         <div class="modal" id="wpPayModal">
           <div class="wp-mw wp-pay-mw">
@@ -9906,13 +9939,28 @@ function dmSaleScan(d){
 function ddLoadSaleLog(d){
   var saleBox=$('ddSaleLog'); if(!saleBox) return;
   var sales=dmSaleScan(d);
-  if(!sales.length){ saleBox.innerHTML='<div class="dd-empty">暂无成交记录（只统计本机保存过的处方）</div>'; return; }
-  var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
-  var n1=Math.min(sales.length,20);
-  for(var i=0;i<n1;i++){ var x=sales[i];
-    hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
+  function render(list){
+    if(!list.length){ saleBox.innerHTML='<div class="dd-empty">暂无成交记录（发药后的成交价与导入的历史价都会显示在这里）</div>'; return; }
+    var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
+    var n1=Math.min(list.length,30);
+    for(var i=0;i<n1;i++){ var x=list[i];
+      hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
+    }
+    saleBox.innerHTML=hs+'</tbody></table>';
   }
-  saleBox.innerHTML=hs+'</tbody></table>';
+  /* 本机处方 + 云端 price_logs（发药成交 / 历史计划单导入）合并展示 */
+  var name=String((d&&d.n)||'').trim();
+  if(!SUPA.on || !name){ render(sales); return; }
+  SUPA.q('price_logs?select=doctor,drug,to_price,created_at&drug=eq.'+encodeURIComponent(name)+'&order=created_at.desc&limit=50')
+    .then(function(rows){
+      for(var i=0;i<(rows||[]).length;i++){
+        var r=rows[i];
+        sales.push({dt:String(r.created_at||'').slice(0,10), guest:r.doctor||'—', p:r.to_price});
+      }
+      sales.sort(function(a,b){ return String(b.dt||'') > String(a.dt||'') ? 1 : -1; });
+      render(sales);
+    })
+    .catch(function(){ render(sales); });
 }
 
 /* =========================================================
@@ -10308,7 +10356,7 @@ var Drug=(function(){
     toast('按 进货价 ¥'+cost+' 元/kg × 倍率 '+rate+' → ¥'+sug+(kind==='p'?' 元/g':' 元/kg'));
   }
   /* ============ 重要客人价格（客人名单 + 最近成交价沉淀） ============
-     价格来源：开单时改过的成交价（setPrice → setDocPrice 自动写入）。
+     价格来源：订单【标记发药】时的成交价（WPlan.toggleFy → recordDealHistory 自动写入）。
      详情页默认不写价，只展示「最近成交 / 未成交按批发价」；
      手动填只作覆盖手段，之后再有改价订单仍以订单成交价为准。 */
   function ddGuestKey(d){ return drugKey(d.n||''); }
@@ -12828,9 +12876,9 @@ var WPlan = (function(){
     var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '');
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '</div></td>'
+      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')">i</button></div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
-      + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)"></td>'
+      + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
       + '<td class="wp-rm-td"><input class="wp-rm-in" placeholder="备注（选填）" value="' + esc(it.rm || '') + '" oninput="WPlan.setItemRemark(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="row-act"><button class="btn danger sm" type="button" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')">删除</button></td>'
@@ -13330,8 +13378,222 @@ var WPlan = (function(){
   }
   function setDate(v){ var o = curOrder(); if(!o) return; o.date = v || ''; saveDebounced(); }
   function toggleFy(){
-    var o = curOrder(); if(!o) return; o.fy = o.fy ? '' : '1'; save();
-    renderFoot(); toast(o.fy ? '已标记发药' : '已取消发药');
+    var o = curOrder(); if(!o) return;
+    var on = !o.fy;
+    o.fy = on ? '1' : '';
+    /* 只有在「标记发药」时才把本单成交价沉淀为历史成交价与客人专属价 */
+    if(on) recordDealHistory(o);
+    save(); renderFoot(); toast(on ? '已标记发药（成交价已记入历史）' : '已取消发药');
+  }
+
+  /* ================= 成交价历史（仅发药时落库） =================
+     数据去处：
+       ① DOCTORS[客人].price/d.log —— 本机客人专属价与改价历史；
+       ② Supabase price_logs —— 跨设备历史成交价（doctor/drug/to_price/rx_no/created_at）。
+     未标记发药的订单只是草稿，不写任何历史。 */
+  function recordDealHistory(o){
+    if(!o || o.dealLogged) return false;
+    var guest = String(o.guest || '').trim() || '未命名客人';
+    var dstr = String(o.date || '') || today();
+    var rows = [], logs = [], seen = {}, i, j, b, it;
+    for(i=0;i<(o.blocks||[]).length;i++){
+      b = o.blocks[i];
+      for(j=0;j<(b.items||[]).length;j++){
+        it = b.items[j];
+        if(!it || it.zibei || !String(it.name||'').trim()) continue;
+        if(it.price == null || it.price === '') continue;
+        var nm = String(it.name).trim(), price = n(it.price);
+        rows.push({doctor:guest, drug:nm, from_price:null, to_price:price,
+                   rx_no:o.no||'', created_at:dstr+'T12:00:00+08:00'});
+        if(!seen[nm]){
+          seen[nm] = 1;
+          logs.push({t:dstr+' '+nowHM(), d:nm, from:'', to:String(price), rx:o.no||'', who:guest});
+        }
+      }
+    }
+    if(!rows.length) return false;
+    /* 客人专属价按药品基础单位存（与 priceFor 的口径一致） */
+    if(!DOCTORS[guest]) DOCTORS[guest] = {n:guest, at:nowStr(), price:{}, log:[]};
+    var d = DOCTORS[guest]; d.price = d.price || {}; d.log = d.log || [];
+    for(i=0;i<logs.length;i++){
+      var ln = logs[i];
+      var bd = (findDrugAll(ln.d) || [])[0];
+      var baseU = bd ? String(bd.u || 'g') : 'g';
+      var orig = null, ic;
+      for(ic=0;ic<(o.blocks||[]).length;ic++){
+        var bb=o.blocks[ic];
+        for(var jj=0;jj<(bb.items||[]).length;jj++){
+          var ii=bb.items[jj];
+          if(ii && String(ii.name||'').trim()===ln.d){ orig=ii; break; }
+        }
+        if(orig) break;
+      }
+      var price = n(ln.to);
+      if(orig) price = price * unitCoef(String(orig.unit||orig.du||'g'), baseU);
+      d.price[drugKey(ln.d)] = Math.round(price*1000000)/1000000;
+      d.log.unshift(ln);
+    }
+    if(d.log.length > 800) d.log.length = 800;
+    try{ saveDoctors(); }catch(e){}
+    if(SUPA.on){
+      SUPA.q('price_logs', {method:'POST', body:rows}).catch(function(e){
+        console.warn('成交价历史写库失败:', e && e.message);
+      });
+    }
+    o.dealLogged = String(o.no || '') + '|' + dstr;
+    return true;
+  }
+
+  /* ================= 单价 Hover：三档价格历史 ================= */
+  var _tipCache = {}, _tipSeq = 0, _tipShow = false;
+  function histDay(t){
+    var s = String(t || '');
+    var m = s.match(/\d{4}-\d{2}-\d{2}/);
+    return m ? m[0] : s.slice(0, 10);
+  }
+  function histMoney(v){
+    if(v == null || v === '') return '—';
+    return '¥' + money(v);
+  }
+  function tipSection(title, arr){
+    var h = '<div class="sec"><h4>' + esc(title) + '</h4>';
+    if(!arr.length) return h + '<div class="empty">暂无记录</div></div>';
+    for(var i=0;i<arr.length;i++){
+      h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+    }
+    return h + '</div>';
+  }
+  function renderPriceTip(deals, guestLog, costs, drug, guest, loading){
+    deals = deals || []; costs = costs || [];
+    var cust = [], other = [], i;
+    for(i=0;i<deals.length;i++){
+      var r = deals[i], who = String(r.doctor || '');
+      var item = { t: r.created_at, p: r.to_price };
+      if(who === guest) cust.push(item); else other.push(item);
+    }
+    if(!cust.length){
+      for(i=0;i<(guestLog||[]).length;i++){
+        var l = guestLog[i];
+        if(l && normName(l.d) === normName(drug)) cust.push({t:l.t, p:l.to});
+      }
+    }
+    if(!other.length){
+      for(var nm in DOCTORS){
+        if(!DOCTORS.hasOwnProperty(nm) || nm === guest) continue;
+        var lg = DOCTORS[nm].log || [];
+        for(i=0;i<lg.length;i++){
+          if(lg[i] && normName(lg[i].d) === normName(drug)) other.push({t:lg[i].t, p:lg[i].to});
+        }
+      }
+    }
+    function sortTop(a){ a.sort(function(x,y){ return String(x.t||'') > String(y.t||'') ? -1 : 1; }); return a.slice(0,5); }
+    cust = sortTop(cust); other = sortTop(other);
+    var costArr = [];
+    for(i=0;i<costs.length;i++){
+      if(costs[i] && costs[i].cost != null) costArr.push({t:costs[i].dt, p:costs[i].cost});
+    }
+    costArr = sortTop(costArr);
+    var gLabel = guest || '未指定客人';
+    return tipSection('客户历史成交（' + gLabel + '专属）', cust)
+      + tipSection('其他历史成交', other)
+      + tipSection('历史进货价', costArr)
+      + (loading ? '<div class="empty" style="padding-top:6px">正在同步云端记录…</div>' : '');
+  }
+  function placePriceTip(tip, el){
+    var r = el.getBoundingClientRect();
+    var w = tip.offsetWidth || 310, h = tip.offsetHeight || 120;
+    var left = r.right - w;
+    if(left < 8) left = 8;
+    if(left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+    var top = r.bottom + 8;
+    if(top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 8);
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+  function priceHover(bid, i, el){
+    var b = blockById(bid), it = b && b.items[i];
+    if(!it || !it.name) return;
+    var drug = String(it.name).trim();
+    var guest = String(curGuest() || '').trim();
+    var tip = document.getElementById('wpPriceTip'); if(!tip) return;
+    _tipShow = true;
+    var token = ++_tipSeq;
+    var glog = (DOCTORS[guest] && DOCTORS[guest].log) || [];
+    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true);
+    tip.style.display = 'block';
+    placePriceTip(tip, el);
+    var pack = _tipCache[drug];
+    var p;
+    if(pack){ p = Promise.resolve(pack); }
+    else{
+      var q1 = (SUPA.on ? SUPA.q('price_logs?select=doctor,drug,to_price,created_at,rx_no&drug=eq.'
+        + encodeURIComponent(drug) + '&order=created_at.desc&limit=30') : Promise.resolve([])).catch(function(){ return []; });
+      var q2 = (typeof SUPA.loadCostLog === 'function' ? SUPA.loadCostLog(drug) : Promise.resolve([])).catch(function(){ return []; });
+      p = Promise.all([q1, q2]).then(function(arr){
+        var packed = { deals: arr[0] || [], costs: arr[1] || [] };
+        _tipCache[drug] = packed;
+        return packed;
+      });
+    }
+    p.then(function(packed){
+      if(!_tipShow || token !== _tipSeq) return;
+      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false);
+      placePriceTip(tip, el);
+    });
+  }
+  function priceLeave(){
+    _tipShow = false;
+    var tip = document.getElementById('wpPriceTip');
+    if(tip) tip.style.display = 'none';
+  }
+
+  /* ================= 药物详情侧栏（不打断开单） ================= */
+  function openDrugPeek(bid, i){
+    var b = blockById(bid), it = b && b.items[i];
+    if(!it || !String(it.name || '').trim()){ toast('请先填写药名'); return; }
+    closeAc();
+    var nm = String(it.name).trim();
+    var d = findDrug(nm) || (findDrugAll(nm) || [])[0] || null;
+    var box = document.getElementById('wpDrugPeek');
+    var title = document.getElementById('wpPeekTitle');
+    var body = document.getElementById('wpPeekBody');
+    if(!box || !body) return;
+    if(title) title.textContent = (it.disp || nm);
+    if(!d){
+      body.innerHTML = '<div class="wp-empty">仓库里没有匹配到「' + esc(nm) + '」</div>';
+      box.classList.add('on');
+      return;
+    }
+    function kv(k, v){ return '<div class="wp-peek-kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v == null || v === '' ? '—' : v) + '</span></div>'; }
+    var u = String(d.u || 'g');
+    var gp = docPrice(curGuest(), d.n);
+    var h = kv('标准药名', d.n)
+      + kv('别名', (Array.isArray(d.al) && d.al.length) ? d.al.join('、') : '—')
+      + kv('单位 / 常用量', u + ' / ' + (d.c || '—'))
+      + kv('零售价', (d.p != null && d.p !== '') ? ('¥' + money(d.p) + ' / ' + u) : '—')
+      + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp)) : '—')
+      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp)) : '—')
+      + kv('当前客人专属价', gp != null ? ('¥' + money(gp) + ' / ' + u) : '—')
+      + '<div class="wp-peek-h4">最近进货记录</div><div class="wp-peek-cost" id="wpPeekCost"><div class="empty">加载中…</div></div>';
+    body.innerHTML = h;
+    box.classList.add('on');
+    if(SUPA.on && typeof SUPA.loadCostLog === 'function'){
+      SUPA.loadCostLog(d.n).then(function(rows){
+        var c = document.getElementById('wpPeekCost'); if(!c) return;
+        rows = (rows || []).slice(0, 5);
+        if(!rows.length){ c.innerHTML = '<div class="empty">暂无进货记录</div>'; return; }
+        var s = '';
+        for(var k=0;k<rows.length;k++){
+          s += '<div class="row"><span>' + esc(histDay(rows[k].dt)) + '</span><span>¥' + esc(money(rows[k].cost)) + '</span></div>';
+        }
+        c.innerHTML = s;
+      }).catch(function(){ var c = document.getElementById('wpPeekCost'); if(c) c.innerHTML = '<div class="empty">进货记录加载失败</div>'; });
+    }else{
+      var c0 = document.getElementById('wpPeekCost'); if(c0) c0.innerHTML = '<div class="empty">未连接云端</div>';
+    }
+  }
+  function closeDrugPeek(){
+    var b = document.getElementById('wpDrugPeek'); if(b) b.classList.remove('on');
   }
   function addBlock(){
     var o = curOrder(); if(!o) return;
@@ -13430,17 +13692,11 @@ var WPlan = (function(){
   }
   function setPrice(bid, i, v){
     var b = blockById(bid); if(!b || !b.items[i]) return;
-    var it = b.items[i]; var old = it.price;
+    var it = b.items[i];
     it.price = (v === '' || v == null) ? null : n(v);
     it.manual = true;
-    /* 价格跟随医生：手改的单价记入该医生的专属价库（含改价历史），后续按此价计价 */
-    var g = curGuest();
-    if(g && it.price != null && it.name){
-      var dp = docPrice(g, it.name);
-      if(dp == null || Math.abs(dp - it.price) > 1e-9){
-        setDocPrice(g, it.name, it.price, (old == null ? '' : old), (curOrder() && curOrder().no) || '', g);
-      }
-    }
+    /* ⚠ 未发药的订单只是草稿：这里只改本行单价，不写客人专属价、不记历史成交。
+       成交价统一在【标记发药】时由 recordDealHistory() 落库（2026-11-01 规则）。 */
     saveDebounced(); updateAmt(bid,i); recount();
   }
   function setItemName(bid, i, v){
@@ -14152,6 +14408,7 @@ var WPlan = (function(){
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
     setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
+    priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
     setDish: setDish, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
     printCur: printCur, printOrder: printOrder,
