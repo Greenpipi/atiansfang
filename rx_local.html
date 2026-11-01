@@ -3162,11 +3162,14 @@ body{ --navw:0px; }
 .wp-reuse-dose{ display:flex; align-items:center; gap:4px; font-size:12px; color:var(--neutral-5); flex:0 0 auto; }
 .wp-reuse-dose input{ width:48px; height:28px; text-align:center; padding:0 4px; }
 .wp-reuse-acts{ display:flex; gap:6px; flex:0 0 auto; }
-.wp-reuse-tip{ position:fixed; z-index:9998; width:300px; max-height:320px; overflow:auto; padding:10px 12px; background:#fff; border:1px solid var(--neutral-2); border-radius:10px; box-shadow:0 12px 32px rgba(13,59,31,.18); display:none; font-size:12px; }
-.wp-reuse-tip h4{ margin:0 0 6px; font-size:13px; color:var(--neutral-title); }
-.wp-reuse-tip .row{ display:flex; justify-content:space-between; gap:10px; padding:3px 0; border-bottom:1px dashed var(--neutral-1); }
+/* 药方复用底部：已选数量靠左，左/右留白与弹窗内容区一致（18px） */
+#wpHistFoot{ padding:0 18px; }
+#wpHistFoot .wp-list-count{ margin:0 auto 0 0!important; text-align:left; }
+.wp-reuse-tip{ position:fixed; z-index:9998; width:320px; max-height:340px; overflow:auto; padding:12px 14px; background:#fff; border:1px solid var(--neutral-2); border-radius:10px; box-shadow:0 12px 32px rgba(13,59,31,.18); display:none; font-size:14px; }
+.wp-reuse-tip h4{ margin:0 0 7px; font-size:15px; color:var(--neutral-title); }
+.wp-reuse-tip .row{ display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px dashed var(--neutral-1); }
 .wp-reuse-tip .row .p{ font-weight:700; color:var(--pri-deep); }
-.wp-reuse-tip .sum{ margin-top:7px; font-size:13px; color:var(--neutral-6); }
+.wp-reuse-tip .sum{ margin-top:8px; font-size:15px; color:var(--neutral-6); }
 .wp-prev-block{ margin-bottom:18px; }
 .wp-prev-block:last-child{ margin-bottom:0; }
 .wp-prev-hd{ font-size:var(--fs-body); color:var(--neutral-title); font-weight:700; margin-bottom:8px; }
@@ -14000,7 +14003,7 @@ var WPlan = (function(){
   function updateHistFoot(){
     var f = document.getElementById('wpHistFoot'); if(!f) return;
     var n2 = _prevSel.length;
-    f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
+    f.innerHTML = '<span class="wp-list-count">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
       + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">取消</button>'
       + '<button class="btn pri" type="button" onclick="WPlan.openReusePreview()">复用选中' + (n2 ? '（' + n2 + '）' : '') + '</button>';
   }
