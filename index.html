@@ -3628,12 +3628,15 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wpd-sum{ display:flex; justify-content:space-between; gap:12px; margin-top:6px;
   font-size:.95em; font-weight:700; }
 .wpd-word{ margin-top:4px; font-size:.92em; }
-.wpd-foot{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; padding-top:6px;
+/* 合计只在最后一页、横线上方 */
+.wpd-total{ display:flex; justify-content:space-between; gap:12px; margin-top:8px;
+  font-size:.95em; font-weight:700; }
+.wpd-foot{ display:flex; justify-content:space-between; gap:12px; margin-top:6px; padding-top:6px;
   border-top:1px solid #000; font-size:.9em; color:#222; line-height:1.6; align-items:flex-end; }
 .wpd-foot-l{ display:flex; flex-direction:column; justify-content:flex-end; gap:2px; }
 .wpd-foot-r{ display:flex; align-items:flex-end; justify-content:flex-end; min-width:160px; }
-/* 盖章区：留出实际盖章空间 */
-.wpd-stamp{ min-width:160px; min-height:64px; display:flex; align-items:flex-end; justify-content:flex-end; padding-top:4px; }
+/* 盖章处在横线下方，不再预留 64px 高度 */
+.wpd-stamp{ min-width:160px; display:flex; align-items:flex-end; justify-content:flex-end; padding-top:2px; }
 .wpd-page{ text-align:left; margin-top:4px; font-size:.85em; color:#444; }
 .wpd-subline{ margin-top:2px; font-size:.95em; }
 .wpd-pagebreak{ break-after:page; page-break-after:always; }
@@ -15208,7 +15211,7 @@ var WPrint=(function(){
     if(t.showNote) cols.push({k:'m', t:'备注', w:15});
     return cols;
   }
-  function pageHtml(o, t, rows, pi, totalPages){
+  function pageHtml(o, t, rows, pi, totalPages, grand){
     var h='', i, r, cols=colSpec(t), sum=0, wt=weightOf(rows), colW=0, c;
     var narrow=(t.paper==='58'||t.paper==='80');
     for(i=0;i<cols.length;i++) colW+=cols[i].w;
@@ -15259,17 +15262,18 @@ var WPrint=(function(){
     }
     h+='</tbody></table>';
 
-    /* ---- 合计 ---- */
-    h+='<div class="wpd-sum">';
-    if(t.showWeight) h+='<span>合计重量：'+wt+'kg</span>';
-    if(t.showAmount) h+='<span>合计金额：'+fmtMoney(sum)+'</span>';
-    h+='</div>';
-    if(t.showAmount) h+='<div class="wpd-word">成交金额大写：'+upperMoney(sum)+'</div>';
+    /* ---- 合计：只在整个订单的最后一页出现，放在分页横线上方 ---- */
     if(t.pageMode==='pageSub' && t.showAmount && totalPages>1){
       h+='<div class="wpd-subline">本页小计：'+fmtMoney(sum)+' 元（第 '+(pi+1)+' / '+totalPages+' 页）</div>';
     }
+    if(grand && pi === totalPages-1 && (t.showWeight || t.showAmount)){
+      h+='<div class="wpd-total">';
+      if(t.showWeight) h+='<span>合计重量：'+grand.wt+'kg</span>';
+      if(t.showAmount) h+='<span>合计金额：'+fmtMoney(grand.sum)+'</span>';
+      h+='</div>';
+    }
 
-    /* ---- 页脚：左侧落款/联系方式 + 左下角页码；右侧盖章区（可选） ---- */
+    /* ---- 页脚：横线下方左侧页码 / 右侧盖章处 ---- */
     h+='<div class="wpd-foot">';
     h+='<div class="wpd-foot-l">';
     if(t.footNote) h+='<div>'+esc(t.footNote)+'</div>';
@@ -15285,7 +15289,9 @@ var WPrint=(function(){
   }
   function docHtml(o, t){
     var rows=flatRows(o), pages=paginate(rows,t), h='', i;
-    for(i=0;i<pages.length;i++) h+=pageHtml(o, t, pages[i], i, pages.length);
+    var grand={ sum:0, wt:weightOf(rows) };
+    for(i=0;i<rows.length;i++) grand.sum += rows[i].amount;
+    for(i=0;i<pages.length;i++) h+=pageHtml(o, t, pages[i], i, pages.length, grand);
     return h;
   }
 
@@ -15299,12 +15305,14 @@ var WPrint=(function(){
     if(t.orient==='landscape'){ var tmp=w; w=hh; hh=tmp; }
     var pw=mm2px(w), ph=mm2px(hh);
     var rows=flatRows(o), pages=paginate(rows,t), i;
+    var grand={ sum:0, wt:weightOf(rows) };
+    for(i=0;i<rows.length;i++) grand.sum += rows[i].amount;
     var pad=n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm';
     var html='';
     /* 所有分页都顺着往下预览，不再只显示第一页 */
     for(i=0;i<pages.length;i++){
       html += '<div class="wps-page" style="width:'+pw+'px;min-height:'+ph+'px;padding:'+pad+'">'
-        + pageHtml(o,t,pages[i],i,pages.length) + '</div>';
+        + pageHtml(o,t,pages[i],i,pages.length,grand) + '</div>';
     }
     paper.style.width=pw+'px';
     paper.style.minHeight='auto';
