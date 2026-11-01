@@ -3005,11 +3005,11 @@ body{ --navw:0px; }
 .wp-nm-wrap.has-sfx .wp-nm{ padding-right:80px; }
 .wp-nm-wrap.has-std .wp-nm{ padding-right:118px; }
 .wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:158px; }
-/* 「查看药物详情」：透明幽灵圆按钮，悬停浅绿底 + 主色图标，不位移 */
-.wplan .wp-tbl .wp-nm-detail{ position:absolute; right:3px; top:50%; transform:translateY(-50%); width:18px!important; height:18px!important; min-height:0!important; padding:0!important; border:0!important; border-radius:50%!important; background:transparent!important; color:var(--neutral-4)!important; box-shadow:none!important; display:flex!important; align-items:center!important; justify-content:center!important; opacity:.5; cursor:pointer; z-index:2; transition:background-color .15s ease,color .15s ease,opacity .15s ease; }
+/* 「查看药物详情」：与左侧加号同尺寸的 20px 圆钮；默认白底黑图标，悬停黑底白图标 */
+.wplan .wp-tbl .wp-nm-detail{ position:absolute; right:3px; top:50%; transform:translateY(-50%); width:20px!important; height:20px!important; min-height:0!important; padding:0!important; border:1px solid var(--neutral-3)!important; border-radius:50%!important; background:#fff!important; color:#333!important; box-shadow:none!important; display:flex!important; align-items:center!important; justify-content:center!important; opacity:.75; cursor:pointer; z-index:2; transition:background-color .15s ease,color .15s ease,border-color .15s ease,opacity .15s ease; }
 .wplan .wp-tbl .wp-nm-detail svg{ display:block; width:13px; height:13px; }
 .wp-tbl tbody tr:hover .wp-nm-detail, .wp-nm-detail:focus{ opacity:1; }
-.wp-nm-detail:hover{ background:var(--pri-soft)!important; color:var(--pri-deep)!important; transform:translateY(-50%)!important; }
+.wp-nm-detail:hover{ background:#1a1a1a!important; border-color:#1a1a1a!important; color:#fff!important; transform:translateY(-50%)!important; }
 .wp-nm-detail:active{ transform:translateY(-50%) scale(.94)!important; }
 /* 行内加号：SVG 图标，保证在圆形内绝对居中 */
 .wplan .wp-tbl .wp-plus svg{ display:block; width:10px; height:10px; }
@@ -15995,7 +15995,7 @@ function rxMigrateLegacyLocalData(){
 .page[data-page="print"] .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
 .page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{ position:relative; }
 .page[data-page="print"] .wplan .wp-tbl td.wp-plus-td .wp-plus{
-  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  position:absolute; right:4px; top:50%; transform:translateY(-50%);
 }
 .page[data-page="print"] .wplan .wp-tbl thead th:first-child{ position:relative; }
 .page[data-page="print"] .wplan .wp-tbl thead th:first-child::before{
@@ -16013,13 +16013,13 @@ function rxMigrateLegacyLocalData(){
 }
 /* 保留药名格右侧的「仓库标准药 / 先煎」灰色小标签空间，避免被换肤覆盖 */
 .page[data-page="print"] .wplan .wp-nm-wrap.has-std .wp-nm{
-  padding-right:92px !important;
+  padding-right:118px !important;
 }
 .page[data-page="print"] .wplan .wp-nm-wrap.has-sfx .wp-nm{
-  padding-right:52px !important;
+  padding-right:80px !important;
 }
 .page[data-page="print"] .wplan .wp-nm-wrap.has-std.has-sfx .wp-nm{
-  padding-right:124px !important;
+  padding-right:158px !important;
 }
 .page[data-page="print"] .wplan .wp-tbl .wp-nm:hover,
 .page[data-page="print"] .wplan .wp-tbl .num:hover,
