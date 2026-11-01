@@ -888,10 +888,16 @@ td.p{font-weight:600;color:var(--g-800)}
 .cell .nm:focus,.cell .ds:focus{background:var(--g-50)}
 /* 复选框与单选 */
 input[type=checkbox],input[type=radio]{accent-color:var(--g-500);width:14px;height:14px;cursor:pointer}
-/* 下拉箭头风格 */
+/* 下拉箭头风格：小号浅灰 chevron，距右边框 10px（参考图2） */
 select{appearance:none;cursor:pointer;
-  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237a8f83' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;background-size:9px 5px;}
+/* 可输入的 datalist 下拉：同样的小灰三角，右侧留足边距 */
+#wpGuest, input[list].pur-name{
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;background-size:9px 5px;
+  padding-right:30px!important;
+}
 /* =====================================================================
    🔒 覆盖层最终锁定
    旧的蓝灰规则（button.pri 用 var(--pri-soft)/var(--pri-line) 等）写在设计变量之前，
@@ -3263,7 +3269,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wp-bi .bi-in{ height:26px; box-sizing:border-box; border:1px solid var(--neutral-3);
   border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-title);
   font-size:12px; padding:0 8px; }
-.wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:4px; cursor:pointer; }
+.wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:24px; cursor:pointer; border-radius:10px; }
 .wp-bi input.bi-in{ width:126px; }
 .wp-field-dish .wp-in{ min-width:260px; width:280px; }
 /* 计划分组 */
@@ -16102,6 +16108,14 @@ function rxMigrateLegacyLocalData(){
   color:#0B6E4D !important;
 }
 /* ===== 统一下拉面板：参考图1（圆角浮层 + 选中对勾） ===== */
+/* 最终下拉三角：小号浅灰 chevron，距右边框 10px，覆盖前面所有 select 规则 */
+select{
+  padding-right:26px!important;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 10px center!important;
+  background-size:9px 5px!important;
+}
 .ui-drop{ position:fixed; z-index:10050; min-width:190px; max-width:360px; max-height:320px; overflow:auto; padding:7px; background:#fff; border-radius:14px; box-shadow:0 14px 40px rgba(17,32,24,.18); display:none; }
 .ui-drop.on{ display:block; }
 .ui-drop .it{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 13px; border-radius:10px; font-size:15px; color:#20281f; cursor:pointer; line-height:1.35; }
