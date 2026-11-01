@@ -3629,8 +3629,12 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
   font-size:.95em; font-weight:700; }
 .wpd-word{ margin-top:4px; font-size:.92em; }
 .wpd-foot{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; padding-top:6px;
-  border-top:1px solid #000; font-size:.9em; color:#222; line-height:1.6; }
-.wpd-page{ text-align:right; margin-top:4px; font-size:.85em; color:#444; }
+  border-top:1px solid #000; font-size:.9em; color:#222; line-height:1.6; align-items:flex-end; }
+.wpd-foot-l{ display:flex; flex-direction:column; justify-content:flex-end; gap:2px; }
+.wpd-foot-r{ display:flex; align-items:flex-end; justify-content:flex-end; min-width:160px; }
+/* 盖章区：留出实际盖章空间 */
+.wpd-stamp{ min-width:160px; min-height:64px; display:flex; align-items:flex-end; justify-content:flex-end; padding-top:4px; }
+.wpd-page{ text-align:left; margin-top:4px; font-size:.85em; color:#444; }
 .wpd-subline{ margin-top:2px; font-size:.95em; }
 .wpd-pagebreak{ break-after:page; page-break-after:always; }
 .wpd-pagebreak:last-child{ break-after:auto; page-break-after:auto; }
@@ -3984,7 +3988,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <div class="wps-seg" id="wpsPageMode">
                     <button type="button" data-v="auto" onclick="WPrint.cfg('pageMode','auto')">连续</button>
                     <button type="button" data-v="page" onclick="WPrint.cfg('pageMode','page')">分页</button>
-                    <button type="button" data-v="pageSub" onclick="WPrint.cfg('pageMode','pageSub')">分页+小计</button>
+                    <button type="button" data-v="pageSub" onclick="WPrint.togglePageSub()">分页+小计</button>
                   </div>
                 </div>
                 <div class="wps-row" id="wpsRppRow"><label>每页行数</label><input type="range" id="wpsRpp" min="5" max="40" step="1" oninput="WPrint.cfg('rowsPerPage',this.value)"><span class="wps-num" id="wpsRppv">20</span></div>
@@ -4016,6 +4020,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <label class="wps-sw"><input type="checkbox" id="wpsSwNote" onchange="WPrint.cfg('showNote',this.checked)">备注</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwDish" onchange="WPrint.cfg('showDish',this.checked)">订单名称</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwNo" onchange="WPrint.cfg('showNo',this.checked)">单号</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwStamp" onchange="WPrint.cfg('showStamp',this.checked)">盖章处</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwWeight" onchange="WPrint.cfg('showWeight',this.checked)">合计重量</label>
                 </div>
               </div>
@@ -14837,7 +14842,7 @@ var WPrint=(function(){
       title:'发货单', shop:'', tel:'', addr:'', custLabel:'顾客', footNote:'',
       showShop:true, showTitle:true, showTel:true, showAddr:true, showIndex:true,
       showSpec:true, showOrigin:false, showPrice:true, showAmount:true, showNote:true, showWeight:true,
-      showDish:true, showNo:true,
+      showDish:true, showNo:true, showStamp:true,
       pageMode:'auto', rowsPerPage:20, showPageNo:false,
       fs:11, rh:22, isDefault:false };
   }
@@ -15039,6 +15044,7 @@ var WPrint=(function(){
     setChk('wpsSwPrice',t.showPrice); setChk('wpsSwAmount',t.showAmount);
     setChk('wpsSwNote',t.showNote); setChk('wpsSwWeight',t.showWeight);
     setChk('wpsSwDish',t.showDish!==false); setChk('wpsSwNo',t.showNo!==false);
+    setChk('wpsSwStamp',t.showStamp!==false);
     setVal('wpsFs',t.fs); setNum('wpsFsv',t.fs);
     setVal('wpsRh',t.rh); setNum('wpsRhv',t.rh);
     var rr=$('wpsRppRow'); if(rr) rr.style.display=(t.pageMode==='auto'?'none':'flex');
@@ -15046,11 +15052,15 @@ var WPrint=(function(){
     var bm=$('wpsBarMeta');
     if(bm) bm.textContent=(PAPER[t.paper]||PAPER.a5).label+' · '+(t.orient==='landscape'?'横向':'纵向');
   }
+  function togglePageSub(){
+    var t = curTpl();
+    cfg('pageMode', t.pageMode === 'pageSub' ? 'page' : 'pageSub');
+  }
   /* 所有左侧控件都走这一个入口：改模板 → 存本地 → 刷预览 */
   function cfg(k,v){
     var t=curTpl();
     var bools={showShop:1,showTitle:1,showTel:1,showAddr:1,showIndex:1,showSpec:1,showOrigin:1,
-               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1,showDish:1,showNo:1};
+               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1,showDish:1,showNo:1,showStamp:1};
     if(bools[k]) t[k]=!!v;
     else if(TEXTKEYS[k]) t[k]=String(v==null?'':v);
     else if(k==='paper'||k==='orient'||k==='pageMode') t[k]=v;
@@ -15188,7 +15198,7 @@ var WPrint=(function(){
   }
   function colSpec(t){
     var cols=[], narrow=(t.paper==='58'||t.paper==='80');
-    if(t.showIndex) cols.push({k:'i', t:'行号', w:8, cls:'c'});
+    if(t.showIndex) cols.push({k:'i', t:'序号', w:8, cls:'c'});
     cols.push({k:'n', t:'商品名称', w:narrow?46:28});
     if(t.showSpec) cols.push({k:'s', t:'规格', w:11, cls:'c'});
     if(t.showOrigin) cols.push({k:'o', t:'产地', w:narrow?14:12, cls:'c'});
@@ -15216,11 +15226,14 @@ var WPrint=(function(){
     if(t.showAddr && t.addr) right+='<div>地址：'+esc(t.addr)+'</div>';
 
     h+='<div class="wpd'+(narrow?' wpd-narrow':'')+'" style="--wpd-rh:'+Math.round(n2(t.rh))+'px">';
-    h+='<div class="wpd-h">';
-    if(t.showShop && t.shop) h+='<div class="wpd-shop">'+esc(t.shop)+'</div>';
-    if(t.showTitle) h+='<div class="wpd-title">'+esc(t.title||'发货单')+'</div>';
-    h+='<div class="wpd-metas"><div class="l">'+left+'</div><div class="r">'+right+'</div></div>';
-    h+='</div>';
+    /* 只有第一页显示抬头，后续页直接续表格 */
+    if(pi === 0){
+      h+='<div class="wpd-h">';
+      if(t.showShop && t.shop) h+='<div class="wpd-shop">'+esc(t.shop)+'</div>';
+      if(t.showTitle) h+='<div class="wpd-title">'+esc(t.title||'发货单')+'</div>';
+      h+='<div class="wpd-metas"><div class="l">'+left+'</div><div class="r">'+right+'</div></div>';
+      h+='</div>';
+    }
 
     /* ---- 明细表 ---- */
     h+='<table class="wpd-tbl"><colgroup>';
@@ -15256,13 +15269,17 @@ var WPrint=(function(){
       h+='<div class="wpd-subline">本页小计：'+fmtMoney(sum)+' 元（第 '+(pi+1)+' / '+totalPages+' 页）</div>';
     }
 
-    /* ---- 页脚 ---- */
-    h+='<div class="wpd-foot"><div>'+esc(t.footNote||'')+'</div>';
+    /* ---- 页脚：左侧落款/联系方式 + 左下角页码；右侧盖章区（可选） ---- */
+    h+='<div class="wpd-foot">';
+    h+='<div class="wpd-foot-l">';
+    if(t.footNote) h+='<div>'+esc(t.footNote)+'</div>';
     if(t.showTel && t.tel) h+='<div>联系方式：'+esc(t.tel)+'</div>';
-    h+='<div>盖章处：</div></div>';
     if(totalPages>1 || t.showPageNo){
       h+='<div class="wpd-page">'+(t.showPageNo?('第 '+(pi+1)+' / '+totalPages+' 页'):'页：'+(pi+1)+'/'+totalPages)+'</div>';
     }
+    h+='</div>';
+    if(t.showStamp !== false) h+='<div class="wpd-foot-r"><div class="wpd-stamp">盖章处：</div></div>';
+    h+='</div>';
     h+='</div>';
     return h;
   }
@@ -15347,7 +15364,7 @@ var WPrint=(function(){
     if((e.key==='Escape'||e.keyCode===27) && isOpen()) close();
   });
 
-  return { open:open, close:close, isOpen:isOpen, cfg:cfg, pick:pick,
+  return { open:open, close:close, isOpen:isOpen, cfg:cfg, pick:pick, togglePageSub:togglePageSub,
     addTpl:addTpl, renameTpl:renameTpl, delTpl:delTpl, saveTpl:saveTpl,
     doPrint:doPrint, renderPreview:renderPreview, docHtml:docHtml,
     upperMoney:upperMoney, flatRows:flatRows, weightOf:weightOf,
