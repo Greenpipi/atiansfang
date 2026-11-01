@@ -108,11 +108,14 @@ function injectActionIcons(){
     plFa:'send'
   };
   for(var id in map) addIcon(id,map[id]);
-  /* 药品目录搜索框也加一个放大镜前缀（纯装饰） */
+  /* 药品目录搜索框也加一个放大镜前缀（纯装饰）
+     ⚠ 输入框会在启动时被 .sch-wrap 包一层，ds.parentNode 已经变成 .sch-wrap；
+       图标必须放进 .dsearch 容器（has-ico 也加在它上面），否则放大镜会压在「柴胡」上。 */
   var ds=document.getElementById('dSearch');
-  if(ds && !ds.parentNode.querySelector('.dsearch-ico')){
-    ds.parentNode.insertAdjacentHTML('afterbegin','<span class="dsearch-ico">'+rxIcon('search')+'</span>');
-    ds.parentNode.classList.add('has-ico');
+  var dsr=ds?(ds.closest('.dsearch')||ds.parentNode):null;
+  if(dsr && !dsr.querySelector('.dsearch-ico')){
+    dsr.insertAdjacentHTML('afterbegin','<span class="dsearch-ico">'+rxIcon('search')+'</span>');
+    dsr.classList.add('has-ico');
   }
 }
 /* 尾缀 → 语义类别（用于彩色标签配色） */
@@ -1739,6 +1742,12 @@ td.p{text-align:right!important;font-weight:500!important}
 }
 .dsearch-ico .rxi{width:15px;height:15px;margin:0}
 .dsearch.has-ico #dSearch{padding-left:34px!important}
+/* 「克数」框：按用户要求「宁愿小1px」——宽度收 1px、字号收 1px，
+   保证「克数」两字在窄栏里也完整显示，不再贴边被切。 */
+.dsearch #dDose{
+  flex:0 0 51px!important;min-width:51px;font-size:12px!important;
+  padding-left:4px!important;padding-right:4px!important;
+}
 
 /* =====================================================================
    ⑤ 尾缀彩色标签：[先煎]/[后下]/[另包]
@@ -3770,7 +3779,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
       <div class="pbody">
         <div class="dsearch">
           <input id="dSearch" class="sch" placeholder="输入药名，如 阿胶" autocomplete="off">
-          <input id="dDose" style="flex:0 0 52px" placeholder="克数" autocomplete="off">
+          <input id="dDose" placeholder="克数" autocomplete="off">
         </div>
         <div class="dhint">输入药名 → 回车跳到「克数」→ 填克数 → <b>双击</b>下方词条插入处方（仅中药）</div>
         <!-- 2026-10-07 18:29 去掉内联 border/border-radius：容器边框交由 CSS 统一管
