@@ -6648,8 +6648,10 @@ function guestRowOf(g){
   keep.ctype=g.ctype||'散客';
   keep.pins=(g.pins||[]).slice(0,3);
   keep.stars=(g.stars||{});
-  /* 常用方存在 prices.__gcommon；保存客户档案时原样带回，避免被清空 */
-  if(GUEST_GC[g.name] && GUEST_GC[g.name].length) keep.__gcommon=GUEST_GC[g.name];
+  /* 常用方存在 prices.__gcommon；保存客户档案时原样带回，避免被清空。
+     数据来源按优先级合并：云端 KV → GUEST_GC → 当前 GST_CF。 */
+  var cf=gstCfForGuest(g.name);
+  if(cf.length) keep.__gcommon=cf;
   return {name:g.name, prices:keep};
 }
 function guestFromRow(r){
@@ -6696,31 +6698,39 @@ function guestLoadAll(){
       if(has) CLOUD_DOC_PRICES[r.name]=dp;
       if(p.__rates && typeof p.__rates==='object') CLOUD_DOC_RATES[r.name]=p.__rates;
     });
-    /* 常用方：从 doctors.prices.__gcommon 还原到本机，换设备/清缓存后不再空白。
-       同一方若本机克数更全则保留本机，避免被云端 qty=0 的副本覆盖。 */
-    GUEST_GC={};
+    /* 常用方：cloud KV（rx_gcommon_v1）+ doctors.prices.__gcommon 双云端来源。
+       两者按 id 合并，取克数更全/更新时间较新的那份；任一来源被误清都不会丢数据。 */
     var cloudCf=[], anyCloud=false;
+    try{
+      var kv=JSON.parse(RX_STORE.getItem('rx_gcommon_v1')||'[]');
+      if(Array.isArray(kv) && kv.length){ for(var ki=0;ki<kv.length;ki++){ if(kv[ki] && kv[ki].id) cloudCf.push(kv[ki]); } anyCloud=true; }
+    }catch(e){}
     (rows||[]).forEach(function(r){
       var p=r.prices||{}, list=p.__gcommon;
-      if(!Array.isArray(list)) return;
-      GUEST_GC[r.name]=list; anyCloud=true;
+      if(!Array.isArray(list) || !list.length) return;
+      anyCloud=true;
       for(var i=0;i<list.length;i++){ if(list[i] && list[i].id) cloudCf.push(list[i]); }
     });
     if(anyCloud){
-      if(!GST_CF.length) gstLoadCf();
       function cfWeight(c){
         var w=0, its=(c&&c.items)||[];
         for(var x=0;x<its.length;x++){ if(its[x] && !its[x].zibei) w+=n(its[x].qty); }
         return w;
       }
       var byId={}, i2, c2;
-      for(i2=0;i2<GST_CF.length;i2++){ c2=GST_CF[i2]; if(c2 && c2.id) byId[c2.id]=c2; }
       for(i2=0;i2<cloudCf.length;i2++){
         c2=cloudCf[i2];
         var old=byId[c2.id], wc=cfWeight(c2), wo=old?cfWeight(old):-1;
         if(!old || wc>wo || (wc===wo && String(c2.updatedAt||'')>String(old.updatedAt||''))) byId[c2.id]=c2;
       }
       GST_CF=Object.keys(byId).map(function(k){ return byId[k]; });
+    }
+    /* 用合并后的 GST_CF 重建 GUEST_GC，保证保存客户资料时 __gcommon 不会丢 */
+    GUEST_GC={};
+    for(var gi=0;gi<GST_CF.length;gi++){
+      var gc=GST_CF[gi]; if(!gc || !gc.guest) continue;
+      if(!GUEST_GC[gc.guest]) GUEST_GC[gc.guest]=[];
+      GUEST_GC[gc.guest].push(gc);
     }
     GST_CF_CLOUD_READY=true;
     try{ purgeTestGuests(); }catch(e){}
@@ -6735,9 +6745,14 @@ function guestDelete(name){
 
 /* ---------- 常用方数据层 ---------- */
 function gstLoadCf(){
-  /* 常用方不再从本机读取：数据只来自 Supabase（guestLoadAll 时写入 GST_CF） */
+  /* 云端 KV 备份（Supabase guests 表的 __kv__rx_gcommon_v1 行） */
+  try{ var a=JSON.parse(RX_STORE.getItem('rx_gcommon_v1')||'[]'); GST_CF=Array.isArray(a)?a:[]; }catch(e){ GST_CF=[]; }
+  /* KV 有数据说明云端可用，允许后续写回 doctors */
+  if(GST_CF.length) GST_CF_CLOUD_READY=true;
 }
 function gstCfPersist(){
+  /* 常用方双写：Supabase KV + doctors.prices.__gcommon，都是云端 */
+  RX_STORE.setItem('rx_gcommon_v1', JSON.stringify(GST_CF));
   if(!(window.SUPA && SUPA.on)) return Promise.resolve(0);
   if(!GST_CF_CLOUD_READY) return Promise.resolve(0);
   return gstCfPushCloud().catch(function(e){ console.warn('常用方写库失败:',e.message); });
@@ -6752,12 +6767,47 @@ function gstCfPushCloud(){
     if(!c || !c.guest) continue;
     (groups[c.guest]=groups[c.guest]||[]).push(c);
   }
-  var names=Object.keys(groups);
+  /* 目标客人 = 当前有方的客人 ∪ 云端原本有方的客人。
+     这样「删掉某位客人的最后一个常用方」时，会向 doctors 写入空数组把它清掉，
+     不会因为旧数据残留而在下次加载时复活。 */
+  var targets={}, nm;
+  for(nm in groups){ if(Object.prototype.hasOwnProperty.call(groups,nm)) targets[nm]=1; }
+  for(nm in GUEST_GC){ if(Object.prototype.hasOwnProperty.call(GUEST_GC,nm) && GUEST_GC[nm] && GUEST_GC[nm].length) targets[nm]=1; }
+  var names=Object.keys(targets);
   if(!names.length) return Promise.resolve(0);
-  return Promise.all(names.map(function(nm){
-    GUEST_GC[nm]=groups[nm].slice();
-    return SUPA.saveGuestCommon(nm, groups[nm]);
+  return Promise.all(names.map(function(name){
+    var list=groups[name]||[];
+    GUEST_GC[name]=list.slice();
+    return SUPA.saveGuestCommon(name, list);
   })).then(function(){ return names.length; });
+}
+/* 取某位客户的常用方：按优先级合并云端 KV、GUEST_GC、当前 GST_CF。
+   任何一处有数据都不会因为保存客户/医生价格而被清空。 */
+function gstCfForGuest(guest){
+  guest=String(guest||'').trim();
+  if(!guest) return [];
+  var byId={}, order=[];
+  function addList(list){
+    if(!Array.isArray(list)) return;
+    for(var i=0;i<list.length;i++){
+      var c=list[i]; if(!c || !c.id) continue;
+      if(!byId[c.id]) order.push(c.id);
+      byId[c.id]=c;
+    }
+  }
+  try{
+    var kv=JSON.parse(RX_STORE.getItem('rx_gcommon_v1')||'[]');
+    var kk=[];
+    if(Array.isArray(kv)){ for(var z=0;z<kv.length;z++){ if(kv[z] && kv[z].guest===guest) kk.push(kv[z]); } }
+    addList(kk);
+  }catch(e){}
+  if(typeof GUEST_GC!=='undefined' && GUEST_GC[guest]) addList(GUEST_GC[guest]);
+  if(typeof GST_CF!=='undefined'){
+    var cur=[];
+    for(var j=0;j<GST_CF.length;j++){ if(GST_CF[j] && GST_CF[j].guest===guest) cur.push(GST_CF[j]); }
+    addList(cur);
+  }
+  return order.map(function(id){ return byId[id]; });
 }
 function gstCfId(){ return 'CF'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 function gstCfFor(guest){
@@ -8166,6 +8216,9 @@ function saveDoctors(){
           if(g){ pr.discount=g.discount||0; pr.note=g.note||'';
                  pr.pins=(g.pins||[]).slice(0,3); pr.stars=(g.stars||{}); }
           if(d && d.rates) pr.__rates=d.rates;      /* 该客人各味药的倍率 */
+          /* 🔴 必须把该客人的常用方原样带回，否则保存客人价格会清空 __gcommon */
+          var cf=gstCfForGuest(nm);
+          if(cf.length) pr.__gcommon=cf;
           SUPA.saveDoctor(nm, pr);
         })(dn, DOCTORS[dn]);
       }
@@ -15389,8 +15442,7 @@ function rxMigrateLegacyLocalData(){
   try{ ls=window.localStorage; }catch(e){ return; }
   if(!ls) return;
   var CORE={rx_saved_v3:1, rx_drugs_v3:1, rx_doctors_v1:1, rx_addr_v1:1,
-            rx_notes_v1:1, rx_guests_cache_v1:1, rx_purchases_v1:1, rx_costlog_v1:1,
-            rx_gcommon_v1:1};
+            rx_notes_v1:1, rx_guests_cache_v1:1, rx_purchases_v1:1, rx_costlog_v1:1};
   var TECH={};   /* 旧构建/同步标记也一并清掉：新版本不再使用任何本地存储 */
   var keys=[];
   try{ for(var i=0;i<ls.length;i++){ var k=ls.key(i); if(k&&k.indexOf('rx_')===0) keys.push(k); } }catch(e){ return; }
