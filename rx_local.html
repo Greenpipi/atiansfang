@@ -16116,6 +16116,16 @@ select{
   background-position:right 10px center!important;
   background-size:9px 5px!important;
 }
+/* 打印页主题用 `background:#fff!important` 把上面的背景三角重置了，
+   这里用更高优先级把可输入下拉的灰三角重新画回来（距右边框 10px）。 */
+.page[data-page="print"] .wplan #wpGuest,
+.page[data-page="print"] .wplan input[data-ddlist].pur-name{
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 10px center!important;
+  background-size:9px 5px!important;
+  padding-right:30px!important;
+}
 .ui-drop{ position:fixed; z-index:10050; min-width:190px; max-width:360px; max-height:320px; overflow:auto; padding:7px; background:#fff; border-radius:14px; box-shadow:0 14px 40px rgba(17,32,24,.18); display:none; }
 .ui-drop.on{ display:block; }
 .ui-drop .it{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 13px; border-radius:10px; font-size:15px; color:#20281f; cursor:pointer; line-height:1.35; }
