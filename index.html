@@ -3010,6 +3010,16 @@ body{ --navw:0px; }
 .wplan .wp-tbl .wp-nm-detail svg{ display:block; width:14px; height:14px; }
 .wp-nm-detail:hover{ background:#1a1a1a!important; color:#fff!important; transform:translateY(-50%)!important; }
 .wp-nm-detail:active{ transform:translateY(-50%) scale(.94)!important; }
+/* 打印页换肤里有一条 `.page[data-page="print"] .wplan button{...!important}`，
+   优先级会把圆角盖成 9px——这里用更高优先级锁死圆形与悬停黑底。 */
+.page[data-page="print"] .wplan .wp-tbl .wp-nm-detail{
+  border-radius:50%!important; width:20px!important; height:20px!important;
+  min-height:0!important; padding:0!important;
+  background:#d9dcd6!important; color:#3f453f!important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm-detail:hover{
+  background:#111!important; color:#fff!important;
+}
 /* 行内加号：SVG 图标，保证在圆形内绝对居中 */
 .wplan .wp-tbl .wp-plus svg{ display:block; width:10px; height:10px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
