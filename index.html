@@ -13103,7 +13103,11 @@ var WPlan = (function(){
   function validateOrder(o){
     if(!o){ toastErr('请先新建或选择订单'); return false; }
     if(!String(o.dish || '').trim()){
-      toastErr('请填写订单名称（必填）'); var e = document.getElementById('wpDish'); if(e) e.focus(); return false;
+      /* 订单名称没填时，用第一个药方标题兜底，避免「保存并返回列表」被卡住 */
+      var first = '';
+      for(var i=0;i<(o.blocks||[]).length;i++){ if(o.blocks[i] && String(o.blocks[i].title||'').trim()){ first=String(o.blocks[i].title).trim(); break; } }
+      if(first){ o.dish = first; }
+      else{ toastErr('请填写订单名称（必填）'); var e = document.getElementById('wpDish'); if(e) e.focus(); return false; }
     }
     if(!o.date){
       toastErr('请选择日期（必填）'); var d = document.getElementById('wpDate'); if(d) d.focus(); return false;
@@ -13161,7 +13165,13 @@ var WPlan = (function(){
   }
   function saveAndBack(){
     if(!saveNow()) return;
-    showSub('list'); renderList();
+    /* 强制回到订单列表：即便 renderAll 过程中有异常也不把用户留在详情页 */
+    _sub = 'list';
+    showSub('list');
+    var l = document.getElementById('wpSubList'), e = document.getElementById('wpSubEdit');
+    if(l) l.style.display = 'block';
+    if(e) e.classList.remove('on');
+    renderList();
     toast('已保存，已返回订单列表');
   }
   function backToList(){
