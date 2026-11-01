@@ -12121,15 +12121,18 @@ $('btnSave').onclick=function(){
   /* 右侧药品目录：点一下插入到第一个空格 */
   $('dSearch').addEventListener('input',renderDrugList);
   /* 药品目录：双击词条才插入（单击只选中，不误插） */
-  function insertDrug(d, typedQty){
+  function insertDrug(d, typedQty, spec){
     if(!d) return;
     var k=firstEmptyIndex(), c=cellEl(k);
     if(!c){ toastErr('处方笺已满'); return; }
-    /* 克数优先用浮层/右侧「克数」框填的内容，否则用药品常用量 */
+    /* 数量优先用浮层/右侧「数量」框填的内容，否则用该规格的常用量 */
+    var u=(spec&&spec.unit)?spec.unit:(d.u||'g');
+    var pr=(spec?spec.p:d.p);
+    var amt=(spec?(spec.amt==null?'':spec.amt):d.c);
     var typed=(typedQty==null?String($('dDose').value||''):String(typedQty)).trim();
     var qtyTxt;
-    if(typed) qtyTxt=typed+(/^[\d.]+$/.test(typed)?(d.u||'g'):'');
-    else qtyTxt=((d.c!=null&&d.c!=='')?d.c:'10')+(d.u||'g');
+    if(typed) qtyTxt=typed+(/^[\d.]+$/.test(typed)?u:'');
+    else qtyTxt=((amt!=null&&amt!=='')?amt:'10')+u;
     var sp=splitSfx(d.n);
     c.querySelector('.nm').value=sp.nm;
     c.querySelector('.ds').value=qtyTxt;
@@ -12137,11 +12140,11 @@ $('btnSave').onclick=function(){
     c.classList.remove('zibei');
     /* 记录选中的单位与该单位的价格，计价按它算 */
     var it=items[k];
-    if(it){ it.du=(d.u||'g'); it.dp=(d.p!=null&&d.p!=='')?n(d.p):null; }
+    if(it){ it.du=u; it.dp=(pr!=null&&pr!=='')?n(pr):null; }
     readCell(k);
     growCells(); fitAllCells(); recalc();
     $('dDose').value='';
-    toast('已插入：'+d.n+' '+qtyTxt+'（'+(d.u||'g')+'）');
+    toast('已插入：'+d.n+' '+qtyTxt+'（'+u+'）');
   }
   $('dBody').addEventListener('click',function(e){
     var tr=e.target.closest('tr'); if(!tr) return;
@@ -12165,10 +12168,10 @@ $('btnSave').onclick=function(){
     window.removeEventListener('scroll',dosePopClose,true);
     window.removeEventListener('resize',dosePopClose);
   }
-  function dosePopOpen(d, anchor){
+  function dosePopOpen(d, anchor, spec){
     dosePopClose();
     if(!d || !anchor) return;
-    var u=d.u||'g';
+    var u=(spec&&spec.unit)?spec.unit:(d.u||'g');
     var pop=document.createElement('div');
     pop.className='dose-pop';
     pop.innerHTML='<input class="dose-pop-in" type="text" inputmode="decimal" autocomplete="off" placeholder="数量（'+esc(u)+'）">'
@@ -12185,9 +12188,9 @@ $('btnSave').onclick=function(){
     var inp=pop.querySelector('.dose-pop-in');
     function ok(){
       var v=String(inp.value||'').trim();
-      var dd=d;
+      var dd=d, ss=spec;
       dosePopClose();
-      insertDrug(dd, v);
+      insertDrug(dd, v, ss);
     }
     pop.querySelector('.dose-pop-ok').addEventListener('click',ok);
     inp.addEventListener('keydown',function(e){
@@ -12199,11 +12202,18 @@ $('btnSave').onclick=function(){
     window.addEventListener('scroll',dosePopClose,true);
     window.addEventListener('resize',dosePopClose);
   }
+  /* 双击某一行 = 插入该行对应的规格（单位 / 零售价都按这一行） */
+  function specOfRow(tr){
+    var d=drugsList[+tr.getAttribute('data-i')];
+    if(!d) return {d:null,spec:null};
+    var s=+(tr.getAttribute('data-s')||0);
+    return {d:d, spec:dmSpecsOf(d)[s]||null};
+  }
   $('dBody').addEventListener('dblclick',function(e){
     var tr=e.target.closest('tr'); if(!tr || tr.classList.contains('dgroup')) return;
     e.preventDefault();
-    var idx=+tr.getAttribute('data-i');
-    dosePopOpen(drugsList[idx], tr.querySelector('td.nw')||tr);
+    var x=specOfRow(tr);
+    dosePopOpen(x.d, tr.querySelector('td.nw')||tr, x.spec);
   });
   /* 药名输入：回车跳到「克数」框；克数框回车则插入第一条匹配 */
   $('dSearch').addEventListener('keydown',function(e){
@@ -12213,7 +12223,7 @@ $('btnSave').onclick=function(){
     if(e.key==='Enter'){
       e.preventDefault();
       var tr=$('dBody').querySelector('tr[data-i]');
-      if(tr) insertDrug(drugsList[+tr.getAttribute('data-i')]);
+      if(tr){ var x=specOfRow(tr); insertDrug(x.d, null, x.spec); }
       else toastErr('先在上方输入药名');
     }
   });
@@ -12467,20 +12477,31 @@ function renderDrugList(){
         nm=esc(String(d.n).slice(0,pos))+'<b>'+esc(String(d.n).slice(pos,pos+fl.length))+'</b>'+esc(String(d.n).slice(pos+fl.length));
       }
     }
-    /* 四档价格与「药物管理」模块同源：本机 drugsList 的同一个对象，
-       零售价 d.p（元/g）、批发价 d.wp（元/kg）、进货价 d.bp（元/kg），
-       建议价走 dmSuggestOf（进货单快照 / 进货价 × 批发倍率）。 */
-    var sg=dmSuggestOf(d);
-    var wpv=(d.wp==null?'':d.wp), bpv=(d.bp==null?'':d.bp);
-    var low=(wpv!=='' && sg!=='' && isFinite(parseFloat(wpv)) && isFinite(parseFloat(sg)) &&
-             parseFloat(wpv)<parseFloat(sg)-1e-9);
-    h+='<tr data-i="'+out[r].i+'" title="'+esc(d.n+'　单位 '+(d.u||'g')+'　零售价 '+(d.p||'—')+' 元/g　批发价 '+(d.wp||'—')+' 元/kg　进货价 '+(d.bp||'—')+' 元/kg　建议价 '+(sg===''?'—':sg)+' 元/kg　常用量 '+(d.c||'—')+(d.u&&d.u!=='g'?'（注：此药按「'+d.u+'」计价）':''))+'">'
-      +'<td class="nw">'+nm+'</td>'
-      +'<td class="un">'+esc(d.u||'g')+'</td>'
-      +'<td class="num bold">'+esc(d.p==null?'':d.p)+'</td>'
-      +'<td class="num bold'+(low?' low':'')+'">'+esc(wpv)+'</td>'
-      +'<td class="num">'+esc(bpv)+'</td>'
-      +'<td class="num">'+esc(sg===''?'':sg)+'</td></tr>';
+    /* 四档价格与「药物管理」模块同源，并且**按规格逐条列出**：
+       dmSpecsOf(d) = 主规格（d.p/wp/bp + dmSuggestOf）+ d.un 里的每个子规格
+       （各自带 单位 / 零售价 / 批发价 / 进货价 / 建议价），与药物管理表一致。 */
+    var specs=dmSpecsOf(d);
+    if(!specs.length) specs=[{s:0,unit:(d.u||'g'),amt:(d.c==null?'':d.c),p:(d.p==null?'':d.p),
+                              wp:(d.wp==null?'':d.wp),bp:(d.bp==null?'':d.bp),sg:dmSuggestOf(d)}];
+    for(var si=0;si<specs.length;si++){
+      var sp=specs[si];
+      var unit=sp.unit||'g';
+      var pv=(sp.p==null?'':sp.p), wpv=(sp.wp==null?'':sp.wp), bpv=(sp.bp==null?'':sp.bp);
+      var sg=(sp.sg==null?'':sp.sg);
+      var low=(wpv!=='' && sg!=='' && isFinite(parseFloat(wpv)) && isFinite(parseFloat(sg)) &&
+               parseFloat(wpv)<parseFloat(sg)-1e-9);
+      var tt=d.n+'　单位 '+unit+'　零售价 '+(pv||'—')+' 元/'+unit+
+             '　批发价 '+(wpv||'—')+' 元/kg　进货价 '+(bpv||'—')+' 元/kg　建议价 '+(sg||'—')+' 元/kg'+
+             '　常用量 '+(sp.amt==null||sp.amt===''?'—':sp.amt)+
+             (specs.length>1?'（多规格 '+(si+1)+'/'+specs.length+'）':'');
+      h+='<tr data-i="'+out[r].i+'" data-s="'+sp.s+'" title="'+esc(tt)+'">'
+        +'<td class="nw">'+nm+'</td>'
+        +'<td class="un">'+esc(unit)+'</td>'
+        +'<td class="num bold">'+esc(pv)+'</td>'
+        +'<td class="num bold'+(low?' low':'')+'">'+esc(wpv)+'</td>'
+        +'<td class="num">'+esc(bpv)+'</td>'
+        +'<td class="num">'+esc(sg)+'</td></tr>';
+    }
   }
   $('dBody').innerHTML=h||'<tr><td colspan="6" style="padding:0;border:none">'+rxEmptyHTML(
         '没有匹配的药物','换个药名试试，或到「药物管理」里添加')+'</td></tr>';
