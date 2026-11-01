@@ -3025,8 +3025,15 @@ body{ --navw:0px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
-/* 单价列：表头与数字统一居中 */
+/* 订单表格所有数字输入：数量与单价统一居中，并隐藏原生上下箭头避免视觉偏左 */
+.wp-tbl .wp-qty{ text-align:center!important; }
 .wp-tbl .wp-price{ text-align:center!important; }
+.wplan .wp-tbl input[type="number"]::-webkit-outer-spin-button,
+.wplan .wp-tbl input[type="number"]::-webkit-inner-spin-button,
+.wplan .wp-dose-in::-webkit-outer-spin-button,
+.wplan .wp-dose-in::-webkit-inner-spin-button{ -webkit-appearance:none!important; margin:0!important; }
+.wplan .wp-tbl input[type="number"],
+.wplan .wp-dose-in{ -moz-appearance:textfield!important; appearance:textfield!important; }
 .wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; padding:5px 11px 5px 6px!important; }
 .wp-tbl td.row-act{ padding:5px calc(var(--wp-pad-x) + 10px) 5px 6px!important; text-align:right; }
 .wp-tbl .row-act button{ margin:0; padding:0 12px; }
