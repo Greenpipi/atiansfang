@@ -3603,8 +3603,9 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wps-bar .meta{ font-size:12px; color:#a9b0b6; }
 .wps-stage{ flex:1 1 auto; min-height:0; overflow:auto; padding:26px 20px 40px; display:flex;
   justify-content:center; align-items:flex-start; }
-.wps-paper{ background:#fff; color:#000; box-shadow:0 10px 34px rgba(0,0,0,.42);
-  font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+.wps-paper{ background:#fff; color:#000; box-shadow:0 10px 34px rgba(0,0,0,.42);  font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+/* 分页预览：每一页一张独立纸，顺着往下排 */
+.wps-page{ background:#fff; color:#000; box-shadow:0 10px 30px rgba(0,0,0,.35); margin:0 auto 20px; box-sizing:border-box; }
 /* 纸面排版（屏幕预览与打印共用同一份 class） */
 .wpd-h{ text-align:center; }
 .wpd-shop{ font-size:1.55em; font-weight:700; letter-spacing:1px; margin-bottom:2px; }
@@ -4013,6 +4014,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <label class="wps-sw"><input type="checkbox" id="wpsSwPrice" onchange="WPrint.cfg('showPrice',this.checked)">单价</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwAmount" onchange="WPrint.cfg('showAmount',this.checked)">金额</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwNote" onchange="WPrint.cfg('showNote',this.checked)">备注</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwDish" onchange="WPrint.cfg('showDish',this.checked)">订单名称</label>
+                  <label class="wps-sw"><input type="checkbox" id="wpsSwNo" onchange="WPrint.cfg('showNo',this.checked)">单号</label>
                   <label class="wps-sw"><input type="checkbox" id="wpsSwWeight" onchange="WPrint.cfg('showWeight',this.checked)">合计重量</label>
                 </div>
               </div>
@@ -14834,6 +14837,7 @@ var WPrint=(function(){
       title:'发货单', shop:'', tel:'', addr:'', custLabel:'顾客', footNote:'',
       showShop:true, showTitle:true, showTel:true, showAddr:true, showIndex:true,
       showSpec:true, showOrigin:false, showPrice:true, showAmount:true, showNote:true, showWeight:true,
+      showDish:true, showNo:true,
       pageMode:'auto', rowsPerPage:20, showPageNo:false,
       fs:11, rh:22, isDefault:false };
   }
@@ -15034,6 +15038,7 @@ var WPrint=(function(){
     setChk('wpsSwOrigin',t.showOrigin);
     setChk('wpsSwPrice',t.showPrice); setChk('wpsSwAmount',t.showAmount);
     setChk('wpsSwNote',t.showNote); setChk('wpsSwWeight',t.showWeight);
+    setChk('wpsSwDish',t.showDish!==false); setChk('wpsSwNo',t.showNo!==false);
     setVal('wpsFs',t.fs); setNum('wpsFsv',t.fs);
     setVal('wpsRh',t.rh); setNum('wpsRhv',t.rh);
     var rr=$('wpsRppRow'); if(rr) rr.style.display=(t.pageMode==='auto'?'none':'flex');
@@ -15045,7 +15050,7 @@ var WPrint=(function(){
   function cfg(k,v){
     var t=curTpl();
     var bools={showShop:1,showTitle:1,showTel:1,showAddr:1,showIndex:1,showSpec:1,showOrigin:1,
-               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1};
+               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1,showDish:1,showNo:1};
     if(bools[k]) t[k]=!!v;
     else if(TEXTKEYS[k]) t[k]=String(v==null?'':v);
     else if(k==='paper'||k==='orient'||k==='pageMode') t[k]=v;
@@ -15162,8 +15167,21 @@ var WPrint=(function(){
     if(fen) s+=D[fen]+'分';
     return s;
   }
+  function rowsPerPageFor(t){
+    var user = Math.round(n2(t.rowsPerPage) || 20);
+    /* 旧默认 20 行在 A4 上会留大半页空白：按纸张高度自动补足每页行数；
+       用户手动改成其它值时尊重手动值 */
+    if(user !== 20) return user;
+    var p = PAPER[t.paper] || PAPER.a5;
+    if(!p.h) return user;
+    var hh = (t.orient === 'landscape') ? p.w : p.h;
+    var contentPx = mm2px(Math.max(80, hh - n2(t.padT) - n2(t.padB))) - 190;
+    var rh = Math.max(14, n2(t.rh) || 22);
+    var cap = Math.floor(contentPx / rh);
+    return Math.max(20, Math.min(cap, 70));
+  }
   function paginate(rows, t){
-    var out=[], per=Math.max(1, Math.round(n2(t.rowsPerPage)||20));
+    var out=[], per=rowsPerPageFor(t);
     if(t.pageMode==='auto' || rows.length<=per){ out.push(rows); return out; }
     for(var i=0;i<rows.length;i+=per) out.push(rows.slice(i, i+per));
     return out;
@@ -15188,8 +15206,9 @@ var WPrint=(function(){
     /* ---- 表头：店名 / 电话 / 地址 / 标题 全部来自模板 ---- */
     var left='', right='';
     left+='<div>'+esc(t.custLabel||'顾客')+'：'+esc(String(o.guest||'').trim()||'—')+'</div>';
+    if(t.showDish !== false) left+='<div>订单：'+esc(String(o.dish||'').trim()||'—')+'</div>';
     left+='<div>业务日期：'+esc(o.date||'')+'</div>';
-    if(o.no) left+='<div>单号：'+esc(o.no)+'</div>';
+    if(o.no && t.showNo !== false) left+='<div>单号：'+esc(o.no)+'</div>';
     var rmk=orderRemark(o);
     if(rmk) left+='<div>备注：'+esc(rmk)+'</div>';
     if(t.showShop && t.shop) right+='<div>制单：'+esc(t.shop)+'</div>';
@@ -15262,23 +15281,30 @@ var WPrint=(function(){
     var w=p.w, hh=(p.h||240);
     if(t.orient==='landscape'){ var tmp=w; w=hh; hh=tmp; }
     var pw=mm2px(w), ph=mm2px(hh);
+    var rows=flatRows(o), pages=paginate(rows,t), i;
+    var pad=n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm';
+    var html='';
+    /* 所有分页都顺着往下预览，不再只显示第一页 */
+    for(i=0;i<pages.length;i++){
+      html += '<div class="wps-page" style="width:'+pw+'px;min-height:'+ph+'px;padding:'+pad+'">'
+        + pageHtml(o,t,pages[i],i,pages.length) + '</div>';
+    }
     paper.style.width=pw+'px';
-    paper.style.minHeight=ph+'px';
-    paper.style.padding=n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm';
+    paper.style.minHeight='auto';
+    paper.style.padding='0';
+    paper.style.background='transparent';
+    paper.style.boxShadow='none';
     paper.style.fontSize=Math.round(n2(t.fs))+'px';
-    paper.innerHTML=docHtml(o,t);
-    /* 预览只显示第一页（后面的页打印时才输出） */
-    var pgs=paper.querySelectorAll('.wpd');
-    for(var i=1;i<pgs.length;i++) pgs[i].style.display='none';
-    var rows=flatRows(o), tot=0, j;
+    paper.innerHTML=html;
+    var tot=0, j;
     for(j=0;j<rows.length;j++) tot+=rows[j].amount;
     var avail=(stage?stage.clientWidth:900)-52;
     var sc=avail/pw; if(sc>1) sc=1; if(sc<0.2) sc=0.2;
     paper.style.zoom=Math.round(sc*1000)/1000;
     var bo=$('wpsBarOrder');
     if(bo) bo.textContent=(String(o.guest||'').trim()||'未填客人')+' · '+(o.date||'')+' · '+rows.length+' 味 · '+
-      (pgs.length>1?('共 '+pgs.length+' 页'):'1 页')+' · 合计 ¥'+fmtMoney(tot);
-    window.__WPS_LAST={ pages:pgs.length, rows:rows.length, total:tot,
+      (pages.length>1?('共 '+pages.length+' 页'):'1 页')+' · 合计 ¥'+fmtMoney(tot);
+    window.__WPS_LAST={ pages:pages.length, rows:rows.length, total:tot,
       pageW:w, pageH:hh, scale:paper.style.zoom };
   }
 
