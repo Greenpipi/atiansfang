@@ -893,9 +893,9 @@ select{appearance:none;cursor:pointer;
   background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;background-size:9px 5px;}
 /* 可输入的 datalist 下拉：同样的小灰三角，右侧留足边距 */
-#wpGuest, input[list].pur-name{
+#wpGuest, input[data-ddlist].pur-name{
   background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 11px center;background-size:9px 5px;
+  background-repeat:no-repeat;background-position:right 10px center;background-size:9px 5px;
   padding-right:30px!important;
 }
 /* =====================================================================
@@ -3885,7 +3885,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <div class="wp-order-row">
                     <div class="wp-field wp-req wp-field-dish"><label>订单名称 *</label><input id="wpDish" class="wp-in" placeholder="必填，如 四物汤 / 水丸" oninput="WPlan.setDish(this.value)"></div>
                     <div class="wp-field wp-req"><label>日期 *</label><input id="wpDate" class="wp-in" type="date" onchange="WPlan.setDate(this.value)"></div>
-                    <div class="wp-field"><label>客人 / 医生</label><input id="wpGuest" class="wp-in" list="wpGuestList" placeholder="选择或输入客人" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
+                    <div class="wp-field"><label>客人 / 医生</label><input id="wpGuest" class="wp-in" data-ddlist="wpGuestList" placeholder="选择或输入客人" oninput="WPlan.setGuest(this.value)" onchange="WPlan.commitGuest(this.value)"><datalist id="wpGuestList"></datalist></div>
                     <div class="wp-field"><label>单据编号</label><input id="wpNo" class="wp-in" readonly></div>
                   </div>
                 </div>
@@ -12898,7 +12898,7 @@ var WPlan = (function(){
   }
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
-    var unitCell = '<input class="wp-unit-in" list="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
+    var unitCell = '<input class="wp-unit-in" data-ddlist="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     /* 输入框内部右侧的标签（绝对定位）：先煎等脚注 + 匹配到的仓库标准药 */
     var hasStd = !!(it.disp && it.name);
     var tags = '';
@@ -15160,7 +15160,7 @@ var Purchase = (function(){
         }
       }
       return '<tr data-i="'+i+'">'
-        +'<td><input list="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名">'+hint+'</td>'
+        +'<td><input data-ddlist="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名">'+hint+'</td>'
         +'<td><input class="pur-qty num" value="'+esc(it.qty||'')+'" placeholder="数量" style="width:100%"></td>'
         +'<td><select class="pur-unit">'+opts+'</select></td>'
         +'<td><input class="pur-cost num" value="'+esc(it.cost||'')+'" placeholder="单价" style="width:100%">'+prod+'</td>'
@@ -16182,17 +16182,10 @@ select{
     el.style.top = top + 'px';
   }
   function close(){
-    if(_dd && _dd.type === 'input' && _dd.target && _dd.listId && _dd.target.isConnected){
-      try{ _dd.target.setAttribute('list', _dd.listId); }catch(e){}
-    }
     _dd = null;
     if(panel){ panel.classList.remove('on'); panel.innerHTML = ''; }
   }
   function show(target, type, items, listId){
-    if(type === 'input' && target.getAttribute('list')){
-      listId = target.getAttribute('list');
-      try{ target.removeAttribute('list'); }catch(e){}
-    }
     var sel = -1;
     for(var i=0;i<items.length;i++){ if(items[i].on){ sel = i; break; } }
     _dd = { target: target, type: type, items: items, listId: listId || '', idx: sel >= 0 ? sel : 0 };
@@ -16209,7 +16202,7 @@ select{
     show(sel, 'select', items);
   }
   function openInput(inp){
-    var listId = (inp.getAttribute && inp.getAttribute('list')) || (_dd && _dd.target === inp ? _dd.listId : '');
+    var listId = (inp.getAttribute && inp.getAttribute('data-ddlist')) || (_dd && _dd.target === inp ? _dd.listId : '');
     if(!listId) return;
     var dl = document.getElementById(listId);
     var q = String(inp.value || '').trim().toLowerCase();
@@ -16267,14 +16260,14 @@ select{
     var t = e.target;
     if(!t || !t.tagName) return;
     if(t.tagName === 'SELECT' && !t.disabled && !t.multiple){ openSelect(t); return; }
-    if(t.tagName === 'INPUT' && (t.getAttribute('list') || (_dd && _dd.target === t))) openInput(t);
+    if(t.tagName === 'INPUT' && (t.getAttribute('data-ddlist') || (_dd && _dd.target === t))) openInput(t);
   });
 
   document.addEventListener('input', function(e){
     var t = e.target;
     if(!t || t.tagName !== 'INPUT') return;
     if(_dd && _dd.type === 'input' && _dd.target === t){ openInput(t); return; }
-    if(t.getAttribute('list')) openInput(t);
+    if(t.getAttribute('data-ddlist')) openInput(t);
   });
 
   document.addEventListener('focusout', function(e){
