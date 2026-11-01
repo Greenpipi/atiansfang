@@ -9040,7 +9040,8 @@ function rcptCSS(){
   +'.rcpt .ritem.full{white-space:normal;word-break:break-all;overflow-wrap:anywhere}'
   +'.rcpt .rnote{margin-top:1em;white-space:pre-wrap;word-break:break-all}'
   +'.rcpt .rfee{margin-top:1em}'
-  +'.rcpt .rfloor{margin-top:1.3em;white-space:normal;word-break:break-word;overflow-wrap:anywhere}';
+  +'.rcpt .rfloor{margin-top:1.3em;white-space:normal;word-break:break-word;overflow-wrap:anywhere}'
+  +'.rcpt .rfloor-date{white-space:nowrap}';   /* 日期不拆字：放不下就整段换到下一行 */
 }
 function receiptHTML(){
   readAllCells();
@@ -9090,7 +9091,7 @@ function receiptHTML(){
   if($('cbGoods').checked)  h+='<div>物品费用 '+rcptMoney(goodsFee())+'元</div>';
   h+='<div>合计 '+rcptMoney(curTotal())+'元</div></div>';
   var d=$('fDate').value||today(), m=d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  h+='<div class="rfloor">'+esc($('fName').value)+' '+(m?((+m[2])+'月'+(+m[3])+'日'):esc(d))+'</div>';
+  h+='<div class="rfloor">'+esc($('fName').value)+' <span class="rfloor-date">'+(m?((+m[2])+'月'+(+m[3])+'日'):esc(d))+'</span></div>';
   return h;
 }
 /* 小票纸面放大倍数（用户要字更大、铺满整纸）。
