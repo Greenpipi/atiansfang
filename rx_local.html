@@ -3015,6 +3015,8 @@ body{ --navw:0px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
+/* 单价列：表头与数字统一居中 */
+.wp-tbl .wp-price{ text-align:center!important; }
 .wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; padding:5px 11px 5px 6px!important; }
 .wp-tbl td.row-act{ padding:5px calc(var(--wp-pad-x) + 10px) 5px 6px!important; text-align:right; }
 .wp-tbl .row-act button{ margin:0; padding:0 12px; }
@@ -12868,7 +12870,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
-      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>';
   }
   function rowHTML(bid, i, it){
@@ -12886,9 +12888,9 @@ var WPlan = (function(){
     var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '');
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="6" y1="1.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
-      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.1" aria-hidden="true"><circle cx="8" cy="8" r="6.1"/><line x1="8" y1="7.1" x2="8" y2="11.3" stroke-linecap="round"/><circle cx="8" cy="4.7" r="1.15" fill="currentColor" stroke="none"/></svg></button></div></td>'
+      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6.3" y="6.5" width="3.4" height="6.2" rx="1.7" fill="currentColor"/><circle cx="8" cy="4.2" r="1.7" fill="currentColor"/></svg></button></div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
-      + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
+      + '<td style="text-align:center"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
       + '<td class="wp-rm-td"><input class="wp-rm-in" placeholder="备注（选填）" value="' + esc(it.rm || '') + '" oninput="WPlan.setItemRemark(\'' + bid + '\',' + i + ',this.value)"></td>'
       + '<td class="row-act"><button class="btn danger sm" type="button" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')">删除</button></td>'
