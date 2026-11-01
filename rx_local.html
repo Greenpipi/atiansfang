@@ -13577,12 +13577,18 @@ var WPlan = (function(){
     }
     function kv(k, v){ return '<div class="wp-peek-kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v == null || v === '' ? '—' : v) + '</span></div>'; }
     var u = String(d.u || 'g');
+    var rowU = String(it.unit || it.du || u);
     var guest = String(curGuest() || '').trim();
     var gp = guest ? docPrice(guest, d.n) : null;
+    /* 客人价按 kg 口径记录；显示时跟随当前表格行的单位（kg 原值、g 则 ÷1000） */
+    var gpShow = gp;
+    if(gp != null && /^(kg|g|斤)$/i.test(rowU)){
+      gpShow = gp * unitCoef('kg', rowU);
+    }
     /* 第一块：当前客人专属价（高亮） */
     var h = '<div class="wp-peek-hl"><div class="hl-k">' + (guest ? esc(guest) + ' 专属价' : '当前客人专属价') + '</div>'
-      + (gp != null
-          ? '<div class="hl-v">¥' + money(gp) + '<small>/' + esc(u) + '</small></div>'
+      + (gpShow != null
+          ? '<div class="hl-v">¥' + money(gpShow) + '<small>/' + esc(rowU) + '</small></div>'
           : '<div class="hl-none">暂无专属价</div>')
       + '<div class="hl-k" style="margin-top:3px">标记发药后按最近成交价自动更新</div></div>';
     /* 第二块：该客人的专属价历史 */
