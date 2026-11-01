@@ -1708,8 +1708,11 @@ td.p{text-align:right!important;font-weight:500!important}
 /* 分组行：字母表分组标题（点击无效，仅视觉）
    刻意做「轻」—— 只用一条上边线 + 小字，不要灰底色块抢数据的注意力 */
 .dtable tr.dgroup{cursor:default}
+/* 灰色字母标签与上分隔线、下方药名的上下间距对齐：
+   下一味药的行高 46px、文字垂直居中 → 药名文字上沿距行顶约 14px；
+   这里把分组行改成「上内边距 14 / 下内边距 0」，视觉上下间距即相等。 */
 .dtable tr.dgroup td{
-  height:32px!important;padding:0 var(--sp2)!important;
+  height:auto!important;padding:14px 10px 0!important;vertical-align:top!important;
   background:var(--neutral-0)!important;
   border-bottom:none!important;
   border-top:1px solid var(--neutral-2)!important;
@@ -1748,6 +1751,26 @@ td.p{text-align:right!important;font-weight:500!important}
   flex:0 0 51px!important;min-width:51px;font-size:12px!important;
   padding-left:4px!important;padding-right:4px!important;
 }
+/* 双击药品 → 药名下方浮出「克数」输入层：fixed 定位，不占列表空间，下一味药不下移 */
+.dose-pop{
+  position:fixed;z-index:80;width:170px;box-sizing:border-box;
+  display:flex;align-items:center;gap:6px;padding:6px;
+  background:#fff;border:1px solid var(--neutral-3,#d5dae0);border-radius:9px;
+  box-shadow:0 10px 28px rgba(14,30,22,.18);
+}
+.dose-pop input{
+  flex:1 1 auto;min-width:0;height:30px;box-sizing:border-box;
+  padding:0 8px;font-size:13px;border:1px solid var(--neutral-3,#d5dae0);
+  border-radius:6px;background:#fff;color:var(--neutral-title,#16231d);
+}
+.dose-pop input::placeholder{color:var(--neutral-4,#a4abb3);font-size:11.5px}
+.dose-pop .dose-pop-ok{
+  flex:0 0 30px;width:30px;height:30px;padding:0;box-sizing:border-box;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid #cfeade;border-radius:7px;cursor:pointer;
+  background:#e7f7ef;color:#0b7e57;font-size:15px;font-weight:700;line-height:1;
+}
+.dose-pop .dose-pop-ok:hover{background:#d5f2e3}
 
 /* =====================================================================
    ⑤ 尾缀彩色标签：[先煎]/[后下]/[另包]
@@ -2573,7 +2596,7 @@ input,select,textarea,button{
 
 /* 药品目录四档价格列（零售价 / 批发价 / 进货价 / 建议价，与「药物管理」同一份数据）
    窄栏放不下时由 .dtablebox 的 overflow:auto 出横向滚动，不压缩数字。 */
-.dtable.dprice{min-width:368px}
+.dtable.dprice{min-width:320px}
 .dtable.dprice thead th,
 .dtable.dprice tbody td{padding-left:4px!important;padding-right:4px!important}
 .dtable.dprice thead th:first-child,
@@ -2583,6 +2606,8 @@ input,select,textarea,button{
 .dtable.dprice tbody td.num{font-size:11.5px;font-variant-numeric:tabular-nums}
 .dtable.dprice tbody td.bold{font-weight:700}
 .dtable.dprice tbody td.low{color:#e07b00!important;font-weight:700}
+/* 分组字母与药名首列左缘对齐（上面 dprice 的 4px 会盖掉分组行的 10px） */
+.dtable.dprice tbody tr.dgroup td{padding-left:9px!important}
 
 /* ---- ④ 清单表：全部居中 + 单位列不再被压窄（2026-10-07 18:13）----
    ⚠ 改前实测（容器 294px，table-layout:fixed）三个问题：
@@ -3795,18 +3820,17 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
     <!-- ========== 右：药品目录 ========== -->
     <aside class="panel right">
-      <h3>药品目录 <span>双击插入</span></h3>
+      <h3>药品目录</h3>
       <div class="pbody">
         <div class="dsearch">
           <input id="dSearch" class="sch" placeholder="输入药名，如 阿胶" autocomplete="off">
           <input id="dDose" placeholder="克数" autocomplete="off">
         </div>
-        <div class="dhint">输入药名 → 回车跳到「克数」→ 填克数 → <b>双击</b>下方词条插入处方（仅中药）</div>
         <!-- 2026-10-07 18:29 去掉内联 border/border-radius：容器边框交由 CSS 统一管
              （直角 + 无框，和清单表一致）。这里只保留 flex 撑开与滚动。 -->
         <div class="dtablebox" style="flex:1;min-height:0;overflow:auto">
           <!-- 2026-10-07 18:57 表头与清单表统一：无竖线、居中、span 包裹（对齐方式交给 CSS，这里去掉行内 style） -->
-          <table class="dtable dprice"><thead><tr><th><span>药名</span></th><th style="width:34px"><span>单位</span></th><th class="num" style="width:50px"><span title="元/g">零售价</span></th><th class="num" style="width:50px"><span title="元/kg">批发价</span></th><th class="num" style="width:50px"><span title="元/kg">进货价</span></th><th class="num" style="width:50px"><span title="元/kg">建议价</span></th><th class="num" style="width:42px"><span>常用量</span></th></tr></thead><tbody id="dBody"></tbody></table>
+          <table class="dtable dprice"><thead><tr><th><span>药名</span></th><th style="width:34px"><span>单位</span></th><th class="num" style="width:50px"><span title="元/g">零售价</span></th><th class="num" style="width:50px"><span title="元/kg">批发价</span></th><th class="num" style="width:50px"><span title="元/kg">进货价</span></th><th class="num" style="width:50px"><span title="元/kg">建议价</span></th></tr></thead><tbody id="dBody"></tbody></table>
         </div>
         <div style="font-size:11px;color:#666;margin-top:4px;flex:0 0 auto" id="dStat"></div>
       </div>
@@ -11926,12 +11950,12 @@ $('btnSave').onclick=function(){
   /* 右侧药品目录：点一下插入到第一个空格 */
   $('dSearch').addEventListener('input',renderDrugList);
   /* 药品目录：双击词条才插入（单击只选中，不误插） */
-  function insertDrug(d){
+  function insertDrug(d, typedQty){
     if(!d) return;
     var k=firstEmptyIndex(), c=cellEl(k);
     if(!c){ toastErr('处方笺已满'); return; }
-    /* 克数优先用右侧「克数」框填的内容，否则用药品常用量 */
-    var typed=String($('dDose').value||'').trim();
+    /* 克数优先用浮层/右侧「克数」框填的内容，否则用药品常用量 */
+    var typed=(typedQty==null?String($('dDose').value||''):String(typedQty)).trim();
     var qtyTxt;
     if(typed) qtyTxt=typed+(/^[\d.]+$/.test(typed)?(d.u||'g'):'');
     else qtyTxt=((d.c!=null&&d.c!=='')?d.c:'10')+(d.u||'g');
@@ -11954,9 +11978,59 @@ $('btnSave').onclick=function(){
     for(var i=0;i<nodes.length;i++) nodes[i].classList.remove('sel');
     tr.classList.add('sel');
   });
+  /* ---- 双击药品 → 药名下方浮出「克数」输入层 ----
+     浮层 position:fixed，不占列表高度，下一味药不会下移；
+     输入框自动聚焦，回车或点绿色 ✓ 插入处方；点其他地方 / Esc / 滚动即消失。 */
+  var _dosePop=null;
+  function dosePopAway(e){
+    if(_dosePop && e && _dosePop.contains(e.target)) return;
+    dosePopClose();
+  }
+  function dosePopClose(){
+    if(!_dosePop) return;
+    if(_dosePop.parentNode) _dosePop.parentNode.removeChild(_dosePop);
+    _dosePop=null;
+    document.removeEventListener('mousedown',dosePopAway,true);
+    window.removeEventListener('scroll',dosePopClose,true);
+    window.removeEventListener('resize',dosePopClose);
+  }
+  function dosePopOpen(d, anchor){
+    dosePopClose();
+    if(!d || !anchor) return;
+    var u=d.u||'g';
+    var pop=document.createElement('div');
+    pop.className='dose-pop';
+    pop.innerHTML='<input class="dose-pop-in" type="text" inputmode="decimal" autocomplete="off" placeholder="克数（'+esc(u)+'）">'
+      +'<button type="button" class="dose-pop-ok" title="确认并插入处方">✓</button>';
+    document.body.appendChild(pop);
+    var r=anchor.getBoundingClientRect(), W=170, H=44;
+    var left=Math.max(8, Math.min(r.left, window.innerWidth-W-8));
+    var top=r.bottom+6;
+    if(top+H>window.innerHeight-8) top=Math.max(8, r.top-H-6);
+    pop.style.left=left+'px'; pop.style.top=top+'px';
+    _dosePop=pop;
+    var inp=pop.querySelector('.dose-pop-in');
+    function ok(){
+      var v=String(inp.value||'').trim();
+      var dd=d;
+      dosePopClose();
+      insertDrug(dd, v);
+    }
+    pop.querySelector('.dose-pop-ok').addEventListener('click',ok);
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){ e.preventDefault(); ok(); }
+      else if(e.key==='Escape'){ e.preventDefault(); dosePopClose(); }
+    });
+    try{ inp.focus(); inp.select(); }catch(e){}
+    setTimeout(function(){ document.addEventListener('mousedown',dosePopAway,true); },0);
+    window.addEventListener('scroll',dosePopClose,true);
+    window.addEventListener('resize',dosePopClose);
+  }
   $('dBody').addEventListener('dblclick',function(e){
-    var tr=e.target.closest('tr'); if(!tr) return;
-    insertDrug(drugsList[+tr.getAttribute('data-i')]);
+    var tr=e.target.closest('tr'); if(!tr || tr.classList.contains('dgroup')) return;
+    e.preventDefault();
+    var idx=+tr.getAttribute('data-i');
+    dosePopOpen(drugsList[idx], tr.querySelector('td.nw')||tr);
   });
   /* 药名输入：回车跳到「克数」框；克数框回车则插入第一条匹配 */
   $('dSearch').addEventListener('keydown',function(e){
@@ -12210,7 +12284,7 @@ function renderDrugList(){
     var ini=String(d.py||'').charAt(0).toUpperCase();
     if(!/^[A-Z]$/.test(ini)) ini='#';
     if(ini!==lastInit){
-      h+='<tr class="dgroup"><td colspan="7"><span>'+ini+'</span></td></tr>';
+      h+='<tr class="dgroup"><td colspan="6"><span>'+ini+'</span></td></tr>';
       lastInit=ini;
     }
     /* 关键词高亮（仅高亮药名中的匹配片段） */
@@ -12233,10 +12307,9 @@ function renderDrugList(){
       +'<td class="num bold">'+esc(d.p==null?'':d.p)+'</td>'
       +'<td class="num bold'+(low?' low':'')+'">'+esc(wpv)+'</td>'
       +'<td class="num">'+esc(bpv)+'</td>'
-      +'<td class="num">'+esc(sg===''?'':sg)+'</td>'
-      +'<td class="num">'+esc(d.c)+'</td></tr>';
+      +'<td class="num">'+esc(sg===''?'':sg)+'</td></tr>';
   }
-  $('dBody').innerHTML=h||'<tr><td colspan="7" style="padding:0;border:none">'+rxEmptyHTML(
+  $('dBody').innerHTML=h||'<tr><td colspan="6" style="padding:0;border:none">'+rxEmptyHTML(
         '没有匹配的药物','换个药名试试，或到「药物管理」里添加')+'</td></tr>';
   $('dStat').textContent='中药 '+all+' 味'+(fl?('　匹配 '+out.length):'')+(out.length>=300?'（前300条）':'')+(skipped?('　已隐藏 '+skipped+' 条名称含剂量的无效条目'):'');
 }
@@ -15847,9 +15920,17 @@ function rxMigrateLegacyLocalData(){
 .page[data-page="print"] .wplan .wp-tbl .wp-nm{
   font-size:15.5px !important;
 }
+/* 药品名右侧的「仓库标准药」灰色标签：与右侧药品目录的字母标签同一套样式
+   （11px/600、neutral-2 底、neutral-5 字、5px 圆角、20px 高） */
 .page[data-page="print"] .wplan .wp-tbl .wp-std{
-  font-size:13px !important;
+  font-size:11px !important;
+  font-weight:600 !important;
   line-height:20px !important;
+  height:20px !important;
+  padding:0 6px !important;
+  border-radius:5px !important;
+  background:var(--neutral-2) !important;
+  color:var(--neutral-5) !important;
   max-width:84px !important;
 }
 /* 详情表：药名左侧第一列自动显示序号（不新增 DOM / 不改数据结构） */
