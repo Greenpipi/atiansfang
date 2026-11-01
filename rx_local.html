@@ -3000,15 +3000,16 @@ body{ --navw:0px; }
 .wp-tbl .wp-nm{ flex:1 1 auto; min-width:0; }
 /* 药名格：输入框占满整列；脚注 / 标准药以绝对定位小胶囊放在输入框内部右侧 */
 .wp-nm-wrap{ position:relative; display:block; }
-.wp-nm-wrap > .wp-nm{ width:calc(100% - 26px); }
-.wp-nm-tags{ position:absolute; right:30px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 58px); pointer-events:none; }
-.wp-nm-wrap.has-sfx .wp-nm{ padding-right:84px; }
-.wp-nm-wrap.has-std .wp-nm{ padding-right:116px; }
-.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:148px; }
-/* 「查看药物详情」的小感应按钮：所有行同宽，悬停行才显现 */
-.wp-nm-detail{ position:absolute; right:2px; top:50%; transform:translateY(-50%); width:20px; height:20px; padding:0; border-radius:50%; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-5); font-size:12px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; opacity:.45; cursor:pointer; z-index:2; }
+.wp-nm-wrap > .wp-nm{ width:calc(100% - 22px); }
+.wp-nm-tags{ position:absolute; right:24px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 52px); pointer-events:none; }
+.wp-nm-wrap.has-sfx .wp-nm{ padding-right:80px; }
+.wp-nm-wrap.has-std .wp-nm{ padding-right:112px; }
+.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:144px; }
+/* 「查看药物详情」的小感应按钮：所有行同宽，悬停行才显现；悬停只变色、不位移 */
+.wplan .wp-tbl .wp-nm-detail{ position:absolute; right:2px; top:50%; transform:translateY(-50%); width:16px!important; height:16px!important; min-height:0!important; padding:0!important; border-radius:50%!important; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-5); font-size:10px!important; line-height:1!important; font-weight:700; display:flex; align-items:center; justify-content:center; opacity:.45; cursor:pointer; z-index:2; transition:background-color .15s ease,color .15s ease,border-color .15s ease; }
 .wp-tbl tbody tr:hover .wp-nm-detail, .wp-nm-detail:focus{ opacity:1; }
-.wp-nm-detail:hover{ color:var(--pri-deep); border-color:var(--pri); }
+.wp-nm-detail:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; transform:translateY(-50%)!important; box-shadow:none!important; }
+.wp-nm-detail:active{ transform:translateY(-50%) scale(.95)!important; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
@@ -3090,19 +3091,26 @@ body{ --navw:0px; }
 .wp-price-tip .row:last-child{ border-bottom:none; }
 .wp-price-tip .row .p{ font-weight:700; color:var(--pri-deep); font-variant-numeric:tabular-nums; }
 .wp-price-tip .empty{ color:var(--neutral-4); padding:2px 0; }
-/* 订单详情：轻量药物详情侧栏（不遮挡、不打断录入） */
-.wp-peek{ position:fixed; right:18px; top:86px; width:344px; max-height:72vh; overflow:auto; z-index:9997; background:#fff; border:1px solid var(--neutral-2); border-radius:12px; box-shadow:0 16px 44px rgba(13,59,31,.2); display:none; }
+/* 订单详情：轻量药物详情侧栏（不遮挡、不打断录入；字体整体 +2px） */
+.wp-peek{ position:fixed; right:18px; top:86px; width:360px; max-height:76vh; overflow:auto; z-index:9997; background:#fff; border:1px solid var(--neutral-2); border-radius:12px; box-shadow:0 16px 44px rgba(13,59,31,.2); display:none; font-size:14px; }
 .wp-peek.on{ display:block; }
-.wp-peek-hd{ display:flex; align-items:center; padding:12px 14px; border-bottom:1px solid var(--neutral-1); font-weight:700; font-size:14px; color:var(--neutral-title); }
-.wp-peek-hd .x{ margin-left:auto; border:none; background:transparent; color:var(--neutral-4); font-size:20px; line-height:1; padding:0 4px; cursor:pointer; min-height:0; }
+.wp-peek-hd{ display:flex; align-items:center; padding:13px 16px; border-bottom:1px solid var(--neutral-1); font-weight:700; font-size:16px; color:var(--neutral-title); }
+.wp-peek-hd .x{ margin-left:auto; border:none; background:transparent; color:var(--neutral-4); font-size:22px; line-height:1; padding:0 4px; cursor:pointer; min-height:0; }
 .wp-peek-hd .x:hover{ color:var(--danger); }
-.wp-peek-bd{ padding:12px 14px; }
-.wp-peek-kv{ display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-bottom:1px dashed var(--neutral-1); font-size:12px; }
+.wp-peek-bd{ padding:14px 16px 16px; }
+/* 当前客人专属价：第一眼重点 */
+.wp-peek-hl{ background:linear-gradient(135deg,#f0faf3,#e6f6ec); border:1px solid #cfe8d8; border-radius:10px; padding:11px 14px; margin-bottom:14px; }
+.wp-peek-hl .hl-k{ font-size:12px; color:#5d7d69; }
+.wp-peek-hl .hl-v{ font-size:26px; font-weight:800; color:var(--pri-deep); line-height:1.25; font-variant-numeric:tabular-nums; }
+.wp-peek-hl .hl-v small{ font-size:12px; font-weight:600; color:#5d7d69; margin-left:2px; }
+.wp-peek-hl .hl-none{ font-size:22px; font-weight:700; color:var(--neutral-4); }
+.wp-peek-kv{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed var(--neutral-1); font-size:14px; }
 .wp-peek-kv .k{ color:var(--neutral-5); }
 .wp-peek-kv .v{ font-weight:600; color:var(--neutral-title); text-align:right; }
-.wp-peek-h4{ margin:12px 0 6px; font-size:11px; font-weight:600; color:var(--neutral-4); }
-.wp-peek-cost{ font-size:12px; }
-.wp-peek-cost .row{ display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed var(--neutral-1); }
+.wp-peek-h4{ margin:14px 0 6px; font-size:13px; font-weight:600; color:var(--neutral-4); }
+.wp-peek-cost{ font-size:14px; }
+.wp-peek-cost .row{ display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--neutral-1); }
+.wp-peek-cost .row .p{ font-weight:700; color:var(--pri-deep); }
 .wp-results{ margin-top:12px; max-height:50vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:var(--radius-input); }
 .wp-results .r{ display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--neutral-2); cursor:pointer; gap:10px; }
 .wp-results .r:hover{ background:var(--pri-soft); }
@@ -13566,17 +13574,64 @@ var WPlan = (function(){
     }
     function kv(k, v){ return '<div class="wp-peek-kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v == null || v === '' ? '—' : v) + '</span></div>'; }
     var u = String(d.u || 'g');
-    var gp = docPrice(curGuest(), d.n);
-    var h = kv('标准药名', d.n)
+    var guest = String(curGuest() || '').trim();
+    var gp = guest ? docPrice(guest, d.n) : null;
+    /* 第一块：当前客人专属价（高亮） */
+    var h = '<div class="wp-peek-hl"><div class="hl-k">' + (guest ? esc(guest) + ' 专属价' : '当前客人专属价') + '</div>'
+      + (gp != null
+          ? '<div class="hl-v">¥' + money(gp) + '<small>/' + esc(u) + '</small></div>'
+          : '<div class="hl-none">暂无专属价</div>')
+      + '<div class="hl-k" style="margin-top:3px">标记发药后按最近成交价自动更新</div></div>';
+    /* 第二块：该客人的专属价历史 */
+    h += '<div class="wp-peek-h4">专属价历史' + (guest ? '（' + esc(guest) + '）' : '') + '</div>'
+      + '<div class="wp-peek-cost" id="wpPeekGuest">'
+      + renderGuestHist(guest, d.n)
+      + '</div>';
+    /* 第三块：药品基础信息 */
+    h += '<div class="wp-peek-h4">药品信息</div>'
+      + kv('标准药名', d.n)
       + kv('别名', (Array.isArray(d.al) && d.al.length) ? d.al.join('、') : '—')
-      + kv('单位 / 常用量', u + ' / ' + (d.c || '—'))
+      + kv('单位 / 常用量', u + ' / ' + (d.c || '—'));
+    /* 第四块：标准价格 */
+    h += '<div class="wp-peek-h4">标准价格</div>'
       + kv('零售价', (d.p != null && d.p !== '') ? ('¥' + money(d.p) + ' / ' + u) : '—')
       + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp)) : '—')
-      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp)) : '—')
-      + kv('当前客人专属价', gp != null ? ('¥' + money(gp) + ' / ' + u) : '—')
-      + '<div class="wp-peek-h4">最近进货记录</div><div class="wp-peek-cost" id="wpPeekCost"><div class="empty">加载中…</div></div>';
+      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp)) : '—');
+    /* 第五块：最近进货记录 */
+    h += '<div class="wp-peek-h4">最近进货记录</div><div class="wp-peek-cost" id="wpPeekCost"><div class="empty">加载中…</div></div>';
     body.innerHTML = h;
     box.classList.add('on');
+    /* 专属价历史：合并本机记录 + 云端 price_logs */
+    function renderGuestHist(g, drug){
+      var out = [], i;
+      var lg = (g && DOCTORS[g] && DOCTORS[g].log) || [];
+      for(i=0;i<lg.length;i++){
+        if(lg[i] && normName(lg[i].d) === normName(drug)) out.push({t:lg[i].t, p:lg[i].to});
+      }
+      if(!out.length) return '<div class="empty">暂无专属价历史</div>';
+      out.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
+      out = out.slice(0,5);
+      var s = '';
+      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + histMoney(out[i].p) + '</span></div>';
+      return s;
+    }
+    if(guest && SUPA.on){
+      SUPA.q('price_logs?select=doctor,to_price,created_at&doctor=eq.' + encodeURIComponent(guest)
+        + '&drug=eq.' + encodeURIComponent(d.n) + '&order=created_at.desc&limit=5')
+        .then(function(rows){
+          var el = document.getElementById('wpPeekGuest'); if(!el) return;
+          var arr = [], i;
+          for(i=0;i<(rows||[]).length;i++) arr.push({t:rows[i].created_at, p:rows[i].to_price});
+          var lg = (DOCTORS[guest] && DOCTORS[guest].log) || [];
+          for(i=0;i<lg.length;i++) if(lg[i] && normName(lg[i].d) === normName(d.n)) arr.push({t:lg[i].t, p:lg[i].to});
+          arr.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
+          arr = arr.slice(0,5);
+          if(!arr.length){ el.innerHTML = '<div class="empty">暂无专属价历史</div>'; return; }
+          var s = '';
+          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+          el.innerHTML = s;
+        }).catch(function(){});
+    }
     if(SUPA.on && typeof SUPA.loadCostLog === 'function'){
       SUPA.loadCostLog(d.n).then(function(rows){
         var c = document.getElementById('wpPeekCost'); if(!c) return;
