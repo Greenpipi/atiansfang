@@ -3044,6 +3044,17 @@ body{ --navw:0px; }
 .wp-sub-sum:hover{ background:transparent!important; }
 .wp-sub-sum b{ color:#0B7E57!important; font-weight:700; }
 .wp-block-head .spacer{ flex:1; }
+/* 小订单（药方）折叠：点标题左侧的箭头收起工具条与药名表；折叠状态记在 _fold 里，重渲染不丢 */
+.wp-fold{ flex:0 0 auto; width:22px; height:22px; min-height:22px!important; padding:0!important; margin:0!important;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:none!important; background:transparent!important; color:var(--neutral-4)!important;
+  border-radius:50%!important; cursor:pointer; }
+.wp-fold:hover{ background:var(--neutral-2)!important; color:var(--neutral-6)!important; }
+.wp-fold svg{ width:12px; height:12px; transition:transform .15s ease; }
+.wp-block.folded .wp-fold svg{ transform:rotate(-90deg); }
+.wp-block.folded .wp-block-body{ display:none; }
+.wp-blocks-bar{ display:flex; align-items:center; gap:8px; padding:0 2px 8px; }
+.wp-blocks-lb{ font-size:12px; color:var(--neutral-4); }
 .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
 .wp-tbl-wrap{ padding:0 0 35px; }
 /* 窄窗口时等比收窄外边距，避免备注列被挤没（正常桌面宽度仍是 60px） */
@@ -4034,6 +4045,11 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   </div>
                 </div>
 
+                <div class="wp-blocks-bar">
+                  <span class="wp-blocks-lb">药方排序</span>
+                  <button class="btn sm" type="button" onclick="WPlan.sortBlocks('asc')">日期升序 ↑</button>
+                  <button class="btn sm" type="button" onclick="WPlan.sortBlocks('desc')">日期降序 ↓</button>
+                </div>
                 <div class="wp-blocks" id="wpBlocks"></div>
 
                 <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
@@ -12841,6 +12857,7 @@ var WPlan = (function(){
   var _sub = 'list';          /* 子页面：list=订单列表，edit=制表/详情 */
   var _search = '';           /* 列表搜索关键字 */
   var _sel = {};              /* 多选结款：order id → 1 */
+  var _fold = {};             /* 小订单（药方）折叠状态：block id → 1 */
   var _view = 'flat';         /* 列表视图：flat=全部单据，plan=按客户+月份分组 */
   var _planKey = '';          /* 当前展开的计划汇总 */
   var _payBlob = null;        /* 批量结款图片 blob */
@@ -13263,13 +13280,33 @@ var WPlan = (function(){
     for(var i=0;i<o.blocks.length;i++) h += blockHTML(o.blocks[i]);
     box.innerHTML = h;
   }
+  /* 折叠 / 展开某张小订单 */
+  function toggleFold(bid){
+    _fold[bid] = !_fold[bid];
+    var el = document.getElementById('wpBlock-' + bid);
+    if(el) el.classList.toggle('folded', !!_fold[bid]);
+  }
+  /* 小订单按日期排序：asc=升序，desc=降序（直接改 blocks 顺序，打印 / 导出也跟着变） */
+  function sortBlocks(dir){
+    var o = curOrder();
+    if(!o || !(o.blocks || []).length) return;
+    var s = dir === 'desc' ? -1 : 1;
+    o.blocks.sort(function(a, b){
+      var x = String(blockDate(o, a) || ''), y = String(blockDate(o, b) || '');
+      if(x === y) return 0;
+      return (x > y ? 1 : -1) * s;
+    });
+    save(); renderBlocks(); renderFoot(); renderSub();
+    toast(dir === 'desc' ? '已按日期降序排列' : '已按日期升序排列');
+  }
   function blockHTML(b){
     var rows = '';
     if(!b.items.length){ rows = rowHTML(b.id, 0, BLANK_ITEM()); }
     else { for(var i=0;i<b.items.length;i++) rows += rowHTML(b.id, i, b.items[i]); }
     var bd = String(b.date || '');
-    return '<div class="wp-block" id="wpBlock-' + b.id + '">'
+    return '<div class="wp-block' + (_fold[b.id] ? ' folded' : '') + '" id="wpBlock-' + b.id + '">'
       + '<div class="wp-block-head">'
+      + '<button class="wp-fold" type="button" title="折叠 / 展开该小订单" onclick="WPlan.toggleFold(\'' + b.id + '\')"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 L6 8 L9.8 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
       + '<input class="wp-block-title" value="' + esc(b.title || '') + '" oninput="WPlan.setBlockTitle(\'' + b.id + '\',this.value)">'
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
@@ -13280,12 +13317,14 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.exportBlockImage(\'' + b.id + '\')">导图</button>'
       + '<button class="btn danger sm" type="button" onclick="WPlan.delBlock(\'' + b.id + '\')">删除药方</button>'
       + '</div>'
+      + '<div class="wp-block-body">'
       + '<div class="wp-block-tools">'
       + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '</div>'
       + '</div>';
   }
   /* 该药材的可选单位：仓库主单位 + 多单位子规格 */
@@ -15112,6 +15151,7 @@ var WPlan = (function(){
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
     setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
+    toggleFold: toggleFold, sortBlocks: sortBlocks,
     priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
     setDish: setDish, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
