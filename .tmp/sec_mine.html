@@ -1,0 +1,155 @@
+<section class="page" data-page="purchase">
+        <div class="pageBody">
+          <div class="wplan" id="purchaseRoot">
+            <div class="wp-head">
+              <div class="wp-title">进货单 · 月度大订单</div>
+              <div class="spacer"></div>
+              <div class="wp-subnav">
+                <button class="wp-sub on" type="button" data-sub="list" onclick="Purchase.showSub('list')">月度进货单</button>
+                <button class="wp-sub" type="button" data-sub="edit" onclick="Purchase.newOrder()">新建 / 录单</button>
+              </div>
+            </div>
+            <div class="wp-subpane" id="purSubList">
+              <div class="wp-list">
+                <div class="wp-list-bar">
+                  <input id="purSearch" class="wp-search sch" placeholder="搜索 月份 / 单号 / 状态" oninput="Purchase.setSearch(this.value)">
+                  <span class="wp-list-count" id="purListCount"></span>
+                </div>
+                <div id="purList" class="wp-list-body"></div>
+              </div>
+            </div>
+            <div class="wp-detail" id="purSubEdit">
+              <div class="wp-detail-head">
+                <button class="btn" type="button" onclick="Purchase.showSub('list')">← 返回列表</button>
+                <b class="wp-detail-title" id="purTitle">进货单</b>
+                <span class="wp-detail-no" id="purNo"></span>
+                <span class="spacer"></span>
+                <button class="btn danger" type="button" onclick="Purchase.delOrder()">删除本月</button>
+                <button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button>
+              </div>
+              <div class="wp-detail-body">
+                <div class="wp-order">
+                  <div class="wp-order-row">
+                    <div class="wp-field wp-req"><label>月份 *</label><input id="purMonth" class="wp-in" type="month" onchange="Purchase.setMonth(this.value)"></div>
+                    <div class="wp-field"><label>单据编号</label><input id="purNoView" class="wp-in" readonly></div>
+                    <div class="wp-field"><label>入库状态</label><input id="purStatus" class="wp-in" readonly></div>
+                  </div>
+                </div>
+                <div class="wp-blocks" id="purBlocks"></div>
+                <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
+                <div class="wp-foot" id="purFoot"></div>
+                <div id="purMsg" class="redhint"></div>
+                <datalist id="purchaseDrugList"></datalist>
+                <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或选拼音，单价按 元/kg 录入；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 删除进货单：必须问「是否同时扣回库存」 -->
+        <div class="modal" id="purDelModal">
+          <div class="pur-mw">
+            <div class="pur-mh">删除进货单</div>
+            <div class="pur-mb">
+              <p class="pur-dt" id="purDelText"></p>
+              <p class="pur-dh" id="purDelHead">是否同时扣回对应库存？</p>
+              <ul class="pur-dl" id="purDelList"></ul>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.closeDel()">取消</button>
+              <button type="button" class="mini" onclick="Purchase.doDel(false)">仅删单据</button>
+              <button type="button" class="danger" onclick="Purchase.doDel(true)">是，扣回库存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 进货遇到药品库里没有的「药名 + 单位」 -->
+        <div class="modal" id="purNewModal">
+          <div class="pur-mw">
+            <div class="pur-mh">药品库里还没有这些药材</div>
+            <div class="pur-mb">
+              <p class="pur-dt">按「药名 + 单位」严格匹配，下面这些在药品管理里不存在：</p>
+              <ul class="pur-dl" id="purNewList"></ul>
+              <p class="pur-dh">是否自动建药并继续保存进货单？</p>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.closeNewDrug()">取消，先去建药</button>
+              <button type="button" class="pri" onclick="Purchase.confirmNewDrug()">自动建药并保存</button>
+            </div>
+          </div>
+        </div>
+
+        <style>
+          .pur-mw{ width:460px; background:var(--n-white); border-radius:var(--radius-card);
+            box-shadow:var(--shadow-3,0 18px 48px rgba(0,0,0,.18)); overflow:hidden; }
+          .pur-mh{ padding:15px 18px; font-size:15px; font-weight:700; color:var(--neutral-title);
+            border-bottom:1px solid var(--neutral-2); }
+          .pur-mb{ padding:14px 18px; max-height:52vh; overflow:auto; }
+          .pur-ma{ display:flex; gap:8px; justify-content:flex-end; padding:12px 18px;
+            border-top:1px solid var(--neutral-2); background:var(--neutral-0, #fbfbfa); }
+          .pur-ma button.danger{ background:var(--danger-soft,#fdecea)!important;
+            border-color:var(--danger-line,#f5c6c0)!important; color:var(--danger,#c0392b)!important; }
+          .pur-ma button.pri{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
+          .pur-dt{ margin:0 0 8px; font-size:13px; color:var(--neutral-6); line-height:1.7; }
+          .pur-dh{ margin:8px 0 0; font-size:13px; font-weight:600; color:var(--neutral-title); }
+          .pur-dl{ margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--neutral-6); line-height:1.9; }
+          .pur-dl b{ color:var(--pri-deep); }
+        </style>
+        <style>
+          .pur-form{padding:4px 2px;max-width:1120px}
+          .pur-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+          .pur-row label{font-size:12px;color:var(--neutral-5)}
+          .pur-row input{height:38px;box-sizing:border-box;padding:0 11px;font-size:13px;
+            font-family:inherit;color:var(--neutral-title);background:var(--n-white);
+            border:1px solid var(--neutral-3);border-radius:var(--radius-input)}
+          .pur-row input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+          .pur-tablewrap{overflow:auto;background:var(--n-white);
+            border:1px solid var(--neutral-2);border-radius:var(--radius-card)}
+          .pur-table{width:100%;table-layout:fixed}
+          .pur-table th{background:var(--neutral-1)!important;text-align:left;font-weight:700!important}
+          .pur-table td,.pur-table th{vertical-align:top}
+          .pur-table input,.pur-table select{width:100%;height:34px;box-sizing:border-box;
+            padding:0 10px;font-size:13px;font-family:inherit;color:var(--neutral-title);
+            background:var(--n-white);border:1px solid var(--neutral-3);border-radius:8px}
+          .pur-table input:focus,.pur-table select:focus{outline:none;border-color:var(--pri);
+            box-shadow:0 0 0 3px var(--pri-soft)}
+          .pur-table td,.pur-table th{padding-left:6px!important;padding-right:6px!important}
+          .pur-table td{padding-top:6px!important;padding-bottom:6px!important}
+          /* 全局 .dmtable td input 是右对齐（金额表），药名框要抢回左对齐 */
+          .pur-table td input{text-align:left!important}
+          .pur-table td input.num{text-align:right!important}
+          .pur-btns{display:flex;gap:8px;align-items:center;margin-top:12px}
+          .pur-hint{font-size:11px;line-height:1.5;margin-top:3px;color:#b5462f}
+          /* 加工品（炒山药…）：进货单价下方的「带入生品进价」小按钮 */
+          .pur-prod{
+            display:block;margin-top:5px;height:22px!important;min-height:0!important;padding:0 5px!important;
+            white-space:nowrap;
+            font-size:11px!important;font-weight:400!important;line-height:1;
+            color:var(--pri-deep,#15803d)!important;background:#f2fbf5!important;
+            border:1px solid var(--pri-line,#c7e7d3)!important;border-radius:6px!important;cursor:pointer;
+          }
+          .pur-prod:hover{background:#e7f7ee!important}
+          #purMsg:empty{display:none}
+          .pur-hint.ok{color:#5b8c5a}
+          .pur-del{color:var(--danger,#c0392b)}
+          .pur-total{font-size:13px}
+          .pur-total b{font-size:15px;color:#b5462f}
+          .pur-msg{color:#c0392b;font-size:12px;margin-top:6px;min-height:14px}
+          /* ---- 沿用【药方打印】皮肤后的局部补丁（只作用于进货单） ---- */
+          #purchaseRoot .wp-nm-wrap.has-std .wp-nm{ padding-right:162px!important; }
+          #purchaseRoot .wp-nm-tags{ right:12px; max-width:calc(100% - 24px); }
+          #purchaseRoot .wp-nm-tags .pur-prod{ pointer-events:auto; }
+          #purchaseRoot .pur-prod{
+            height:20px!important; min-height:0!important; padding:0 6px!important; margin:0!important;
+            font-size:11px!important; font-weight:600!important; line-height:18px!important;
+            color:#0B6E4D!important; background:#E7F7EF!important;
+            border:1px solid #CFEADF!important; border-radius:5px!important; cursor:pointer; white-space:nowrap;
+          }
+          #purchaseRoot .pur-prod:hover{ background:#D8F0E2!important; }
+          #purchaseRoot .wp-std.pur-bad{ background:#FBEDEB!important; color:#D25B4E!important; max-width:none!important; }
+          #purchaseRoot .wp-block-title{ min-width:112px; cursor:default; }
+          #purchaseRoot .wp-block-title:focus{ box-shadow:none!important; border-color:#D6E3DC!important; }
+          #purchaseRoot .wp-plan-act .wp-tag{ font-weight:600; }
+          #purchaseRoot .wp-plan-act .wp-tag.pur-undone{ background:#FCF4E4!important; border-color:#EEDDBB!important; color:#C08A2E!important; }
+        </style>
+      </section>
