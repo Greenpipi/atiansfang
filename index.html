@@ -15918,6 +15918,31 @@ var Purchase = (function(){
     for(var i=0;i<un.length;i++){ if(String(un[i].unit)===String(unit)) return true; }
     return false;
   }
+  /* 进货价一律按「元/kg」录入（数据库 bp / cost 也是元/kg）。
+     数量可能按 g / kg / 斤 记，所以金额与入库数量都要先折成 kg：
+     1kg=1000g、1斤=500g。这三种单位之间是一体的，不再提示「没有这个单位」。 */
+  var WK={ g:0.001, '克':0.001, kg:1, '公斤':1, '斤':0.5, '市斤':0.5 };
+  function isWUnit(u){ return WK[String(u||'').trim()]!==undefined; }
+  function wKg(u){ var f=WK[String(u||'').trim()]; return f===undefined?null:f; }
+  function toKg(qty, unit){ var f=wKg(unit); return f==null?null:(parseFloat(qty)||0)*f; }
+  /* 金额 = 数量 × 单价(元/kg)，按单位折成 kg */
+  function amountOf(qty, cost, unit){
+    var k=toKg(qty, unit), c=parseFloat(cost)||0;
+    return ((k==null?(parseFloat(qty)||0):k)*c);
+  }
+  /* 入库/出库写「药自己的单位」（一般 g），g↔kg↔斤 自动换算 */
+  function stockUnit(d, unit){
+    var u=String(unit||'g');
+    if(!d) return u;
+    var mu=String(d.u||'g');
+    return (isWUnit(u)&&isWUnit(mu))?mu:u;
+  }
+  function stockQty(d, unit, qty){
+    var su=stockUnit(d, unit);
+    var a=wKg(unit), b=wKg(su);
+    if(a==null||b==null) return parseFloat(qty)||0;
+    return Math.round(((parseFloat(qty)||0)*a/b)*1000)/1000;
+  }
   function ensure(){
     load();
     renderList();
@@ -15956,7 +15981,7 @@ var Purchase = (function(){
     cp.items=(cp.items||[]).map(function(it){
       var x=JSON.parse(JSON.stringify(it));
       x.dt=String(x.dt||'').slice(0,10) || (cp.month+'-01');
-      x.amount=(parseFloat(x.qty)||0)*(parseFloat(x.cost)||0);
+      x.amount=amountOf(x.qty, x.cost, x.unit);
       return x;
     });
     if(!cp.items.length) cp.items.push({dt:cp.month+'-01', name:'',qty:'',unit:'g',cost:'',amount:0});
@@ -15966,7 +15991,7 @@ var Purchase = (function(){
   }
   function recalc(){
     var total=0;
-    S.cur.items.forEach(function(it){ var q=parseFloat(it.qty)||0, c=parseFloat(it.cost)||0; it.amount=q*c; total+=it.amount; });
+    S.cur.items.forEach(function(it){ it.amount=round2(amountOf(it.qty, it.cost, it.unit)); total+=it.amount; });
     var byDt={};
     S.cur.items.forEach(function(it){ var k=itemDt(it); byDt[k]=round2((byDt[k]||0)+(it.amount||0)); });
     var nodes=document.querySelectorAll('#purBlocks .pur-bat-total');
@@ -16028,15 +16053,16 @@ var Purchase = (function(){
     }
     box.innerHTML=bs.map(function(b,bi){
       var sum=0;
-      b.items.forEach(function(it){ sum+=(parseFloat(it.qty)||0)*(parseFloat(it.cost)||0); });
+      b.items.forEach(function(it){ sum+=round2(amountOf(it.qty, it.cost, it.unit)); });
       var rows=b.items.map(function(it){
         var i=S.cur.items.indexOf(it);
         var d=findDrug(it.name), cur=String(it.unit||'g');
+        var su=stockUnit(d,cur);
         var tag='';
         if(it.name){
           if(!d) tag='<span class="wp-std pur-bad">库里无此药</span>';
-          else if(!hasUnit(d,cur)) tag='<span class="wp-std pur-bad">无「'+esc(cur)+'」单位</span>';
-          else tag='<span class="wp-std">库存 '+esc(String(stockOf(d,cur)))+'</span>';
+          else if(!isWUnit(cur) && !hasUnit(d,cur)) tag='<span class="wp-std pur-bad">无「'+esc(cur)+'」单位</span>';
+          else tag='<span class="wp-std">库存 '+esc(String(stockOf(d,su)))+' '+esc(su)+'</span>';
         }
         var prod='', bb=baseOf(it.name);
         if(bb){
@@ -16221,6 +16247,8 @@ var Purchase = (function(){
     items.forEach(function(it){
       var d=findDrug(it.name);
       if(!d) out.push({name:it.name, unit:it.unit, why:'药品库中还没有这味药'});
+      /* g / kg / 斤 会按 1kg=1000g、1斤=500g 自动换算成该药自己的单位，不算缺单位 */
+      else if(isWUnit(it.unit)) return;
       else if(!hasUnit(d, it.unit)) out.push({name:it.name, unit:it.unit, why:'该药没有「'+it.unit+'」这个单位'});
     });
     return out;
@@ -16267,12 +16295,16 @@ var Purchase = (function(){
     delete S.cur._origNo;
     S.orders=upsert(S.orders, S.cur); saveLS();
     S.cur.items.forEach(function(it){
-      applyStock(it.name, it.unit, parseFloat(it.qty), parseFloat(it.cost), itemDt(it), '', S.cur.no);
+      var d=findDrug(it.name);
+      it.su=stockUnit(d, it.unit);                  /* 实际入库单位（一般 g） */
+      it.sq=stockQty(d, it.unit, parseFloat(it.qty)); /* 折算到入库单位的数量 */
+      it.sc=parseFloat(it.cost);                    /* 进货价：元/kg */
+      applyStock(it.name, it.su, it.sq, it.sc, itemDt(it), '', S.cur.no);
     });
     var no=S.cur.no, label=monthLabel(S.cur.month);
     if(SUPA.on){
       var rec={no:no, dt:S.cur.month+'-01', supplier:'',
-        items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount,dt:itemDt(it)}; }),
+        items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount,dt:itemDt(it),su:it.su,sq:it.sq}; }),
         total:S.cur.total, note:''};
       SUPA.savePurchase(rec).catch(function(e){ toastErr('进货单云端保存失败：'+e.message); });
     }
@@ -16333,7 +16365,11 @@ var Purchase = (function(){
   /* 撤回一张单造成的库存与进价流水（改单重存 / 删除时用） */
   function undoStock(o){
     if(!o) return;
-    (o.items||[]).forEach(function(it){ changeStock(it.name, it.unit, -parseFloat(it.qty)); });
+    (o.items||[]).forEach(function(it){
+      /* 新单存了 su/sq（折算到入库单位）；老单没有就按原样扣，避免老数据口径被改 */
+      if(it.su!=null && it.su!=='') changeStock(it.name, it.su, -(parseFloat(it.sq)||0));
+      else changeStock(it.name, it.unit, -parseFloat(it.qty));
+    });
     var kept=[];
     for(var i=0;i<S.log.length;i++){ if(String(S.log[i].purchase_no||'')!==String(o.no||'')) kept.push(S.log[i]); }
     S.log=kept; saveLogLS();
