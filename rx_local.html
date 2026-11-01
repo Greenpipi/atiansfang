@@ -14041,6 +14041,12 @@ var WPlan = (function(){
       return;
     }
     function kv(k, v){ return '<div class="wp-peek-kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v == null || v === '' ? '—' : v) + '</span></div>'; }
+    /* 金额一律带单位：专属价按表单当前行单位，批发 / 进货按 kg */
+    function peekMoney(v, unit){
+      var x = parseFloat(v);
+      if(!isFinite(x)) return '—';
+      return '¥' + money(x) + ' / ' + String(unit || 'g');
+    }
     var u = String(d.u || 'g');
     var rowU = String(it.unit || it.du || u);
     var guest = String(curGuest() || '').trim();
@@ -14066,11 +14072,11 @@ var WPlan = (function(){
       + kv('标准药名', d.n)
       + kv('别名', (Array.isArray(d.al) && d.al.length) ? d.al.join('、') : '—')
       + kv('单位 / 常用量', u + ' / ' + (d.c || '—'));
-    /* 第四块：标准价格 */
+    /* 第四块：标准价格（零售价按目录基础单位；批发价 / 进货价按 kg 口径） */
     h += '<div class="wp-peek-h4">标准价格</div>'
       + kv('零售价', (d.p != null && d.p !== '') ? ('¥' + money(d.p) + ' / ' + u) : '—')
-      + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp)) : '—')
-      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp)) : '—');
+      + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp) + ' / kg') : '—')
+      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp) + ' / kg') : '—');
     /* 第五块：最近进货记录 */
     h += '<div class="wp-peek-h4">最近进货记录</div><div class="wp-peek-cost" id="wpPeekCost"><div class="empty">加载中…</div></div>';
     body.innerHTML = h;
@@ -14085,8 +14091,8 @@ var WPlan = (function(){
       if(!out.length) return '<div class="empty">暂无专属价历史</div>';
       out.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
       out = out.slice(0,5);
-      var s = '';
-      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + histMoney(out[i].p) + '</span></div>';
+      var cf = unitCoef(u, rowU), s = '';
+      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + peekMoney(n(out[i].p) * cf, rowU) + '</span></div>';
       return s;
     }
     if(guest && SUPA.on){
@@ -14101,8 +14107,8 @@ var WPlan = (function(){
           arr.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
           arr = arr.slice(0,5);
           if(!arr.length){ el.innerHTML = '<div class="empty">暂无专属价历史</div>'; return; }
-          var s = '';
-          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+          var cf = unitCoef(u, rowU), s = '';
+          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + peekMoney(n(arr[i].p) * cf, rowU) + '</span></div>';
           el.innerHTML = s;
         }).catch(function(){});
     }
@@ -14113,7 +14119,7 @@ var WPlan = (function(){
         if(!rows.length){ c.innerHTML = '<div class="empty">暂无进货记录</div>'; return; }
         var s = '';
         for(var k=0;k<rows.length;k++){
-          s += '<div class="row"><span>' + esc(histDay(rows[k].dt)) + '</span><span>¥' + esc(money(rows[k].cost)) + '</span></div>';
+          s += '<div class="row"><span>' + esc(histDay(rows[k].dt)) + '</span><span>¥' + esc(money(rows[k].cost)) + ' / kg</span></div>';
         }
         c.innerHTML = s;
       }).catch(function(){ var c = document.getElementById('wpPeekCost'); if(c) c.innerHTML = '<div class="empty">进货记录加载失败</div>'; });
