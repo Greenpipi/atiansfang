@@ -2562,6 +2562,19 @@ input,select,textarea,button{
 .dtable thead th.num{padding-left:5px!important;padding-right:5px!important}
 .dtable thead th.num:last-child{padding-right:9px!important;text-align:right!important}
 
+/* 药品目录四档价格列（零售价 / 批发价 / 进货价 / 建议价，与「药物管理」同一份数据）
+   窄栏放不下时由 .dtablebox 的 overflow:auto 出横向滚动，不压缩数字。 */
+.dtable.dprice{min-width:368px}
+.dtable.dprice thead th,
+.dtable.dprice tbody td{padding-left:4px!important;padding-right:4px!important}
+.dtable.dprice thead th:first-child,
+.dtable.dprice tbody td:first-child{padding-left:9px!important}
+.dtable.dprice thead th:last-child,
+.dtable.dprice tbody td:last-child{padding-right:9px!important}
+.dtable.dprice tbody td.num{font-size:11.5px;font-variant-numeric:tabular-nums}
+.dtable.dprice tbody td.bold{font-weight:700}
+.dtable.dprice tbody td.low{color:#e07b00!important;font-weight:700}
+
 /* ---- ④ 清单表：全部居中 + 单位列不再被压窄（2026-10-07 18:13）----
    ⚠ 改前实测（容器 294px，table-layout:fixed）三个问题：
      ① 对齐混乱：药名 left、数量 right、单位 left、单价 right、金额 right
@@ -3764,7 +3777,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
              （直角 + 无框，和清单表一致）。这里只保留 flex 撑开与滚动。 -->
         <div class="dtablebox" style="flex:1;min-height:0;overflow:auto">
           <!-- 2026-10-07 18:57 表头与清单表统一：无竖线、居中、span 包裹（对齐方式交给 CSS，这里去掉行内 style） -->
-          <table class="dtable"><thead><tr><th><span>药名</span></th><th style="width:36px"><span>单位</span></th><th class="num" style="width:58px"><span>单价</span></th><th class="num" style="width:46px"><span>常用量</span></th></tr></thead><tbody id="dBody"></tbody></table>
+          <table class="dtable dprice"><thead><tr><th><span>药名</span></th><th style="width:34px"><span>单位</span></th><th class="num" style="width:50px"><span title="元/g">零售价</span></th><th class="num" style="width:50px"><span title="元/kg">批发价</span></th><th class="num" style="width:50px"><span title="元/kg">进货价</span></th><th class="num" style="width:50px"><span title="元/kg">建议价</span></th><th class="num" style="width:42px"><span>常用量</span></th></tr></thead><tbody id="dBody"></tbody></table>
         </div>
         <div style="font-size:11px;color:#666;margin-top:4px;flex:0 0 auto" id="dStat"></div>
       </div>
@@ -10733,6 +10746,8 @@ function dmCommit(td,tr){
   td.classList.remove('dm-editing');
   dmFillCell(td, d);
   dmFlash(td, true);                      /* 保存成功：该格短暂高亮 */
+  /* 改了价格 → 右侧「药品目录」四档价格同步刷新（同一份 drugsList，无需等切页） */
+  if(f==='p'||f==='wp'||f==='bp'){ try{ renderDrugList(); }catch(e4){} }
   /* 改了目录价 → 当前处方若已划价就重算一遍（原来靠顶部「保存」按钮顺带做） */
   if((f==='p'||f==='dp') && priced && filledCount()){
     try{ autoPrice(); renderPriceList(); recalc(); }catch(e3){ console.warn('改价后重划失败:', e3.message); }
@@ -12007,7 +12022,7 @@ $('btnSave').onclick=function(){
       var miss=autoPrice();
       priced=true;
       $('fPerDose').value=money(perDoseFee());
-      renderSheet(); renderPriceList();
+      renderSheet(); renderPriceList(); renderDrugList();
       if(curRec) syncRecordSoon();
       toast((fromCloud?'':'（云端药价拉取失败，本次按本机目录划价）')+
             (miss.length?('自动划价完成；未匹配到目录价：'+miss.slice(0,5).join('、')+(miss.length>5?'…':'')):'自动划价完成，已在清单中列出'));
@@ -12045,7 +12060,7 @@ function renderDrugList(){
     var ini=String(d.py||'').charAt(0).toUpperCase();
     if(!/^[A-Z]$/.test(ini)) ini='#';
     if(ini!==lastInit){
-      h+='<tr class="dgroup"><td colspan="4"><span>'+ini+'</span></td></tr>';
+      h+='<tr class="dgroup"><td colspan="7"><span>'+ini+'</span></td></tr>';
       lastInit=ini;
     }
     /* 关键词高亮（仅高亮药名中的匹配片段） */
@@ -12055,13 +12070,23 @@ function renderDrugList(){
         nm=esc(String(d.n).slice(0,pos))+'<b>'+esc(String(d.n).slice(pos,pos+fl.length))+'</b>'+esc(String(d.n).slice(pos+fl.length));
       }
     }
-    h+='<tr data-i="'+out[r].i+'" title="'+esc(d.n+'　单位 '+(d.u||'g')+'　单价 '+(d.p||'—')+'　常用量 '+(d.c||'—')+(d.u&&d.u!=='g'?'（注：此药按「'+d.u+'」计价）':''))+'">'
+    /* 四档价格与「药物管理」模块同源：本机 drugsList 的同一个对象，
+       零售价 d.p（元/g）、批发价 d.wp（元/kg）、进货价 d.bp（元/kg），
+       建议价走 dmSuggestOf（进货单快照 / 进货价 × 批发倍率）。 */
+    var sg=dmSuggestOf(d);
+    var wpv=(d.wp==null?'':d.wp), bpv=(d.bp==null?'':d.bp);
+    var low=(wpv!=='' && sg!=='' && isFinite(parseFloat(wpv)) && isFinite(parseFloat(sg)) &&
+             parseFloat(wpv)<parseFloat(sg)-1e-9);
+    h+='<tr data-i="'+out[r].i+'" title="'+esc(d.n+'　单位 '+(d.u||'g')+'　零售价 '+(d.p||'—')+' 元/g　批发价 '+(d.wp||'—')+' 元/kg　进货价 '+(d.bp||'—')+' 元/kg　建议价 '+(sg===''?'—':sg)+' 元/kg　常用量 '+(d.c||'—')+(d.u&&d.u!=='g'?'（注：此药按「'+d.u+'」计价）':''))+'">'
       +'<td class="nw">'+nm+'</td>'
       +'<td class="un">'+esc(d.u||'g')+'</td>'
-      +'<td class="p">'+esc(d.p)+'</td>'
-      +'<td>'+esc(d.c)+'</td></tr>';
+      +'<td class="num bold">'+esc(d.p==null?'':d.p)+'</td>'
+      +'<td class="num bold'+(low?' low':'')+'">'+esc(wpv)+'</td>'
+      +'<td class="num">'+esc(bpv)+'</td>'
+      +'<td class="num">'+esc(sg===''?'':sg)+'</td>'
+      +'<td class="num">'+esc(d.c)+'</td></tr>';
   }
-  $('dBody').innerHTML=h||'<tr><td colspan="4" style="padding:0;border:none">'+rxEmptyHTML(
+  $('dBody').innerHTML=h||'<tr><td colspan="7" style="padding:0;border:none">'+rxEmptyHTML(
         '没有匹配的药物','换个药名试试，或到「药物管理」里添加')+'</td></tr>';
   $('dStat').textContent='中药 '+all+' 味'+(fl?('　匹配 '+out.length):'')+(out.length>=300?'（前300条）':'')+(skipped?('　已隐藏 '+skipped+' 条名称含剂量的无效条目'):'');
 }
@@ -12322,6 +12347,9 @@ function navGo(key, pushHash){
   var tx=navTxOf(key);
   var nt=document.getElementById('navTitle');
   if(nt) nt.textContent=tx;
+  /* 回到「日常药方打印」时重画右侧药品目录：四档价格与「药物管理」同源，
+     在别的页改过价 / 进过货后切回来立刻是最新值。 */
+  if(key==='daily'){ try{ renderDrugList(); }catch(e){ console.warn('目录刷新失败:', e); } }
   if(pushHash!==false){
     var hs='#'+key;
     if(location.hash!==hs){ try{ location.hash=hs; }catch(e){} }
