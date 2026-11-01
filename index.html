@@ -3148,6 +3148,25 @@ body{ --navw:0px; }
 .wp-hist-row .meta{ flex:1; font-size:var(--fs-body); color:var(--neutral-6); }
 .wp-hist-row .meta b{ color:var(--neutral-title); }
 .wp-hist-row .chk{ flex:0 0 auto; width:16px; height:16px; cursor:pointer; }
+/* 药方复用：卡片式列表 + 悬浮预览 */
+.wp-reuse-tabs{ display:flex; gap:6px; margin-bottom:12px; }
+.wp-reuse-tabs button{ min-height:30px; padding:4px 16px; border-radius:var(--r-pill); border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6); font-size:13px; cursor:pointer; }
+.wp-reuse-tabs button.on{ background:var(--pri-soft); border-color:var(--pri-line); color:var(--pri-deep); font-weight:700; }
+.wp-reuse-card{ display:flex; align-items:center; gap:12px; padding:12px 12px; border:1px solid var(--neutral-2); border-radius:12px; margin-bottom:10px; background:var(--n-white); }
+.wp-reuse-card:hover{ border-color:var(--pri-line); box-shadow:0 4px 14px rgba(21,163,74,.08); }
+.wp-reuse-card .chk{ width:16px; height:16px; flex:0 0 auto; cursor:pointer; }
+.wp-reuse-main{ flex:1 1 auto; min-width:0; }
+.wp-reuse-title{ font-size:14px; font-weight:700; color:var(--neutral-title); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wp-reuse-meta{ margin-top:3px; font-size:12px; color:var(--neutral-5); }
+.wp-reuse-meta b{ color:var(--pri-deep); }
+.wp-reuse-dose{ display:flex; align-items:center; gap:4px; font-size:12px; color:var(--neutral-5); flex:0 0 auto; }
+.wp-reuse-dose input{ width:48px; height:28px; text-align:center; padding:0 4px; }
+.wp-reuse-acts{ display:flex; gap:6px; flex:0 0 auto; }
+.wp-reuse-tip{ position:fixed; z-index:9998; width:300px; max-height:320px; overflow:auto; padding:10px 12px; background:#fff; border:1px solid var(--neutral-2); border-radius:10px; box-shadow:0 12px 32px rgba(13,59,31,.18); display:none; font-size:12px; }
+.wp-reuse-tip h4{ margin:0 0 6px; font-size:13px; color:var(--neutral-title); }
+.wp-reuse-tip .row{ display:flex; justify-content:space-between; gap:10px; padding:3px 0; border-bottom:1px dashed var(--neutral-1); }
+.wp-reuse-tip .row .p{ font-weight:700; color:var(--pri-deep); }
+.wp-reuse-tip .sum{ margin-top:7px; font-size:13px; color:var(--neutral-6); }
 .wp-prev-block{ margin-bottom:18px; }
 .wp-prev-block:last-child{ margin-bottom:0; }
 .wp-prev-hd{ font-size:var(--fs-body); color:var(--neutral-title); font-weight:700; margin-bottom:8px; }
@@ -3999,14 +4018,15 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
         <div class="modal" id="wpHistModal">
           <div class="wp-mw">
-            <div class="wp-mh">从该客人历史药方复用 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
+            <div class="wp-mh">药方复用 <button class="x" type="button" onclick="WPlan.closeModal('wpHistModal')">×</button></div>
             <div class="wp-mb" id="wpHistBody"></div>
             <div class="wp-mb-actions" id="wpHistFoot"></div>
           </div>
         </div>
+        <div class="wp-reuse-tip" id="wpReuseTip"></div>
         <div class="modal" id="wpPrevModal">
           <div class="wp-mw">
-            <div class="wp-mh">历史药方预览 <button class="x" type="button" onclick="WPlan.closeModal('wpPrevModal')">×</button></div>
+            <div class="wp-mh">药方复用预览 <button class="x" type="button" onclick="WPlan.closeModal('wpPrevModal')">×</button></div>
             <div class="wp-mb" id="wpPrevBody"></div>
             <div class="wp-mb-actions">
               <button class="btn" type="button" onclick="WPlan.closeModal('wpPrevModal')">取消</button>
@@ -4020,7 +4040,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <div class="wp-mb">
               <textarea id="wpText" class="wp-ta" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别药名 / 数量 / 单位 / 煎煮法"></textarea>
             </div>
-            <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">生成表格行</button></div>
+            <div class="wp-mb-actions"><button class="btn pri" type="button" onclick="WPlan.doText()">识别药材并预览</button></div>
           </div>
         </div>
         <!-- 导入预览与匹配确认：绿=已匹配，红=未匹配（可下拉选仓库药） -->
@@ -12635,10 +12655,24 @@ var WPlan = (function(){
   function uCoef(a,b){ return unitCoef(String(a||'g').toLowerCase(), String(b||'g').toLowerCase()); }
   /* 显示数量：以 du 为基准存储，按显示单位 it.unit 换算 */
   function dispQty(it){ var du = it.du || it.unit || 'g'; return n(it.qty) * uCoef(it.unit || du, du); }
+  /* 汇总重量的显示单位：整张表都是 kg → 用 kg，否则用 g */
+  function blockWeightInfo(b){
+    var g = blockWeight(b), has = false, allKg = true, i, u;
+    for(i=0;i<(b.items||[]).length;i++){
+      var it=b.items[i]; if(!it || it.zibei) continue;
+      u=String(it.du||it.unit||'g').toLowerCase();
+      if(u!=='kg' && u!=='g') continue;
+      has=true; if(u!=='kg') allKg=false;
+    }
+    var useKg = has && allKg;
+    var v = useKg ? (Math.round(g/1000*1000)/1000) : (Math.round(g*10)/10);
+    return { g:g, u:useKg?'kg':'g', v:v, useKg:useKg };
+  }
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
+    var wi = blockWeightInfo(b);
     return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockTotal(b)) + '</b>'
-      + (blockWeight(b) > 0 ? ' · 总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g' : '');
+      + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
   }
 
   /* ---- 渲染 ---- */
@@ -12889,7 +12923,7 @@ var WPlan = (function(){
       + '<button class="btn danger sm" type="button" onclick="WPlan.delBlock(\'' + b.id + '\')">删除药方</button>'
       + '</div>'
       + '<div class="wp-block-tools">'
-      + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">从历史药方复用</button>'
+      + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '</div>'
@@ -13229,13 +13263,13 @@ var WPlan = (function(){
           + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
           + '<td>' + money(amountOf(it)) + '</td></tr>';
       }
-      /* 多付小订单：先列 1 付的数据，再列 XX 付的数据（重量 kg + 金额） */
+      /* 多付小订单：先列 1 付的数据，再列 XX 付的数据（重量跟随表格单位） */
       if(d > 1){
-        var wT = blockWeight(b), w1 = wT / d;
-        /* 重量按 kg 展示（保留到 0.001kg，对应 1g） */
-        var kg1 = w1 > 0 ? String(Math.round(w1) / 1000) : '—';
-        var kgT = wT > 0 ? String(Math.round(wT) / 1000) : '—';
-        var uu = (w1 > 0) ? 'kg' : '—';
+        var wT = blockWeight(b), w1 = wT / d, wi = blockWeightInfo(b);
+        var roundW = function(x){ return wi.useKg ? (Math.round(x/1000*1000)/1000) : (Math.round(x*10)/10); };
+        var kg1 = w1 > 0 ? String(roundW(w1)) : '—';
+        var kgT = wT > 0 ? String(roundW(wT)) : '—';
+        var uu = (wi.g > 0) ? wi.u : '—';
         rs += '<tr class="prow"><td class="sq"></td><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
           + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
       }
@@ -13247,7 +13281,7 @@ var WPlan = (function(){
         + '<span class="ba">¥' + money(amt) + '</span></div>'
         + '<table><thead><tr><th style="width:7%">序号</th><th style="width:35%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:18%">单价</th><th style="width:18%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
-        + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
+        + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeightInfo(b).g > 0 ? ('　总重 ' + blockWeightInfo(b).v + blockWeightInfo(b).u) : '') + '</div>'
         + '</div>';
     }
     var css = ''
@@ -13806,8 +13840,8 @@ var WPlan = (function(){
     toast('已保存到云端（自动同步）');
   }
 
-  /* ---- 历史药方复用（先预览，确认后再带入；可多选） ---- */
-  var _prevNos = [], _prevBid = null;
+  /* ---- 药方复用：历史药方 + 常用方，卡片列表（可勾选多张） ---- */
+  var _prevNos = [], _prevBid = null, _reuseTab = 'h', _prevSel = [], _reuseDose = {}, _prevSelCopy = [];
   function findRx(no){
     var all = allRx();
     for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
@@ -13818,121 +13852,222 @@ var WPlan = (function(){
     for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], curGuest()));
     return items;
   }
-  function openHistory(bid){
-    _tgt = bid; _prevBid = bid; _prevNos = [];
-    var o = curOrder();
-    if(!o || !o.guest){ toastErr('请先在上方选择医生'); return; }
-    var rxs = doctorRxs(o.guest); var body = document.getElementById('wpHistBody'); if(!body) return;
-    if(!rxs.length){
-      body.innerHTML = '<div class="wp-empty">该客人暂无历史药方（来自日常药方打印数据）</div>';
-    } else {
-      var h2 = '';
-      for(var i=0;i<rxs.length;i++){
-        var r = rxs[i];
-        h2 += '<div class="wp-hist-row">'
-          + '<input class="chk" type="checkbox" title="勾选后可与其他一起复用" onchange="WPlan.prevToggle(\'' + esc(r.no) + '\',this.checked)">'
-          + '<span class="meta"><b>' + esc(r.dt) + ' ' + esc(r.tm || '') + '</b> · ' + r.j + '付 · ¥' + money(r.total) + ' · ' + (r.fy ? '已发' : '未发') + '</span>'
-          + '<button class="btn sm" type="button" onclick="WPlan.openPreview([\'' + esc(r.no) + '\'])">预览</button>'
-          + '<button class="btn sm pri" type="button" onclick="WPlan.openPreview([\'' + esc(r.no) + '\'])">复用</button>'
-          + '</div>';
-      }
-      body.innerHTML = h2;
-    }
+  function rkey(t, id){ return t + ':' + id; }
+  function inReuseSel(t, id){ return _prevSel.indexOf(rkey(t, id)) >= 0; }
+  function reuseDoseSet(t, id, v){ _reuseDose[rkey(t,id)] = Math.max(1, Math.round(n(v) || 1)); }
+  function reuseDoseGet(t, id, def){ return _reuseDose[rkey(t,id)] || Math.max(1, Math.round(n(def) || 1)); }
+  function reuseToggle(t, id, on){
+    var k = rkey(t, id);
+    _prevSel = _prevSel.filter(function(x){ return x !== k; });
+    if(on) _prevSel.push(k);
     updateHistFoot();
+  }
+  function reuseTab(t){ _reuseTab = t === 'c' ? 'c' : 'h'; renderReuse(); }
+  function itemsStats(items){
+    var g = 0, per = 0, allKg = true, has = false, i;
+    for(i=0;i<(items||[]).length;i++){
+      var it = items[i]; if(!it || it.zibei) continue;
+      var u = String(it.du || it.unit || 'g').toLowerCase();
+      if(u === 'kg' || u === 'g'){ has = true; if(u !== 'kg') allKg = false; g += n(it.qty) * (u === 'kg' ? 1000 : 1); }
+      per += n(it.price) * n(it.qty);
+    }
+    var useKg = has && allKg;
+    return { w: useKg ? (Math.round(g/1000*1000)/1000) : (Math.round(g*10)/10), wu: useKg ? 'kg' : 'g', per: per };
+  }
+  function rxTitle(rx){
+    var its = rxItems(rx), names = [];
+    for(var i=0;i<its.length && names.length<3;i++){
+      var nm = splitSfx(its[i].name || '').nm;
+      if(nm) names.push(nm);
+    }
+    return names.length ? (names.join('、') + (its.length > 3 ? '…' : '')) : ('药方 ' + String(rx.no || ''));
+  }
+  function formulaOf(t, id){
+    if(t === 'h'){
+      var rx = findRx(id); if(!rx) return null;
+      return { t:t, id:id, title:rxTitle(rx), items:rxItems(rx),
+               doses:reuseDoseGet('h',id,n(rx.j)||1), date:rx.dt||'', tm:rx.tm||'', no:rx.no||'',
+               guest:rx.n||'' };
+    }
+    var c = (typeof gstCfFind === 'function') ? gstCfFind(id) : null;
+    if(!c) return null;
+    var items = (c.items && c.items.length) ? JSON.parse(JSON.stringify(c.items)) : [];
+    return { t:'c', id:id, title:c.name || '常用方', items:items,
+             doses:reuseDoseGet('c',id,n(c.doses)||1), date:'', tm:'', no:'', guest:c.guest||'' };
+  }
+  function openHistory(bid){
+    _tgt = bid; _prevBid = bid; _prevNos = []; _prevSel = []; _reuseDose = {}; _reuseTab = 'h';
+    var o = curOrder();
+    if(!o || !o.guest){ toastErr('请先在上方选择客人 / 医生'); return; }
+    renderReuse();
     openModal('wpHistModal');
   }
-  function prevToggle(no, on){
-    _prevNos = _prevNos.filter(function(x){ return x !== no; });
-    if(on) _prevNos.push(no);
+  function renderReuse(){
+    var body = document.getElementById('wpHistBody'); if(!body) return;
+    var guest = curGuest();
+    var h = '<div class="wp-reuse-tabs">'
+      + '<button class="' + (_reuseTab === 'h' ? 'on' : '') + '" type="button" onclick="WPlan.reuseTab(\'h\')">历史药方</button>'
+      + '<button class="' + (_reuseTab === 'c' ? 'on' : '') + '" type="button" onclick="WPlan.reuseTab(\'c\')">常用方</button>'
+      + '</div>';
+    var list = [];
+    if(_reuseTab === 'h'){
+      list = doctorRxs(guest);
+      if(!list.length) h += '<div class="wp-empty">该客人暂无历史药方</div>';
+      for(var i=0;i<list.length;i++){
+        var r = list[i], rx = findRx(r.no); if(!rx) continue;
+        var f = formulaOf('h', r.no); if(!f) continue;
+        var st = itemsStats(f.items);
+        h += '<div class="wp-reuse-card" onmouseenter="WPlan.reuseHover(this,\'h\',\'' + esc(r.no) + '\')" onmouseleave="WPlan.reuseLeave()">'
+          + '<input class="chk" type="checkbox" ' + (inReuseSel('h', r.no) ? 'checked' : '') + ' onchange="WPlan.reuseToggle(\'h\',\'' + esc(r.no) + '\',this.checked)">'
+          + '<div class="wp-reuse-main"><div class="wp-reuse-title">' + esc(f.title) + '</div>'
+          + '<div class="wp-reuse-meta">' + esc(f.date) + ' ' + esc(f.tm || '') + ' ｜ 单付 ' + st.w + st.wu + ' ｜ <b>¥' + money(st.per) + '</b> ｜ ' + (rx.fy ? '已发' : '未发') + '</div></div>'
+          + '<label class="wp-reuse-dose">付数<input type="number" min="1" step="1" value="' + f.doses + '" oninput="WPlan.reuseDoseSet(\'h\',\'' + esc(r.no) + '\',this.value)"></label>'
+          + '<div class="wp-reuse-acts">'
+          + '<button class="btn sm" type="button" onclick="WPlan.reuseOne(\'h\',\'' + esc(r.no) + '\',false)">复用</button>'
+          + '<button class="btn sm" type="button" onclick="WPlan.reuseOne(\'h\',\'' + esc(r.no) + '\',true)">编辑</button>'
+          + '</div></div>';
+      }
+    } else {
+      var cfs = (typeof gstCfFor === 'function') ? gstCfFor(guest) : [];
+      if(!cfs.length) h += '<div class="wp-empty">该客人暂无常用方</div>';
+      for(var j=0;j<cfs.length;j++){
+        var c = cfs[j], id = c.id || '';
+        var fc = formulaOf('c', id); if(!fc) continue;
+        var sc = itemsStats(fc.items);
+        h += '<div class="wp-reuse-card" onmouseenter="WPlan.reuseHover(this,\'c\',\'' + esc(id) + '\')" onmouseleave="WPlan.reuseLeave()">'
+          + '<input class="chk" type="checkbox" ' + (inReuseSel('c', id) ? 'checked' : '') + ' onchange="WPlan.reuseToggle(\'c\',\'' + esc(id) + '\',this.checked)">'
+          + '<div class="wp-reuse-main"><div class="wp-reuse-title">' + esc(fc.title) + '</div>'
+          + '<div class="wp-reuse-meta">常用方 ｜ 单付 ' + sc.w + sc.wu + ' ｜ <b>¥' + money(sc.per) + '</b></div></div>'
+          + '<label class="wp-reuse-dose">付数<input type="number" min="1" step="1" value="' + fc.doses + '" oninput="WPlan.reuseDoseSet(\'c\',\'' + esc(id) + '\',this.value)"></label>'
+          + '<div class="wp-reuse-acts">'
+          + '<button class="btn sm" type="button" onclick="WPlan.reuseOne(\'c\',\'' + esc(id) + '\',false)">复用</button>'
+          + '<button class="btn sm" type="button" onclick="WPlan.reuseOne(\'c\',\'' + esc(id) + '\',true)">编辑</button>'
+          + '</div></div>';
+      }
+    }
+    body.innerHTML = h;
     updateHistFoot();
   }
-  function getPrevSel(){ return _prevNos.slice(); }
+  function reuseHover(el, t, id){
+    var f = formulaOf(t, id); if(!f || !el) return;
+    var tip = document.getElementById('wpReuseTip'); if(!tip) return;
+    var st = itemsStats(f.items), h = '<h4>' + esc(f.title) + '</h4>', i, it, u;
+    for(i=0;i<f.items.length && i<10;i++){
+      it = f.items[i];
+      u = String(it.unit || it.du || 'g');
+      h += '<div class="row"><span>' + esc(it.name || '') + '</span><span>' + (it.zibei ? '自备' : (dispQty(it) + ' ' + u)) + '</span></div>';
+    }
+    if(f.items.length > 10) h += '<div class="row">… 共 ' + f.items.length + ' 味</div>';
+    h += '<div class="sum">单付 ' + st.w + st.wu + ' ｜ <span style="color:var(--pri-deep);font-weight:700">¥' + money(st.per) + '</span></div>';
+    tip.innerHTML = h;
+    tip.style.display = 'block';
+    var r = el.getBoundingClientRect(), w = tip.offsetWidth || 300, hh = tip.offsetHeight || 120;
+    var left = Math.min(r.left, window.innerWidth - w - 10); if(left < 8) left = 8;
+    var top = r.bottom + 6; if(top + hh > window.innerHeight - 8) top = Math.max(8, r.top - hh - 6);
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  function reuseLeave(){ var t = document.getElementById('wpReuseTip'); if(t) t.style.display = 'none'; }
+  function reuseOne(t, id, edit){
+    var f = formulaOf(t, id); if(!f){ toastErr('药方不存在'); return; }
+    var o = curOrder(); if(!o) return;
+    var b = null;
+    if(edit && _prevBid){ b = blockById(_prevBid); }
+    if(b){
+      b.items = JSON.parse(JSON.stringify(f.items));
+      b.doses = f.doses;
+      b.title = f.title || b.title;
+      b.source = t === 'h' ? 'history' : 'common';
+      b.fromRxNo = t === 'h' ? (f.no || '') : '';
+      if(t === 'c') b.commonId = id;
+    }else{
+      if(_prevBid){
+        var tb = blockById(_prevBid);
+        if(tb && !tb.items.length){ b = tb; }
+      }
+      if(!b){ b = blankBlock(); o.blocks.push(b); }
+      b.items = b.items.concat(JSON.parse(JSON.stringify(f.items)));
+      b.doses = f.doses;
+      b.title = f.title || b.title;
+      b.source = t === 'h' ? 'history' : 'common';
+      b.fromRxNo = t === 'h' ? (f.no || '') : '';
+      if(t === 'c') b.commonId = id;
+    }
+    closeModal('wpHistModal'); closeModal('wpPrevModal'); reuseLeave();
+    save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
+    toast((edit ? '已载入「' : '已复用「') + (f.title || '药方') + '」');
+  }
+  function getPrevSel(){ return _prevSel.slice(); }
   function updateHistFoot(){
     var f = document.getElementById('wpHistFoot'); if(!f) return;
-    var n2 = _prevNos.length;
+    var n2 = _prevSel.length;
     f.innerHTML = '<span class="wp-list-count" style="margin-right:auto">' + (n2 ? ('已选 ' + n2 + ' 张') : '可勾选多张一起复用') + '</span>'
       + '<button class="btn" type="button" onclick="WPlan.closeModal(\'wpHistModal\')">取消</button>'
-      + '<button class="btn pri" type="button" onclick="WPlan.openPreview(WPlan.getPrevSel())">复用选中' + (n2 ? '（' + n2 + '）' : '') + '</button>';
+      + '<button class="btn pri" type="button" onclick="WPlan.openReusePreview()">复用选中' + (n2 ? '（' + n2 + '）' : '') + '</button>';
   }
-  /* 预览：只读展示完整明细（药名/克数/单位/单价/金额/付数/备注/煎煮法/总价），不改原数据 */
-  function openPreview(nos){
-    nos = nos || [];
-    if(!nos.length){ toastErr('请先勾选要复用的药方'); return; }
+  /* 复用选中：先预览，确认后每张药方带入一个药方块 */
+  function openReusePreview(){
+    if(!_prevSel.length){ toastErr('请先勾选要复用的药方'); return; }
     var body = document.getElementById('wpPrevBody'); if(!body) return;
-    var guest = curGuest(); var h = '';
-    for(var i=0;i<nos.length;i++){
-      var rx = findRx(nos[i]); if(!rx) continue;
-      var g = rx.n || guest;
-      var items = rxItems(rx);
-      var doses = Math.max(1, Math.round(n(rx.j) || 1));
-      var per = 0, rowsH = '';
-      for(var k=0;k<items.length;k++){
-        var it = items[k];
-        var sp = splitSfx(it.name || '');
+    var h = '', keys = _prevSel.slice();
+    for(var s=0;s<keys.length;s++){
+      var key = keys[s], t = key.charAt(0), id = key.slice(2);
+      var f = formulaOf(t, id); if(!f) continue;
+      var st = itemsStats(f.items), rowsH = '';
+      for(var k=0;k<f.items.length;k++){
+        var it = f.items[k], sp = splitSfx(it.name || '');
         var qty = n(it.qty), unit = it.unit || it.du || 'g';
         var price = it.zibei ? 0 : (it.price == null ? 0 : n(it.price));
-        var amt = it.zibei ? 0 : price * qty;
-        per += amt;
-        rowsH += '<tr>'
-          + '<td>' + esc(sp.nm) + (sp.sfx ? '<span class="wp-prev-sfx">' + esc(sp.sfx) + '</span>' : '') + '</td>'
-          + '<td class="num">' + (it.zibei ? '自备' : qty) + '</td>'
-          + '<td>' + (it.zibei ? '' : esc(unit)) + '</td>'
+        rowsH += '<tr><td>' + esc(sp.nm) + (sp.sfx ? '<span class="wp-prev-sfx">' + esc(sp.sfx) + '</span>' : '') + '</td>'
+          + '<td class="num">' + (it.zibei ? '自备' : qty) + '</td><td>' + (it.zibei ? '' : esc(unit)) + '</td>'
           + '<td class="num">' + (it.zibei ? '' : money(price)) + '</td>'
-          + '<td class="num">' + (it.zibei ? '' : money(amt)) + '</td>'
-          + '</tr>';
+          + '<td class="num">' + (it.zibei ? '' : money(price * qty)) + '</td></tr>';
       }
-      var st = statAmount(rx);
-      h += '<div class="wp-prev-block">'
-        + '<div class="wp-prev-hd">' + esc(rx.dt || '') + ' ' + esc(rx.tm || '') + ' · ' + doses + '付 · ¥' + money(st.total)
-        + '<span class="fy">' + (rx.fy ? '已发' : '未发') + ' · ' + esc(g || '未命名客人') + '</span></div>'
-        + '<table class="wp-prev-tbl"><thead><tr><th>药名</th><th class="num">克数</th><th>单位</th><th class="num">单价</th><th class="num">金额</th></tr></thead><tbody>'
+      h += '<div class="wp-prev-block"><div class="wp-prev-hd">' + esc(f.title) + ' · ' + f.doses + '付'
+        + '<span class="fy">' + (t === 'h' ? (f.date + ' ' + f.tm) : '常用方') + '</span></div>'
+        + '<table class="wp-prev-tbl"><thead><tr><th>药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th class="num">金额</th></tr></thead><tbody>'
         + (rowsH || '<tr><td colspan="5">（无药材）</td></tr>') + '</tbody></table>'
-        + '<div class="wp-prev-sum">单付 <b>¥' + money(per) + '</b> × ' + doses + '付 = <b>¥' + money(per * doses) + '</b>'
-        + (Math.abs(per * doses - st.total) > 0.01 ? '（原方总价 ¥' + money(st.total) + '）' : '') + '</div>'
-        + (rx.b ? '<div class="wp-prev-note">备注：' + esc(rx.b) + '</div>' : '')
-        + '</div>';
+        + '<div class="wp-prev-sum">单付 <b>¥' + money(st.per) + '</b> × ' + f.doses + '付 = <b>¥' + money(st.per * f.doses) + '</b></div></div>';
     }
     if(!h){ toastErr('找不到药方内容'); return; }
-    _prevNos = nos.slice();
+    _prevSelCopy = keys.slice();
     body.innerHTML = h;
     closeModal('wpHistModal');
     openModal('wpPrevModal');
   }
-  /* 确认复用：选中几张就带入几个药方块（当前空方块优先复用，其余新建） */
+  function openPreview(nos){
+    _prevSel = (nos || []).map(function(no){ return 'h:' + no; });
+    openReusePreview();
+  }
   function confirmPreview(){
     var o = curOrder(); if(!o) return;
-    if(!_prevNos.length){ toastErr('没有可复用的药方'); return; }
+    if(!_prevSelCopy.length){ toastErr('没有可复用的药方'); return; }
     var usedTarget = false, cnt = 0, totalItems = 0;
-    for(var i=0;i<_prevNos.length;i++){
-      var rx = findRx(_prevNos[i]); if(!rx) continue;
-      var items = rxItems(rx);
+    for(var s=0;s<_prevSelCopy.length;s++){
+      var key = _prevSelCopy[s], p = key.split(':'), t = p[0], id = key.slice(2);
+      var f = formulaOf(t, id); if(!f) continue;
       var b = null;
       if(!usedTarget && _prevBid){
         var tb = blockById(_prevBid);
         if(tb && !tb.items.length){ b = tb; usedTarget = true; }
       }
       if(!b){ b = blankBlock(); o.blocks.push(b); }
-      b.items = b.items.concat(items);
-      b.source = 'history'; b.fromRxNo = rx.no;
-      b.doses = Math.max(1, Math.round(n(rx.j) || 1));
-      cnt++; totalItems += items.length;
+      b.items = b.items.concat(JSON.parse(JSON.stringify(f.items)));
+      b.doses = f.doses;
+      b.title = f.title || b.title;
+      b.source = t === 'h' ? 'history' : 'common';
+      b.fromRxNo = t === 'h' ? (f.no || '') : '';
+      if(t === 'c') b.commonId = id;
+      cnt++; totalItems += f.items.length;
     }
-    if(o.blocks.length === 1) o.doses = n(o.blocks[0].doses) || o.doses;
-    _prevNos = [];
+    _prevSel = []; _prevSelCopy = [];
     closeModal('wpPrevModal');
     save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
     toast('已复用 ' + cnt + ' 张药方，共 ' + totalItems + ' 味');
   }
   /* 兼容旧调用：直接把一张历史药方追加到指定方块（不经预览） */
   function bringHistory(bid, no){
-    var rx = findRx(no); if(!rx){ toastErr('找不到该药方'); return; }
-    var items = rxItems(rx);
-    var b = blockById(bid); if(!b) return;
-    b.items = b.items.concat(items); b.source = 'history'; b.fromRxNo = no;
-    b.doses = Math.max(1, Math.round(n(rx.j) || 1));
-    save(); renderBlocks(); recount();
-    closeModal('wpHistModal'); closeModal('wpPrevModal');
-    toast('已复用 ' + items.length + ' 味');
+    _prevBid = bid;
+    reuseOne('h', no, false);
   }
 
   /* ---- 文本制表 ---- */
@@ -13940,11 +14075,24 @@ var WPlan = (function(){
   function doText(){
     var ta = document.getElementById('wpText'); var txt = ta ? ta.value : '';
     var its = parseItems(txt); if(!its.length){ toastErr('没解析到药材，请检查格式'); return; }
-    var items = []; for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], curGuest()));
-    var b = blockById(_tgt); if(!b){ toastErr('请先添加药方'); return; }
-    b.items = b.items.concat(items); b.source = 'text'; save();
-    closeModal('wpTextModal'); renderBlocks(); recount();
-    toast('已生成 ' + items.length + ' 行');
+    /* 粘贴文本 → 与 Excel 导入同一套匹配预览（精确 / 智能匹配 + 手动指定） */
+    var rows = [], i;
+    for(i=0;i<its.length;i++){
+      var it = its[i];
+      if(!it || it.zibei || !it.name) continue;
+      var sp = splitSfx(it.name);
+      var orig = sp.nm; if(!orig) continue;
+      var unit = String(it.unit || 'g');
+      var m = impMatch(orig);
+      var d = m.drug, std = d ? String(d.n) : '';
+      rows.push({ orig: orig, qty: n(it.qty), unit: unit, sfx: sp.sfx || '',
+        std: std, autoStd: std, autoHow: d ? m.how : 'none', drug: d,
+        price: d ? priceFor(std, curGuest(), unit) : null, ok: !!d,
+        how: d ? m.how : 'none', rm: '' });
+    }
+    if(!rows.length){ toastErr('没解析到可导入的药材'); return; }
+    _imp.tgt = _tgt; _imp.guest = curGuest(); _imp.rows = rows;
+    closeModal('wpTextModal'); impRender(); openModal('wpImportModal');
   }
 
   /* ---- 药名内联检索：表格药名输入框直接输药名/拼音，浮层选药自动带价 ---- */
@@ -14504,7 +14652,9 @@ var WPlan = (function(){
     setItemName: setItemName, delItem: delItem, addItems: addItems,
     toggleUnit: toggleUnit, setUnit: setUnit,
     openHistory: openHistory, bringHistory: bringHistory,
-    prevToggle: prevToggle, getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
+    reuseTab: reuseTab, reuseToggle: reuseToggle, reuseDoseSet: reuseDoseSet, reuseOne: reuseOne,
+    reuseHover: reuseHover, reuseLeave: reuseLeave, openReusePreview: openReusePreview,
+    getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
     openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
