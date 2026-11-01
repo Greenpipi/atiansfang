@@ -13975,19 +13975,21 @@ var WPlan = (function(){
     var m = s.match(/\d{4}-\d{2}-\d{2}/);
     return m ? m[0] : s.slice(0, 10);
   }
-  function histMoney(v){
+  function histMoney(v, unit){
     if(v == null || v === '') return '—';
-    return '¥' + money(v);
+    return '¥' + money(v) + ' / ' + String(unit || 'g');
   }
-  function tipSection(title, arr){
+  function tipSection(title, arr, unit, cf){
     var h = '<div class="sec"><h4>' + esc(title) + '</h4>';
     if(!arr.length) return h + '<div class="empty">暂无记录</div></div>';
     for(var i=0;i<arr.length;i++){
-      h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+      var p = arr[i].p;
+      if(cf && cf !== 1 && p != null && p !== '') p = n(p) * cf;
+      h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(p, unit) + '</span></div>';
     }
     return h + '</div>';
   }
-  function renderPriceTip(deals, guestLog, costs, drug, guest, loading){
+  function renderPriceTip(deals, guestLog, costs, drug, guest, loading, unit, cf){
     deals = deals || []; costs = costs || [];
     var cust = [], other = [], i;
     for(i=0;i<deals.length;i++){
@@ -14018,9 +14020,9 @@ var WPlan = (function(){
     }
     costArr = sortTop(costArr);
     var gLabel = guest || '未指定客人';
-    return tipSection('客户历史成交（' + gLabel + '专属）', cust)
-      + tipSection('其他历史成交', other)
-      + tipSection('历史进货价', costArr)
+    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cf)
+      + tipSection('其他历史成交', other, unit, cf)
+      + tipSection('历史进货价', costArr, 'kg')
       + (loading ? '<div class="empty" style="padding-top:6px">正在同步云端记录…</div>' : '');
   }
   function placePriceTip(tip, el){
@@ -14042,8 +14044,12 @@ var WPlan = (function(){
     var tip = document.getElementById('wpPriceTip'); if(!tip) return;
     _tipShow = true;
     var token = ++_tipSeq;
+    var d = findDrug(drug) || (findDrugAll(drug) || [])[0] || null;
+    /* 历史成交按表单当前行单位显示（目录价格按基础单位记录，需要换算）；进货价统一 kg */
+    var rowU = String(it.unit || it.du || (d && d.u) || 'g');
+    var cf = unitCoef(String((d && d.u) || 'g'), rowU);
     var glog = (DOCTORS[guest] && DOCTORS[guest].log) || [];
-    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true);
+    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true, rowU, cf);
     tip.style.display = 'block';
     placePriceTip(tip, el);
     var pack = _tipCache[drug];
@@ -14061,7 +14067,7 @@ var WPlan = (function(){
     }
     p.then(function(packed){
       if(!_tipShow || token !== _tipSeq) return;
-      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false);
+      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false, rowU, cf);
       placePriceTip(tip, el);
     });
   }
