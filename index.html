@@ -4307,8 +4307,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
                 <div class="wp-foot" id="purFoot"></div>
                 <div id="purMsg" class="redhint"></div>
-                <datalist id="purchaseDrugList"></datalist>
-                <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或选拼音，单价按 元/kg 录入；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
+                <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或用拼音选，单价按 元/kg 录入（数量填 g/kg/斤 均可，金额自动换算）；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
               </div>
             </div>
           </div>
@@ -16043,6 +16042,120 @@ var Purchase = (function(){
     if(us.indexOf(cur)<0) us.unshift(cur);
     return us;
   }
+  /* ---------- 药名备选：与【药方打印】共用同一个 #wpAc 浮层 ----------
+     原来用浏览器自带的 <datalist>，Chrome 会画成黑底大黑框 + 输入框右侧一个大三角，太丑。
+     这里改用和订单详情一样的白底圆角下拉：左药名、右「零售价/单位」，支持拼音、上下键、回车。 */
+  var _pac=null, _paSilent=false;
+  function paNorm(q){ return String(q==null?'':q).replace(/\s+/g,'').toLowerCase(); }
+  function paBare(nm){ return String(nm||'').replace(/（[^（）]*）/g,'').replace(/\([^()]*\)/g,'')
+    .replace(/【[^【】]*】/g,'').replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,''); }
+  function paScore(d,q){
+    var nm=String(d.n||'').toLowerCase(), py=String(d.py||'').toLowerCase(), bare=paBare(nm);
+    if(nm===q) return 0;
+    if(bare===q||py===q) return 1;
+    if(nm.indexOf(q)===0) return 2;
+    if(bare.indexOf(q)===0||py.indexOf(q)===0) return 3;
+    if(nm.indexOf(q)>0) return 4;
+    if(py.indexOf(q)>0) return 5;
+    return -1;
+  }
+  function paList(q){
+    var key=paNorm(q), list=drugsList||[], out=[], hits=[];
+    if(!key){ for(var i=0;i<list.length&&out.length<20;i++) out.push(list[i]); return out; }
+    for(var j=0;j<list.length;j++){ var sc=paScore(list[j],key); if(sc>=0) hits.push({d:list[j],s:sc}); }
+    hits.sort(function(a,b){ return a.s-b.s; });
+    for(var k=0;k<hits.length&&out.length<20;k++) out.push(hits[k].d);
+    return out;
+  }
+  function paEl(){
+    var el=document.getElementById('wpAc');
+    if(!el){ el=document.createElement('div'); el.id='wpAc'; el.className='wp-ac'; document.body.appendChild(el); }
+    return el;
+  }
+  function paClose(){ _pac=null; var el=document.getElementById('wpAc'); if(el) el.style.display='none'; }
+  function paPlace(){
+    if(!_pac) return;
+    var el=document.getElementById('wpAc'); if(!el || el.style.display==='none') return;
+    var rect=_pac.el.getBoundingClientRect(), Gap=2, Pad=6, h=el.offsetHeight, w=el.offsetWidth;
+    var below=window.innerHeight-rect.bottom-Pad, above=rect.top-Pad, top;
+    if(h<=below) top=rect.bottom+Gap;
+    else if(h<=above) top=rect.top-h-Gap;
+    else if(above>below) top=Pad;
+    else top=Math.max(Pad, window.innerHeight-h-Pad);
+    var left=rect.left;
+    if(left+w>window.innerWidth-Pad) left=Math.max(Pad, window.innerWidth-w-Pad);
+    el.style.left=left+'px'; el.style.top=top+'px';
+  }
+  function paRender(){
+    if(!_pac || !_pac.list.length){ paClose(); return; }
+    var el=paEl(), h='';
+    for(var j=0;j<_pac.list.length;j++){
+      var d=_pac.list[j];
+      var pr=(d.p!=null && d.p!=='') ? (String(Math.round((parseFloat(d.p)||0)*1000)/1000)+'/'+String(d.u||'g')) : '无价';
+      h+='<div class="r'+(j===_pac.idx?' on':'')+'" data-nm="'+esc(d.n)+'"><span class="nm">'+esc(d.n)+'</span><span class="pr">'+pr+'</span></div>';
+    }
+    el.innerHTML=h; el.style.display='block';
+    var rows=el.querySelectorAll('.r');
+    for(var k=0;k<rows.length;k++){
+      (function(r){ r.onmousedown=function(e){ e.preventDefault(); if(_pac&&_pac.pick) _pac.pick(r.getAttribute('data-nm')); }; })(rows[k]);
+    }
+    var rect=_pac.el.getBoundingClientRect();
+    el.style.minWidth=Math.max(rect.width,220)+'px';
+    paPlace();
+  }
+  function paTerm(el){
+    var v=String(el.value||''), pos=el.selectionStart;
+    if(pos==null || pos<0 || pos>=v.length) return v;
+    var t=v.slice(0,pos);
+    return paNorm(t)?t:v;
+  }
+  function rowIdxOf(el){
+    var tr=el&&el.closest?el.closest('tr[data-i]'):null;
+    return tr?parseInt(tr.getAttribute('data-i'),10):-1;
+  }
+  function paOpen(el,i){
+    if(!S.cur) return;
+    var term=paTerm(el), list=paList(term);
+    if(!list.length){ paClose(); return; }
+    _pac={el:el, i:i, list:list, idx:0, pick:paPick};
+    paRender();
+  }
+  function paPick(name){
+    if(!_pac) return;
+    var i=_pac.i; paClose();
+    var it=S.cur.items[i]; if(!it) return;
+    it.name=name;
+    var d=findDrug(name);
+    if(d && !String(it.unit||'').trim()) it.unit=String(d.u||'g');
+    renderBlocks(); renderFoot();
+    var ni=document.querySelector('#purBlocks tr[data-i="'+i+'"] .wp-nm');
+    if(ni){ _paSilent=true; ni.focus(); }
+  }
+  function nameFocus(el){ if(_paSilent){ _paSilent=false; return; } paOpen(el, rowIdxOf(el)); }
+  function nameInput(el){
+    var i=rowIdxOf(el); if(i<0) return;
+    var it=S.cur.items[i]; if(!it) return;
+    it.name=el.value; recalc();
+    var tr=el.closest('tr[data-i]'), amt=tr?tr.querySelector('.wp-amt'):null;
+    if(amt) amt.textContent=fmt2(it.amount||0);
+    paOpen(el,i);
+  }
+  function nameKey(e, el){
+    var k=e.key;
+    if(_pac && _pac.list.length){
+      if(k==='ArrowDown'){ _pac.idx=(_pac.idx+1)%_pac.list.length; paRender(); e.preventDefault(); return; }
+      if(k==='ArrowUp'){ _pac.idx=(_pac.idx-1+_pac.list.length)%_pac.list.length; paRender(); e.preventDefault(); return; }
+      if(k==='Escape'){ paClose(); return; }
+      if(k==='Enter' || k==='Tab'){
+        if(String(el.value||'').trim()!==''){
+          var d=_pac.list[_pac.idx];
+          if(d){ e.preventDefault(); paPick(d.n); return; }
+        }
+      }
+    }
+    if(k==='Enter'){ e.preventDefault(); }
+  }
+  function nameBlur(){ paClose(); }
   /* 表格结构 / 字段顺序 / 类名与【药方打印】订单详情一致 */
   function renderBlocks(){
     var box=$('purBlocks'); if(!box) return;
@@ -16074,7 +16187,7 @@ var Purchase = (function(){
         var uOpts=unitOptsFor(it,d);
         return '<tr data-i="'+i+'">'
           +'<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="Purchase.addItemAfter(\''+esc(b.dt)+'\','+i+')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="6" y1="1.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
-          +'<td><div class="'+cls+'"><input class="wp-nm" list="purchaseDrugList" value="'+esc(it.name||'')+'" placeholder="药名 / 拼音" autocomplete="off">'+tags+'</div></td>'
+          +'<td><div class="'+cls+'"><input class="wp-nm" value="'+esc(it.name||'')+'" placeholder="药名 / 拼音" autocomplete="off" onfocus="Purchase.nameFocus(this)" onclick="Purchase.nameFocus(this)" oninput="Purchase.nameInput(this)" onkeydown="Purchase.nameKey(event,this)" onblur="Purchase.nameBlur()">'+tags+'</div></td>'
           +'<td><div class="wp-qty-cell"><input class="num wp-qty" inputmode="decimal" value="'+esc(it.qty||'')+'" placeholder="数量"><input class="wp-unit-in" data-ddoptions="'+esc(JSON.stringify(uOpts))+'" value="'+esc(cur)+'" title="单位"></div></td>'
           +'<td style="text-align:center"><input class="num wp-price" inputmode="decimal" value="'+esc(it.cost||'')+'" placeholder="元/kg"></td>'
           +'<td class="wp-amt">'+fmt2(it.amount||0)+'</td>'
@@ -16115,7 +16228,6 @@ var Purchase = (function(){
           var amtTd=tr.querySelector('.wp-amt');
           if(amtTd) amtTd.textContent=fmt2(it.amount||0);
         }
-        name.oninput=upd;
         name.onchange=function(){ upd(); renderBlocks(); };
         unit.onchange=function(){ upd(); renderBlocks(); };
         qty.oninput=upd; cost.oninput=upd;
@@ -16507,6 +16619,7 @@ var Purchase = (function(){
   }
   return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, addItemAfter:addItemAfter, delItem:delItem,
     addBatch:addBatch, delBatch:delBatch, setBatchDate:setBatchDate, toggleFold:toggleFold, setMonth:setMonth,
+    nameFocus:nameFocus, nameInput:nameInput, nameKey:nameKey, nameBlur:nameBlur,
     saveOrder:saveOrder, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
 })();
