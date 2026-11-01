@@ -15219,7 +15219,7 @@ var WPrint=(function(){
     /* ---- 表头：店名 / 电话 / 地址 / 标题 全部来自模板 ---- */
     var left='', right='';
     left+='<div>'+esc(t.custLabel||'顾客')+'：'+esc(String(o.guest||'').trim()||'—')+'</div>';
-    if(t.showDish !== false) left+='<div>订单：'+esc(String(o.dish||'').trim()||'—')+'</div>';
+    if(t.showDish !== false) left+='<div>订单名称：'+esc(String(o.dish||'').trim()||'—')+'</div>';
     left+='<div>业务日期：'+esc(o.date||'')+'</div>';
     if(o.no && t.showNo !== false) left+='<div>单号：'+esc(o.no)+'</div>';
     var rmk=orderRemark(o);
@@ -15311,7 +15311,7 @@ var WPrint=(function(){
     var html='';
     /* 所有分页都顺着往下预览，不再只显示第一页 */
     for(i=0;i<pages.length;i++){
-      html += '<div class="wps-page" style="width:'+pw+'px;min-height:'+ph+'px;padding:'+pad+'">'
+      html += '<div class="wps-page" style="width:'+pw+'px;padding:'+pad+'">'
         + pageHtml(o,t,pages[i],i,pages.length,grand) + '</div>';
     }
     paper.style.width=pw+'px';
