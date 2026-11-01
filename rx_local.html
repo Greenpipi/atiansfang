@@ -3755,8 +3755,9 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 @media print{
   body.wp-printing #wpPrintArea .wpd-tbl th{ background:#fff !important; }
 }
-/* 模板重命名 / 另存为的轻量输入弹层（替代 window.prompt，避免被运行环境拦截后点了没反应） */
-.wps-ask{ position:fixed;top:0;left:0;right:0;bottom:0;z-index:120;
+/* 模板重命名 / 另存为的轻量输入弹层（替代 window.prompt，避免被运行环境拦截后点了没反应）
+   ⚠ 打印设置面板 .wps 的 z-index 是 9000，弹层必须更高，否则会藏在面板后面导致「点了没反应」 */
+.wps-ask{ position:fixed;top:0;left:0;right:0;bottom:0;z-index:9500;
   display:flex;align-items:center;justify-content:center;background:rgba(14,30,22,.32); }
 .wps-ask-box{ width:min(360px,86vw);background:#fff;border-radius:14px;padding:16px 18px;
   box-shadow:0 24px 60px rgba(14,30,22,.28); }
