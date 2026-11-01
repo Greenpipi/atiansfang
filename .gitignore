@@ -8,6 +8,9 @@ _ep_*/
 _ptx/
 _srv/
 
+# Trae 自动生成的整站分享包（每次改动都会重新打包，跟踪只会造成二进制冲突）
+.trae-html-share-packages/
+
 # 杂项
 *.csv
 *.vbs
