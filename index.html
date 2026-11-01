@@ -15401,7 +15401,10 @@ var WPrint=(function(){
       +'<input class="wps-ask-in" type="text" value="'+esc(def||'')+'">'
       +'<div class="wps-ask-f"><button type="button" class="wps-ask-no">取消</button>'
       +'<button type="button" class="wps-ask-ok">确定</button></div></div>';
-    document.body.appendChild(mask);
+    /* 打印设置面板打开时，弹层挂进面板内部，保证一定盖在面板之上 */
+    var host=document.body, sheet=document.getElementById('wpsSheet');
+    if(sheet && sheet.classList.contains('on')) host=sheet;
+    host.appendChild(mask);
     var inp=mask.querySelector('.wps-ask-in');
     function done(ok){
       var v=ok?inp.value:null;
