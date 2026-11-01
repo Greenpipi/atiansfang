@@ -3087,15 +3087,18 @@ body{ --navw:0px; }
 .wp-mb-actions{ margin-top:12px; display:flex; gap:10px; justify-content:flex-end; }
 .wp-ta{ width:100%; min-height:170px; border:1px solid var(--neutral-3); border-radius:var(--radius-input); padding:10px; font-size:var(--fs-body); font-family:var(--font-ui); line-height:1.7; resize:vertical; box-sizing:border-box; }
 /* 文本制表：识别按钮放进文本框内，匹配确认在文本框下方 */
-.wp-text-meta{ display:flex; gap:12px; align-items:center; margin-bottom:10px; }
+.wp-text-meta{ display:flex; gap:12px; align-items:center; margin-top:12px; }
 .wp-text-meta label{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--neutral-5); }
 .wp-text-meta label:first-child{ flex:1 1 auto; min-width:0; }
 .wp-text-meta .wp-in{ height:34px; min-width:0; }
 .wp-text-meta #wpTextTitle{ flex:1 1 auto; width:auto; }
 .wp-text-meta #wpTextDoses{ width:64px; text-align:center; }
 .wp-text-wrap{ position:relative; }
-.wp-text-wrap .wp-ta{ padding-bottom:48px; }
-.wp-text-go{ position:absolute; right:10px; bottom:10px; min-height:30px!important; padding:4px 16px!important; font-size:12px!important; }
+.wp-text-wrap .wp-ta{ padding-bottom:50px; }
+/* 识别按钮：黑色白字，右边距=下边距=12px */
+.wplan button.wp-text-go{ position:absolute; right:12px; bottom:12px; min-height:30px!important; padding:4px 16px!important; font-size:12px!important;
+  background:#111!important; border-color:#111!important; color:#fff!important; box-shadow:0 4px 12px rgba(0,0,0,.18)!important; }
+.wplan button.wp-text-go:hover{ background:#000!important; border-color:#000!important; color:#fff!important; transform:none!important; }
 .wp-text-match{ margin-top:14px; }
 /* 导入预览：绿=匹配成功，红=未匹配（下拉可指定仓库药） */
 .wp-imp-mw{ width:min(920px,94vw); }
@@ -3117,6 +3120,8 @@ body{ --navw:0px; }
 .wp-imp-tbl .imp-nm.ok{ border-color:#9fcfae!important; color:#146c38!important; }
 .wp-imp-tbl .imp-nm:focus{ border-color:var(--pri)!important; box-shadow:0 0 0 3px rgba(52,192,106,.14); outline:none; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
+/* 预览里的数量 / 单位可直接修改 */
+.wp-imp-tbl .imp-qty, .wp-imp-tbl .imp-unit{ width:100%; box-sizing:border-box; height:30px!important; min-height:30px!important; padding:2px 6px!important; text-align:center!important; font-size:12px!important; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
 .wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
@@ -4052,13 +4057,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <div class="wp-mw">
             <div class="wp-mh">粘贴药方文本制表 <button class="x" type="button" onclick="WPlan.closeModal('wpTextModal')">×</button></div>
             <div class="wp-mb">
+              <div class="wp-text-wrap">
+                <textarea id="wpText" class="wp-ta wp-ta-go" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别标题 / 付数 / 药名 / 数量 / 单位 / 煎煮法"></textarea>
+                <button class="btn wp-text-go" type="button" onclick="WPlan.doText()">识别药材</button>
+              </div>
               <div class="wp-text-meta">
                 <label>标题<input id="wpTextTitle" class="wp-in" placeholder="自动识别，可修改"></label>
                 <label>付数<input id="wpTextDoses" class="wp-in" type="number" min="1" step="1" value="1"></label>
-              </div>
-              <div class="wp-text-wrap">
-                <textarea id="wpText" class="wp-ta wp-ta-go" placeholder="例如：桂枝10g 甘草5g 麦冬[另包]10g&#10;每行或空格分隔均可，自动识别标题 / 付数 / 药名 / 数量 / 单位 / 煎煮法"></textarea>
-                <button class="btn pri wp-text-go" type="button" onclick="WPlan.doText()">识别药材</button>
               </div>
               <!-- 识别后在本弹窗下方直接出现匹配确认，确认后才导入 -->
               <div class="wp-text-match" id="wpTextMatch" style="display:none">
@@ -14138,13 +14143,14 @@ var WPlan = (function(){
     var rows = [];
     for(i=0;i<its.length;i++){
       var it = its[i];
-      if(!it || it.zibei || !it.name) continue;
+      if(!it || !it.name) continue;
       var sp = splitSfx(it.name);
       var orig = sp.nm; if(!orig) continue;
+      if(/^[0-9.]+$/.test(orig) || /^[0-9]+(付|包|剂|克|g|kg)?$/.test(orig)) continue;
       var unit = String(it.unit || 'g');
       var m = impMatch(orig);
       var d = m.drug, std = d ? String(d.n) : '';
-      rows.push({ orig: orig, qty: n(it.qty), unit: unit, sfx: sp.sfx || '',
+      rows.push({ orig: orig, qty: n(it.qty) || 0, unit: unit, sfx: sp.sfx || '',
         std: std, autoStd: std, autoHow: d ? m.how : 'none', drug: d,
         price: d ? priceFor(std, curGuest(), unit) : null, ok: !!d,
         how: d ? m.how : 'none', rm: '' });
@@ -14549,8 +14555,8 @@ var WPlan = (function(){
       h += '<tr class="' + cls + '">'
         + '<td>' + esc(r.orig) + '</td>'
         + '<td>' + stdCell + '</td>'
-        + '<td class="num">' + String(r.qty) + '</td>'
-        + '<td>' + esc(r.unit) + '</td>'
+        + '<td><input class="imp-qty" type="number" min="0" step="0.1" value="' + (r.qty == null ? '' : r.qty) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
+        + '<td><input class="imp-unit" data-ddlist="wpUnitList" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
         + '</tr>';
@@ -14620,6 +14626,17 @@ var WPlan = (function(){
     r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
     r.price = priceFor(r.std, _imp.guest, r.unit);
     closeAc();
+    impRender();
+  }
+  function impEditQty(ri, v){
+    var r = _imp.rows[ri]; if(!r) return;
+    var q = parseFloat(v); r.qty = isNaN(q) ? 0 : q;
+  }
+  function impEditUnit(ri, v){
+    var r = _imp.rows[ri]; if(!r) return;
+    var u = normUnit(v) || 'g';
+    r.unit = u;
+    if(r.ok && r.std) r.price = priceFor(r.std, _imp.guest, u);
     impRender();
   }
   function impCancel(){
@@ -14735,7 +14752,7 @@ var WPlan = (function(){
     getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
