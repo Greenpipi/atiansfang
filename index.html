@@ -3000,16 +3000,19 @@ body{ --navw:0px; }
 .wp-tbl .wp-nm{ flex:1 1 auto; min-width:0; }
 /* 药名格：输入框占满整列；脚注 / 标准药以绝对定位小胶囊放在输入框内部右侧 */
 .wp-nm-wrap{ position:relative; display:block; }
-.wp-nm-wrap > .wp-nm{ width:calc(100% - 22px); }
-.wp-nm-tags{ position:absolute; right:24px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 52px); pointer-events:none; }
+.wp-nm-wrap > .wp-nm{ width:calc(100% - 26px); }
+.wp-nm-tags{ position:absolute; right:36px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 66px); pointer-events:none; }
 .wp-nm-wrap.has-sfx .wp-nm{ padding-right:80px; }
-.wp-nm-wrap.has-std .wp-nm{ padding-right:112px; }
-.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:144px; }
-/* 「查看药物详情」的小感应按钮：所有行同宽，悬停行才显现；悬停只变色、不位移 */
-.wplan .wp-tbl .wp-nm-detail{ position:absolute; right:2px; top:50%; transform:translateY(-50%); width:16px!important; height:16px!important; min-height:0!important; padding:0!important; border-radius:50%!important; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-5); font-size:10px!important; line-height:1!important; font-weight:700; display:flex; align-items:center; justify-content:center; opacity:.45; cursor:pointer; z-index:2; transition:background-color .15s ease,color .15s ease,border-color .15s ease; }
+.wp-nm-wrap.has-std .wp-nm{ padding-right:118px; }
+.wp-nm-wrap.has-std.has-sfx .wp-nm{ padding-right:158px; }
+/* 「查看药物详情」：透明幽灵圆按钮，悬停浅绿底 + 主色图标，不位移 */
+.wplan .wp-tbl .wp-nm-detail{ position:absolute; right:3px; top:50%; transform:translateY(-50%); width:18px!important; height:18px!important; min-height:0!important; padding:0!important; border:0!important; border-radius:50%!important; background:transparent!important; color:var(--neutral-4)!important; box-shadow:none!important; display:flex!important; align-items:center!important; justify-content:center!important; opacity:.5; cursor:pointer; z-index:2; transition:background-color .15s ease,color .15s ease,opacity .15s ease; }
+.wplan .wp-tbl .wp-nm-detail svg{ display:block; width:13px; height:13px; }
 .wp-tbl tbody tr:hover .wp-nm-detail, .wp-nm-detail:focus{ opacity:1; }
-.wp-nm-detail:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; transform:translateY(-50%)!important; box-shadow:none!important; }
-.wp-nm-detail:active{ transform:translateY(-50%) scale(.95)!important; }
+.wp-nm-detail:hover{ background:var(--pri-soft)!important; color:var(--pri-deep)!important; transform:translateY(-50%)!important; }
+.wp-nm-detail:active{ transform:translateY(-50%) scale(.94)!important; }
+/* 行内加号：SVG 图标，保证在圆形内绝对居中 */
+.wplan .wp-tbl .wp-plus svg{ display:block; width:10px; height:10px; }
 .wp-sfx{ font-size:11px; color:var(--aux); white-space:nowrap; }
 .wp-sfx:empty{ display:none; }
 .wp-tbl .num{ text-align:right; }
@@ -12883,8 +12886,8 @@ var WPlan = (function(){
     }
     var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '');
     return '<tr>'
-      + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')">+</button></td>'
-      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')">i</button></div></td>'
+      + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="6" y1="1.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
+      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><line x1="8" y1="7.2" x2="8" y2="11.2" stroke-linecap="round"/><circle cx="8" cy="4.9" r=".95" fill="currentColor" stroke="none"/></svg></button></div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:right"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
