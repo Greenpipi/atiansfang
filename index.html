@@ -13018,20 +13018,23 @@ var WPlan = (function(){
       + '<td class="row-act"><button class="btn danger sm" type="button" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')">删除</button></td>'
       + '</tr>';
   }
-  function renderFoot(){
-    var o = curOrder(); var box = document.getElementById('wpFoot'); if(!box) return;
-    if(!o){ box.innerHTML = ''; return; }
-    var lines = '', total = 0;
-    for(var i=0;i<o.blocks.length;i++){
-      var b = o.blocks[i]; var s = blockTotal(b); total += s;
+  /* 底部小订单汇总（各药方 + 合计），单独抽出便于导入/改价后即时刷新 */
+  function footTotalsHTML(o){
+    var lines = '', total = 0, bs = o.blocks || [];
+    for(var i=0;i<bs.length;i++){
+      var b = bs[i], s = blockTotal(b); total += s;
       var d = n(b.doses) || 1;
       lines += '<div class="wp-line"><span>' + esc(b.title || ('药方' + (i+1))) + '（' + d + '付）</span><b>¥' + money(s) + '</b></div>';
     }
-    if(!o.blocks.length) lines = '<div class="wp-line"><span>合计</span><b>¥0.00</b></div>';
+    if(!bs.length) lines = '<div class="wp-line"><span>合计</span><b>¥0.00</b></div>';
     var fyTag = o.fy ? '（已发药）' : '';
     var commonTag = o.saveCommon ? ' · 将存为常用方' : '';
-    box.innerHTML = '<div class="wp-totals">' + lines
-      + '<div class="wp-line wp-grand"><span>合计总价 ' + fyTag + commonTag + '</span><b id="wpGrand">¥' + money(total) + '</b></div></div>'
+    return lines + '<div class="wp-line wp-grand"><span>合计总价 ' + fyTag + commonTag + '</span><b id="wpGrand">¥' + money(total) + '</b></div>';
+  }
+  function renderFoot(){
+    var o = curOrder(); var box = document.getElementById('wpFoot'); if(!box) return;
+    if(!o){ box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="wp-totals" id="wpTotals">' + footTotalsHTML(o) + '</div>'
       + '<div class="wp-foot-actions">'
       + '<button class="btn pri" type="button" onclick="WPlan.saveNow()">保存</button>'
       + '<button class="btn pri" type="button" onclick="WPlan.saveAndBack()">保存并返回列表</button>'
@@ -13046,6 +13049,9 @@ var WPlan = (function(){
       var se = document.getElementById('wpSub-' + b.id); if(se) se.innerHTML = blockSubHtml(b);
     }
     var ge = document.getElementById('wpGrand'); if(ge) ge.textContent = '¥' + money(total);
+    /* 底部汇总列表（小订单名称 + 金额 + 合计）随导入/改价即时刷新 */
+    var tp = document.getElementById('wpTotals');
+    if(tp) tp.innerHTML = footTotalsHTML(o);
   }
   function updateAmt(bid, i){
     var b = blockById(bid); if(!b || !b.items[i]) return;
