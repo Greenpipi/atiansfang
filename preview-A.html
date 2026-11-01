@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阿田药方打印 · 方案 A 完整预览</title>
+<style>
+*{box-sizing:border-box;font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif!important}
+:root{
+  --bg:#F3F8F5;--card:#FFFFFF;--card2:#F7FBF8;--line:#E4ECE7;--line2:#D6E3DC;
+  --ink:#16231D;--ink2:#5E7168;--ink3:#93A49B;
+  --pri:#0E9A6A;--pri2:#0B7F57;--soft:#E7F7EF;--soft2:#F1FAF5;
+  --danger:#D25B4E;--danger-soft:#FBEDEB;
+  --warn:#C08A2E;--warn-soft:#FCF4E4;
+  --r:14px;--r-sm:9px;--r-xs:6px;
+  --sh:0 8px 26px rgba(17,45,32,.06);--sh2:0 16px 44px rgba(17,45,32,.13);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-size:13px;line-height:1.55;overflow:hidden;-webkit-font-smoothing:antialiased;letter-spacing:.01em}
+button,input,select{font-family:inherit}
+button{outline:none}
+::selection{background:#CDEEDF}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#CFDFD7;border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#B5CBC0}
+::-webkit-scrollbar-track{background:transparent}
+
+#app{height:100%;display:flex;flex-direction:column;min-height:0}
+
+/* ================= 顶栏 ================= */
+.topbar{
+  height:56px;flex:0 0 56px;display:flex;align-items:center;gap:22px;padding:0 22px;
+  background:var(--card);border-bottom:1px solid var(--line);position:relative;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600;letter-spacing:0}
+.tagA{font-size:9px;letter-spacing:.12em;color:var(--pri2);background:var(--soft);border-radius:99px;padding:3px 8px;font-weight:500}
+nav{display:flex;gap:2px;align-items:center}
+.navItem{
+  display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:0;background:transparent;
+  color:var(--ink2);font-size:12.5px;border-radius:8px;cursor:pointer;
+  transition:background .18s ease,color .18s ease,transform .16s var(--ease);white-space:nowrap;
+}
+.navItem svg{width:15px;height:15px;flex:0 0 15px;opacity:.75}
+.navItem:hover{background:var(--soft2);color:var(--pri2)}
+.navItem.on{background:var(--soft);color:var(--pri2);font-weight:600}
+.navItem.on svg{opacity:1}
+.navItem:active{transform:scale(.98)}
+.topRight{margin-left:auto;display:flex;align-items:center;gap:10px}
+.sync{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink3);padding:6px 11px;border:1px solid var(--line);border-radius:99px;background:var(--card2);transition:all .2s ease}
+.sync i{width:5px;height:5px;border-radius:50%;background:var(--pri);box-shadow:0 0 0 3px var(--soft);transition:background .2s}
+.sync.saved{color:var(--pri2);border-color:#CDEBDD;background:var(--soft2)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--soft);color:var(--pri2);display:grid;place-items:center;font-size:11.5px;font-weight:600;cursor:pointer;transition:transform .18s var(--ease)}
+.avatar:hover{transform:scale(1.05)}
+
+/* ================= 页面 ================= */
+#pages{flex:1;min-height:0;position:relative}
+.page{display:none;height:100%;flex-direction:column;min-height:0}
+.page.on{display:flex;animation:pageIn .3s var(--ease) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.plain{padding:18px;overflow:auto;min-height:0}
+.pageHead{display:flex;align-items:flex-end;gap:12px;margin-bottom:16px;flex:0 0 auto}
+.pageHead h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.01em}
+.pageHead .sub{font-size:11.5px;color:var(--ink3);line-height:1.6;padding-bottom:2px}
+.pageHead .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.crumb{font-size:10.5px;color:var(--ink3);letter-spacing:.05em;margin-bottom:7px}
+
+/* ================= 通用控件 ================= */
+.btn{
+  height:36px;padding:0 15px;border-radius:9px;border:1px solid var(--line2);background:var(--card);
+  color:var(--ink2);font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:transform .16s var(--ease),background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease;
+  white-space:nowrap;
+}
+.btn svg{width:14px;height:14px;flex:0 0 14px}
+.btn:hover{background:var(--card2);border-color:#C9DBD2;color:var(--pri2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(17,45,32,.06)}
+.btn:active{transform:translateY(0) scale(.99)}
+.btn.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--pri2);border-color:var(--pri2);color:#fff;box-shadow:0 8px 20px rgba(14,154,106,.22)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--soft);color:var(--pri2);transform:none;box-shadow:none}
+.btn.danger{background:var(--card);border-color:#EFCFCA;color:var(--danger)}
+.btn.danger:hover{background:var(--danger-soft);border-color:#E7B9B2;color:var(--danger)}
+.btn.sm{height:30px;padding:0 11px;font-size:11.5px;border-radius:8px}
+.btn.icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;background:transparent;border-color:transparent;color:var(--ink3)}
+.btn.icon:hover{background:var(--soft);color:var(--pri2);transform:none;box-shadow:none}
+.input{
+  height:38px;padding:0 12px;border:1px solid var(--line2);border-radius:9px;background:var(--card);
+  color:var(--ink);font-size:12.5px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.input::placeholder{color:var(--ink3)}
+.input:hover{border-color:#CADBD3}
+.input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,154,106,.12)}
+.search{position:relative;display:flex;align-items:center}
+.search svg{position:absolute;left:11px;width:14px;height:14px;color:var(--ink3);pointer-events:none}
+.search .input{padding-left:33px;width:100%}
+.search .kbd{position:absolute;right:10px;font-size:9px;color:var(--ink3);border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--card2)}
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{height:28px;padding:0 12px;border:0;background:transparent;border-radius:6px;color:var(--ink2);font-size:11.5px;cursor:pointer;transition:all .18s ease;white-space:nowrap}
+.seg button:hover{color:var(--pri2)}
+.seg button.on{background:var(--card);color:var(--pri2);font-weight:600;box-shadow:0 1px 3px rgba(17,45,32,.08)}
+.chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:99px;font-size:10.5px;color:var(--ink2);background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.chip i{width:5px;height:5px;border-radius:50%;background:var(--pri);display:block}
+.chip.green{background:var(--soft);border-color:#CFEADF;color:var(--pri2)}
+.chip.warn{background:var(--warn-soft);border-color:#EEDDBB;color:var(--warn)}
+.chip.muted{color:var(--ink3)}
+
+/* ================= 日常页 ================= */
+.daily{flex:1;display:flex;gap:14px;padding:16px;min-height:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:var(--sh);animation:rise .5s var(--ease) both}
+.panel.left{width:252px;flex:0 0 252px;animation-delay:.02s}
+.panel.center{flex:1;min-width:0;animation-delay:.07s}
+.panel.right{width:326px;flex:0 0 326px;animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.phead{height:46px;flex:0 0 46px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;background:var(--card);white-space:nowrap}
+.phead .cap{font-size:10.5px;font-weight:400;color:var(--ink3);letter-spacing:.02em}
+.phead .tools{margin-left:auto;display:flex;gap:4px;align-items:center}
+.pbody{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+
+.hitem{display:flex;align-items:center;gap:7px;padding:9px 10px;font-size:11.5px;color:var(--ink2);border-bottom:1px solid var(--line);cursor:pointer;transition:background .16s ease,color .16s ease;border-radius:6px}
+.hitem:last-child{border-bottom:0}
+.hitem:hover{background:var(--card2)}
+.hitem.sel{background:var(--soft);color:var(--pri2);font-weight:600;box-shadow:inset 2px 0 0 var(--pri)}
+.hitem .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem .tm{font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.hitem .flag{font-style:normal;font-size:9px;color:var(--pri2);background:var(--soft2);border-radius:4px;padding:1px 4px;font-weight:600}
+.hlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:9px;overflow:auto;background:var(--card);flex:1;min-height:0}
+.statline{font-size:10.5px;color:var(--ink3);display:flex;gap:10px;padding:0 2px}
+.statline b{color:var(--ink2);font-weight:500}
+.rxcard{flex:1;min-height:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px 19px 13px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 1px 2px rgba(17,45,32,.03)}
+.rxc-head{display:flex;align-items:center;gap:12px;padding-bottom:11px;border-bottom:1px solid var(--line2);margin-bottom:9px;flex:0 0 auto}
+.rxid{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);white-space:nowrap}
+.rxid b{color:var(--ink);font-size:13px;font-weight:600}
+.rxid .sep{width:1px;height:12px;background:var(--line2);margin:0 3px}
+.rxtag{margin-left:auto;font-size:10.5px;color:var(--pri2);background:var(--soft);padding:4px 9px;border-radius:6px;font-weight:500;white-space:nowrap}
+.herbgrid{display:grid;grid-template-columns:repeat(3,1fr);column-gap:18px;row-gap:4px;align-content:start;flex:1;min-height:0;overflow:auto;padding:2px 0}
+.herb{display:flex;align-items:baseline;gap:5px;font-size:13px;color:var(--ink);padding:3px 5px;border-radius:5px;position:relative;transition:background .16s ease}
+.herb:hover{background:var(--soft2)}
+.herb .nm{flex:0 1 auto;min-width:4.6em;white-space:nowrap}
+.herb .g{font-size:11px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.herb .sfx{font-size:9px;color:var(--ink3);white-space:nowrap}
+.herb .del{opacity:0;position:absolute;right:-2px;top:50%;transform:translateY(-50%);width:16px;height:16px;border:0;background:var(--danger-soft);color:var(--danger);border-radius:50%;font-size:10px;line-height:1;cursor:pointer;transition:opacity .15s ease,transform .15s ease}
+.herb:hover .del{opacity:1}
+.herb.blank .nm{color:transparent;font-size:12px}
+.herb.blank{border-bottom:1px dashed #E3EDE7;border-radius:0;padding-bottom:6px}
+.herb.blank:hover{background:transparent}
+.herb.blank .del{display:none}
+.herb.fresh{animation:popIn .34s var(--ease)}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px) scale(.96)}to{opacity:1;transform:none}}
+.rxc-foot{border-top:1px solid var(--line2);padding-top:10px;margin-top:6px;flex:0 0 auto}
+.line1{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink2);margin-bottom:8px}
+.line1 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card2)}
+.line1 .stepper button{width:22px;height:24px;border:0;background:transparent;color:var(--ink2);font-size:13px;cursor:pointer;transition:background .15s}
+.line1 .stepper button:hover{background:var(--soft);color:var(--pri2)}
+.line1 .stepper span{min-width:26px;text-align:center;font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.line1 .note{flex:1;min-width:0;height:30px;border:0;border-bottom:1px solid var(--line2);border-radius:0;background:transparent;color:var(--ink3);font-size:11.5px;padding:0 4px;outline:none;transition:border-color .18s}
+.line1 .note:focus{border-bottom-color:var(--pri);color:var(--ink)}
+.moneyrow{display:flex;align-items:baseline;gap:24px;font-size:11.5px;color:var(--ink2)}
+.moneyrow b{color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
+.moneyrow .total b{color:var(--pri2);font-size:21px;letter-spacing:-.01em;display:inline-block;transition:color .2s ease}
+.moneyrow .weight{margin-left:auto;font-size:10px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.cbar{display:flex;gap:8px;flex:0 0 auto}
+.pltable{width:100%;border-collapse:collapse;font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pltable th{font-size:9.5px;letter-spacing:.06em;font-weight:500;color:var(--ink3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--card);z-index:1}
+.pltable th.r,.pltable td.r{text-align:right}
+.pltable td{padding:6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.pltable td.nm{color:var(--ink);font-weight:500}
+.pltable tbody tr{transition:background .16s ease}
+.pltable tbody tr:hover td{background:var(--soft2)}
+.plscroll{flex:1;min-height:0;overflow:auto;margin:-2px 0}
+.plfoot{flex:0 0 auto;border-top:1px solid var(--line2);padding-top:9px}
+.plfoot .rowline{display:flex;align-items:baseline;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:3px}
+.plfoot .rowline b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.plfoot .rowline.total b{color:var(--pri2);font-size:18px;letter-spacing:-.01em}
+.plbtns{display:flex;gap:7px;margin-top:9px}
+.plbtns .btn{flex:1;padding:0 6px;font-size:11px}
+.drugsearch{margin-top:10px;flex:0 0 auto}
+.druglist{border:1px solid var(--line);border-radius:9px;overflow:auto;flex:0 1 auto;max-height:132px;background:var(--card)}
+.drow{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:11px;color:var(--ink2);border-bottom:1px solid var(--line);cursor:pointer;transition:background .16s ease}
+.drow:last-child{border-bottom:0}
+.drow:hover{background:var(--soft2)}
+.drow .dn{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .dp{font-variant-numeric:tabular-nums;font-size:10.5px;color:var(--ink3)}
+.drow .plus{width:18px;height:18px;border:1px solid var(--line2);border-radius:5px;background:var(--card);color:var(--ink3);font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:all .15s ease}
+.drow:hover .plus{opacity:1;color:var(--pri2);border-color:#CFE8DD;background:var(--soft)}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--ink3);font-size:11.5px;padding:30px 10px}
+.empty .g{font-size:22px;color:#BECFC6}
+
+/* ================= 表格/列表通用 ================= */
+.tablecard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);animation:rise .5s var(--ease) both}
+.tablewrap{overflow:auto}
+table.data{width:100%;border-collapse:collapse;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+table.data th{position:sticky;top:0;background:var(--card2);font-size:9.5px;letter-spacing:.07em;color:var(--ink3);font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:2}
+table.data th.r,table.data td.r{text-align:right}
+table.data td{padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.data tr:last-child td{border-bottom:0}
+table.data tbody tr{transition:background .15s ease}
+table.data tbody tr:hover td{background:var(--soft2)}
+table.data td.name{color:var(--ink);font-weight:500}
+table.data .sub{display:block;font-size:10px;color:var(--ink3);font-weight:400;margin-top:1px}
+
+/* ================= 药方打印页 ================= */
+.printPage{flex:1;display:flex;gap:14px;padding:16px;min-height:0}
+.orderlist{width:352px;flex:0 0 352px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh);animation:rise .5s var(--ease) both}
+.orderlist .pbody{padding:10px}
+.obar{display:flex;gap:8px;margin-bottom:9px}
+.obar .search{flex:1}
+.ocard{border:1px solid var(--line);border-radius:10px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s var(--ease),box-shadow .18s ease;background:var(--card)}
+.ocard:hover{border-color:#CDE4DA;transform:translateY(-1px);box-shadow:0 6px 16px rgba(17,45,32,.055)}
+.ocard.sel{border-color:#B9E2D3;background:var(--soft2);box-shadow:0 6px 18px rgba(14,154,106,.08)}
+.ocard .l1{display:flex;align-items:baseline;gap:8px}
+.ocard .guest{font-size:12.5px;font-weight:600;color:var(--ink)}
+.ocard .amt{margin-left:auto;font-size:13px;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+.ocard .dish{font-size:11px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ocard .l2{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.ocard .l2 .sp{flex:1}
+.detail{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh);animation:rise .5s .07s var(--ease) both}
+.detail .phead{height:54px;flex-basis:54px;gap:10px}
+.dhead{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.dhead .title{font-size:16px;font-weight:600;color:var(--ink)}
+.dhead .no{font-size:10px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.dbody{flex:1;min-height:0;display:flex;overflow:hidden}
+.dmeta{width:290px;flex:0 0 290px;border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.field label{display:block;font-size:10px;color:var(--ink3);margin-bottom:5px}
+.field .input{width:100%;height:34px;font-size:11.5px;background:var(--card2)}
+.fieldSel{margin-top:14px;flex:0 0 auto;padding:14px}
+.fieldSel .frow{display:flex;gap:8px;margin-bottom:8px}
+.fieldSel .seg{width:100%}
+.fieldSel .seg button{flex:1}
+.outPreview{flex:1;min-width:0;padding:16px;overflow:auto;background:#F1F7F4}
+.outLabel{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--ink3);margin-bottom:10px}
+.outLabel .sp{flex:1}
+/* 生成图片三种模板 */
+.bill{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px 26px 18px;max-width:620px;margin:0 auto;box-shadow:0 12px 30px rgba(17,45,32,.09);color:var(--ink);transition:box-shadow .2s ease}
+.bill .b-title{font-size:17px;font-weight:600;letter-spacing:.04em;color:var(--ink)}
+.bill .b-sub{font-size:10px;color:var(--ink3);margin-top:4px}
+.bill .b-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:10px;color:var(--ink2);margin:12px 0 14px}
+.bill .b-meta b{font-weight:600;color:var(--ink)}
+.bill .block-head{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--line2);font-size:11px;color:var(--ink2)}
+.bill .block-head .bn{font-weight:600;color:var(--ink)}
+.bill .block-head .ba{margin-left:auto;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+.bill table{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}
+.bill th{font-size:8.5px;letter-spacing:.1em;color:var(--ink3);font-weight:500;text-align:left;padding:6px 6px}
+.bill th.r,.bill td.r{text-align:right}
+.bill td{padding:5px 6px;color:var(--ink2)}
+.bill .b-total{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 12px;border-radius:8px;background:var(--soft);font-size:11px;color:var(--ink2)}
+.bill .b-total b{font-size:18px;color:var(--pri2);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.bill .b-foot{display:flex;justify-content:space-between;margin-top:10px;font-size:8.5px;color:var(--ink3)}
+.bill tpl-tabs .b-seal{display:none}
+.bill.tpl-a .b-title{color:var(--pri2)}
+.bill.tpl-a thead{border-bottom:1px solid var(--line2)}
+.bill.tpl-a td{border-bottom:1px dashed #EDF2EF}
+.bill.tpl-b{border:1px solid var(--line2);border-radius:4px;padding:0;overflow:hidden;max-width:620px}
+.bill.tpl-b .b-in{padding:0 18px 16px}
+.bill.tpl-b .b-headband{display:flex;align-items:center;gap:10px;background:var(--soft);padding:12px 18px;margin-bottom:10px}
+.bill.tpl-b .b-headband .b-title{font-size:14px}
+.bill.tpl-b .b-headband .mini{font-size:9px;color:var(--ink3);margin-left:auto}
+.bill.tpl-b .block-head{background:var(--card2);border:1px solid var(--line);padding:7px 9px;margin-top:10px}
+.bill.tpl-b table{border:1px solid var(--line);border-top:0}
+.bill.tpl-b th{background:#F3F8F5;border-bottom:1px solid var(--line);padding:6px}
+.bill.tpl-b td{border-bottom:1px solid #EEF3F0}
+.bill.tpl-b .b-total{border-radius:0;background:var(--soft2);border:1px solid var(--line);margin-top:10px}
+.bill.tpl-b .b-foot{padding:0 2px}
+.bill.tpl-c{border:0;box-shadow:0 8px 24px rgba(17,45,32,.07);padding:30px 34px 24px}
+.bill.tpl-c .b-title{font-size:16px;letter-spacing:.12em}
+.bill.tpl-c .b-meta{padding-bottom:10px;border-bottom:1px solid var(--line2)}
+.bill.tpl-c th{color:var(--ink3)}
+.bill.tpl-c td{border-bottom:1px solid #F0F4F2}
+.bill.tpl-c .block-head{border-bottom:0;padding-top:12px}
+.bill.tpl-c .b-total{background:transparent;border-top:1px solid var(--line2);border-radius:0;padding:12px 0 0;margin-top:12px}
+.bill.tpl-c .b-total b{font-size:22px}
+
+/* ================= 通用卡片/KPI ================= */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);animation:rise .5s var(--ease) both;transition:transform .18s var(--ease),box-shadow .18s ease}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(17,45,32,.08)}
+.kpi .k{font-size:10.5px;color:var(--ink3);display:flex;align-items:center;gap:7px}
+.kpi .k .chip{height:20px;padding:0 7px;font-size:9px}
+.kpi .v{font-size:27px;font-weight:600;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .v small{font-size:11px;font-weight:400;color:var(--ink3);margin-left:3px;letter-spacing:0}
+.kpi .d{font-size:10px;color:var(--ink3);margin-top:7px;display:flex;align-items:center;gap:5px}
+.kpi .d em{font-style:normal;color:var(--pri2);font-weight:600}
+.dgrid{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;animation:rise .5s .08s var(--ease) both}
+.cardhead{display:flex;align-items:center;gap:9px;padding:15px 17px 10px;font-size:12.5px;font-weight:600}
+.cardhead .cap{font-size:10.5px;font-weight:400;color:var(--ink3)}
+.cardhead .right{margin-left:auto;display:flex;gap:6px}
+.cardbody{padding:0 17px 16px}
+/* 柱状图 */
+.chart{height:210px;display:flex;align-items:flex-end;gap:7px;padding:12px 2px 0;border-bottom:1px solid var(--line)}
+.chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .bar .b{width:100%;max-width:22px;border-radius:5px 5px 3px 3px;background:linear-gradient(180deg,#35C08D,#0E9A6A);transform-origin:bottom;transform:scaleY(0);transition:transform .7s var(--ease);opacity:.85;position:relative}
+.chart .bar:hover .b{opacity:1}
+.chart .bar .lab{font-size:8.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.chart .bar .b .tip{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--ink2);opacity:0;transition:opacity .15s;white-space:nowrap;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:1px 4px}
+.chart .bar:hover .b .tip{opacity:1}
+.chartline{margin-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:var(--ink3)}
+.topList{display:flex;flex-direction:column;gap:11px;margin-top:6px}
+.topItem .l1{display:flex;align-items:baseline;gap:8px;font-size:11.5px;color:var(--ink2);margin-bottom:5px}
+.topItem .l1 .nm{color:var(--ink);font-weight:500}
+.topItem .l1 .v{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink3);font-size:10.5px}
+.topItem .track{height:6px;background:#EFF4F1;border-radius:99px;overflow:hidden}
+.topItem .track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#45C99A,#0E9A6A);transform-origin:left;transform:scaleX(0);transition:transform .8s var(--ease)}
+.paybar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#EFF4F1;margin:8px 0 16px}
+.paybar i{display:block;height:100%}
+.paybar i:nth-child(1){background:var(--pri)}
+.paybar i:nth-child(2){background:#5DC8A1}
+.paybar i:nth-child(3){background:#B7E4D1}
+.legend{display:flex;flex-direction:column;gap:9px;font-size:10.5px;color:var(--ink2)}
+.legend .lg{display:flex;align-items:center;gap:7px}
+.legend .sw{width:8px;height:8px;border-radius:2px}
+.legend .v{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.recent{display:flex;flex-direction:column}
+.recent .ri{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+.recent .ri:last-child{border-bottom:0}
+.recent .nm{font-weight:500;color:var(--ink)}
+.recent .ds{font-size:9.5px;color:var(--ink3)}
+.recent .amt{margin-left:auto;font-weight:600;color:var(--pri2);font-variant-numeric:tabular-nums}
+/* 进货/客人 */
+.mini-stat{display:flex;gap:12px;margin-bottom:14px}
+.mini-stat .m{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 13px;font-size:10px;color:var(--ink3);box-shadow:0 2px 8px rgba(17,45,32,.03)}
+.mini-stat .m b{display:block;font-size:18px;color:var(--ink);font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.toolbar .search{width:260px}
+.toolbar .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.guestGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:var(--sh);cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s ease,border-color .2s ease;animation:rise .5s var(--ease) both}
+.gcard:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(17,45,32,.08);border-color:#CDE4DA}
+.gcard .top{display:flex;align-items:center;gap:9px}
+.gcard .ava{width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--pri2);display:grid;place-items:center;font-size:12px;font-weight:600}
+.gcard .gname{font-size:12.5px;font-weight:600;color:var(--ink)}
+.gcard .phone{font-size:9.5px;color:var(--ink3);margin-top:2px;font-variant-numeric:tabular-nums}
+.gcard .metrics{display:flex;gap:14px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.gcard .metrics div{font-size:9px;color:var(--ink3)}
+.gcard .metrics b{display:block;font-size:12px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+/* 设置 */
+.setGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.setCard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.setCard .sh{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;font-size:12.5px;font-weight:600}
+.setCard .sb{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.srow{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink2);padding:3px 0}
+.srow .lab{flex:1}
+.srow .lab small{display:block;font-size:9.5px;color:var(--ink3);margin-top:1px}
+.srow .input{width:130px;height:32px;font-size:11px}
+.switch{position:relative;width:36px;height:20px;flex:0 0 36px;border:0;border-radius:99px;background:#DCE6E1;cursor:pointer;transition:background .2s ease;padding:0}
+.switch:after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.16);transition:transform .2s var(--ease)}
+.switch.on{background:var(--pri)}
+.switch.on:after{transform:translateX(16px)}
+.rangewrap{display:flex;align-items:center;gap:10px;flex:1}
+.rangewrap input[type=range]{flex:1;accent-color:var(--pri);height:4px}
+.rangewrap .val{width:38px;text-align:right;font-size:10.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tplpick{display:flex;gap:8px}
+.tplpick .t{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;transition:all .18s ease;background:var(--card)}
+.tplpick .t:hover{border-color:#CDE4DA}
+.tplpick .t.on{border-color:var(--pri);background:var(--soft2);box-shadow:0 0 0 2px rgba(14,154,106,.10)}
+.tplpick .t .prev{height:44px;border-radius:5px;background:#fff;border:1px solid var(--line);margin-bottom:6px;padding:5px;display:flex;flex-direction:column;gap:3px}
+.tplpick .t .prev i{display:block;height:3px;border-radius:2px;background:#E3ECE7}
+.tplpick .t .prev .hd{height:6px;background:var(--soft);border-radius:2px}
+.tplpick .t .nm{font-size:9.5px;color:var(--ink2);text-align:center}
+
+/* ================= 弹层 / 抽屉 / Toast ================= */
+.mask{position:fixed;inset:0;background:rgba(13,35,25,.34);z-index:40;opacity:0;pointer-events:none;transition:opacity .22s ease}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;background:var(--card);border-radius:16px;box-shadow:var(--sh2);width:min(700px,92vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transition:opacity .24s ease,transform .28s var(--ease)}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.modal .mh{display:flex;align-items:center;gap:8px;padding:15px 18px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+.modal .mh .x{margin-left:auto;width:28px;height:28px;border:0;background:var(--card2);border-radius:8px;color:var(--ink3);font-size:16px;cursor:pointer;transition:all .15s}
+.modal .mh .x:hover{background:var(--soft);color:var(--pri2)}
+.modal .mb{padding:16px 18px;overflow:auto;background:#F1F7F4}
+.modal .mf{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+.modal .seg{margin-right:auto}
+.drawer{position:fixed;z-index:41;top:0;right:0;height:100%;width:380px;background:var(--card);box-shadow:-16px 0 44px rgba(17,45,32,.12);transform:translateX(100%);transition:transform .3s var(--ease);display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.drawer .dh{display:flex;align-items:center;gap:8px;padding:16px 18px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+.drawer .dh .x{margin-left:auto;width:28px;height:28px;border:0;background:var(--card2);border-radius:8px;color:var(--ink3);font-size:16px;cursor:pointer}
+.drawer .db{flex:1;overflow:auto;padding:16px 18px}
+.drawer .df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
+.drawer .df .btn{flex:1;justify-content:center}
+#toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);opacity:0;pointer-events:none;background:#11251C;color:#F1FAF5;font-size:11.5px;letter-spacing:.03em;padding:10px 16px;border-radius:9px;box-shadow:var(--sh2);z-index:60;transition:opacity .2s ease,transform .24s var(--ease);display:flex;align-items:center;gap:8px}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast i{width:5px;height:5px;border-radius:50%;background:#48D39C;display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="logo">田</span>阿田药方打印<span class="tagA">方案 A · 预览</span></div>
+    <nav id="nav">
+      <button class="navItem on" data-page="daily"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="3" width="11" height="11" rx="1.6"/><path d="M5 3V2h6v1M2.5 6.5h11M5.5 9.5h5M5.5 11.5h3"/></svg>日常药方</button>
+      <button class="navItem" data-page="print"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4.5 6V2.5h7V6"/><rect x="2" y="6" width="12" height="5.5" rx="1"/><path d="M4.5 10h7v4.5h-7z"/></svg>药方打印</button>
+      <button class="navItem" data-page="drug"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="5.5" width="11" height="5" rx="2.5" transform="rotate(-45 8 8)"/><path d="M6.3 3.4 12.6 9.7"/></svg>药物管理</button>
+      <button class="navItem" data-page="purchase"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 4h11v8.5h-11zM2.5 7h11"/></svg>进货单</button>
+      <button class="navItem" data-page="guest"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5.2" r="2.4"/><path d="M3.4 13.4c0-2.5 2-4 4.6-4s4.6 1.5 4.6 4"/></svg>客人管理</button>
+      <button class="navItem" data-page="stat"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 14h11"/><rect x="4" y="8" width="2.2" height="4"/><rect x="7" y="5" width="2.2" height="7"/><rect x="10" y="2.5" width="2.2" height="9.5"/></svg>统计数据</button>
+    </nav>
+    <div class="topRight">
+      <span class="sync" id="sync"><i></i>已同步</span>
+      <button class="btn icon" data-page="set" title="设置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.6M8 12.6v1.6M14.2 8h-1.6M3.4 8H1.8M12.4 3.6l-1.1 1.1M4.7 11.3l-1.1 1.1M12.4 12.4l-1.1-1.1M4.7 4.7 3.6 3.6"/></svg></button>
+      <span class="avatar">田</span>
+    </div>
+  </header>
+
+  <div id="pages">
+    <!-- ============== 日常药方 ============== -->
+    <section class="page on" id="page-daily">
+      <div class="daily">
+        <aside class="panel left">
+          <div class="phead"><span>历史处方</span><span class="cap">左键调方</span></div>
+          <div class="pbody">
+            <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="hSearch" placeholder="姓名或拼音"><span class="kbd">/</span></div>
+            <div style="display:flex;gap:8px"><input class="input" type="date" value="2026-10-31" style="flex:1;height:34px;font-size:11.5px;background:var(--card2)"><button class="btn sm">今日</button></div>
+            <div class="hlist" id="hList"></div>
+            <div class="statline"><span>共 <b>12</b> 条</span><span>今日 <b>5</b> 单</span><span style="margin-left:auto" id="hCountLabel">命中 6</span></div>
+          </div>
+        </aside>
+
+        <section class="panel center">
+          <div class="phead">
+            <span>处方录入</span>
+            <div class="tools" style="margin-left:auto">
+              <button class="btn sm ghost">新建</button>
+              <button class="btn sm">复 用</button>
+              <button class="btn sm" title="保留核心内容续开新单">续 开</button>
+            </div>
+          </div>
+          <div class="pbody" style="gap:12px">
+            <div class="rxcard">
+              <div class="rxc-head">
+                <div class="rxid"><span>姓名</span><b id="rxName">陈女士</b><span class="sep"></span><span>日期</span><b>2026-10-31</b></div>
+                <span class="rxtag" id="rxTag">小柴胡汤加减</span>
+              </div>
+              <div class="herbgrid" id="herbGrid"></div>
+              <div class="rxc-foot">
+                <div class="line1">
+                  <span>共</span>
+                  <span class="stepper"><button id="minus">−</button><span id="doses">5</span><button id="plus">+</button></span>
+                  <span>剂</span>
+                  <input class="note" id="rxNote" value="水煎温服，日一剂，分早晚">
+                </div>
+                <div class="moneyrow">
+                  <span>单剂药费 <b id="perDose">¥0.00</b></span>
+                  <span class="total">合计 <b id="grandTotal">¥0.00</b></span>
+                  <span class="weight" id="weights">单剂 0g · 总重 0g</span>
+                </div>
+              </div>
+            </div>
+            <div class="cbar">
+              <button class="btn primary" id="btnSave">保存处方</button>
+              <button class="btn" id="btnImage">处方图片</button>
+              <button class="btn" id="btnPrint">打印处方</button>
+              <button class="btn ghost" id="btnReceipt">复制小票</button>
+              <button class="btn ghost" id="btnClear">清 空</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel right">
+          <div class="phead"><span>价格清单</span><span class="cap" id="plCap">0 味</span>
+            <div class="tools"><button class="btn sm ghost">图片</button><button class="btn sm ghost">打印</button></div>
+          </div>
+          <div class="pbody">
+            <div class="plscroll"><table class="pltable"><thead><tr><th>药名</th><th class="r">数量</th><th>单位</th><th class="r">单价</th><th class="r">金额</th></tr></thead><tbody id="plBody"></tbody></table></div>
+            <div class="plfoot">
+              <div class="rowline"><span>单剂药费</span><b id="footPer">¥0.00</b></div>
+              <div class="rowline total"><span>合计 · <span id="footDoses">5</span> 剂</span><b id="footTotal">¥0.00</b></div>
+              <div class="plbtns"><button class="btn primary" id="btnCalc">自动划价</button><button class="btn" id="btnSend">发 药</button></div>
+            </div>
+            <div class="drugsearch search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="dSearch" placeholder="输入药名，如 阿胶"><span class="kbd">双击</span></div>
+            <div class="druglist" id="dList"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============== 药方打印 ============== -->
+    <section class="page" id="page-print">
+      <div class="printPage">
+        <div class="orderlist">
+          <div class="phead"><span>药方打印 · 订单列表</span><span class="cap" id="orderCount">5 单</span></div>
+          <div class="pbody">
+            <div class="obar">
+              <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="oSearch" placeholder="搜索客人 / 订单 / 状态"></div>
+            </div>
+            <div class="seg" id="oFilter" style="margin-bottom:9px"><button class="on" data-f="all">全部</button><button data-f="done">已发药</button><button data-f="undone">未发药</button></div>
+            <div id="orderList" style="flex:1;overflow:auto;min-height:0"></div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="phead"><span id="dTitle">订单详情</span><span class="cap" id="dNo">A-261031</span>
+            <div class="tools" style="margin-left:auto">
+              <button class="btn sm" id="btnTpl">打印设置</button>
+              <button class="btn sm primary" id="btnGen">生成表格图片</button>
+            </div>
+          </div>
+          <div class="dhead">
+            <span class="title" id="dGuest">陈女士</span>
+            <span class="no" id="dMeta">2026-10-31 · 共 2 个药方 · 已发药</span>
+          </div>
+          <div class="dbody">
+            <div class="dmeta">
+              <div id="dFields"></div>
+              <div class="fieldSel">
+                <div style="font-size:10px;color:var(--ink3);margin-bottom:6px">出图模板</div>
+                <div class="seg" id="tplTabs" style="margin-bottom:0">
+                  <button class="on" data-tpl="a">标准</button><button data-tpl="b">票据</button><button data-tpl="c">极简</button>
+                </div>
+              </div>
+            </div>
+            <div class="outPreview">
+              <div class="outLabel"><span>出图预览</span><span class="chip green"><i></i>2x 清晰导出</span><span class="sp"></span><span>切模板只换装帧，不改数据</span></div>
+              <div class="bill tpl-a" id="bill"><div class="b-in" id="billBody"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== 药物管理 ============== -->
+    <section class="page" id="page-drug">
+      <div class="plain">
+        <div class="pageHead">
+          <div><div class="crumb">药物管理 / 药品目录</div><h1>药物管理</h1><div class="sub">共 1039 味中药，价格与常用量随处方实时引用</div></div>
+          <div class="actions"><button class="btn">批量调价</button><button class="btn primary">新增药品</button></div>
+        </div>
+        <div class="mini-stat">
+          <div class="m">在库药味<b>1 039</b></div>
+          <div class="m">今日调价<b>3</b></div>
+          <div class="m">缺货预警<b style="color:var(--warn)">2</b></div>
+          <div class="m">平均单价<b>¥0.42</b></div>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="drugSearch2" placeholder="搜索药名 / 别名 / 拼音"></div>
+          <div class="seg" id="drugCat"><button class="on" data-c="全部">全部</button><button data-c="根茎">根茎</button><button data-c="果实">果实</button><button data-c="矿物">矿物</button></div>
+          <div class="right"><span class="chip muted">按单价排序</span></div>
+        </div>
+        <div class="tablecard">
+          <div class="tablewrap">
+            <table class="data">
+              <thead><tr><th>药名</th><th>分类</th><th class="r">单价</th><th>单位</th><th class="r">常用量</th><th class="r">本月用量</th><th>状态</th><th></th></tr></thead>
+              <tbody id="drugBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== 进货单 ============== -->
+    <section class="page" id="page-purchase">
+      <div class="plain">
+        <div class="pageHead">
+          <div><div class="crumb">进货单 / 本月</div><h1>进货单</h1><div class="sub">记录供应商、批次与入库状态，金额自动汇总</div></div>
+          <div class="actions"><button class="btn">导出明细</button><button class="btn primary">新建进货单</button></div>
+        </div>
+        <div class="mini-stat">
+          <div class="m">本月进货<b>¥ 12,480</b></div>
+          <div class="m">进货单据<b>12</b></div>
+          <div class="m">待入库<b style="color:var(--warn)">2</b></div>
+          <div class="m">供应商<b>6</b></div>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" placeholder="搜索单号 / 供应商"></div>
+          <div class="seg"><button class="on">全部</button><button>待入库</button><button>已入库</button></div>
+        </div>
+        <div class="tablecard">
+          <div class="tablewrap">
+            <table class="data">
+              <thead><tr><th>单号 / 供应商</th><th>日期</th><th class="r">药味</th><th class="r">金额</th><th>状态</th><th></th></tr></thead>
+              <tbody id="poBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== 客人管理 ============== -->
+    <section class="page" id="page-guest">
+      <div class="plain">
+        <div class="pageHead">
+          <div><div class="crumb">客人管理 / 全部</div><h1>客人管理</h1><div class="sub">常用客人、复诊记录与累计消费，一处查看</div></div>
+          <div class="actions"><button class="btn primary">新增客人</button></div>
+        </div>
+        <div class="toolbar">
+          <div class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.3"/><path d="M10.3 10.3 13.8 13.8" stroke-linecap="round"/></svg><input class="input" id="gSearch" placeholder="搜索姓名 / 电话"></div>
+          <div class="right"><span class="chip green"><i></i>本周复诊 8 人</span></div>
+        </div>
+        <div class="guestGrid" id="guestGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============== 统计数据 ============== -->
+    <section class="page" id="page-stat">
+      <div class="plain">
+        <div class="pageHead">
+          <div><div class="crumb">统计数据 / 2026 年 10 月</div><h1>统计数据</h1><div class="sub">处方量、营业额与药材消耗，按天与按月对比</div></div>
+          <div class="actions"><div class="seg"><button>本周</button><button class="on">本月</button><button>本年</button></div></div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="k">本月处方</div><div class="v">156<small>张</small></div><div class="d"><span class="chip green">↑ 12.4%</span>较上月</div></div>
+          <div class="kpi"><div class="k">已发药</div><div class="v">132<small>张</small></div><div class="d">发药率 <em>84.6%</em></div></div>
+          <div class="kpi"><div class="k">营业额</div><div class="v">8,642<small>元</small></div><div class="d"><span class="chip green">↑ 9.8%</span>较上月</div></div>
+          <div class="kpi"><div class="k">客单价</div><div class="v">55.4<small>元</small></div><div class="d">复诊客人 <em>38%</em></div></div>
+        </div>
+        <div class="dgrid">
+          <div class="card">
+            <div class="cardhead">每日处方量<span class="cap">近 14 天</span><div class="right"><span class="chip"><i></i>处方</span></div></div>
+            <div class="cardbody">
+              <div class="chart" id="chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardhead">药材用量 Top 6<span class="cap">本月</span></div>
+            <div class="cardbody">
+              <div class="topList" id="topList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dgrid" style="grid-template-columns:1fr 1.55fr">
+          <div class="card" style="animation-delay:.14s">
+            <div class="cardhead">支付方式<span class="cap">本月 · 156 单</span></div>
+            <div class="cardbody">
+              <div class="paybar"><i style="width:62%"></i><i style="width:22%"></i><i style="width:16%"></i></div>
+              <div class="legend">
+                <div class="lg"><span class="sw" style="background:var(--pri)"></span>微信支付<span class="v">¥5,358 · 62%</span></div>
+                <div class="lg"><span class="sw" style="background:#5DC8A1"></span>现金<span class="v">¥1,901 · 22%</span></div>
+                <div class="lg"><span class="sw" style="background:#B7E4D1"></span>转账<span class="v">¥1,383 · 16%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="animation-delay:.18s">
+            <div class="cardhead">最近处方<span class="cap">今日 5 单</span><div class="right"><span class="chip">查看全部</span></div></div>
+            <div class="cardbody">
+              <div class="recent">
+                <div class="ri"><span class="nm">陈女士</span><span class="ds">小柴胡汤加减 · 5 剂</span><span class="amt">¥246.55</span></div>
+                <div class="ri"><span class="nm">李先生</span><span class="ds">四物汤 · 7 剂</span><span class="amt">¥101.22</span></div>
+                <div class="ri"><span class="nm">王阿姨</span><span class="ds">二陈汤 · 5 剂</span><span class="amt">¥58.80</span></div>
+                <div class="ri"><span class="nm">张先生</span><span class="ds">六味地黄丸加减 · 10 剂</span><span class="amt">¥168.40</span></div>
+                <div class="ri"><span class="nm">周女士</span><span class="ds">逍遥散 · 5 剂</span><span class="amt">¥63.20</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== 设置 ============== -->
+    <section class="page" id="page-set">
+      <div class="plain">
+        <div class="pageHead">
+          <div><div class="crumb">设置 / 打印与偏好</div><h1>设置</h1><div class="sub">打印模板、处方显示与云端同步，修改即时生效</div></div>
+          <div class="actions"><button class="btn primary" id="btnSaveSet">保存设置</button></div>
+        </div>
+        <div class="setGrid">
+          <div class="setCard">
+            <div class="sh">打印设置</div>
+            <div class="sb">
+              <div class="srow"><span class="lab">纸张<small>A5 适合处方笺，A4 适合清单</small></span><select class="input"><option>A5 · 148×210mm</option><option>A4 · 210×297mm</option><option>小票 58mm</option></select></div>
+              <div class="srow"><span class="lab">方向</span><div class="seg" style="width:170px"><button class="on" style="flex:1">纵向</button><button style="flex:1">横向</button></div></div>
+              <div class="srow"><span class="lab">左右边距</span><div class="rangewrap"><input type="range" min="0" max="40" value="20"><span class="val">20mm</span></div></div>
+              <div class="srow"><span class="lab">上下边距</span><div class="rangewrap"><input type="range" min="0" max="40" value="12"><span class="val">12mm</span></div></div>
+              <div class="srow"><span class="lab">打印份数</span><input class="input" type="number" value="1" min="1"></div>
+            </div>
+          </div>
+
+          <div class="setCard">
+            <div class="sh">处方显示</div>
+            <div class="sb">
+              <div class="srow"><span class="lab">显示单剂重量<small>打印时在页脚展示总重量</small></span><button class="switch on" data-sw></button></div>
+              <div class="srow"><span class="lab">显示费用明细<small>加工费、代煎费等逐项列出</small></span><button class="switch on" data-sw></button></div>
+              <div class="srow"><span class="lab">打印隐藏配送地址<small>隐私信息不进入打印与图片</small></span><button class="switch on" data-sw></button></div>
+              <div class="srow"><span class="lab">自动划价<small>输入药名后立即计算金额</small></span><button class="switch on" data-sw></button></div>
+              <div class="srow"><span class="lab">药名字号</span><div class="seg" style="width:220px"><button style="flex:1">小</button><button class="on" style="flex:1">标准</button><button style="flex:1">大</button></div></div>
+            </div>
+          </div>
+
+          <div class="setCard">
+            <div class="sh">出图模板</div>
+            <div class="sb">
+              <div class="tplpick">
+                <div class="t on" data-tplpick="a"><div class="prev"><i class="hd"></i><i style="width:70%"></i><i style="width:90%"></i><i style="width:55%"></i></div><div class="nm">标准 · 明细</div></div>
+                <div class="t" data-tplpick="b"><div class="prev"><i class="hd"></i><i style="width:85%"></i><i style="width:70%"></i><i style="width:90%"></i></div><div class="nm">票据 · 格线</div></div>
+                <div class="t" data-tplpick="c"><div class="prev"><i style="width:45%;background:#CFE8DD"></i><i style="width:80%"></i><i style="width:80%"></i><i style="width:60%"></i></div><div class="nm">极简 · 留白</div></div>
+              </div>
+              <div class="srow"><span class="lab">导出倍率<small>分享到微信时保持清晰</small></span><div class="seg" style="width:170px"><button style="flex:1">1x</button><button class="on" style="flex:1">2x</button><button style="flex:1">3x</button></div></div>
+              <div class="srow"><span class="lab">图片页脚<small>制表日期与核对提示</small></span><button class="switch on" data-sw></button></div>
+            </div>
+          </div>
+
+          <div class="setCard">
+            <div class="sh">云端与账号</div>
+            <div class="sb">
+              <div class="srow"><span class="lab">当前账号<small>Supabase · 已连接</small></span><span class="chip green"><i></i>在线</span></div>
+              <div class="srow"><span class="lab">自动同步<small>保存后立即同步到云端</small></span><button class="switch on" data-sw></button></div>
+              <div class="srow"><span class="lab">最近同步<small>2026-10-31 10:42</small></span><span class="chip muted">刚刚</span></div>
+              <div class="srow"><span class="lab">打印助手<small>127.0.0.1:8899 · 静默打印</small></span><span class="chip warn"><i style="background:var(--warn)"></i>未连接</span></div>
+              <div class="srow"><span class="lab">数据备份<small>导出历史处方为本地文件</small></span><button class="btn sm">导出备份</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="mask" id="mask"></div>
+
+<div class="modal" id="imageModal">
+  <div class="mh"><span>处方图片 · 方案 A</span><div class="seg" id="modalTpl" style="margin-left:auto"><button class="on" data-tpl="a">标准</button><button data-tpl="b">票据</button><button data-tpl="c">极简</button></div><button class="x" data-close>×</button></div>
+  <div class="mb" id="modalCanvas"></div>
+  <div class="mf"><span class="chip">2x · PNG</span><button class="btn sm" data-close>取 消</button><button class="btn sm primary" id="btnCopyImg">复制图片</button></div>
+</div>
+
+<div class="mask" id="drawerMask"></div>
+<div class="drawer" id="drawer">
+  <div class="dh">打印设置<button class="x" data-dclose>×</button></div>
+  <div class="db">
+    <div class="field" style="margin-bottom:14px"><label>纸张</label><select class="input"><option>A5 · 148×210mm</option><option>A4 · 210×297mm</option><option>小票 58mm</option></select></div>
+    <div class="field" style="margin-bottom:14px"><label>方向</label><div class="seg" style="width:100%"><button class="on" style="flex:1">纵向</button><button style="flex:1">横向</button></div></div>
+    <div class="field" style="margin-bottom:14px"><label>左边距 · 20mm</label><div class="rangewrap"><input type="range" min="0" max="40" value="20"><span class="val">20mm</span></div></div>
+    <div class="field" style="margin-bottom:14px"><label>上边距 · 12mm</label><div class="rangewrap"><input type="range" min="0" max="40" value="12"><span class="val">12mm</span></div></div>
+    <div class="field" style="margin-bottom:16px"><label>处方模板</label>
+      <div class="tplpick">
+        <div class="t on" data-tplpick="a"><div class="prev"><i class="hd"></i><i style="width:70%"></i><i style="width:90%"></i><i style="width:55%"></i></div><div class="nm">标准</div></div>
+        <div class="t" data-tplpick="b"><div class="prev"><i class="hd"></i><i style="width:85%"></i><i style="width:70%"></i><i style="width:90%"></i></div><div class="nm">票据</div></div>
+        <div class="t" data-tplpick="c"><div class="prev"><i style="width:45%;background:#CFE8DD"></i><i style="width:80%"></i><i style="width:80%"></i><i style="width:60%"></i></div><div class="nm">极简</div></div>
+      </div>
+    </div>
+    <div class="srow"><span class="lab">打印预览</span><span class="chip green"><i></i>实时</span></div>
+    <div class="bill tpl-a" id="drawerBill" style="padding:14px;margin-top:6px"></div>
+  </div>
+  <div class="df"><button class="btn" data-dclose>取 消</button><button class="btn primary" id="btnPrintNow">打印本单</button></div>
+</div>
+
+<div id="toast"><i></i><span id="toastTx">已保存</span></div>
+
+<script>
+/* ================== 数据 ================== */
+var DRUGS = [
+  {name:'柴胡',cat:'根茎',unit:'g',price:0.35,dose:9,alias:'chaihu'},
+  {name:'黄芩',cat:'根茎',unit:'g',price:0.32,dose:9,alias:'huangqin'},
+  {name:'半夏',cat:'根茎',unit:'g',price:0.40,dose:9,alias:'banxia'},
+  {name:'党参',cat:'根茎',unit:'g',price:0.55,dose:12,alias:'dangshen'},
+  {name:'炙甘草',cat:'根茎',unit:'g',price:0.28,dose:6,alias:'gancao'},
+  {name:'生姜',cat:'根茎',unit:'g',price:0.18,dose:9,alias:'shengjiang',sfx:'先煎'},
+  {name:'大枣',cat:'果实',unit:'枚',price:0.60,dose:4,alias:'dazao'},
+  {name:'茯苓',cat:'根茎',unit:'g',price:0.30,dose:12,alias:'fuling'},
+  {name:'白术',cat:'根茎',unit:'g',price:0.35,dose:10,alias:'baizhu'},
+  {name:'陈皮',cat:'果实',unit:'g',price:0.22,dose:6,alias:'chenpi'},
+  {name:'白芍',cat:'根茎',unit:'g',price:0.28,dose:10,alias:'baishao'},
+  {name:'当归',cat:'根茎',unit:'g',price:0.65,dose:10,alias:'danggui'},
+  {name:'川芎',cat:'根茎',unit:'g',price:0.22,dose:6,alias:'chuanxiong'},
+  {name:'生地黄',cat:'根茎',unit:'g',price:0.32,dose:12,alias:'shengdihuang'},
+  {name:'麦冬',cat:'根茎',unit:'g',price:0.45,dose:10,alias:'maidong'},
+  {name:'熟地黄',cat:'根茎',unit:'g',price:0.32,dose:12,alias:'shudihuang'},
+  {name:'枸杞子',cat:'果实',unit:'g',price:0.48,dose:10,alias:'gouqizi'},
+  {name:'阿胶',cat:'根茎',unit:'g',price:6.80,dose:9,alias:'ejiao'},
+  {name:'山药',cat:'根茎',unit:'g',price:0.26,dose:15,alias:'shanyao'},
+  {name:'龙骨',cat:'矿物',unit:'g',price:0.55,dose:15,alias:'longgu'},
+  {name:'牡蛎',cat:'矿物',unit:'g',price:0.30,dose:15,alias:'muli'},
+  {name:'酸枣仁',cat:'果实',unit:'g',price:1.20,dose:12,alias:'suanzaoren'},
+  {name:'泽泻',cat:'根茎',unit:'g',price:0.20,dose:9,alias:'zexie'},
+  {name:'牡丹皮',cat:'根茎',unit:'g',price:0.25,dose:9,alias:'mudanpi'},
+  {name:'葛根',cat:'根茎',unit:'g',price:0.24,dose:12,alias:'gegen'},
+  {name:'麻黄',cat:'根茎',unit:'g',price:0.18,dose:6,alias:'mahuang'},
+  {name:'桂枝',cat:'根茎',unit:'g',price:0.20,dose:9,alias:'guizhi'}
+];
+var PRESETS = [
+  {id:'p1',name:'陈女士',tag:'小柴胡汤加减',time:'10:24',flag:true,note:'水煎温服，日一剂，分早晚',doses:5,items:[['柴胡',9],['黄芩',9],['半夏',9],['党参',12],['炙甘草',6],['生姜',9],['大枣',4],['茯苓',12],['白术',10],['陈皮',6],['白芍',10],['当归',10],['川芎',6],['生地黄',12],['麦冬',10]]},
+  {id:'p2',name:'李先生',tag:'四物汤',time:'09:52',flag:false,note:'饭后温服，日一剂',doses:7,items:[['熟地黄',12],['当归',10],['白芍',10],['川芎',6]]},
+  {id:'p3',name:'王阿姨',tag:'二陈汤',time:'09:18',flag:true,note:'水煎温服，日一剂',doses:5,items:[['半夏',9],['陈皮',8],['茯苓',12],['炙甘草',6],['生姜',6]]},
+  {id:'p4',name:'张先生',tag:'六味地黄丸加减',time:'08:47',flag:false,note:'',doses:10,items:[['熟地黄',12],['山药',15],['枸杞子',10],['茯苓',12],['泽泻',9],['牡丹皮',9]]},
+  {id:'p5',name:'周女士',tag:'逍遥散',time:'08:12',flag:true,note:'',doses:5,items:[['柴胡',9],['白芍',10],['当归',10],['白术',10],['茯苓',12],['炙甘草',6]]},
+  {id:'p6',name:'吴先生',tag:'桂枝汤',time:'昨天',flag:false,note:'',doses:3,items:[['桂枝',9],['白芍',10],['炙甘草',6],['生姜',9],['大枣',4]]},
+  {id:'p7',name:'郑女士',tag:'八珍汤',time:'10-29',flag:true,note:'',doses:5,items:[['党参',10],['白术',10],['茯苓',12],['炙甘草',6],['当归',10],['白芍',10],['川芎',6],['熟地黄',12]]},
+  {id:'p8',name:'孙先生',tag:'麻黄汤',time:'10-29',flag:false,note:'',doses:3,items:[['麻黄',6],['桂枝',9],['炙甘草',6],['生姜',9]]},
+  {id:'p9',name:'刘阿姨',tag:'四君子汤',time:'10-28',flag:true,note:'',doses:5,items:[['党参',12],['白术',10],['茯苓',12],['炙甘草',6]]},
+  {id:'p10',name:'何先生',tag:'葛根汤',time:'10-28',flag:false,note:'',doses:3,items:[['葛根',12],['麻黄',6],['桂枝',9],['白芍',10],['炙甘草',6],['生姜',9],['大枣',4]]},
+  {id:'p11',name:'许女士',tag:'酸枣仁汤',time:'10-27',flag:true,note:'',doses:5,items:[['酸枣仁',12],['茯苓',12],['川芎',6],['炙甘草',6],['麦冬',10]]},
+  {id:'p12',name:'郭先生',tag:'六君子汤',time:'10-26',flag:false,note:'',doses:5,items:[['党参',12],['白术',10],['茯苓',12],['炙甘草',6],['陈皮',6],['半夏',9]]}
+];
+var state = {preset:PRESETS[0], items:PRESETS[0].items.map(function(x){return {name:x[0],dose:x[1]}}), doses:5, note:PRESETS[0].note};
+
+function drug(name){ for(var i=0;i<DRUGS.length;i++) if(DRUGS[i].name===name) return DRUGS[i]; return null; }
+function money(n){ return '¥' + (Math.round(n*100)/100).toFixed(2); }
+function totalPerDose(){ return state.items.reduce(function(s,it){ var d=drug(it.name); return s + (d?d.price*it.dose:0); },0); }
+function weightPerDose(){ return state.items.reduce(function(s,it){ var d=drug(it.name); return s + (d&&d.unit==='g'?it.dose:0); },0); }
+
+/* ================== 导航 ================== */
+var navBtns = document.querySelectorAll('.navItem, .topRight .btn.icon');
+navBtns.forEach(function(b){
+  b.addEventListener('click', function(){
+    var key = b.getAttribute('data-page');
+    document.querySelectorAll('.navItem').forEach(function(n){ n.classList.toggle('on', n===b); });
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.toggle('on', p.id==='page-'+key); });
+    if(key==='stat') animateStat();
+  });
+});
+function gotoPage(key){
+  document.querySelectorAll('.navItem').forEach(function(n){ n.classList.toggle('on', n.getAttribute('data-page')===key); });
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.toggle('on', p.id==='page-'+key); });
+}
+
+/* ================== Toast ================== */
+var toast = document.getElementById('toast'), toastTx = document.getElementById('toastTx'), toastTimer;
+function showToast(msg){
+  toastTx.textContent = msg;
+  toast.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toast.classList.remove('on'); }, 1900);
+}
+
+/* ================== 历史列表 ================== */
+function renderHistory(){
+  var q = document.getElementById('hSearch').value.trim().toLowerCase();
+  var list = PRESETS.filter(function(p){ return !q || (p.name+p.tag+p.id).toLowerCase().indexOf(q)>=0; });
+  document.getElementById('hCountLabel').textContent = '命中 '+list.length;
+  document.getElementById('hList').innerHTML = list.map(function(p){
+    return '<div class="hitem '+(state.preset.id===p.id?'sel':'')+'" data-id="'+p.id+'">'+
+      '<span class="nm">'+p.name+' · '+p.tag+'</span><span class="tm">'+p.time+'</span>'+
+      (p.flag?'<i class="flag">发</i>':'')+'</div>';
+  }).join('') || '<div class="empty"><span class="g">空</span>没有匹配的处方</div>';
+  document.querySelectorAll('.hitem[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var p = PRESETS.find(function(x){return x.id===el.getAttribute('data-id')});
+      loadPreset(p);
+    });
+  });
+}
+function loadPreset(p){
+  state.preset = p;
+  state.items = p.items.map(function(x){ return {name:x[0], dose:x[1]}; });
+  state.doses = p.doses;
+  state.note = p.note;
+  document.getElementById('rxName').textContent = p.name;
+  document.getElementById('rxTag').textContent = p.tag;
+  document.getElementById('rxNote').value = p.note;
+  document.getElementById('doses').textContent = state.doses;
+  renderAll();
+  renderHistory();
+  showToast('已调取 '+p.name+' 的历史处方');
+}
+document.getElementById('hSearch').addEventListener('input', renderHistory);
+
+/* ================== 处方渲染 ================== */
+function renderHerbs(freshName){
+  var cells = state.items.map(function(it){
+    var d = drug(it.name) || {unit:'g',sfx:''};
+    return '<div class="herb'+(freshName===it.name?' fresh':'')+'" data-name="'+it.name+'">'+
+      '<span class="nm">'+it.name+'</span><span class="g">'+it.dose+(d.unit==='枚'?'枚':'g')+'</span>'+
+      (d.sfx?'<span class="sfx">'+d.sfx+'</span>':'')+
+      '<button class="del" title="移除">×</button></div>';
+  });
+  while(cells.length < 36) cells.push('<div class="herb blank"><span class="nm">药名</span><span class="g"></span></div>');
+  document.getElementById('herbGrid').innerHTML = cells.join('');
+  document.querySelectorAll('.herb[data-name] .del').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var name = btn.parentNode.getAttribute('data-name');
+      state.items = state.items.filter(function(it){ return it.name!==name; });
+      renderAll();
+      showToast('已移除 '+name);
+    });
+  });
+}
+function renderPrice(){
+  var body = document.getElementById('plBody');
+  body.innerHTML = state.items.map(function(it){
+    var d = drug(it.name) || {unit:'g',price:0};
+    var amt = d.price * it.dose;
+    return '<tr><td class="nm">'+it.name+'</td><td class="r">'+it.dose+'</td><td style="color:var(--ink3);font-size:10px">'+d.unit+'</td>'+
+      '<td class="r">'+(d.price?d.price.toFixed(2):'')+'</td><td class="r">'+amt.toFixed(2)+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--ink3);padding:24px 0">暂无药味</td></tr>';
+}
+function renderTotals(){
+  var per = totalPerDose(), w = weightPerDose(), total = per*state.doses;
+  document.getElementById('perDose').textContent = money(per);
+  document.getElementById('footPer').textContent = money(per);
+  document.getElementById('grandTotal').textContent = money(total);
+  document.getElementById('footTotal').textContent = money(total);
+  document.getElementById('footDoses').textContent = state.doses;
+  document.getElementById('doses').textContent = state.doses;
+  document.getElementById('weights').textContent = '单剂 '+Math.round(w)+'g · 总重 '+Math.round(w*state.doses)+'g';
+  document.getElementById('plCap').textContent = state.items.length+' 味';
+}
+function renderAll(freshName){
+  renderHerbs(freshName);
+  renderPrice();
+  renderTotals();
+}
+
+document.getElementById('plus').addEventListener('click', function(){ state.doses++; renderTotals(); });
+document.getElementById('minus').addEventListener('click', function(){ if(state.doses>1){ state.doses--; renderTotals(); } });
+
+/* ================== 药名目录 ================== */
+function renderDrugList(){
+  var q = (document.getElementById('dSearch').value||'').trim().toLowerCase();
+  var list = DRUGS.filter(function(d){ return !q || d.name.indexOf(q)>=0 || d.alias.indexOf(q)>=0 || d.cat.indexOf(q)>=0; }).slice(0,10);
+  document.getElementById('dList').innerHTML = list.map(function(d){
+    return '<div class="drow" data-n="'+d.name+'"><span class="dn">'+d.name+'</span><span class="dp">'+d.unit+'</span><span class="dp">'+d.price.toFixed(2)+'</span><button class="plus">＋</button></div>';
+  }).join('') || '<div class="empty" style="padding:14px">没有匹配药名</div>';
+  document.querySelectorAll('.drow[data-n]').forEach(function(row){
+    var n = row.getAttribute('data-n');
+    function insert(){
+      var d = drug(n);
+      var exists = state.items.find(function(it){ return it.name===n; });
+      if(exists){ showToast(n+' 已在处方中'); renderHerbs(n); return; }
+      state.items.push({name:n,dose:d.dose});
+      renderAll(n);
+      showToast('已插入 '+n+' '+d.dose+(d.unit==='枚'?'枚':'g'));
+    }
+    row.addEventListener('dblclick', insert);
+    row.querySelector('.plus').addEventListener('click', function(e){ e.stopPropagation(); insert(); });
+  });
+}
+document.getElementById('dSearch').addEventListener('input', renderDrugList);
+
+/* ================== 日常页按钮 ================== */
+document.getElementById('btnSave').addEventListener('click', function(){
+  var s = document.getElementById('sync');
+  s.classList.add('saved'); s.innerHTML = '<i></i>已保存 · 刚刚';
+  showToast('处方已保存并同步到云端');
+  setTimeout(function(){ s.classList.remove('saved'); s.innerHTML='<i></i>已同步'; }, 2600);
+});
+document.getElementById('btnCalc').addEventListener('click', function(){
+  renderTotals(); showToast('已按当前药价自动划价');
+});
+document.getElementById('btnSend').addEventListener('click', function(){
+  showToast('已标记发药 · 记录到历史处方');
+});
+document.getElementById('btnClear').addEventListener('click', function(){
+  state.items = []; state.doses = 1;
+  document.getElementById('rxNote').value = '';
+  renderAll();
+  showToast('处方已清空');
+});
+document.getElementById('btnPrint').addEventListener('click', function(){ openDrawer('sheet'); });
+document.getElementById('btnImage').addEventListener('click', function(){ openImageModal('sheet'); });
+document.getElementById('btnReceipt').addEventListener('click', function(){ showToast('小票图片已复制，可直接粘贴'); });
+
+/* ================== 图片弹层 ================== */
+var mask = document.getElementById('mask');
+var imageModal = document.getElementById('imageModal');
+var modalCanvas = document.getElementById('modalCanvas');
+var modalCtx = 'sheet', modalTpl = 'a';
+function sheetBillHTML(){
+  var rows = state.items.map(function(it){
+    var d = drug(it.name)||{unit:'g',price:0};
+    return '<tr><td>'+it.name+'</td><td>'+(d.unit==='枚'?it.dose+' 枚':it.dose+' g')+'</td><td class="r">'+d.price.toFixed(2)+'</td><td class="r">'+(d.price*it.dose).toFixed(2)+'</td></tr>';
+  }).join('');
+  var per = totalPerDose(), total = per*state.doses;
+  var inner = '<div class="b-title">处方明细</div>'+
+    '<div class="b-sub">'+state.preset.name+' · '+state.preset.tag+' · 2026-10-31</div>'+
+    '<div class="b-meta"><span>共 <b>'+state.doses+'</b> 剂</span><span>单剂 <b>'+money(per)+'</b></span><span>合计 <b>'+money(total)+'</b></span><span>状态 <b>待发药</b></span></div>'+
+    '<div class="block-head"><span class="bn">1. '+state.preset.tag+'</span><span>'+state.items.length+' 味</span><span class="ba">'+money(total)+'</span></div>'+
+    '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th class="r" style="width:16%">单价</th><th class="r" style="width:16%">金额</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div class="b-total"><span>合计金额</span><b>'+money(total)+'</b></div>'+
+    '<div class="b-foot"><span>制表 2026-10-31</span><span>明细以药方打印单为准</span></div>';
+  return inner;
+}
+function billContentHTML(ctx){
+  return ctx==='order' ? orderBillHTML() : sheetBillHTML();
+}
+function stripBillHead(html){
+  return html.replace(/<div class="b-title">[\s\S]*?<\/div>\s*<div class="b-sub">[\s\S]*?<\/div>/, '');
+}
+function billBodyHTML(ctx, tpl){
+  var body = billContentHTML(ctx);
+  var head = '<div class="b-headband"><div class="b-title">'+(ctx==='order'?'订单明细':'处方明细')+'</div><div class="mini">阿田药方 · '+(ctx==='order'?curOrder.no:'A-261031')+'</div></div>';
+  if(tpl==='b') return head + '<div class="b-in">' + stripBillHead(body) + '</div>';
+  return '<div class="b-in">' + body + '</div>';
+}
+function billMarkup(ctx, tpl){
+  return '<div class="bill tpl-'+tpl+'">' + billBodyHTML(ctx, tpl) + '</div>';
+}
+function renderModal(){
+  modalCanvas.innerHTML = billMarkup(modalCtx, modalTpl);
+}
+function openImageModal(ctx){
+  if(ctx) modalCtx = ctx;
+  renderModal();
+  mask.classList.add('on'); imageModal.classList.add('on');
+}
+function closeAll(){
+  mask.classList.remove('on'); imageModal.classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+document.querySelectorAll('[data-close]').forEach(function(b){ b.addEventListener('click', closeAll); });
+mask.addEventListener('click', closeAll);
+document.getElementById('btnCopyImg').addEventListener('click', function(){ showToast('图片已复制，可直接粘贴发送'); });
+
+/* 图片弹层模板切换 */
+document.querySelectorAll('#modalTpl button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#modalTpl button').forEach(function(x){ x.classList.toggle('on', x===b); });
+    modalTpl = b.getAttribute('data-tpl');
+    renderModal();
+  });
+});
+
+/* ================== 抽屉 ================== */
+var drawer = document.getElementById('drawer');
+var drawerMask = document.getElementById('drawerMask');
+var drawerBill = document.getElementById('drawerBill');
+var drawerCtx = 'sheet', drawerTpl = 'a';
+function renderDrawerPreview(){
+  drawerBill.className = 'bill tpl-' + drawerTpl;
+  drawerBill.innerHTML = billBodyHTML(drawerCtx, drawerTpl);
+}
+function openDrawer(ctx){
+  drawerCtx = ctx || 'sheet';
+  drawerTpl = (ctx === 'order' ? orderTpl : modalTpl);
+  renderDrawerPreview();
+  drawerMask.classList.add('on'); drawer.classList.add('on');
+}
+function closeDrawer(){ drawerMask.classList.remove('on'); drawer.classList.remove('on'); }
+document.querySelectorAll('[data-dclose]').forEach(function(b){ b.addEventListener('click', closeDrawer); });
+drawerMask.addEventListener('click', closeDrawer);
+document.getElementById('btnPrintNow').addEventListener('click', function(){ closeDrawer(); showToast('已发送到打印助手'); });
+
+/* ================== 订单页数据 ================== */
+var ORDERS = [
+  {id:'o1',no:'A-261031',guest:'陈女士',dish:'小柴胡汤加减 · 四物汤',date:'2026-10-31',amount:194.37,status:'已发药',blocks:[
+    {title:'小柴胡汤加减',doses:5,ships:'',total:18.63,items:[['柴胡','9 g',0.35,3.15],['黄芩','9 g',0.32,2.88],['半夏','9 g',0.40,3.60],['党参','12 g',0.55,6.60],['大枣','4 枚',0.60,2.40]]},
+    {title:'四物汤',doses:7,ships:'',total:14.46,items:[['熟地黄','12 g',0.32,3.84],['当归','10 g',0.65,6.50],['白芍','10 g',0.28,2.80],['川芎','6 g',0.22,1.32]]}
+  ]},
+  {id:'o2',no:'A-261030',guest:'李先生',dish:'四物汤',date:'2026-10-30',amount:101.22,status:'已发药',blocks:[
+    {title:'四物汤',doses:7,ships:'',total:14.46,items:[['熟地黄','12 g',0.32,3.84],['当归','10 g',0.65,6.50],['白芍','10 g',0.28,2.80],['川芎','6 g',0.22,1.32]]}
+  ]},
+  {id:'o3',no:'A-261029',guest:'王阿姨',dish:'二陈汤 · 代煎',date:'2026-10-29',amount:58.80,status:'未发药',blocks:[
+    {title:'二陈汤',doses:5,ships:'代煎 3 剂',total:11.76,items:[['半夏','9 g',0.40,3.60],['陈皮','8 g',0.22,1.76],['茯苓','12 g',0.30,3.60],['炙甘草','6 g',0.28,1.68],['生姜','6 g',0.18,1.08]]}
+  ]},
+  {id:'o4',no:'A-261028',guest:'张先生',dish:'六味地黄丸加减',date:'2026-10-28',amount:168.40,status:'已发药',blocks:[
+    {title:'六味地黄丸加减',doses:10,ships:'打粉 · 水丸',total:16.84,items:[['熟地黄','12 g',0.32,3.84],['山药','15 g',0.26,3.90],['枸杞子','10 g',0.48,4.80],['茯苓','12 g',0.30,3.60],['泽泻','9 g',0.20,1.80],['牡丹皮','9 g',0.25,2.25]]}
+  ]},
+  {id:'o5',no:'A-261027',guest:'周女士',dish:'逍遥散',date:'2026-10-27',amount:63.20,status:'待结款',blocks:[
+    {title:'逍遥散',doses:5,ships:'',total:12.64,items:[['柴胡','9 g',0.35,3.15],['白芍','10 g',0.28,2.80],['当归','10 g',0.65,6.50],['白术','10 g',0.35,3.50],['茯苓','12 g',0.30,3.60],['炙甘草','6 g',0.28,1.68]]}
+  ]}
+];
+var curOrder = ORDERS[0], orderTpl='a', orderFilter='all';
+
+function renderOrders(){
+  var q = (document.getElementById('oSearch').value||'').trim().toLowerCase();
+  var list = ORDERS.filter(function(o){
+    var okF = orderFilter==='all' || (orderFilter==='done'? o.status==='已发药' : o.status!=='已发药');
+    var okQ = !q || (o.guest+o.dish+o.no+o.status).toLowerCase().indexOf(q)>=0;
+    return okF && okQ;
+  });
+  document.getElementById('orderCount').textContent = list.length+' 单';
+  document.getElementById('orderList').innerHTML = list.map(function(o){
+    return '<div class="ocard '+(curOrder.id===o.id?'sel':'')+'" data-id="'+o.id+'">'+
+      '<div class="l1"><span class="guest">'+o.guest+'</span><span class="amt">'+money(o.amount)+'</span></div>'+
+      '<div class="dish">'+o.dish+'</div>'+
+      '<div class="l2"><span>'+o.no+'</span><span>·</span><span>'+o.date+'</span><span class="sp"></span><span class="chip '+(o.status==='已发药'?'green':(o.status==='待结款'?'warn':''))+'">'+o.status+'</span></div></div>';
+  }).join('') || '<div class="empty"><span class="g">空</span>没有符合条件的订单</div>';
+  document.querySelectorAll('.ocard[data-id]').forEach(function(el){
+    el.addEventListener('click', function(){
+      curOrder = ORDERS.find(function(x){return x.id===el.getAttribute('data-id')});
+      renderOrders(); renderDetail();
+    });
+  });
+}
+document.getElementById('oSearch').addEventListener('input', renderOrders);
+document.querySelectorAll('#oFilter button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#oFilter button').forEach(function(x){ x.classList.toggle('on',x===b); });
+    orderFilter = b.getAttribute('data-f');
+    renderOrders();
+  });
+});
+function renderDetail(){
+  document.getElementById('dTitle').textContent = '订单详情';
+  document.getElementById('dNo').textContent = curOrder.no;
+  document.getElementById('dGuest').textContent = curOrder.guest;
+  document.getElementById('dMeta').textContent = curOrder.date+' · 共 '+curOrder.blocks.length+' 个药方 · '+curOrder.status;
+  document.getElementById('dFields').innerHTML =
+    '<div class="field" style="margin-bottom:10px"><label>订单名称</label><input class="input" value="'+curOrder.dish.split(' · ')[0]+'"></div>'+
+    '<div class="field" style="margin-bottom:10px"><label>客人 / 医生</label><input class="input" value="'+curOrder.guest+'"></div>'+
+    '<div class="field" style="margin-bottom:10px"><label>单据编号</label><input class="input" value="'+curOrder.no+'" readonly style="color:var(--ink3)"></div>'+
+    '<div class="field" style="margin-bottom:10px"><label>状态</label><span class="chip '+(curOrder.status==='已发药'?'green':(curOrder.status==='待结款'?'warn':''))+'">'+curOrder.status+'</span></div>';
+  renderOrderBill();
+}
+function orderBillHTML(){
+  var body = '';
+  curOrder.blocks.forEach(function(b, i){
+    body += '<div class="block-head"><span class="bn">'+(i+1)+'. '+b.title+'</span><span>'+b.doses+' 剂</span><span>'+(b.ships||'')+'</span><span class="ba">'+money(b.total*b.doses)+'</span></div>'+
+      '<table><thead><tr><th style="width:38%">药名</th><th>克数 / 单位</th><th class="r" style="width:16%">单价</th><th class="r" style="width:16%">金额</th></tr></thead><tbody>';
+    b.items.forEach(function(it){
+      body += '<tr><td>'+it[0]+'</td><td>'+it[1]+'</td><td class="r">'+it[2].toFixed(2)+'</td><td class="r">'+it[3].toFixed(2)+'</td></tr>';
+    });
+    body += '</tbody></table>';
+  });
+  return '<div class="b-title">订单明细</div>'+
+    '<div class="b-sub">'+curOrder.guest+' · '+curOrder.no+' · '+curOrder.date+' · 共 '+curOrder.blocks.length+' 个药方</div>'+
+    '<div class="b-meta"><span>合计 <b>'+money(curOrder.amount)+'</b></span><span>状态 <b>'+curOrder.status+'</b></span></div>'+
+    body+
+    '<div class="b-total"><span>合计金额</span><b>'+money(curOrder.amount)+'</b></div>'+
+    '<div class="b-foot"><span>制表 2026-10-31</span><span>明细以药方打印单为准</span></div>';
+}
+function renderOrderBill(){
+  var bill = document.getElementById('bill');
+  bill.className = 'bill tpl-'+orderTpl;
+  if(orderTpl==='b'){
+    bill.innerHTML = '<div class="b-headband"><div class="b-title">订单明细</div><div class="mini">阿田药方 · '+curOrder.no+'</div></div><div class="b-in">'+orderBillHTML().replace(/<div class="b-title">.*?<\/div><div class="b-sub">.*?<\/div>/, '')+'</div>';
+  }else{
+    bill.innerHTML = '<div class="b-in">'+orderBillHTML()+'</div>';
+  }
+}
+document.querySelectorAll('#tplTabs button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#tplTabs button').forEach(function(x){ x.classList.toggle('on',x===b); });
+    orderTpl = b.getAttribute('data-tpl');
+    renderOrderBill();
+  });
+});
+document.getElementById('btnGen').addEventListener('click', function(){
+  openImageModal('order');
+});
+document.getElementById('btnTpl').addEventListener('click', function(){ openDrawer('order'); });
+
+/* ================== 药物管理 ================== */
+var drugCat = '全部';
+function renderDrugPage(){
+  var q = (document.getElementById('drugSearch2').value||'').trim().toLowerCase();
+  var list = DRUGS.filter(function(d){
+    var okC = drugCat==='全部' || d.cat===drugCat;
+    var okQ = !q || d.name.indexOf(q)>=0 || d.alias.indexOf(q)>=0;
+    return okC && okQ;
+  });
+  var usage = [320,280,240,210,180,160,140,120,100,90];
+  document.getElementById('drugBody').innerHTML = list.map(function(d,i){
+    var stock = i%7===0 ? '<span class="chip warn">库存偏低</span>' : '<span class="chip green"><i></i>正常</span>';
+    return '<tr><td class="name">'+d.name+'<span class="sub">'+d.alias+'</span></td><td><span class="chip muted">'+d.cat+'</span></td>'+
+      '<td class="r">'+d.price.toFixed(2)+'</td><td style="color:var(--ink3)">'+d.unit+'</td><td class="r">'+d.dose+'</td><td class="r">'+(usage[i%usage.length]||0)+' g</td><td>'+stock+'</td>'+
+      '<td class="r"><button class="btn sm ghost">调价</button></td></tr>';
+  }).join('') || '<tr><td colspan="8"><div class="empty"><span class="g">空</span>没有匹配的药品</div></td></tr>';
+}
+document.getElementById('drugSearch2').addEventListener('input', renderDrugPage);
+document.querySelectorAll('#drugCat button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#drugCat button').forEach(function(x){x.classList.toggle('on',x===b)});
+    drugCat = b.getAttribute('data-c');
+    renderDrugPage();
+  });
+});
+
+/* ================== 进货单 ================== */
+var PURCHASES = [
+  {no:'PO-261031',supplier:'亳州本草',date:'10-31',items:18,amount:3280,status:'待入库'},
+  {no:'PO-261029',supplier:'安国药市',date:'10-29',items:24,amount:4156,status:'已入库'},
+  {no:'PO-261027',supplier:'樟树药材',date:'10-27',items:11,amount:1260,status:'已入库'},
+  {no:'PO-261024',supplier:'亳州本草',date:'10-24',items:9,amount:880,status:'已入库'},
+  {no:'PO-261020',supplier:'岭南药业',date:'10-20',items:16,amount:2140,status:'已入库'},
+  {no:'PO-261018',supplier:'安国药市',date:'10-18',items:7,amount:764,status:'待入库'}
+];
+document.getElementById('poBody').innerHTML = PURCHASES.map(function(p){
+  return '<tr><td class="name">'+p.no+'<span class="sub">'+p.supplier+'</span></td><td>'+p.date+'</td><td class="r">'+p.items+' 味</td>'+
+    '<td class="r">'+money(p.amount)+'</td><td><span class="chip '+(p.status==='已入库'?'green':'warn')+'">'+p.status+'</span></td>'+
+    '<td class="r"><button class="btn sm ghost">详情</button></td></tr>';
+}).join('');
+
+/* ================== 客人管理 ================== */
+var GUESTS = [
+  {n:'陈女士',p:'138****2610',v:12,last:'10-31',spent:1280,tag:'复诊'},
+  {n:'李先生',p:'139****8821',v:8,last:'10-30',spent:860,tag:'会员'},
+  {n:'王阿姨',p:'136****3102',v:15,last:'10-29',spent:1640,tag:'复诊'},
+  {n:'张先生',p:'137****7743',v:5,last:'10-28',spent:540,tag:''},
+  {n:'周女士',p:'135****6620',v:9,last:'10-27',spent:930,tag:'会员'},
+  {n:'吴先生',p:'133****4409',v:3,last:'10-25',spent:320,tag:''},
+  {n:'郑女士',p:'188****1201',v:6,last:'10-22',spent:610,tag:'复诊'},
+  {n:'孙先生',p:'186****9133',v:2,last:'10-18',spent:180,tag:''}
+];
+function renderGuests(){
+  var q = (document.getElementById('gSearch').value||'').trim().toLowerCase();
+  var list = GUESTS.filter(function(g){ return !q || (g.n+g.p).toLowerCase().indexOf(q)>=0; });
+  document.getElementById('guestGrid').innerHTML = list.map(function(g,i){
+    return '<div class="gcard" style="animation-delay:'+(i*0.045)+'s"><div class="top"><span class="ava">'+g.n.charAt(0)+'</span><div><div class="gname">'+g.n+'</div><div class="phone">'+g.p+'</div></div><div style="margin-left:auto">'+(g.tag?'<span class="chip green"><i></i>'+g.tag+'</span>':'')+'</div></div>'+
+      '<div class="metrics"><div>就诊次数<b>'+g.v+'</b></div><div>最近<b>'+g.last+'</b></div><div>累计消费<b>'+money(g.spent)+'</b></div></div></div>';
+  }).join('') || '<div class="empty" style="grid-column:1/-1"><span class="g">空</span>没有匹配的客人</div>';
+}
+document.getElementById('gSearch').addEventListener('input', renderGuests);
+
+/* ================== 统计 ================== */
+var CHART = [9,11,8,12,10,14,13,7,10,15,12,11,16,13];
+function renderStat(){
+  var max = Math.max.apply(null, CHART);
+  document.getElementById('chart').innerHTML = CHART.map(function(v,i){
+    var h = Math.round(v/max*100);
+    var lbl = (i===0?'10-18': (i===6?'10-24': (i===13?'10-31':'')));
+    return '<div class="bar"><div class="b" style="height:'+h+'%"><span class="tip">'+v+' 张</span></div><span class="lab">'+lbl+'</span></div>';
+  }).join('');
+  var tops = [['柴胡',320],['茯苓',280],['当归',260],['黄芩',240],['党参',220],['陈皮',180]];
+  document.getElementById('topList').innerHTML = tops.map(function(t){
+    return '<div class="topItem"><div class="l1"><span class="nm">'+t[0]+'</span><span class="v">'+t[1]+' g</span></div><div class="track"><i data-w="'+(t[1]/320*100)+'"></i></div></div>';
+  }).join('');
+}
+function animateStat(){
+  document.querySelectorAll('#chart .b').forEach(function(b,i){
+    b.style.transition = 'none';
+    b.style.transform = 'scaleY(0)';
+    b.style.transitionDelay = '0s';
+    void b.offsetHeight;
+    b.style.transition = '';
+    b.style.transitionDelay = (i*0.03)+'s';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ b.style.transform = 'scaleY(1)'; }); });
+  });
+  document.querySelectorAll('#topList .track i').forEach(function(el,idx){
+    el.style.transition = 'none';
+    el.style.transform = 'scaleX(0)';
+    el.style.transitionDelay = '0s';
+    void el.offsetHeight;
+    el.style.transition = '';
+    el.style.transitionDelay = (0.1+idx*0.06)+'s';
+    var w = parseFloat(el.getAttribute('data-w'))/100;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.style.transform = 'scaleX('+w+')'; }); });
+  });
+}
+
+/* ================== 设置 ================== */
+document.querySelectorAll('[data-sw]').forEach(function(sw){
+  sw.addEventListener('click', function(){ sw.classList.toggle('on'); });
+});
+document.querySelectorAll('[data-tplpick]').forEach(function(t){
+  t.addEventListener('click', function(){
+    var group = t.parentNode;
+    group.querySelectorAll('.t').forEach(function(x){ x.classList.toggle('on', x===t); });
+    var v = t.getAttribute('data-tplpick');
+    if(group.closest('.drawer')){
+      drawerTpl = v;
+      renderDrawerPreview();
+    }else if(group.closest('.setCard')){
+      orderTpl = v;
+      renderOrderBill();
+    }
+  });
+});
+document.getElementById('btnSaveSet').addEventListener('click', function(){
+  document.getElementById('sync').classList.add('saved');
+  document.getElementById('sync').innerHTML = '<i></i>设置已保存';
+  showToast('设置已保存并生效');
+  setTimeout(function(){
+    document.getElementById('sync').classList.remove('saved');
+    document.getElementById('sync').innerHTML = '<i></i>已同步';
+  }, 2600);
+});
+
+/* ================== 初始化 ================== */
+renderHistory();
+renderAll();
+renderDrugList();
+renderOrders();
+renderDetail();
+renderDrugPage();
+renderGuests();
+renderStat();
+animateStat();
+// 默认打开日常页，按需在切换统计页时播放动画
+</script>
+</body>
+</html>

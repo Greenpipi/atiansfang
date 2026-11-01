@@ -13132,14 +13132,16 @@ var WPlan = (function(){
       var amt = blockSub(b) * d;
       total += amt;
       var rs = '';
-      if(!(b.items || []).length) rs = '<tr><td colspan="5" style="color:#999">（药方为空）</td></tr>';
+      if(!(b.items || []).length) rs = '<tr><td colspan="6" style="color:#999">（药方为空）</td></tr>';
+      var seq = 0;
       for(j=0;j<(b.items || []).length;j++){
         var it = b.items[j];
         if(!it) continue;
+        seq++;
         /* 数量、单位拆成两列 */
         var qn = it.zibei ? '自备' : String(Math.round(dispQty(it) * 100) / 100);
         var un = it.zibei ? '—' : (it.unit || it.du || 'g');
-        rs += '<tr><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
+        rs += '<tr><td class="sq" style="color:#777">' + seq + '</td><td class="dr">' + esc(it.disp || it.name || '') + '</td>'
           + '<td>' + esc(qn) + '</td><td>' + esc(un) + '</td>'
           + '<td>' + (it.price == null ? '' : money(it.price)) + '</td>'
           + '<td>' + money(amountOf(it)) + '</td></tr>';
@@ -13151,8 +13153,8 @@ var WPlan = (function(){
         var kg1 = w1 > 0 ? String(Math.round(w1) / 1000) : '—';
         var kgT = wT > 0 ? String(Math.round(wT) / 1000) : '—';
         var uu = (w1 > 0) ? 'kg' : '—';
-        rs += '<tr class="prow"><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
-          + '<tr class="prow"><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
+        rs += '<tr class="prow"><td class="sq"></td><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
+          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13160,7 +13162,7 @@ var WPlan = (function(){
         + '<span class="bd">付数 ' + d + '</span>'
         + (b.ship ? '<span class="bd">配送 ' + esc(b.ship) + '</span>' : '')
         + '<span class="ba">¥' + money(amt) + '</span></div>'
-        + '<table><thead><tr><th style="width:40%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:19%">单价</th><th style="width:19%">金额</th></tr></thead><tbody>'
+        + '<table><thead><tr><th style="width:7%">序号</th><th style="width:35%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:18%">单价</th><th style="width:18%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeight(b) > 0 ? ('　总重 ' + (Math.round(blockWeight(b) * 10) / 10) + 'g') : '') + '</div>'
         + '</div>';
@@ -15412,5 +15414,355 @@ function rxMigrateLegacyLocalData(){
   },true);
 })();
 </script>
+<style id="skinA-print">
+/* =====================================================================
+   【药方打印】页面皮肤层（只换皮）
+   作用域严格限定：.page[data-page="print"] 内的 WPlan。
+   不改 DOM、不改包名结构、不增删字段/按钮、不改任何 onclick / 数据逻辑。
+   ===================================================================== */
+.page[data-page="print"] .wplan{
+  --pri:#0E9A6A; --pri-h:#0B7F57; --pri-deep:#0B6E4D;
+  --pri-soft:#E7F7EF; --pri-line:#CFEADF;
+  --neutral-0:#FFFFFF; --neutral-1:#F3F8F5; --neutral-2:#E4ECE7; --neutral-3:#D6E3DC;
+  --neutral-4:#93A49B; --neutral-5:#5E7168; --neutral-6:#3F4650;
+  --neutral-title:#16231D; --neutral-ink:#16231D; --n-white:#FFFFFF;
+  --fs-title:20px; --fs-sub:15px; --fs-body:14px; --fs-cap:12.5px;
+  --radius-card:14px; --radius-input:9px;
+  --shadow-1:0 8px 26px rgba(17,45,32,.06);
+  --shadow-pop:0 18px 50px rgba(17,45,32,.18);
+  --danger:#D25B4E; --danger-soft:#FBEDEB; --danger-line:#EFCFCA;
+  background:#F3F8F5 !important;
+}
+.page[data-page="print"] .wplan .wp-title{
+  font-size:21px !important; font-weight:600 !important; color:#16231D !important;
+  letter-spacing:.01em;
+}
+.page[data-page="print"] .wplan .wp-list{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important;
+  border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+  overflow:hidden;
+}
+.page[data-page="print"] .wplan .wp-list-bar{
+  background:#FFFFFF !important;
+  border-bottom:1px solid #E4ECE7 !important;
+}
+.page[data-page="print"] .wplan .wp-search{
+  border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important;
+  font-size:14px !important;
+}
+.page[data-page="print"] .wplan .wp-search:focus{
+  border-color:#0E9A6A !important;
+  box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+  outline:none !important;
+}
+.page[data-page="print"] .wplan .wp-seg{
+  background:#F1FAF5 !important;
+  border:1px solid #E4ECE7 !important;
+  border-radius:999px !important;
+}
+.page[data-page="print"] .wplan .wp-seg-btn,
+.page[data-page="print"] .wplan #wpSegStatus .wp-seg-btn,
+.page[data-page="print"] .wplan #wpSegView .wp-seg-btn{
+  border-radius:999px !important;
+  font-family:var(--font-ui) !important;
+  font-size:13.5px !important;
+  color:#5E7168 !important;
+}
+.page[data-page="print"] .wplan #wpSegStatus .wp-seg-btn.on,
+.page[data-page="print"] .wplan #wpSegView .wp-seg-btn.on{
+  background:#FFFFFF !important;
+  color:#0B6E4D !important;
+  font-weight:700 !important;
+  box-shadow:0 1px 3px rgba(17,45,32,.10) !important;
+}
+.page[data-page="print"] .wplan .wp-list-count{
+  font-size:12.5px !important; color:#93A49B !important;
+}
+.page[data-page="print"] .wplan .wp-row{
+  border-bottom:1px solid #EDF3EF !important;
+}
+.page[data-page="print"] .wplan .wp-row:hover{
+  background:#F5FBF7 !important;
+}
+.page[data-page="print"] .wplan .wp-row.on{
+  background:#E7F7EF !important;
+  box-shadow:inset 3px 0 0 #0E9A6A !important;
+}
+.page[data-page="print"] .wplan .wp-row.head{
+  background:#F7FBF8 !important;
+}
+.page[data-page="print"] .wplan .wp-row.head:hover{
+  background:#F7FBF8 !important;
+}
+.page[data-page="print"] .wplan .wp-row.head > div{
+  font-size:11.5px !important; color:#5E7168 !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-c-time{
+  font-size:13px !important; color:#93A49B !important;
+}
+.page[data-page="print"] .wplan .wp-c-guest{
+  font-size:14px !important; color:#16231D !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-c-dish{
+  font-size:14px !important; color:#16231D !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-c-dish .sub{
+  font-size:10.5px !important; color:#93A49B !important; font-weight:400 !important;
+}
+.page[data-page="print"] .wplan .wp-c-cnt{
+  font-size:12.5px !important; color:#93A49B !important;
+}
+.page[data-page="print"] .wplan .wp-c-total{
+  font-size:14px !important; color:#16231D !important; font-weight:700 !important;
+  font-variant-numeric:tabular-nums;
+}
+.page[data-page="print"] .wplan .wp-c-status .tag{
+  font-size:11.5px !important; border-radius:999px !important; padding:2px 9px !important;
+}
+.page[data-page="print"] .wplan .wp-c-status .tag.done{
+  background:#E7F7EF !important; border-color:#CFEADF !important; color:#0B6E4D !important;
+}
+.page[data-page="print"] .wplan .wp-c-status .tag.undone{
+  background:#FCF4E4 !important; border-color:#EEDDBB !important; color:#C08A2E !important;
+}
+.page[data-page="print"] .wplan .wp-list-empty{
+  font-size:13px !important; color:#93A49B !important;
+}
+.page[data-page="print"] .wplan .wp-plan-row{
+  border-bottom:1px solid #EDF3EF !important;
+}
+.page[data-page="print"] .wplan .wp-plan-row:hover{
+  background:#F5FBF7 !important;
+}
+.page[data-page="print"] .wplan .wp-plan-row.on{
+  background:#E7F7EF !important;
+  box-shadow:inset 3px 0 0 #0E9A6A !important;
+}
+.page[data-page="print"] .wplan .wp-plan-name{
+  color:#16231D !important; font-size:14.5px !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-plan-sub{
+  color:#93A49B !important; font-size:11.5px !important;
+}
+.page[data-page="print"] .wplan .wp-plan-amt{
+  color:#0B6E4D !important; font-size:14px !important; font-weight:700 !important;
+}
+.page[data-page="print"] .wplan button{
+  border-radius:9px !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+}
+.page[data-page="print"] .wplan button.sm{
+  font-size:12.5px !important;
+}
+.page[data-page="print"] .wplan button.pri{
+  background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+  box-shadow:0 6px 16px rgba(14,154,106,.18) !important;
+}
+.page[data-page="print"] .wplan button.pri:hover{
+  background:#0B7F57 !important; border-color:#0B7F57 !important;
+}
+.page[data-page="print"] .wplan button.danger{
+  background:#FBEDEB !important; border-color:#EFCFCA !important; color:#D25B4E !important;
+}
+.page[data-page="print"] .wplan .wp-detail{
+  background:#F3F8F5 !important;
+}
+.page[data-page="print"] .wplan .wp-detail-head{
+  background:#FFFFFF !important;
+  border-bottom:1px solid #E4ECE7 !important;
+}
+.page[data-page="print"] .wplan .wp-detail-title{
+  font-size:17px !important; font-weight:600 !important; color:#16231D !important;
+}
+.page[data-page="print"] .wplan .wp-detail-no{
+  font-size:12px !important; color:#93A49B !important;
+}
+.page[data-page="print"] .wplan .wp-order{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important;
+  border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+}
+.page[data-page="print"] .wplan .wp-field label{
+  font-size:12px !important; color:#5E7168 !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-in{
+  border:1px solid #D6E3DC !important; border-radius:9px !important;
+  background:#FFFFFF !important; color:#16231D !important;
+  font-size:14px !important;
+}
+.page[data-page="print"] .wplan .wp-in[readonly]{
+  background:#F7FBF8 !important; color:#5E7168 !important;
+}
+.page[data-page="print"] .wplan .wp-in:focus{
+  border-color:#0E9A6A !important;
+  box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+  outline:none !important;
+}
+.page[data-page="print"] .wplan .wp-block{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important;
+  border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+}
+.page[data-page="print"] .wplan .wp-block-head{
+  background:#F7FBF8 !important;
+  border-bottom:1px solid #E4ECE7 !important;
+}
+.page[data-page="print"] .wplan .wp-block-title{
+  font-size:15px !important; font-weight:600 !important; color:#16231D !important;
+  border-bottom-color:#D6E3DC !important;
+}
+.page[data-page="print"] .wplan .wp-sub{
+  font-size:12px !important; color:#5E7168 !important;
+}
+.page[data-page="print"] .wplan .wp-sub b{
+  color:#16231D !important; font-variant-numeric:tabular-nums;
+}
+.page[data-page="print"] .wplan .wp-block-tools{
+  background:#F7FBF8 !important;
+  border-bottom:1px solid #E4ECE7 !important;
+}
+.page[data-page="print"] .wplan .wp-tbl th{
+  background:#F7FBF8 !important;
+  color:#5E7168 !important;
+  border-bottom:1px solid #DDE7E1 !important;
+  font-size:13.5px !important;
+  padding:12px 16px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl td{
+  border-bottom:1px solid #EDF3EF !important;
+  padding:12px 16px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl col.c-plus{
+  width:136px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl th:first-child{
+  padding-left:80px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl th:last-child{
+  padding-right:calc(var(--wp-pad-x) + 10px) !important;
+}
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{
+  padding:12px 6px 12px 80px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl td.row-act{
+  padding:12px calc(var(--wp-pad-x) + 10px) 12px 16px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl tbody tr:hover{
+  background:#F5FBF7 !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm,
+.page[data-page="print"] .wplan .wp-tbl .num,
+.page[data-page="print"] .wplan .wp-tbl .wp-unit-in,
+.page[data-page="print"] .wplan .wp-tbl .wp-rm-in{
+  border:1px solid transparent !important;
+  border-radius:5px !important;
+  background:transparent !important;
+  color:#16231D !important;
+  font-size:13.5px !important;
+  padding:0 8px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm{
+  font-size:15.5px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-std{
+  font-size:13px !important;
+  line-height:20px !important;
+  max-width:84px !important;
+}
+/* 详情表：药名左侧第一列自动显示序号（不新增 DOM / 不改数据结构） */
+.page[data-page="print"] .wplan .wp-tbl tbody{ counter-reset:wpx-seq; }
+.page[data-page="print"] .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{ position:relative; }
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td .wp-plus{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+}
+.page[data-page="print"] .wplan .wp-tbl thead th:first-child{ position:relative; }
+.page[data-page="print"] .wplan .wp-tbl thead th:first-child::before{
+  content:'序号';
+  position:absolute; left:80px; width:28px;
+  top:50%; transform:translateY(-50%); text-align:center;
+  font-size:13.5px; font-weight:600; color:#5E7168; white-space:nowrap;
+}
+.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td::before{
+  content:counter(wpx-seq);
+  position:absolute; left:80px; width:28px;
+  top:50%; transform:translateY(-50%); text-align:center;
+  font-size:14px; font-weight:500; color:#5E7168;
+  font-variant-numeric:tabular-nums; pointer-events:none;
+}
+/* 保留药名格右侧的「仓库标准药 / 先煎」灰色小标签空间，避免被换肤覆盖 */
+.page[data-page="print"] .wplan .wp-nm-wrap.has-std .wp-nm{
+  padding-right:92px !important;
+}
+.page[data-page="print"] .wplan .wp-nm-wrap.has-sfx .wp-nm{
+  padding-right:52px !important;
+}
+.page[data-page="print"] .wplan .wp-nm-wrap.has-std.has-sfx .wp-nm{
+  padding-right:124px !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm:hover,
+.page[data-page="print"] .wplan .wp-tbl .num:hover,
+.page[data-page="print"] .wplan .wp-tbl .wp-unit-in:hover,
+.page[data-page="print"] .wplan .wp-tbl .wp-rm-in:hover{
+  background:#F7FBF8 !important;
+  border-color:#E4ECE7 !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-nm:focus,
+.page[data-page="print"] .wplan .wp-tbl .num:focus,
+.page[data-page="print"] .wplan .wp-tbl .wp-unit-in:focus,
+.page[data-page="print"] .wplan .wp-tbl .wp-rm-in:focus{
+  background:#FFFFFF !important;
+  border-color:#0E9A6A !important;
+  box-shadow:0 0 0 2px rgba(14,154,106,.11) !important;
+  outline:none !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-amt{
+  color:#16231D !important; font-weight:600 !important;
+}
+.page[data-page="print"] .wplan .wp-tbl .wp-plus{
+  border-radius:50% !important;
+  color:#0B7F57 !important;
+  background:#E7F7EF !important;
+  border-color:#CFEADF !important;
+}
+.page[data-page="print"] .wplan .wp-foot{
+  background:#FFFFFF !important;
+  border:1px solid #E4ECE7 !important;
+  border-radius:14px !important;
+  box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+}
+.page[data-page="print"] .wplan .wp-foot .wp-line{
+  font-size:14px !important; color:#5E7168 !important;
+}
+.page[data-page="print"] .wplan .wp-foot .wp-line b{
+  color:#16231D !important; font-variant-numeric:tabular-nums;
+}
+.page[data-page="print"] .wplan .wp-foot .wp-grand{
+  font-size:17px !important;
+}
+.page[data-page="print"] .wplan .wp-foot .wp-grand b{
+  color:#0B6E4D !important; font-size:20px !important;
+}
+.page[data-page="print"] .wplan .wp-hint{
+  font-size:12px !important; color:#93A49B !important; line-height:1.8 !important;
+}
+.page[data-page="print"] .wplan .wp-add .btn.pri{
+  border-radius:9px !important;
+  font-size:14px !important;
+}
+.page[data-page="print"] .wplan .wp-tag{
+  border-radius:999px !important;
+  background:#E7F7EF !important;
+  border-color:#CFEADF !important;
+  color:#0B6E4D !important;
+}
+</style>
+
 </body>
 </html>
