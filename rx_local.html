@@ -2384,6 +2384,8 @@ input,select,textarea,button{
    范围：只改这两个。用户明确说「其他输入框没要求改就别动」，
    日期 / 药名 / 克数 / 共X剂 的绿色下边框**保持原样**（实测同样是 rgb(21,163,74)）。
    ========================================================================= */
+/* 姓名栏加宽：14px 中文约 14px/字，300px 可完整看到约 20 个字 */
+#fName{width:300px!important;max-width:300px!important;min-width:200px}
 #fName, #fPerDose{
   border-bottom:none!important;      /* 宽度和颜色一起归零，不留占位 */
   outline:none!important;
@@ -3710,7 +3712,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
         <div class="sheetwrap" id="sheetWrap">
           <div class="rxs" id="rxSheet">
             <div class="rxhead">
-              <span><span class="lbl">姓名：</span><input id="fName" placeholder="" autocomplete="off"></span>
+              <span><span class="lbl">姓名：</span><input id="fName" placeholder="" autocomplete="off" maxlength="20"></span>
               <span><span class="lbl">日期：</span><input id="fDate" type="date"></span>
             </div>
             <div class="rxgrid" id="sGrid"></div>
