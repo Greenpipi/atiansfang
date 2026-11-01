@@ -2977,11 +2977,15 @@ body{ --navw:0px; }
 .wp-blocks{ display:flex; flex-direction:column; gap:16px; }
 .wp-block{ --wp-pad-x:60px; background:var(--n-white); border:1px solid var(--neutral-2); border-radius:var(--radius-card); box-shadow:var(--shadow-1); overflow:hidden; }
 .wp-block-head{ display:flex; align-items:center; gap:12px; padding:12px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); }
-.wp-block-title{ font-size:var(--fs-sub); font-weight:700; color:var(--neutral-title); border:none; background:transparent; border-bottom:1px dotted var(--neutral-3); padding:2px 4px; min-width:120px; }
-.wp-block-title:focus{ border-bottom-color:var(--pri); outline:none; }
+.wp-block-title{ font-size:14px; font-weight:700; color:var(--neutral-title); height:34px; box-sizing:border-box; border:1px solid var(--neutral-3); border-radius:var(--radius-input); background:var(--n-white); padding:0 10px; min-width:160px; }
+.wp-block-title:focus{ border-color:var(--pri); outline:none; box-shadow:0 0 0 3px rgba(52,192,106,.14); }
 .wp-tag{ font-size:11px; color:var(--pri-h); background:var(--pri-soft); border:1px solid var(--pri-line); padding:2px 8px; border-radius:var(--r-pill); }
 .wp-sub{ font-size:var(--fs-sub); color:var(--neutral-6); font-weight:600; }
 .wp-sub b{ color:var(--pri-deep); }
+/* 药方汇总行：字号 +2px，无悬停底色，金额绿色高亮 */
+.wp-sub-sum{ font-size:15px!important; background:transparent!important; padding:0!important; border:0!important; min-height:0!important; border-radius:0!important; box-shadow:none!important; }
+.wp-sub-sum:hover{ background:transparent!important; }
+.wp-sub-sum b{ color:#0B7E57!important; font-weight:700; }
 .wp-block-head .spacer{ flex:1; }
 .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
 .wp-tbl-wrap{ padding:0 0 35px; }
@@ -3007,6 +3011,7 @@ body{ --navw:0px; }
 /* 药名格：输入框占满整列；脚注 / 标准药以绝对定位小胶囊放在输入框内部右侧 */
 .wp-nm-wrap{ position:relative; display:block; }
 .wp-nm-wrap > .wp-nm{ width:calc(100% - 26px); }
+.wp-nm-wrap.no-detail > .wp-nm{ width:100%; }
 .wp-nm-tags{ position:absolute; right:36px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 66px); pointer-events:none; }
 .wp-nm-wrap.has-sfx .wp-nm{ padding-right:80px; }
 .wp-nm-wrap.has-std .wp-nm{ padding-right:118px; }
@@ -3167,7 +3172,7 @@ body{ --navw:0px; }
 /* 药方复用：卡片式列表 + 悬浮预览 */
 .wp-reuse-tabs{ display:flex; gap:6px; margin-bottom:12px; }
 .wp-reuse-tabs button{ min-height:30px; padding:4px 16px; border-radius:var(--r-pill); border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6); font-size:13px; cursor:pointer; }
-.wp-reuse-tabs button.on{ background:var(--pri-soft); border-color:var(--pri-line); color:var(--pri-deep); font-weight:700; }
+.wp-reuse-tabs button.on{ background:#111!important; border-color:#111!important; color:#fff!important; font-weight:700; }
 .wp-reuse-card{ display:flex; align-items:center; gap:12px; padding:12px 12px; border:1px solid var(--neutral-2); border-radius:12px; margin-bottom:10px; background:var(--n-white); }
 .wp-reuse-card:hover{ border-color:var(--pri-line); box-shadow:0 4px 14px rgba(21,163,74,.08); }
 .wp-reuse-card .chk{ width:16px; height:16px; flex:0 0 auto; cursor:pointer; }
@@ -3235,7 +3240,9 @@ body{ --navw:0px; }
 .wp-search:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
 /* 药方付数 */
 .wp-dose{ display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--neutral-5); }
-.wp-dose-in{ width:54px; height:26px; padding:2px 6px; font-size:13px; text-align:center; border:1px solid var(--neutral-3); border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-title); }
+.wp-dose-in{ width:54px; height:34px; padding:2px 6px; font-size:13px; text-align:center; border:1px solid var(--neutral-3); border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-title); }
+/* 订单头部输入框统一高度（与文本制表标题框一致） */
+.wp-order .wp-in{ height:34px!important; }
 /* 单位 g/kg 切换 + 药名备选 */
 .wp-unit-btn{ min-height:26px; padding:2px 10px; font-size:12px; border:1px solid var(--neutral-3); background:var(--n-white); color:var(--pri-deep); border-radius:var(--r-pill); cursor:pointer; font-weight:700; box-shadow:none; }
 .wp-unit-btn:hover{ background:var(--pri-soft); border-color:var(--pri-line); }
@@ -3304,7 +3311,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 /* 小订单独立配置 */
 .wp-block-head{ flex-wrap:wrap; }
 .wp-bi{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--neutral-5); white-space:nowrap; }
-.wp-bi .bi-in{ height:26px; box-sizing:border-box; border:1px solid var(--neutral-3);
+.wp-bi .bi-in{ height:34px; box-sizing:border-box; border:1px solid var(--neutral-3);
   border-radius:var(--radius-input); background:var(--n-white); color:var(--neutral-title);
   font-size:12px; padding:0 8px; }
 .wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:24px; cursor:pointer; border-radius:10px; }
@@ -12956,7 +12963,7 @@ var WPlan = (function(){
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
       + '<label class="wp-bi">配送 <select class="bi-in" onchange="WPlan.setBlockShip(\'' + b.id + '\',this.value)">' + shipOptions(b.ship) + '</select></label>'
-      + '<span class="wp-sub" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
+      + '<span class="wp-sub wp-sub-sum" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
       + '<span class="spacer"></span>'
       + '<label class="wp-ck"><input type="checkbox"' + (b.saveCommon ? ' checked' : '') + ' onchange="WPlan.setBlockSaveCommon(\'' + b.id + '\',this.checked)">存为药方</label>'
       + '<button class="btn sm" type="button" onclick="WPlan.exportBlockImage(\'' + b.id + '\')">导图</button>'
@@ -12970,11 +12977,29 @@ var WPlan = (function(){
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>';
   }
+  /* 该药材的可选单位：仓库主单位 + 多单位子规格 */
+  function unitOptionsFor(name){
+    var out = [], seen = {}, all = findDrugAll(name) || [], i, j;
+    for(i=0;i<all.length;i++){
+      var d = all[i], u = String(d.u || 'g');
+      if(u && !seen[u]){ seen[u] = 1; out.push(u); }
+      var sp = (typeof dmSpecsOf === 'function') ? dmSpecsOf(d) : [];
+      for(j=1;j<sp.length;j++){
+        var su = String(sp[j].unit || '');
+        if(su && !seen[su]){ seen[su] = 1; out.push(su); }
+      }
+    }
+    if(!out.length){ out = ['g', 'kg']; }
+    return out;
+  }
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
-    var unitCell = '<input class="wp-unit-in" data-ddlist="wpUnitList" value="' + esc(it.unit || it.du || 'g') + '" title="单位（g/kg/罐/盒/包/瓶…可自定义）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
+    /* 单位备选 = 该药材在仓库里实际存在的规格（主单位 + 多单位子规格） */
+    var uOpts = unitOptionsFor(it.name);
+    var unitCell = '<input class="wp-unit-in" data-ddoptions="' + esc(JSON.stringify(uOpts)) + '" value="' + esc(it.unit || it.du || 'g') + '" title="单位（只列出该药材已有规格）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     /* 输入框内部右侧的标签（绝对定位）：先煎等脚注 + 匹配到的仓库标准药 */
     var hasStd = !!(it.disp && it.name);
+    var hasName = !!String(it.name || it.disp || '').trim();
     var tags = '';
     if(it.sfx || hasStd){
       tags = '<span class="wp-nm-tags">'
@@ -12982,10 +13007,10 @@ var WPlan = (function(){
         + (hasStd ? '<span class="wp-std" title="已匹配仓库标准药：【' + esc(it.name) + '】">' + esc(it.name) + '</span>' : '')
         + '</span>';
     }
-    var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '');
+    var wrapCls = 'wp-nm-wrap' + (it.sfx ? ' has-sfx' : '') + (hasStd ? ' has-std' : '') + (hasName ? '' : ' no-detail');
     return '<tr>'
       + '<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="WPlan.addBlankRow(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="6" y1="1.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
-      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6.3" y="6.5" width="3.4" height="6.2" rx="1.7" fill="currentColor"/><circle cx="8" cy="4.2" r="1.7" fill="currentColor"/></svg></button></div></td>'
+      + '<td><div class="' + wrapCls + '"><input class="wp-nm" value="' + esc(it.disp || it.name || '') + '" placeholder="药名 / 耗材 / 拼音" autocomplete="off" onfocus="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onclick="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" oninput="WPlan.nameInput(\'' + bid + '\',' + i + ',this)" onkeydown="WPlan.nameKey(event,\'' + bid + '\',' + i + ')" onkeyup="WPlan.nameCursor(event,\'' + bid + '\',' + i + ',this)" onselect="WPlan.nameFocus(\'' + bid + '\',' + i + ',this)" onblur="WPlan.nameBlur()">' + tags + (hasName ? '<button class="wp-nm-detail" type="button" title="查看药物详情" onmousedown="event.preventDefault()" onclick="WPlan.openDrugPeek(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6.3" y="6.5" width="3.4" height="6.2" rx="1.7" fill="currentColor"/><circle cx="8" cy="4.2" r="1.7" fill="currentColor"/></svg></button>' : '') + '</div></td>'
       + '<td><div class="wp-qty-cell"><input class="num wp-qty" type="number" min="0" step="0.1" value="' + dispQty(it) + '" oninput="WPlan.setQty(\'' + bid + '\',' + i + ',this.value)">' + unitCell + '</div></td>'
       + '<td style="text-align:center"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
@@ -13881,7 +13906,7 @@ var WPlan = (function(){
   }
 
   /* ---- 药方复用：历史药方 + 常用方，卡片列表（可勾选多张） ---- */
-  var _prevNos = [], _prevBid = null, _reuseTab = 'h', _prevSel = [], _reuseDose = {}, _prevSelCopy = [];
+  var _prevNos = [], _prevBid = null, _reuseTab = 'c', _prevSel = [], _reuseDose = {}, _prevSelCopy = [];
   function findRx(no){
     var all = allRx();
     for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
@@ -13936,7 +13961,7 @@ var WPlan = (function(){
              doses:reuseDoseGet('c',id,n(c.doses)||1), date:'', tm:'', no:'', guest:c.guest||'' };
   }
   function openHistory(bid){
-    _tgt = bid; _prevBid = bid; _prevNos = []; _prevSel = []; _reuseDose = {}; _reuseTab = 'h';
+    _tgt = bid; _prevBid = bid; _prevNos = []; _prevSel = []; _reuseDose = {}; _reuseTab = 'c';
     var o = curOrder();
     if(!o || !o.guest){ toastErr('请先在上方选择客人 / 医生'); return; }
     renderReuse();
@@ -13946,8 +13971,8 @@ var WPlan = (function(){
     var body = document.getElementById('wpHistBody'); if(!body) return;
     var guest = curGuest();
     var h = '<div class="wp-reuse-tabs">'
-      + '<button class="' + (_reuseTab === 'h' ? 'on' : '') + '" type="button" onclick="WPlan.reuseTab(\'h\')">历史药方</button>'
       + '<button class="' + (_reuseTab === 'c' ? 'on' : '') + '" type="button" onclick="WPlan.reuseTab(\'c\')">常用方</button>'
+      + '<button class="' + (_reuseTab === 'h' ? 'on' : '') + '" type="button" onclick="WPlan.reuseTab(\'h\')">历史药方</button>'
       + '</div>';
     var list = [];
     if(_reuseTab === 'h'){
@@ -14556,7 +14581,7 @@ var WPlan = (function(){
         + '<td>' + esc(r.orig) + '</td>'
         + '<td>' + stdCell + '</td>'
         + '<td><input class="imp-qty" type="number" min="0" step="0.1" value="' + (r.qty == null ? '' : r.qty) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
-        + '<td><input class="imp-unit" data-ddlist="wpUnitList" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
+        + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(unitOptionsFor(r.std || r.orig))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
         + '</tr>';
@@ -16457,23 +16482,32 @@ select{
     show(sel, 'select', items);
   }
   function openInput(inp){
+    var rawOpts = inp.getAttribute ? inp.getAttribute('data-ddoptions') : '';
     var listId = (inp.getAttribute && inp.getAttribute('data-ddlist')) || (_dd && _dd.target === inp ? _dd.listId : '');
-    if(!listId) return;
-    var dl = document.getElementById(listId);
+    if(!listId && !rawOpts) return;
     var q = String(inp.value || '').trim().toLowerCase();
     var items = [], i, o, tx;
-    if(dl && dl.options){
-      for(i=0;i<dl.options.length;i++){
-        o = dl.options[i];
-        tx = String(o.value || o.textContent || '').trim();
-        if(!tx) continue;
-        if(q && tx.toLowerCase().indexOf(q) < 0) continue;
-        items.push({ value: tx, text: tx, on: tx === String(inp.value || '').trim() });
-        if(items.length >= 80) break;
+    if(rawOpts){
+      try{
+        var arr = JSON.parse(rawOpts) || [];
+        for(i=0;i<arr.length;i++){
+          tx = String(arr[i] || '').trim();
+          if(!tx) continue;
+          items.push({ value: tx, text: tx, on: tx === String(inp.value || '').trim() });
+        }
+      }catch(e){}
+    }else{
+      var dl = document.getElementById(listId);
+      if(dl && dl.options){
+        for(i=0;i<dl.options.length;i++){
+          o = dl.options[i];
+          tx = String(o.value || o.textContent || '').trim();
+          if(!tx) continue;
+          if(q && tx.toLowerCase().indexOf(q) < 0) continue;
+          items.push({ value: tx, text: tx, on: tx === String(inp.value || '').trim() });
+          if(items.length >= 80) break;
+        }
       }
-    }
-    if(!items.length && !q){
-      items = [];
     }
     show(inp, 'input', items, listId);
   }
@@ -16515,14 +16549,14 @@ select{
     var t = e.target;
     if(!t || !t.tagName) return;
     if(t.tagName === 'SELECT' && !t.disabled && !t.multiple){ openSelect(t); return; }
-    if(t.tagName === 'INPUT' && (t.getAttribute('data-ddlist') || (_dd && _dd.target === t))) openInput(t);
+    if(t.tagName === 'INPUT' && (t.getAttribute('data-ddlist') || t.getAttribute('data-ddoptions') || (_dd && _dd.target === t))) openInput(t);
   });
 
   document.addEventListener('input', function(e){
     var t = e.target;
     if(!t || t.tagName !== 'INPUT') return;
     if(_dd && _dd.type === 'input' && _dd.target === t){ openInput(t); return; }
-    if(t.getAttribute('data-ddlist')) openInput(t);
+    if(t.getAttribute('data-ddlist') || t.getAttribute('data-ddoptions')) openInput(t);
   });
 
   document.addEventListener('focusout', function(e){
