@@ -2688,6 +2688,23 @@ input,select,textarea,button{
    实测有效；不够时整表会出现横向滚动条（.plscroll 本来就有 overflow:auto）。 */
 .pltable th:nth-child(3),.pltable td:nth-child(3){min-width:56px}
 
+/* ★ 价格清单空状态（2026-11-03 用户要求）：
+   ① 标题旁的「待自动划价」灰字不再显示；
+   ② 提示文字去掉外层括号、改为灰色；
+   ③ 无论左右拉伸多长，都相对整个清单框水平居中。
+   ⚠ 该 td 同时命中 :first-child 的「左对齐」和 :last-child 的「右对齐」，
+     必须用同等特异度且更靠后的规则 + !important 压过去。 */
+.pltable td.pl-empty{
+  padding:14px 12px!important;
+  color:var(--neutral-4,#a4abb3)!important;
+  text-align:center!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis;
+}
+
 /* =====================================================================
    🏷 煎煮标签去方括号 + 禁止换行（2026-10-07 15:35）
    用户要求：①「[后下]」→「后下」，不要方括号 ②任何情况下不换行
@@ -3938,7 +3955,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 
     <!-- ========== 价格清单（独立一列） ========== -->
     <section class="panel pl">
-      <h3>价格清单 <span id="plState">自动划价后显示</span>
+      <h3>价格清单 <span id="plState"></span>
         <!-- 复制/打印清单：2026-10-07 用户要求从底部按钮栏移到卡片标题右上角，改成图标按钮 -->
         <span class="pltools">
           <button id="plShot" class="pltool" title="复制清单图片" aria-label="复制清单图片"></button>
@@ -6782,9 +6799,9 @@ function recalc(){
 /* ---------------- 价格清单 ---------------- */
 function renderPriceList(){
   if(!priced){
-    $('plBody').innerHTML='<tr><td colspan="5" style="padding:12px;color:#999">（点下方「自动划价」，此处显示药品列表与价格）</td></tr>';
+    $('plBody').innerHTML='<tr><td colspan="5" class="pl-empty">点下方「自动划价」，此处显示药品列表与价格</td></tr>';
     $('plCount').textContent='中药共 0 味'; $('plWeight').textContent='0'; $('plTotal').textContent='0.00';
-    $('plState').textContent='待自动划价';
+    $('plState').textContent='';
     return;
   }
   var h='', cnt=0, wt=0, tot=0, L=filledItems();
@@ -9150,7 +9167,7 @@ function continueRx(){
   rxMarkClean();          /* 收尾这次 recalc 不算用户编辑，不许触发同步 */
   markHistSel('');        /* 取消源方高亮，避免误以为还在看原方 */
   if($('saveTip')) $('saveTip').textContent='已续开新单（姓名/日期/剂数/备注/费用勾选已保留）　录入药味后点「保存」生成新记录，原方未动';
-  $('plState').textContent='待自动划价';
+  $('plState').textContent='';
   $('hFrom').value=$('fDate').value||today(); $('hTo').value=$('hFrom').value; $('hName').value='';
   renderHistory();
   var c=cellEl(0); if(c) c.querySelector('.nm').focus();
@@ -9170,7 +9187,7 @@ function newRx(){
   $('cbExpress').checked=false; $('fExpress').value='';
   $('cbKuaidi').checked=false; $('fKuaidi').value='';
   $('cbGoods').checked=false; $('fGoods').value='';
-  if($('saveTip')) $('saveTip').textContent=''; $('plState').textContent='待自动划价';
+  if($('saveTip')) $('saveTip').textContent=''; $('plState').textContent='';
   renderSheet(); renderPriceList();
   var c=cellEl(0); if(c) c.querySelector('.nm').focus();
 }
@@ -9185,7 +9202,7 @@ function clearSheet(){
   $('fDaijian').value=''; $('fPaotui').value=''; $('fExpress').value=''; $('fKuaidi').value='';
   $('cbProcess').checked=false; $('cbDaijian').checked=false;
   $('cbPaotui').checked=false; $('cbExpress').checked=false; $('cbGoods').checked=false; $('cbKuaidi').checked=false;
-  if($('saveTip')) $('saveTip').textContent=''; $('plState').textContent='待自动划价';
+  if($('saveTip')) $('saveTip').textContent=''; $('plState').textContent='';
   curRec=null; curSrcRx=null; curIsHist=false;
   renderSheet(); renderPriceList();
   var c=cellEl(0); if(c) c.querySelector('.nm').focus();
