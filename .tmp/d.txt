@@ -1,0 +1,1646 @@
+--- .tmp/remote_rx.html	2026-11-01 23:48:20.805942537 +0800
++++ rx_local.html	2026-11-01 23:32:42.685603304 +0800
+@@ -3044,17 +3044,6 @@
+ .wp-sub-sum:hover{ background:transparent!important; }
+ .wp-sub-sum b{ color:#0B7E57!important; font-weight:700; }
+ .wp-block-head .spacer{ flex:1; }
+-/* 小订单（药方）折叠：点标题左侧的箭头收起工具条与药名表；折叠状态记在 _fold 里，重渲染不丢 */
+-.wp-fold{ flex:0 0 auto; width:22px; height:22px; min-height:22px!important; padding:0!important; margin:0!important;
+-  display:inline-flex; align-items:center; justify-content:center;
+-  border:none!important; background:transparent!important; color:var(--neutral-4)!important;
+-  border-radius:50%!important; cursor:pointer; }
+-.wp-fold:hover{ background:var(--neutral-2)!important; color:var(--neutral-6)!important; }
+-.wp-fold svg{ width:12px; height:12px; transition:transform .15s ease; }
+-.wp-block.folded .wp-fold svg{ transform:rotate(-90deg); }
+-.wp-block.folded .wp-block-body{ display:none; }
+-.wp-blocks-bar{ display:flex; align-items:center; gap:8px; padding:0 2px 8px; }
+-.wp-blocks-lb{ font-size:12px; color:var(--neutral-4); }
+ .wp-block-tools{ display:flex; gap:8px; flex-wrap:wrap; padding:10px var(--wp-pad-x); border-bottom:1px solid var(--neutral-2); background:var(--neutral-1); }
+ .wp-tbl-wrap{ padding:0 0 35px; }
+ /* 窄窗口时等比收窄外边距，避免备注列被挤没（正常桌面宽度仍是 60px） */
+@@ -3064,7 +3053,7 @@
+ .wp-tbl th{ text-align:left; font-size:var(--fs-cap); color:var(--neutral-5); font-weight:600; padding:10px 6px; border-bottom:1px solid var(--neutral-2); background:var(--neutral-0); white-space:nowrap; }
+ .wp-tbl td{ padding:5px 6px!important; border-bottom:1px solid var(--neutral-2); vertical-align:middle; }
+ .wp-tbl col.c-plus{ width:calc(var(--wp-pad-x) + 38px); }
+-.wp-tbl col.c-act{ width:calc(var(--wp-pad-x) + 38px); }
++.wp-tbl col.c-act{ width:calc(var(--wp-pad-x) + 82px); }
+ .wp-tbl th:first-child{ padding-left:calc(var(--wp-pad-x) + 8px)!important; }
+ .wp-tbl th:last-child{ padding-right:calc(var(--wp-pad-x) + 10px)!important; }
+ .wp-tbl tbody tr:last-child td{ border-bottom:none; }
+@@ -3114,15 +3103,8 @@
+ .wplan .wp-tbl input[type="number"],
+ .wplan .wp-dose-in{ -moz-appearance:textfield!important; appearance:textfield!important; }
+ .wp-tbl .wp-amt{ text-align:right; font-weight:600; color:var(--neutral-title); font-variant-numeric:tabular-nums; white-space:nowrap; padding:5px 11px 5px 6px!important; }
+-.wp-tbl td.row-act{ padding:5px calc(var(--wp-pad-x) + 8px) 5px 6px!important; text-align:right; }
+-/* 行内删除：与左侧加号同款圆形按钮（默认隐藏、悬停整行淡入），加号变减号、红框 */
+-.wplan .wp-tbl .wp-minus{ width:20px; height:20px; min-height:0; padding:0; border-radius:50%;
+-  display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+-  color:#c0392b!important; background:#fdf5f4!important; border:1px solid #e8c0b9!important;
+-  opacity:0; pointer-events:none; transition:opacity .18s ease; }
+-.wplan .wp-tbl .wp-minus:hover{ background:#c0392b!important; border-color:#c0392b!important; color:#fff!important; }
+-.wplan .wp-tbl .wp-minus svg{ display:block; width:10px; height:10px; }
+-.wp-tbl tbody tr:hover .wp-minus, .wp-tbl tbody tr:focus-within .wp-minus, .wplan .wp-tbl .wp-minus:focus-visible{ opacity:1; pointer-events:auto; }
++.wp-tbl td.row-act{ padding:5px calc(var(--wp-pad-x) + 10px) 5px 6px!important; text-align:right; }
++.wp-tbl .row-act button{ margin:0; padding:0 12px; }
+ /* 行内加号：默认隐藏，悬停整行淡入 */
+ .wp-tbl td.wp-plus-td{ padding:5px 6px 5px calc(var(--wp-pad-x) + 8px)!important; text-align:center; overflow:visible; }
+ .wplan .wp-tbl .wp-plus{ width:20px; height:20px; min-height:0; padding:0; line-height:18px; border-radius:50%; font-size:15px; font-weight:700;
+@@ -3773,23 +3755,6 @@
+ @media print{
+   body.wp-printing #wpPrintArea .wpd-tbl th{ background:#fff !important; }
+ }
+-/* 模板重命名 / 另存为的轻量输入弹层（替代 window.prompt，避免被运行环境拦截后点了没反应）
+-   ⚠ 打印设置面板 .wps 的 z-index 是 9000，弹层必须更高，否则会藏在面板后面导致「点了没反应」 */
+-.wps-ask{ position:fixed;top:0;left:0;right:0;bottom:0;z-index:9500;
+-  display:flex;align-items:center;justify-content:center;background:rgba(14,30,22,.32); }
+-.wps-ask-box{ width:min(360px,86vw);background:#fff;border-radius:14px;padding:16px 18px;
+-  box-shadow:0 24px 60px rgba(14,30,22,.28); }
+-.wps-ask-t{ font-size:14px;font-weight:700;color:#16231d;margin-bottom:10px; }
+-.wps-ask-in{ width:100%;height:36px!important;min-height:36px!important;box-sizing:border-box!important;
+-  padding:0 12px!important;border:1px solid #d5dae0!important;border-radius:9px!important;
+-  background:#fff!important;color:#16231d!important;font-size:14px!important; }
+-.wps-ask-f{ display:flex;justify-content:flex-end;gap:8px;margin-top:12px; }
+-.wps-ask-f button{ height:32px!important;min-height:32px!important;padding:0 14px!important;
+-  border-radius:9px!important;font-size:13px!important; }
+-.wps-ask-no{ background:#fff!important;border:1px solid #d5dae0!important;color:#333!important; }
+-.wps-ask-ok{ background:#0e9a6a!important;border:1px solid #0e9a6a!important;color:#fff!important; }
+-.wps-ask-ok.danger{ background:#c0392b!important;border-color:#c0392b!important;color:#fff!important; }
+-.wp-confirm-msg{ font-size:13px;color:#555;line-height:1.7; }
+ /* ---------- 打印时：只出 #wpPrintArea ---------- */
+ #wpPrintArea{ display:none; }
+ @media print{
+@@ -4054,11 +4019,6 @@
+                   </div>
+                 </div>
+ 
+-                <div class="wp-blocks-bar">
+-                  <span class="wp-blocks-lb">药方排序</span>
+-                  <button class="btn sm" type="button" onclick="WPlan.sortBlocks('asc')">日期升序 ↑</button>
+-                  <button class="btn sm" type="button" onclick="WPlan.sortBlocks('desc')">日期降序 ↓</button>
+-                </div>
+                 <div class="wp-blocks" id="wpBlocks"></div>
+ 
+                 <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
+@@ -4141,7 +4101,6 @@
+                   <label class="wps-sw"><input type="checkbox" id="wpsSwNo" onchange="WPrint.cfg('showNo',this.checked)">单号</label>
+                   <label class="wps-sw"><input type="checkbox" id="wpsSwStamp" onchange="WPrint.cfg('showStamp',this.checked)">盖章处</label>
+                   <label class="wps-sw"><input type="checkbox" id="wpsSwWeight" onchange="WPrint.cfg('showWeight',this.checked)">合计重量</label>
+-                  <label class="wps-sw"><input type="checkbox" id="wpsSwCap" onchange="WPrint.cfg('showCap',this.checked)">金额大写</label>
+                 </div>
+               </div>
+ 
+@@ -4270,50 +4229,45 @@
+         <div class="pageBody">
+           <div class="wplan" id="purchaseRoot">
+             <div class="wp-head">
+-              <div class="wp-title">进货单</div>
++              <div class="wp-title">进货单 · 月度大订单</div>
+               <div class="spacer"></div>
+               <div class="wp-subnav">
+-                <button class="wp-sub on" type="button" data-sub="list" onclick="Purchase.showSub('list')">进货单列表</button>
++                <button class="wp-sub on" type="button" data-sub="list" onclick="Purchase.showSub('list')">月度进货单</button>
+                 <button class="wp-sub" type="button" data-sub="edit" onclick="Purchase.newOrder()">新建 / 录单</button>
+               </div>
+             </div>
+             <div class="wp-subpane" id="purSubList">
+               <div class="wp-list">
+                 <div class="wp-list-bar">
+-                  <input id="purSearch" class="wp-search sch" placeholder="搜索 单号 / 供应商 / 日期" oninput="Purchase.setSearch(this.value)">
++                  <input id="purSearch" class="wp-search sch" placeholder="搜索 月份 / 单号 / 状态" oninput="Purchase.setSearch(this.value)">
++                  <span class="wp-list-count" id="purListCount"></span>
+                 </div>
+                 <div id="purList" class="wp-list-body"></div>
+               </div>
+             </div>
+-            <div class="wp-subpane" id="purSubEdit" style="display:none">
+-              <div class="pur-form">
+-                <div class="pur-row">
+-                  <label>单号</label><input id="purNo" readonly style="width:150px">
+-                  <label>日期</label><input id="purDt" type="date" style="width:140px">
+-                  <label>供应商</label><input id="purSupplier" style="flex:1;min-width:120px" placeholder="供应商名称">
+-                </div>
+-                <div class="pur-row">
+-                  <label>备注</label><input id="purNote" style="flex:1;min-width:200px" placeholder="备注（选填）">
+-                </div>
+-                <div class="pur-tablewrap">
+-                  <table class="dmtable pur-table">
+-                    <thead><tr>
+-                      <th style="text-align:left">药材名称</th>
+-                      <th style="width:96px">数量</th><th style="width:78px">单位</th>
+-                      <th style="width:132px">进货单价</th><th style="width:104px">金额</th><th style="width:60px"></th>
+-                    </tr></thead>
+-                    <tbody id="purItems"></tbody>
+-                  </table>
+-                  <datalist id="purchaseDrugList"></datalist>
+-                </div>
+-                <div class="pur-btns">
+-                  <button type="button" class="mini" onclick="Purchase.addItem()">+ 增加一行</button>
+-                  <span class="spacer"></span>
+-                  <span class="pur-total">合计：<b id="purTotal">0.00</b></span>
+-                  <button type="button" class="pri" onclick="Purchase.saveOrder()">保存进货单</button>
+-                  <button type="button" class="mini" onclick="Purchase.showSub('list')">返回</button>
++            <div class="wp-detail" id="purSubEdit">
++              <div class="wp-detail-head">
++                <button class="btn" type="button" onclick="Purchase.showSub('list')">← 返回列表</button>
++                <b class="wp-detail-title" id="purTitle">进货单</b>
++                <span class="wp-detail-no" id="purNo"></span>
++                <span class="spacer"></span>
++                <button class="btn danger" type="button" onclick="Purchase.delOrder()">删除本月</button>
++                <button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button>
++              </div>
++              <div class="wp-detail-body">
++                <div class="wp-order">
++                  <div class="wp-order-row">
++                    <div class="wp-field wp-req"><label>月份 *</label><input id="purMonth" class="wp-in" type="month" onchange="Purchase.setMonth(this.value)"></div>
++                    <div class="wp-field"><label>单据编号</label><input id="purNoView" class="wp-in" readonly></div>
++                    <div class="wp-field"><label>入库状态</label><input id="purStatus" class="wp-in" readonly></div>
++                  </div>
+                 </div>
++                <div class="wp-blocks" id="purBlocks"></div>
++                <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
++                <div class="wp-foot" id="purFoot"></div>
+                 <div id="purMsg" class="redhint"></div>
++                <datalist id="purchaseDrugList"></datalist>
++                <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或选拼音，单价按 元/kg 录入；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
+               </div>
+             </div>
+           </div>
+@@ -4325,7 +4279,7 @@
+             <div class="pur-mh">删除进货单</div>
+             <div class="pur-mb">
+               <p class="pur-dt" id="purDelText"></p>
+-              <p class="pur-dh">是否同时扣回对应库存？</p>
++              <p class="pur-dh" id="purDelHead">是否同时扣回对应库存？</p>
+               <ul class="pur-dl" id="purDelList"></ul>
+             </div>
+             <div class="pur-ma">
+@@ -4408,6 +4362,22 @@
+           .pur-total{font-size:13px}
+           .pur-total b{font-size:15px;color:#b5462f}
+           .pur-msg{color:#c0392b;font-size:12px;margin-top:6px;min-height:14px}
++          /* ---- 沿用【药方打印】皮肤后的局部补丁（只作用于进货单） ---- */
++          #purchaseRoot .wp-nm-wrap.has-std .wp-nm{ padding-right:162px!important; }
++          #purchaseRoot .wp-nm-tags{ right:12px; max-width:calc(100% - 24px); }
++          #purchaseRoot .wp-nm-tags .pur-prod{ pointer-events:auto; }
++          #purchaseRoot .pur-prod{
++            height:20px!important; min-height:0!important; padding:0 6px!important; margin:0!important;
++            font-size:11px!important; font-weight:600!important; line-height:18px!important;
++            color:#0B6E4D!important; background:#E7F7EF!important;
++            border:1px solid #CFEADF!important; border-radius:5px!important; cursor:pointer; white-space:nowrap;
++          }
++          #purchaseRoot .pur-prod:hover{ background:#D8F0E2!important; }
++          #purchaseRoot .wp-std.pur-bad{ background:#FBEDEB!important; color:#D25B4E!important; max-width:none!important; }
++          #purchaseRoot .wp-block-title{ min-width:112px; cursor:default; }
++          #purchaseRoot .wp-block-title:focus{ box-shadow:none!important; border-color:#D6E3DC!important; }
++          #purchaseRoot .wp-plan-act .wp-tag{ font-weight:600; }
++          #purchaseRoot .wp-plan-act .wp-tag.pur-undone{ background:#FCF4E4!important; border-color:#EEDDBB!important; color:#C08A2E!important; }
+         </style>
+       </section>
+ 
+@@ -12866,7 +12836,6 @@
+   var _sub = 'list';          /* 子页面：list=订单列表，edit=制表/详情 */
+   var _search = '';           /* 列表搜索关键字 */
+   var _sel = {};              /* 多选结款：order id → 1 */
+-  var _fold = {};             /* 小订单（药方）折叠状态：block id → 1 */
+   var _view = 'flat';         /* 列表视图：flat=全部单据，plan=按客户+月份分组 */
+   var _planKey = '';          /* 当前展开的计划汇总 */
+   var _payBlob = null;        /* 批量结款图片 blob */
+@@ -13289,33 +13258,13 @@
+     for(var i=0;i<o.blocks.length;i++) h += blockHTML(o.blocks[i]);
+     box.innerHTML = h;
+   }
+-  /* 折叠 / 展开某张小订单 */
+-  function toggleFold(bid){
+-    _fold[bid] = !_fold[bid];
+-    var el = document.getElementById('wpBlock-' + bid);
+-    if(el) el.classList.toggle('folded', !!_fold[bid]);
+-  }
+-  /* 小订单按日期排序：asc=升序，desc=降序（直接改 blocks 顺序，打印 / 导出也跟着变） */
+-  function sortBlocks(dir){
+-    var o = curOrder();
+-    if(!o || !(o.blocks || []).length) return;
+-    var s = dir === 'desc' ? -1 : 1;
+-    o.blocks.sort(function(a, b){
+-      var x = String(blockDate(o, a) || ''), y = String(blockDate(o, b) || '');
+-      if(x === y) return 0;
+-      return (x > y ? 1 : -1) * s;
+-    });
+-    save(); renderBlocks(); renderFoot(); renderSub();
+-    toast(dir === 'desc' ? '已按日期降序排列' : '已按日期升序排列');
+-  }
+   function blockHTML(b){
+     var rows = '';
+     if(!b.items.length){ rows = rowHTML(b.id, 0, BLANK_ITEM()); }
+     else { for(var i=0;i<b.items.length;i++) rows += rowHTML(b.id, i, b.items[i]); }
+     var bd = String(b.date || '');
+-    return '<div class="wp-block' + (_fold[b.id] ? ' folded' : '') + '" id="wpBlock-' + b.id + '">'
++    return '<div class="wp-block" id="wpBlock-' + b.id + '">'
+       + '<div class="wp-block-head">'
+-      + '<button class="wp-fold" type="button" title="折叠 / 展开该小订单" onclick="WPlan.toggleFold(\'' + b.id + '\')"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 L6 8 L9.8 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+       + '<input class="wp-block-title" value="' + esc(b.title || '') + '" oninput="WPlan.setBlockTitle(\'' + b.id + '\',this.value)">'
+       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
+       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
+@@ -13326,14 +13275,12 @@
+       + '<button class="btn sm" type="button" onclick="WPlan.exportBlockImage(\'' + b.id + '\')">导图</button>'
+       + '<button class="btn danger sm" type="button" onclick="WPlan.delBlock(\'' + b.id + '\')">删除药方</button>'
+       + '</div>'
+-      + '<div class="wp-block-body">'
+       + '<div class="wp-block-tools">'
+       + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
+       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
+       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
+       + '</div>'
+       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+-      + '</div>'
+       + '</div>';
+   }
+   /* 该药材的可选单位：仓库主单位 + 多单位子规格 */
+@@ -13374,7 +13321,7 @@
+       + '<td style="text-align:center"><input class="num wp-price" type="number" min="0" step="0.001" value="' + (it.price == null ? '' : n(it.price)) + '" oninput="WPlan.setPrice(\'' + bid + '\',' + i + ',this.value)" onmouseenter="WPlan.priceHover(\'' + bid + '\',' + i + ',this)" onmouseleave="WPlan.priceLeave()"></td>'
+       + '<td class="wp-amt" id="wpAmt-' + bid + '-' + i + '">' + money(amt) + '</td>'
+       + '<td class="wp-rm-td"><input class="wp-rm-in" placeholder="备注（选填）" value="' + esc(it.rm || '') + '" oninput="WPlan.setItemRemark(\'' + bid + '\',' + i + ',this.value)"></td>'
+-      + '<td class="row-act"><button class="wp-minus" type="button" title="删除这一行" onmousedown="return false" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
++      + '<td class="row-act"><button class="btn danger sm" type="button" onclick="WPlan.delItem(\'' + bid + '\',' + i + ')">删除</button></td>'
+       + '</tr>';
+   }
+   /* 底部小订单汇总（各药方 + 合计），单独抽出便于导入/改价后即时刷新 */
+@@ -13834,13 +13781,13 @@
+         if(!items) items = '<tr><td colspan="6" style="color:#888;text-align:center">（药方为空）</td></tr>';
+         detail += '<div class="det"><table class="dt"><thead>'
+           + '<tr class="dh"><th colspan="3" class="dhn">订单名称：'
+-          + esc(String(b.title || '').trim() || ('药方' + (bi + 1)))
++          + esc((k+1) + '.' + (bi+1) + '　' + (b.title || ('药方' + (bi+1))))
+           + '</th><th colspan="3" class="dhd2">日期：' + esc(blockDate(o, b) || '') + '　' + d + '付'
+           + (b.ship ? ('　配送 ' + esc(b.ship)) : '') + '</th></tr>'
+           + '<tr><th style="width:44pt">序号</th><th>药名</th><th style="width:52pt">克数</th>'
+           + '<th style="width:40pt">单位</th><th style="width:64pt">单价</th><th style="width:70pt">金额</th></tr>'
+           + '</thead><tbody>' + items
+-          + '<tr class="rtot"><td colspan="5">合计金额</td>'
++          + '<tr class="rtot"><td colspan="5" class="cc">合计金额</td>'
+           + '<td class="cc"><b>¥' + money(blockTotal(b)) + '</b></td></tr>'
+           + '</tbody></table></div>';
+       }
+@@ -13851,7 +13798,7 @@
+       + '<style>@page{size:A4;margin:18mm}body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
+       + 'h1{font-size:20pt;margin:0 0 6pt}h2{font-size:13pt;margin:18pt 0 6pt}'
+       + '.meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
+-      + 'table{border-collapse:collapse;width:900px;font-size:10.5pt}th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}th{white-space:nowrap}'
++      + 'table{border-collapse:collapse;width:100%;font-size:10.5pt}th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}th{white-space:nowrap}'
+       + 'th{background:#f2f4f6}td.nm{font-weight:600}'
+       + '.tot{margin-top:14pt;font-size:12pt}.tot b{font-size:16pt}'
+       + '.det{page-break-inside:avoid}'
+@@ -13975,21 +13922,19 @@
+     var m = s.match(/\d{4}-\d{2}-\d{2}/);
+     return m ? m[0] : s.slice(0, 10);
+   }
+-  function histMoney(v, unit){
++  function histMoney(v){
+     if(v == null || v === '') return '—';
+-    return '¥' + money(v) + ' / ' + String(unit || 'g');
++    return '¥' + money(v);
+   }
+-  function tipSection(title, arr, unit, cf){
++  function tipSection(title, arr){
+     var h = '<div class="sec"><h4>' + esc(title) + '</h4>';
+     if(!arr.length) return h + '<div class="empty">暂无记录</div></div>';
+     for(var i=0;i<arr.length;i++){
+-      var p = arr[i].p;
+-      if(cf && cf !== 1 && p != null && p !== '') p = n(p) * cf;
+-      h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(p, unit) + '</span></div>';
++      h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+     }
+     return h + '</div>';
+   }
+-  function renderPriceTip(deals, guestLog, costs, drug, guest, loading, unit, cf){
++  function renderPriceTip(deals, guestLog, costs, drug, guest, loading){
+     deals = deals || []; costs = costs || [];
+     var cust = [], other = [], i;
+     for(i=0;i<deals.length;i++){
+@@ -14020,9 +13965,9 @@
+     }
+     costArr = sortTop(costArr);
+     var gLabel = guest || '未指定客人';
+-    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cf)
+-      + tipSection('其他历史成交', other, unit, cf)
+-      + tipSection('历史进货价', costArr, 'kg')
++    return tipSection('客户历史成交（' + gLabel + '专属）', cust)
++      + tipSection('其他历史成交', other)
++      + tipSection('历史进货价', costArr)
+       + (loading ? '<div class="empty" style="padding-top:6px">正在同步云端记录…</div>' : '');
+   }
+   function placePriceTip(tip, el){
+@@ -14044,12 +13989,8 @@
+     var tip = document.getElementById('wpPriceTip'); if(!tip) return;
+     _tipShow = true;
+     var token = ++_tipSeq;
+-    var d = findDrug(drug) || (findDrugAll(drug) || [])[0] || null;
+-    /* 历史成交按表单当前行单位显示（目录价格按基础单位记录，需要换算）；进货价统一 kg */
+-    var rowU = String(it.unit || it.du || (d && d.u) || 'g');
+-    var cf = unitCoef(String((d && d.u) || 'g'), rowU);
+     var glog = (DOCTORS[guest] && DOCTORS[guest].log) || [];
+-    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true, rowU, cf);
++    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true);
+     tip.style.display = 'block';
+     placePriceTip(tip, el);
+     var pack = _tipCache[drug];
+@@ -14067,7 +14008,7 @@
+     }
+     p.then(function(packed){
+       if(!_tipShow || token !== _tipSeq) return;
+-      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false, rowU, cf);
++      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false);
+       placePriceTip(tip, el);
+     });
+   }
+@@ -14095,12 +14036,6 @@
+       return;
+     }
+     function kv(k, v){ return '<div class="wp-peek-kv"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v == null || v === '' ? '—' : v) + '</span></div>'; }
+-    /* 金额一律带单位：专属价按表单当前行单位，批发 / 进货按 kg */
+-    function peekMoney(v, unit){
+-      var x = parseFloat(v);
+-      if(!isFinite(x)) return '—';
+-      return '¥' + money(x) + ' / ' + String(unit || 'g');
+-    }
+     var u = String(d.u || 'g');
+     var rowU = String(it.unit || it.du || u);
+     var guest = String(curGuest() || '').trim();
+@@ -14126,11 +14061,11 @@
+       + kv('标准药名', d.n)
+       + kv('别名', (Array.isArray(d.al) && d.al.length) ? d.al.join('、') : '—')
+       + kv('单位 / 常用量', u + ' / ' + (d.c || '—'));
+-    /* 第四块：标准价格（零售价按目录基础单位；批发价 / 进货价按 kg 口径） */
++    /* 第四块：标准价格 */
+     h += '<div class="wp-peek-h4">标准价格</div>'
+       + kv('零售价', (d.p != null && d.p !== '') ? ('¥' + money(d.p) + ' / ' + u) : '—')
+-      + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp) + ' / kg') : '—')
+-      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp) + ' / kg') : '—');
++      + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp)) : '—')
++      + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp)) : '—');
+     /* 第五块：最近进货记录 */
+     h += '<div class="wp-peek-h4">最近进货记录</div><div class="wp-peek-cost" id="wpPeekCost"><div class="empty">加载中…</div></div>';
+     body.innerHTML = h;
+@@ -14145,8 +14080,8 @@
+       if(!out.length) return '<div class="empty">暂无专属价历史</div>';
+       out.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
+       out = out.slice(0,5);
+-      var cf = unitCoef(u, rowU), s = '';
+-      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + peekMoney(n(out[i].p) * cf, rowU) + '</span></div>';
++      var s = '';
++      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + histMoney(out[i].p) + '</span></div>';
+       return s;
+     }
+     if(guest && SUPA.on){
+@@ -14161,8 +14096,8 @@
+           arr.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
+           arr = arr.slice(0,5);
+           if(!arr.length){ el.innerHTML = '<div class="empty">暂无专属价历史</div>'; return; }
+-          var cf = unitCoef(u, rowU), s = '';
+-          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + peekMoney(n(arr[i].p) * cf, rowU) + '</span></div>';
++          var s = '';
++          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(arr[i].p) + '</span></div>';
+           el.innerHTML = s;
+         }).catch(function(){});
+     }
+@@ -14173,7 +14108,7 @@
+         if(!rows.length){ c.innerHTML = '<div class="empty">暂无进货记录</div>'; return; }
+         var s = '';
+         for(var k=0;k<rows.length;k++){
+-          s += '<div class="row"><span>' + esc(histDay(rows[k].dt)) + '</span><span>¥' + esc(money(rows[k].cost)) + ' / kg</span></div>';
++          s += '<div class="row"><span>' + esc(histDay(rows[k].dt)) + '</span><span>¥' + esc(money(rows[k].cost)) + '</span></div>';
+         }
+         c.innerHTML = s;
+       }).catch(function(){ var c = document.getElementById('wpPeekCost'); if(c) c.innerHTML = '<div class="empty">进货记录加载失败</div>'; });
+@@ -14188,36 +14123,9 @@
+     var o = curOrder(); if(!o) return;
+     o.blocks.push(blankBlock()); save(); renderBlocks(); recount();
+   }
+-  /* 通用确认弹层（不用 window.confirm，避免被运行环境拦截） */
+-  function askConfirm(title, msg, okText, cb){
+-    var mask = document.createElement('div');
+-    mask.className = 'wps-ask';
+-    mask.innerHTML = '<div class="wps-ask-box"><div class="wps-ask-t">' + esc(title) + '</div>'
+-      + '<div class="wp-confirm-msg">' + esc(msg) + '</div>'
+-      + '<div class="wps-ask-f"><button type="button" class="wps-ask-no">取消</button>'
+-      + '<button type="button" class="wps-ask-ok danger">' + esc(okText || '删除') + '</button></div></div>';
+-    document.body.appendChild(mask);
+-    function done(ok){
+-      if(mask.parentNode) mask.parentNode.removeChild(mask);
+-      if(ok) cb();
+-    }
+-    mask.querySelector('.wps-ask-no').onclick = function(){ done(false); };
+-    mask.querySelector('.wps-ask-ok').onclick = function(){ done(true); };
+-    mask.onclick = function(e){ if(e.target === mask) done(false); };
+-    mask.onkeydown = function(e){ if(e.key === 'Escape'){ e.preventDefault(); done(false); } };
+-    try{ mask.querySelector('.wps-ask-ok').focus(); }catch(e){}
+-  }
+   function delBlock(bid){
+     var o = curOrder(); if(!o) return;
+-    var b = blockById(bid);
+-    askConfirm('删除药方',
+-      '「' + String((b && b.title) || '药方') + '」删除后无法恢复，确定要删除吗？',
+-      '删除', function(){
+-        o.blocks = o.blocks.filter(function(x){ return x.id !== bid; });
+-        delete _fold[bid];
+-        save(); renderBlocks(); recount();
+-        toast('已删除药方');
+-      });
++    o.blocks = o.blocks.filter(function(b){ return b.id !== bid; }); save(); renderBlocks(); recount();
+   }
+   function setBlockTitle(bid, v){ var b = blockById(bid); if(!b) return; b.title = v; saveDebounced(); }
+   function setBlockDate(bid, v){
+@@ -15193,7 +15101,6 @@
+     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
+     setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
+     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
+-    toggleFold: toggleFold, sortBlocks: sortBlocks,
+     priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
+     setDish: setDish, setSaveCommon: setSaveCommon,
+     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
+@@ -15243,7 +15150,6 @@
+       title:'发货单', shop:'', tel:'', addr:'', custLabel:'顾客', footNote:'',
+       showShop:true, showTitle:true, showTel:true, showAddr:true, showIndex:true,
+       showSpec:true, showOrigin:false, showPrice:true, showAmount:true, showNote:true, showWeight:true,
+-      showCap:false,
+       showDish:true, showNo:true, showStamp:true,
+       pageMode:'auto', rowsPerPage:20, showPageNo:false,
+       fs:11, rh:22, isDefault:false };
+@@ -15445,7 +15351,6 @@
+     setChk('wpsSwOrigin',t.showOrigin);
+     setChk('wpsSwPrice',t.showPrice); setChk('wpsSwAmount',t.showAmount);
+     setChk('wpsSwNote',t.showNote); setChk('wpsSwWeight',t.showWeight);
+-    setChk('wpsSwCap',t.showCap);
+     setChk('wpsSwDish',t.showDish!==false); setChk('wpsSwNo',t.showNo!==false);
+     setChk('wpsSwStamp',t.showStamp!==false);
+     setVal('wpsFs',t.fs); setNum('wpsFsv',t.fs);
+@@ -15463,7 +15368,7 @@
+   function cfg(k,v){
+     var t=curTpl();
+     var bools={showShop:1,showTitle:1,showTel:1,showAddr:1,showIndex:1,showSpec:1,showOrigin:1,
+-               showPrice:1,showAmount:1,showNote:1,showWeight:1,showCap:1,showPageNo:1,showDish:1,showNo:1,showStamp:1};
++               showPrice:1,showAmount:1,showNote:1,showWeight:1,showPageNo:1,showDish:1,showNo:1,showStamp:1};
+     if(bools[k]) t[k]=!!v;
+     else if(TEXTKEYS[k]) t[k]=String(v==null?'':v);
+     else if(k==='paper'||k==='orient'||k==='pageMode') t[k]=v;
+@@ -15481,43 +15386,15 @@
+     S.tpls.push(c); S.curId=c.id; saveLS();
+     renderList(); syncForm(); renderPreview(); pushCloud(c);
+   }
+-  /* 轻量输入弹层：替代 window.prompt（部分运行环境会拦截 prompt，点了没反应） */
+-  function askText(title, def, cb){
+-    var mask=document.createElement('div');
+-    mask.className='wps-ask';
+-    mask.innerHTML='<div class="wps-ask-box"><div class="wps-ask-t">'+esc(title)+'</div>'
+-      +'<input class="wps-ask-in" type="text" value="'+esc(def||'')+'">'
+-      +'<div class="wps-ask-f"><button type="button" class="wps-ask-no">取消</button>'
+-      +'<button type="button" class="wps-ask-ok">确定</button></div></div>';
+-    /* 打印设置面板打开时，弹层挂进面板内部，保证一定盖在面板之上 */
+-    var host=document.body, sheet=document.getElementById('wpsSheet');
+-    if(sheet && sheet.classList.contains('on')) host=sheet;
+-    host.appendChild(mask);
+-    var inp=mask.querySelector('.wps-ask-in');
+-    function done(ok){
+-      var v=ok?inp.value:null;
+-      if(mask.parentNode) mask.parentNode.removeChild(mask);
+-      if(ok) cb(v);
+-    }
+-    mask.querySelector('.wps-ask-no').onclick=function(){ done(false); };
+-    mask.querySelector('.wps-ask-ok').onclick=function(){ done(true); };
+-    mask.onclick=function(e){ if(e.target===mask) done(false); };
+-    inp.onkeydown=function(e){
+-      if(e.key==='Enter'){ e.preventDefault(); done(true); }
+-      else if(e.key==='Escape'){ e.preventDefault(); done(false); }
+-    };
+-    try{ inp.focus(); inp.select(); }catch(e){}
+-  }
+   function renameTpl(id){
+     var t=tplById(id); if(!t) return;
+-    askText('模板名称', t.name, function(v){
+-      var nm=String(v==null?'':v).trim(); if(!nm) return;
+-      var old=t.name;
+-      t.name=nm; S.curId=id; saveLS();
+-      if(old!==nm) delCloud(old);
+-      renderList(); syncForm(); pushCloud(t);
+-      toast('已重命名为「'+nm+'」');
+-    });
++    var nm=prompt('模板名称', t.name);
++    if(nm===null) return;
++    nm=String(nm).trim(); if(!nm) return;
++    var old=t.name;
++    t.name=nm; S.curId=id; saveLS();
++    if(old!==nm) delCloud(old);
++    renderList(); syncForm(); pushCloud(t);
+   }
+   function delTpl(id){
+     load();
+@@ -15535,13 +15412,13 @@
+   function saveTpl(asNew){
+     var t=curTpl();
+     if(asNew){
+-      askText('新模板名称','副本 · '+(t.title||t.name), function(v){
+-        var c=mk(t);
+-        c.id=newId(); c.name=String(v==null?'':v).trim()||('模板 '+(S.tpls.length+1)); c.isDefault=false;
+-        S.tpls.push(c); S.curId=c.id; saveLS(); pushCloud(c);
+-        renderList(); syncForm(); renderPreview();
+-        toast('已另存为「'+c.name+'」');
+-      });
++      var nm=prompt('新模板名称','副本 · '+(t.title||t.name));
++      if(nm===null) return;
++      var c=mk(t);
++      c.id=newId(); c.name=String(nm||'').trim()||('模板 '+(S.tpls.length+1)); c.isDefault=false;
++      S.tpls.push(c); S.curId=c.id; saveLS(); pushCloud(c);
++      renderList(); syncForm(); renderPreview();
++      toast('已另存为「'+c.name+'」');
+       return;
+     }
+     saveLS(); pushCloud(t); toast('模板已保存');
+@@ -15694,12 +15571,11 @@
+     if(t.pageMode==='pageSub' && t.showAmount && totalPages>1){
+       h+='<div class="wpd-subline">本页小计：'+fmtMoney(sum)+' 元（第 '+(pi+1)+' / '+totalPages+' 页）</div>';
+     }
+-    if(grand && pi === totalPages-1 && (t.showWeight || t.showAmount || t.showCap)){
++    if(grand && pi === totalPages-1 && (t.showWeight || t.showAmount)){
+       h+='<div class="wpd-total">';
+       if(t.showWeight) h+='<span>合计重量：'+grand.wt+'kg</span>';
+       if(t.showAmount) h+='<span>合计金额：'+fmtMoney(grand.sum)+'</span>';
+       h+='</div>';
+-      if(t.showCap) h+='<div class="wpd-word">金额大写：'+upperMoney(grand.sum)+'</div>';
+     }
+ 
+     /* ---- 页脚：横线下方左侧页码 / 右侧盖章处 ---- */
+@@ -15717,36 +15593,12 @@
+     return h;
+   }
+   function docHtml(o, t){
+-    var docs=blockDocs(o, t), h='', i, p, d;
+-    for(i=0;i<docs.length;i++){
+-      d=docs[i];
+-      for(p=0;p<d.pages.length;p++) h+=pageHtml(d.order, t, d.pages[p], p, d.pages.length, d.grand);
+-    }
++    var rows=flatRows(o), pages=paginate(rows,t), h='', i;
++    var grand={ sum:0, wt:weightOf(rows) };
++    for(i=0;i<rows.length;i++) grand.sum += rows[i].amount;
++    for(i=0;i<pages.length;i++) h+=pageHtml(o, t, pages[i], i, pages.length, grand);
+     return h;
+   }
+-  /* 一张订单里可能有多个小订单（药方）：每张小订单单独成文，
+-     都从新的一页开始，并各自带标题 / 顾客 / 日期 / 订单名称 */
+-  function blockDocs(o, t){
+-    var bs=(o&&o.blocks)||[], out=[], i, j, b, rows, pages, sum, grand;
+-    for(i=0;i<bs.length;i++){
+-      b=bs[i]; if(!b) continue;
+-      if(!((b.items||[]).length)) continue;
+-      var sub={ guest:(o&&o.guest)||'',
+-                dish:(String(b.title||'').trim()||((o&&o.dish)||'')),
+-                date:(String(b.date||'').trim()||((o&&o.date)||'')),
+-                no:(o&&o.no)||'', blocks:[b] };
+-      rows=flatRows(sub); pages=paginate(rows, t);
+-      sum=0; for(j=0;j<rows.length;j++) sum+=rows[j].amount;
+-      grand={ sum:sum, wt:weightOf(rows) };
+-      out.push({ order:sub, rows:rows, pages:pages, grand:grand });
+-    }
+-    if(!out.length){
+-      rows=flatRows(o||{blocks:[]}); pages=paginate(rows, t); sum=0;
+-      for(j=0;j<rows.length;j++) sum+=rows[j].amount;
+-      out.push({ order:o||{blocks:[]}, rows:rows, pages:pages, grand:{sum:sum, wt:weightOf(rows)} });
+-    }
+-    return out;
+-  }
+ 
+   /* ---------- 预览 ---------- */
+   function renderPreview(){
+@@ -15757,17 +15609,15 @@
+     var w=p.w, hh=(p.h||240);
+     if(t.orient==='landscape'){ var tmp=w; w=hh; hh=tmp; }
+     var pw=mm2px(w), ph=mm2px(hh);
+-    var docs=blockDocs(o,t), i, j, tot=0, allPages=0, allRows=0;
++    var rows=flatRows(o), pages=paginate(rows,t), i;
++    var grand={ sum:0, wt:weightOf(rows) };
++    for(i=0;i<rows.length;i++) grand.sum += rows[i].amount;
+     var pad=n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm';
+     var html='';
+     /* 所有分页都顺着往下预览，不再只显示第一页 */
+-    for(i=0;i<docs.length;i++){
+-      var d=docs[i];
+-      allPages+=d.pages.length; allRows+=d.rows.length; tot+=d.grand.sum;
+-      for(j=0;j<d.pages.length;j++){
+-        html += '<div class="wps-page" style="width:'+pw+'px;padding:'+pad+'">'
+-          + pageHtml(d.order,t,d.pages[j],j,d.pages.length,d.grand) + '</div>';
+-      }
++    for(i=0;i<pages.length;i++){
++      html += '<div class="wps-page" style="width:'+pw+'px;padding:'+pad+'">'
++        + pageHtml(o,t,pages[i],i,pages.length,grand) + '</div>';
+     }
+     paper.style.width=pw+'px';
+     paper.style.minHeight='auto';
+@@ -15776,14 +15626,15 @@
+     paper.style.boxShadow='none';
+     paper.style.fontSize=Math.round(n2(t.fs))+'px';
+     paper.innerHTML=html;
++    var tot=0, j;
++    for(j=0;j<rows.length;j++) tot+=rows[j].amount;
+     var avail=(stage?stage.clientWidth:900)-52;
+     var sc=avail/pw; if(sc>1) sc=1; if(sc<0.2) sc=0.2;
+     paper.style.zoom=Math.round(sc*1000)/1000;
+     var bo=$('wpsBarOrder');
+-    if(bo) bo.textContent=(String(o.guest||'').trim()||'未填客人')+' · '+(o.date||'')+' · '+
+-      (docs.length>1?(docs.length+' 张小订单 · '):'')+allRows+' 味 · '+
+-      (allPages>1?('共 '+allPages+' 页'):'1 页')+' · 合计 ¥'+fmtMoney(tot);
+-    window.__WPS_LAST={ pages:allPages, rows:allRows, total:tot,
++    if(bo) bo.textContent=(String(o.guest||'').trim()||'未填客人')+' · '+(o.date||'')+' · '+rows.length+' 味 · '+
++      (pages.length>1?('共 '+pages.length+' 页'):'1 页')+' · 合计 ¥'+fmtMoney(tot);
++    window.__WPS_LAST={ pages:pages.length, rows:rows.length, total:tot,
+       pageW:w, pageH:hh, scale:paper.style.zoom };
+   }
+ 
+@@ -15803,8 +15654,6 @@
+     if(t.orient==='landscape') w=(p.h||240);
+     var s='@page{size:'+pageSizeCss(t)+';margin:0}';
+     s+='#wpPrintArea{display:block;width:'+w+'mm}';
+-    s+='#wpPrintArea .wpd{break-after:page;page-break-after:always}';
+-    s+='#wpPrintArea .wpd:last-child{break-after:auto;page-break-after:auto}';
+     s+='#wpPrintArea .wpd{padding:'+n2(t.padT)+'mm '+n2(t.padR)+'mm '+n2(t.padB)+'mm '+n2(t.padL)+'mm;'
+       +'font-size:'+Math.round(n2(t.fs))+'px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#000}';
+     css.textContent=s;
+@@ -15850,12 +15699,46 @@
+   function saveLogLS(){}
+   function fmt2(x){ x=parseFloat(x)||0; return x.toFixed(2); }
+   function round2(x){ return Math.round((parseFloat(x)||0)*100)/100; }
+-  function autoNo(){
+-    var y=new Date().getFullYear(), pre='PF-'+y+'-', max=0;
+-    S.orders.forEach(function(o){ if(o.no&&o.no.indexOf(pre)===0){ var n=parseInt(o.no.slice(pre.length),10); if(n>max) max=n; } });
+-    return pre+('000'+(max+1)).slice(-4);
+-  }
++  function autoNo(month){ return 'PF-'+(month||monthNow()); }
+   function today(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
++  function monthNow(){ return today().slice(0,7); }
++  function monthOf(o){
++    var m=String((o&&o.no)||'').match(/^PF-(\d{4}-\d{2})$/);
++    if(m) return m[1];
++    var dt=String((o&&o.dt)||'');
++    return dt?dt.slice(0,7):'';
++  }
++  function findByMonth(m){
++    for(var i=0;i<S.orders.length;i++){ if(monthOf(S.orders[i])===m) return S.orders[i]; }
++    return null;
++  }
++  function monthLabel(m){
++    var p=String(m||'').split('-');
++    return p[0]?(p[0]+'年'+(p[1]||'')+'月'):String(m||'');
++  }
++  function wasStocked(no){
++    var nm=String(no||'');
++    if(!nm) return false;
++    for(var i=0;i<S.log.length;i++){ if(String(S.log[i].purchase_no||'')===nm) return true; }
++    return false;
++  }
++  function itemDt(it){
++    var dt=String((it&&it.dt)||'').slice(0,10);
++    return dt || (String(S.cur&&S.cur.month||monthNow())+'-01');
++  }
++  /* 本月按「进货日期」拆分小订单 */
++  function batchesOf(o){
++    if(!o) return [];
++    var map={}, order=[];
++    (o.items||[]).forEach(function(it){
++      var dt=String(it.dt||'').slice(0,10) || (String(o.month||monthOf(o)||monthNow())+'-01');
++      if(!map[dt]){ map[dt]=[]; order.push(dt); }
++      map[dt].push(it);
++    });
++    order.sort();
++    return order.map(function(dt){ return {dt:dt, items:map[dt]}; });
++  }
++  function batches(){ return batchesOf(S.cur); }
+   function upsert(arr,rec){ for(var k=0;k<arr.length;k++){ if(arr[k].no===rec.no){ arr[k]=rec; return arr; } } arr.push(rec); return arr; }
+   function findByNo(no){ for(var i=0;i<S.orders.length;i++){ if(S.orders[i].no===no) return S.orders[i]; } return null; }
+   function findDrug(name){
+@@ -15890,22 +15773,46 @@
+     var bs=document.querySelectorAll('#purchaseRoot .wp-sub');
+     for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-sub')===sub); }
+     var l=$('purSubList'), e=$('purSubEdit');
+-    if(l) l.style.display = sub==='list'?'block':'none';
+-    if(e) e.style.display = sub==='edit'?'block':'none';
++    if(l) l.style.display = sub==='list'?'':'none';
++    if(e) e.classList.toggle('on', sub==='edit');
+     if(sub==='list') renderList();
+   }
+   function newOrder(){
+-    S.cur={no:autoNo(), dt:today(), supplier:'', items:[{name:'',qty:'',unit:'g',cost:'',amount:0}], note:'', total:0};
++    var m=monthNow();
++    var ex=findByMonth(m);
++    if(ex){ editOrder(ex.no); return; }
++    S.cur={no:autoNo(m), month:m, dt:m+'-01', supplier:'', items:[], note:'', total:0};
++    S.cur.items.push({dt:today(), name:'',qty:'',unit:'g',cost:'',amount:0});
+     renderEdit(); showSub('edit');
+   }
+   function editOrder(no){
+     var o=findByNo(no); if(!o) return;
+-    S.cur=JSON.parse(JSON.stringify(o));
++    var cp=JSON.parse(JSON.stringify(o));
++    cp.month=monthOf(cp);
++    cp.items=(cp.items||[]).map(function(it){
++      var x=JSON.parse(JSON.stringify(it));
++      x.dt=String(x.dt||'').slice(0,10) || (cp.month+'-01');
++      x.amount=(parseFloat(x.qty)||0)*(parseFloat(x.cost)||0);
++      return x;
++    });
++    if(!cp.items.length) cp.items.push({dt:cp.month+'-01', name:'',qty:'',unit:'g',cost:'',amount:0});
++    cp._origNo=o.no;
++    S.cur=cp;
+     renderEdit(); showSub('edit');
+   }
+   function recalc(){
+-    var total=0; S.cur.items.forEach(function(it){ var q=parseFloat(it.qty)||0, c=parseFloat(it.cost)||0; it.amount=q*c; total+=it.amount; });
+-    var t=$('purTotal'); if(t) t.textContent=fmt2(total);
++    var total=0;
++    S.cur.items.forEach(function(it){ var q=parseFloat(it.qty)||0, c=parseFloat(it.cost)||0; it.amount=q*c; total+=it.amount; });
++    var byDt={};
++    S.cur.items.forEach(function(it){ var k=itemDt(it); byDt[k]=round2((byDt[k]||0)+(it.amount||0)); });
++    var nodes=document.querySelectorAll('#purBlocks .pur-bat-total');
++    for(var i=0;i<nodes.length;i++){
++      var d=nodes[i].getAttribute('data-dt');
++      nodes[i].textContent='¥'+fmt2(byDt[d]||0);
++    }
++    var t=$('purTotal'); if(t) t.textContent='¥'+fmt2(total);
++    var bc=$('purBatchCnt'); if(bc) bc.textContent=String(batches().length);
++    var ic=$('purItemCnt'); if(ic){ var n=0; S.cur.items.forEach(function(it){ if(String(it.name||'').trim()) n++; }); ic.textContent=String(n); }
+     return total;
+   }
+   function fillDrugList(){
+@@ -15927,60 +15834,97 @@
+     if(!d) return null;
+     return {name:base, d:d};
+   }
+-  function renderItems(){
+-    var tb=$('purItems'); if(!tb) return;
+-    tb.innerHTML=S.cur.items.map(function(it,i){
+-      var d=findDrug(it.name);
+-      /* 单位候选 = 常用单位 + 这味药已有的规格单位（避免有「袋」却选不到，保存时被拦） */
+-      var us=['g','kg','斤','个','条','盒','罐','包','瓶'];
+-      if(d){
+-        var mu=String(d.u||'g');
+-        if(us.indexOf(mu)<0) us.push(mu);
+-        (d.un||[]).forEach(function(x){ var u=String((x||{}).unit||''); if(u && us.indexOf(u)<0) us.push(u); });
+-      }
+-      var cur=String(it.unit||'g');
+-      if(us.indexOf(cur)<0) us.push(cur);
+-      var opts=us.map(function(u){
+-        return '<option'+(u===cur?' selected':'')+'>'+u+'</option>'; }).join('');
+-      var hint='';
+-      if(it.name){
+-        if(!d) hint='<div class="pur-hint">药品库无此药</div>';
+-        else if(!hasUnit(d,it.unit)) hint='<div class="pur-hint">无「'+esc(it.unit)+'」单位</div>';
+-        else hint='<div class="pur-hint ok">现有库存 '+esc(String(stockOf(d,it.unit)))+' '+esc(it.unit)+'</div>';
+-      }
+-      /* 炒制类：进货单价旁边给一个「带入生品进价」，点了就填最近一次生品的价，还能再手改 */
+-      var prod='', bb=baseOf(it.name);
+-      if(bb){
+-        var lc=latestCost(bb.name);
+-        if(lc!=null){
+-          prod='<button type="button" class="pur-prod" data-i="'+i+'" data-cost="'+esc(String(lc))+
+-               '" title="把最近一次「'+esc(bb.name)+'」的进货价（'+fmt2(lc)+'）填进来">带入生品进价</button>';
++  function addItemAfter(dt,i){
++    if(!S.cur) return;
++    var idx=(typeof i==='number'&&i>=0)?i:S.cur.items.length-1;
++    var it=S.cur.items[idx]||{};
++    S.cur.items.splice(idx+1,0,{dt:String(dt||itemDt(it)).slice(0,10), name:'', qty:'', unit:String(it.unit||'g'), cost:'', amount:0});
++    renderBlocks(); renderFoot();
++  }
++  /* 单位候选：这味药已有的规格单位 + 常用单位（进货价按 kg 计，所以 kg 必须可选） */
++  function unitOptsFor(it,d){
++    var us=[], def=['g','kg','斤','个','条','盒','罐','包','瓶'];
++    if(d){
++      var mu=String(d.u||'g');
++      if(mu && us.indexOf(mu)<0) us.push(mu);
++      (d.un||[]).forEach(function(x){ var u=String((x||{}).unit||''); if(u && us.indexOf(u)<0) us.push(u); });
++    }
++    def.forEach(function(u){ if(us.indexOf(u)<0) us.push(u); });
++    var cur=String(it.unit||'g');
++    if(us.indexOf(cur)<0) us.unshift(cur);
++    return us;
++  }
++  /* 表格结构 / 字段顺序 / 类名与【药方打印】订单详情一致 */
++  function renderBlocks(){
++    var box=$('purBlocks'); if(!box) return;
++    var bs=batches();
++    if(!bs.length){
++      box.innerHTML='<div class="wp-empty">还没有小订单。点下方「+ 添加小订单（按进货日期）」开始录单。</div>';
++      return;
++    }
++    box.innerHTML=bs.map(function(b,bi){
++      var sum=0;
++      b.items.forEach(function(it){ sum+=(parseFloat(it.qty)||0)*(parseFloat(it.cost)||0); });
++      var rows=b.items.map(function(it){
++        var i=S.cur.items.indexOf(it);
++        var d=findDrug(it.name), cur=String(it.unit||'g');
++        var tag='';
++        if(it.name){
++          if(!d) tag='<span class="wp-std pur-bad">库里无此药</span>';
++          else if(!hasUnit(d,cur)) tag='<span class="wp-std pur-bad">无「'+esc(cur)+'」单位</span>';
++          else tag='<span class="wp-std">库存 '+esc(String(stockOf(d,cur)))+'</span>';
+         }
+-      }
+-      return '<tr data-i="'+i+'">'
+-        +'<td><input data-ddlist="purchaseDrugList" class="pur-name" value="'+esc(it.name||'')+'" placeholder="药名">'+hint+'</td>'
+-        +'<td><input class="pur-qty num" value="'+esc(it.qty||'')+'" placeholder="数量" style="width:100%"></td>'
+-        +'<td><select class="pur-unit">'+opts+'</select></td>'
+-        +'<td><input class="pur-cost num" value="'+esc(it.cost||'')+'" placeholder="单价" style="width:100%">'+prod+'</td>'
+-        +'<td class="num pur-amt">'+fmt2(it.amount||0)+'</td>'
+-        +'<td><button type="button" class="mini" onclick="Purchase.delItem('+i+')">删</button></td>'
+-        +'</tr>';
++        var prod='', bb=baseOf(it.name);
++        if(bb){
++          var lc=latestCost(bb.name);
++          if(lc!=null) prod='<button type="button" class="pur-prod" data-cost="'+esc(String(lc))+'" title="把最近一次「'+esc(bb.name)+'」的进货价（'+fmt2(lc)+'）填进来">生品价 '+fmt2(lc)+'</button>';
++        }
++        var tags=(tag||prod)?'<span class="wp-nm-tags">'+tag+prod+'</span>':'';
++        var cls='wp-nm-wrap no-detail'+((tag||prod)?' has-std':'');
++        var uOpts=unitOptsFor(it,d);
++        return '<tr data-i="'+i+'">'
++          +'<td class="wp-plus-td"><button class="wp-plus" type="button" title="在下方新增一行" onmousedown="return false" onclick="Purchase.addItemAfter(\''+esc(b.dt)+'\','+i+')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="6" y1="1.5" x2="6" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
++          +'<td><div class="'+cls+'"><input class="wp-nm" list="purchaseDrugList" value="'+esc(it.name||'')+'" placeholder="药名 / 拼音" autocomplete="off">'+tags+'</div></td>'
++          +'<td><div class="wp-qty-cell"><input class="num wp-qty" inputmode="decimal" value="'+esc(it.qty||'')+'" placeholder="数量"><input class="wp-unit-in" data-ddoptions="'+esc(JSON.stringify(uOpts))+'" value="'+esc(cur)+'" title="单位"></div></td>'
++          +'<td style="text-align:center"><input class="num wp-price" inputmode="decimal" value="'+esc(it.cost||'')+'" placeholder="元/kg"></td>'
++          +'<td class="wp-amt">'+fmt2(it.amount||0)+'</td>'
++          +'<td class="wp-rm-td"><input class="wp-rm-in" placeholder="备注（选填）"></td>'
++          +'<td class="row-act"><button type="button" class="btn danger sm" onclick="Purchase.delItem('+i+')">删除</button></td>'
++          +'</tr>';
++      }).join('');
++      return '<div class="wp-block">'
++        +'<div class="wp-block-head">'
++          +'<input class="wp-block-title" readonly value="小订单 '+(bi+1)+'" title="按进货日期自动拆分">'
++          +'<label class="wp-bi">进货日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-dt="'+esc(b.dt)+'" data-date="'+esc(b.dt)+'" value="'+esc(b.dt)+'" placeholder="选择日期" onchange="Purchase.setBatchDate(this)"></label>'
++          +'<span class="wp-sub wp-sub-sum">本单合计 <b class="pur-bat-total" data-dt="'+esc(b.dt)+'">¥'+fmt2(sum)+'</b></span>'
++          +'<span class="spacer"></span>'
++          +'<button type="button" class="btn danger sm" onclick="Purchase.delBatch(\''+esc(b.dt)+'\')">删除小订单</button>'
++        +'</div>'
++        +'<div class="wp-block-tools">'
++          +'<button type="button" class="btn sm" onclick="Purchase.addItem(\''+esc(b.dt)+'\')">+ 增加一味药</button>'
++          +'<button type="button" class="btn sm" onclick="Purchase.addBatch()">+ 再加一个小订单</button>'
++        +'</div>'
++        +'<div class="wp-tbl-wrap"><table class="wp-tbl">'
++          +'<colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup>'
++          +'<thead><tr><th></th><th>药名 / 耗材名</th><th>数量 · 单位</th><th style="text-align:center">进货单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead>'
++          +'<tbody>'+rows+'</tbody></table></div>'
++        +'</div>';
+     }).join('');
+-    var rows=tb.querySelectorAll('tr');
+-    for(var r=0;r<rows.length;r++){
++    var trs=box.querySelectorAll('tr[data-i]');
++    for(var r=0;r<trs.length;r++){
+       (function(tr){
+         var i=+tr.getAttribute('data-i');
+-        var name=tr.querySelector('.pur-name'), qty=tr.querySelector('.pur-qty'), unit=tr.querySelector('.pur-unit'), cost=tr.querySelector('.pur-cost');
++        var name=tr.querySelector('.wp-nm'), qty=tr.querySelector('.wp-qty'), unit=tr.querySelector('.wp-unit-in'), cost=tr.querySelector('.wp-price');
+         function upd(){
+-          var it=S.cur.items[i]; it.name=name.value; it.qty=qty.value; it.unit=unit.value; it.cost=cost.value;
++          var it=S.cur.items[i]; if(!it) return;
++          it.name=name.value; it.qty=qty.value; it.unit=unit.value; it.cost=cost.value;
+           recalc();
+-          /* 金额单元格跟着改（原来只更新合计，行内金额要等重绘才对） */
+-          var amtTd=tr.querySelector('.pur-amt');
++          var amtTd=tr.querySelector('.wp-amt');
+           if(amtTd) amtTd.textContent=fmt2(it.amount||0);
+         }
+-        name.oninput=function(){ upd(); };
+-        name.onchange=function(){ upd(); renderItems(); };
+-        unit.onchange=function(){ upd(); renderItems(); };
++        name.oninput=upd;
++        name.onchange=function(){ upd(); renderBlocks(); };
++        unit.onchange=function(){ upd(); renderBlocks(); };
+         qty.oninput=upd; cost.oninput=upd;
+         var prod=tr.querySelector('.pur-prod');
+         if(prod){ prod.onclick=function(e){
+@@ -15991,8 +15935,24 @@
+           try{ cost.focus(); }catch(e2){}
+           toast('已带入生品进价 '+fmt2(v)+'，可直接改');
+         }; }
+-      })(rows[r]);
++      })(trs[r]);
+     }
++    recalc();
++  }
++  function renderFoot(){
++    var f=$('purFoot'); if(!f) return;
++    var stocked=wasStocked(S.cur.no);
++    f.innerHTML='<div class="wp-totals">'
++      +'<div class="wp-line"><span>小订单（按进货日期）</span><b id="purBatchCnt">0</b></div>'
++      +'<div class="wp-line"><span>药材品种</span><b id="purItemCnt">0</b></div>'
++      +'<div class="wp-line wp-grand"><span>本月进货合计</span><b id="purTotal">¥0.00</b></div>'
++      +'</div>'
++      +'<div class="wp-foot-actions"><span class="wp-sub">'
++      +(stocked?'本月已入库；再次入库会先扣回旧库存，再按当前单据重记。':'录完点「入库」写入库存与进货价。')
++      +'</span><span class="spacer"></span>'
++      +'<button class="btn" type="button" onclick="Purchase.showSub(\'list\')">返回</button>'
++      +'<button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button></div>';
++    recalc();
+   }
+   function stockOf(d, unit){
+     if(!d) return 0;
+@@ -16002,18 +15962,90 @@
+     return 0;
+   }
+   function renderEdit(){
+-    $('purNo').value=S.cur.no||''; $('purDt').value=S.cur.dt||today();
+-    $('purSupplier').value=S.cur.supplier||'';
+-    var nt=$('purNote'); if(nt) nt.value=S.cur.note||'';
+-    if(!S.cur.items||!S.cur.items.length) S.cur.items=[{name:'',qty:'',unit:'g',cost:'',amount:0}];
+-    renderItems(); fillDrugList(); recalc();
+-    var m=$('purMsg'); if(m) m.textContent='';
++    var mo=$('purMonth'); if(mo) mo.value=S.cur.month||monthNow();
++    var nv=$('purNoView'); if(nv) nv.value=S.cur.no||'';
++    var st=$('purStatus'); if(st) st.value=wasStocked(S.cur.no)?'已入库':'未入库';
++    var t=$('purTitle'); if(t) t.textContent=monthLabel(S.cur.month);
++    var n=$('purNo'); if(n) n.textContent=S.cur.no||'';
++    if(!S.cur.items||!S.cur.items.length){
++      S.cur.items=[{dt:(S.cur.month||monthNow())+'-01', name:'',qty:'',unit:'g',cost:'',amount:0}];
++    }
++    renderBlocks(); renderFoot(); fillDrugList();
++    var msg=$('purMsg'); if(msg) msg.textContent='';
++  }
++  function addItem(dt){
++    if(!S.cur) return;
++    var use=String(dt||'').slice(0,10);
++    /* 加进已有小订单时，默认沿用该小订单里最后一味的单位 */
++    var unit='g';
++    S.cur.items.forEach(function(it){ if(use && itemDt(it)===use && it.unit) unit=it.unit; });
++    S.cur.items.push({dt:use||(S.cur.month||monthNow())+'-01', name:'',qty:'',unit:unit,cost:'',amount:0});
++    renderBlocks(); renderFoot();
+   }
+-  function addItem(){ S.cur.items.push({name:'',qty:'',unit:'g',cost:'',amount:0}); renderItems(); }
+   function delItem(i){
++    if(!S.cur) return;
+     S.cur.items.splice(i,1);
+-    if(!S.cur.items.length) S.cur.items.push({name:'',qty:'',unit:'g',cost:'',amount:0});
+-    renderItems();
++    renderBlocks(); renderFoot();
++  }
++  /* 本月内找一个还没用过的小订单日期 */
++  function nextBatchDate(){
++    var m=S.cur.month||monthNow();
++    var used=batches().map(function(b){ return b.dt; });
++    var cand=today().slice(0,7)===m?today():m+'-01';
++    var y=parseInt(m.slice(0,4),10), mm=parseInt(m.slice(5,7),10);
++    var last=new Date(y,mm,0).getDate();
++    for(var k=0;k<last;k++){
++      if(used.indexOf(cand)<0) return cand;
++      var n=new Date(cand+'T00:00:00');
++      n.setDate(n.getDate()+1);
++      cand=m+'-'+pad2(n.getDate());
++    }
++    return cand;
++  }
++  function addBatch(){
++    if(!S.cur) return;
++    S.cur.items.push({dt:nextBatchDate(), name:'',qty:'',unit:'g',cost:'',amount:0});
++    renderBlocks(); renderFoot();
++  }
++  function delBatch(dt){
++    if(!S.cur) return;
++    var d=String(dt||'').slice(0,10);
++    S.cur.items=S.cur.items.filter(function(it){ return itemDt(it)!==d; });
++    renderBlocks(); renderFoot();
++  }
++  function setBatchDate(inp){
++    if(!S.cur||!inp) return;
++    var old=String(inp.getAttribute('data-dt')||'').slice(0,10);
++    var v=String(inp.value||'').slice(0,10);
++    var m=S.cur.month||monthNow();
++    if(!v || v.slice(0,7)!==m){
++      toastErr('小订单日期要在本月（'+monthLabel(m)+'）内');
++      renderBlocks(); renderFoot(); return;
++    }
++    S.cur.items.forEach(function(it){ if(itemDt(it)===old) it.dt=v; });
++    renderBlocks(); renderFoot();
++  }
++  function setMonth(v){
++    if(!S.cur) return;
++    v=String(v||'').slice(0,7);
++    if(!v || v===S.cur.month){ renderEdit(); return; }
++    var ex=findByMonth(v);
++    if(ex && ex.no!==S.cur.no){
++      S.cur=null;
++      toast('该月已有进货单，已切换到 '+monthLabel(v));
++      editOrder(ex.no); return;
++    }
++    var y=parseInt(v.slice(0,4),10), mm=parseInt(v.slice(5,7),10);
++    var last=new Date(y,mm,0).getDate();
++    var prev=S.cur.month;
++    S.cur.items.forEach(function(it){
++      var dd=parseInt(itemDt(it).slice(8,10),10)||1;
++      if(dd>last) dd=last;
++      it.dt=v+'-'+pad2(dd);
++    });
++    S.cur.month=v; S.cur.no=autoNo(v); S.cur.dt=v+'-01';
++    if(prev!==v) toast('已改为 '+monthLabel(v)+'，单号 '+S.cur.no);
++    renderEdit();
+   }
+ 
+   /* ---------- 保存 ---------- */
+@@ -16027,11 +16059,11 @@
+     return out;
+   }
+   function saveOrder(){
+-    S.cur.no=$('purNo').value.trim()||autoNo();
+-    S.cur.dt=$('purDt').value||today();
+-    S.cur.supplier=$('purSupplier').value.trim();
+-    var nt=$('purNote'); S.cur.note=nt?nt.value.trim():'';
+-    S.cur.items=S.cur.items.filter(function(it){ return (it.name||'').trim(); });
++    if(!S.cur) return;
++    var mo=$('purMonth'); if(mo && mo.value) S.cur.month=String(mo.value).slice(0,7);
++    S.cur.no=autoNo(S.cur.month); S.cur.dt=S.cur.month+'-01';
++    S.cur.supplier=''; S.cur.note='';
++    S.cur.items=S.cur.items.filter(function(it){ return String(it.name||'').trim(); });
+     var bad=[];
+     S.cur.items.forEach(function(it){ if(!(parseFloat(it.qty)>0)||!(parseFloat(it.cost)>=0)) bad.push(it.name); });
+     var m=$('purMsg'); if(m) m.textContent='';
+@@ -16049,23 +16081,35 @@
+     commitSave();
+   }
+   function commitSave(){
++    if(!S.cur) return;
+     recalc();
+     S.cur.total=0; S.cur.items.forEach(function(it){ S.cur.total+=it.amount; });
+-    /* 改单重存：先把旧单造成的库存与进价流水撤回，再按新内容重记，否则库存会翻倍 */
++    /* 重复入库：先把旧单造成的库存与进价流水撤回，再按新内容重记，否则库存会翻倍 */
+     var prev=findByNo(S.cur.no);
+-    if(prev) undoStock(prev);
++    if(prev && wasStocked(prev.no)) undoStock(prev);
++    /* 改过月份：把旧月份那张单撤掉（否则同一个月会同时存在两张单、库存也会重复累加） */
++    var orig=S.cur._origNo;
++    if(orig && orig!==S.cur.no){
++      var old=findByNo(orig);
++      if(old){
++        if(wasStocked(old.no)) undoStock(old);
++        S.orders=S.orders.filter(function(x){ return x.no!==orig; });
++        if(SUPA.on){ try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(orig),{method:'DELETE'}).catch(function(){}); }catch(e){} }
++      }
++    }
++    delete S.cur._origNo;
+     S.orders=upsert(S.orders, S.cur); saveLS();
+     S.cur.items.forEach(function(it){
+-      applyStock(it.name, it.unit, parseFloat(it.qty), parseFloat(it.cost), S.cur.dt, S.cur.supplier, S.cur.no);
++      applyStock(it.name, it.unit, parseFloat(it.qty), parseFloat(it.cost), itemDt(it), '', S.cur.no);
+     });
++    var no=S.cur.no, label=monthLabel(S.cur.month);
+     if(SUPA.on){
+-      var rec={no:S.cur.no, dt:S.cur.dt, supplier:S.cur.supplier,
+-        items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount}; }),
+-        total:S.cur.total, note:S.cur.note||''};
++      var rec={no:no, dt:S.cur.month+'-01', supplier:'',
++        items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount,dt:itemDt(it)}; }),
++        total:S.cur.total, note:''};
+       SUPA.savePurchase(rec).catch(function(e){ toastErr('进货单云端保存失败：'+e.message); });
+     }
+-    var no=S.cur.no;
+-    toast('进货单 '+no+' 已保存，库存已更新');
++    toast(label+'进货单已入库，库存与进货价已更新');
+     S.cur=null; showSub('list');
+     try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){}
+   }
+@@ -16158,26 +16202,38 @@
+   function closeM(id){ var m=$(id); if(m) m.classList.remove('on'); }
+   function delOrder(no, ev){
+     if(ev && ev.stopPropagation) ev.stopPropagation();
+-    var o=findByNo(no); if(!o) return;
++    var o=no?findByNo(no):(S.cur?findByNo(S.cur.no):null);
++    if(!o) return;
+     S.del=o;
++    var bs=batchesOf(o);
+     var t=$('purDelText');
+-    if(t) t.textContent='进货单 '+o.no+'（'+(o.dt||'')+'）共 '+((o.items||[]).length)+' 项，合计 ¥'+fmt2(o.total||0)+'。';
++    if(t) t.textContent=monthLabel(monthOf(o))+'（'+o.no+'）共 '+bs.length+' 个小订单、'+((o.items||[]).length)+' 项，合计 ¥'+fmt2(o.total||0)+'。';
++    var dh=document.getElementById('purDelHead');
++    if(dh) dh.textContent=wasStocked(o.no)?'本月进货单已入库，删除时是否同时扣回对应库存？':'本月进货单还没入库，删除不会影响库存。';
+     var ul=$('purDelList');
+     if(ul) ul.innerHTML=(o.items||[]).map(function(it){
+-      return '<li>'+esc(it.name)+' <b>-'+esc(String(it.qty))+' '+esc(it.unit)+'</b></li>';
++      return '<li>'+esc(it.name)+' <b>'+esc(String(it.qty))+' '+esc(it.unit)+'</b>'+(it.dt?' <span class="pur-hint">'+esc(String(it.dt).slice(5))+'</span>':'')+'</li>';
+     }).join('');
+     openM('purDelModal');
+   }
+   function closeDel(){ closeM('purDelModal'); S.del=null; }
+   function doDel(withStock){
+     var o=S.del; if(!o) return;
+-    if(withStock) undoStock(o);
++    var stocked=wasStocked(o.no);
++    if(withStock && stocked) undoStock(o);
+     S.orders=S.orders.filter(function(x){ return x.no!==o.no; }); saveLS();
+-    if(SUPA.on){ try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){} }
++    if(SUPA.on){
++      try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
++      if(stocked && !withStock){
++        /* 只删单据、不扣库存时，进价流水也一并删掉，避免留下来源已不存在的记录 */
++        try{ SUPA.q('drug_cost_log?purchase_no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
++      }
++    }
++    if(S.cur && S.cur.no===o.no) S.cur=null;
+     closeM('purDelModal'); S.del=null;
+-    renderList();
++    showSub('list');
+     try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){}
+-    toast('已删除 '+o.no+(withStock?'，库存已扣回':'，库存未变动'));
++    toast('已删除 '+monthLabel(monthOf(o))+(withStock&&stocked?'，库存已扣回':'，库存未变动'));
+   }
+   /* ---------- 自动建药确认 ---------- */
+   function closeNewDrug(){
+@@ -16220,27 +16276,34 @@
+     return best;
+   }
+ 
+-  /* ---------- 列表 ---------- */
++  /* ---------- 列表（按月，一张月度大订单一张卡） ---------- */
+   function renderList(){
+     var box=$('purList'); if(!box) return;
+-    var list=S.orders.slice().sort(function(a,b){ return (b.dt||'')<(a.dt||'')?-1:1; });
++    var list=S.orders.slice().sort(function(a,b){ return monthOf(a)<monthOf(b)?1:-1; });
+     var f=(S.search||'').toLowerCase();
+-    if(f) list=list.filter(function(o){ return (o.no+o.supplier+(o.dt||'')+(o.note||'')).toLowerCase().indexOf(f)>=0; });
+-    if(!list.length){ box.innerHTML='<div class="wp-empty">还没有进货单，点右上「新建 / 录单」开始。</div>'; return; }
++    if(f){
++      list=list.filter(function(o){
++        var st=wasStocked(o.no)?'已入库':'未入库';
++        return (monthLabel(monthOf(o))+o.no+st).toLowerCase().indexOf(f)>=0;
++      });
++    }
++    var cnt=$('purListCount'); if(cnt) cnt.textContent=list.length?('共 '+list.length+' 个月'):'';
++    if(!list.length){ box.innerHTML='<div class="wp-list-empty">还没有进货单，点右上「新建 / 录单」开始。</div>'; return; }
+     box.innerHTML=list.map(function(o){
+-      var its=o.items||[], cnt=its.length, total=(o.total||0);
+-      var names=its.slice(0,6).map(function(it){ return esc(it.name); }).join('、');
+-      return '<div class="wp-card" data-no="'+esc(o.no)+'">'
+-        +'<div class="wp-card-h"><b>'+esc(o.no)+'</b><span class="wp-card-sub">'+esc(o.dt||'')+' · 供应商：'+(esc(o.supplier)||'—')+'</span>'
+-        +'<span class="spacer"></span><span class="wp-card-amt">¥'+fmt2(total)+'</span></div>'
+-        +'<div class="wp-card-meta">'+cnt+' 项'+(names?(' · '+names+(cnt>6?'…':'')):'')+'</div>'
+-        +(o.note?('<div class="wp-card-meta">备注：'+esc(o.note)+'</div>'):'')
+-        +'<div class="wp-card-meta"><a href="javascript:;" onclick="Purchase.editOrder(\''+esc(o.no)+'\')">查看 / 修改</a>'
+-        +' · <a href="javascript:;" class="pur-del" onclick="Purchase.delOrder(\''+esc(o.no)+'\',event)">删除</a></div>'
++      var its=(o.items||[]).filter(function(it){ return String(it.name||'').trim(); });
++      var bs=batchesOf(o), stocked=wasStocked(o.no);
++      var names=its.slice(0,4).map(function(it){ return esc(it.name); }).join('、')+(its.length>4?' 等':'');
++      return '<div class="wp-plan-row" data-no="'+esc(o.no)+'" onclick="Purchase.editOrder(\''+esc(o.no)+'\')">'
++        +'<div><div class="wp-plan-name">'+esc(monthLabel(monthOf(o)))+'</div>'
++        +'<div class="wp-plan-sub">'+esc(o.no)+' · '+bs.length+' 个小订单 · '+its.length+' 味药'+(its.length?(' · '+names):'')+'</div></div>'
++        +'<div class="wp-plan-num">'+bs.length+' 单</div>'
++        +'<div class="wp-plan-amt">¥'+fmt2(o.total||0)+'</div>'
++        +'<div class="wp-plan-act"><span class="wp-tag'+(stocked?'':' pur-undone')+'">'+(stocked?'已入库':'未入库')+'</span></div>'
+         +'</div>';
+     }).join('');
+   }
+-  return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, delItem:delItem,
++  return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, addItemAfter:addItemAfter, delItem:delItem,
++    addBatch:addBatch, delBatch:delBatch, setBatchDate:setBatchDate, setMonth:setMonth,
+     saveOrder:saveOrder, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
+     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
+ })();
+@@ -16562,7 +16625,7 @@
+    作用域严格限定：.page[data-page="print"] 内的 WPlan。
+    不改 DOM、不改包名结构、不增删字段/按钮、不改任何 onclick / 数据逻辑。
+    ===================================================================== */
+-.page[data-page="print"] .wplan{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan{
+   --pri:#0E9A6A; --pri-h:#0B7F57; --pri-deep:#0B6E4D;
+   --pri-soft:#E7F7EF; --pri-line:#CFEADF;
+   --neutral-0:#FFFFFF; --neutral-1:#F3F8F5; --neutral-2:#E4ECE7; --neutral-3:#D6E3DC;
+@@ -16575,233 +16638,233 @@
+   --danger:#D25B4E; --danger-soft:#FBEDEB; --danger-line:#EFCFCA;
+   background:#F3F8F5 !important;
+ }
+-.page[data-page="print"] .wplan .wp-title{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-title{
+   font-size:21px !important; font-weight:600 !important; color:#16231D !important;
+   letter-spacing:.01em;
+ }
+-.page[data-page="print"] .wplan .wp-list{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-list{
+   background:#FFFFFF !important;
+   border:1px solid #E4ECE7 !important;
+   border-radius:14px !important;
+   box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+   overflow:hidden;
+ }
+-.page[data-page="print"] .wplan .wp-list-bar{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-list-bar{
+   background:#FFFFFF !important;
+   border-bottom:1px solid #E4ECE7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-search{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-search{
+   border:1px solid #D6E3DC !important; border-radius:9px !important;
+   background:#FFFFFF !important; color:#16231D !important;
+   font-size:14px !important;
+ }
+-.page[data-page="print"] .wplan .wp-search:focus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-search:focus{
+   border-color:#0E9A6A !important;
+   box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+   outline:none !important;
+ }
+-.page[data-page="print"] .wplan .wp-seg{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-seg{
+   background:#F1FAF5 !important;
+   border:1px solid #E4ECE7 !important;
+   border-radius:999px !important;
+ }
+-.page[data-page="print"] .wplan .wp-seg-btn,
+-.page[data-page="print"] .wplan #wpSegStatus .wp-seg-btn,
+-.page[data-page="print"] .wplan #wpSegView .wp-seg-btn{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-seg-btn,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan #wpSegStatus .wp-seg-btn,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan #wpSegView .wp-seg-btn{
+   border-radius:999px !important;
+   font-family:var(--font-ui) !important;
+   font-size:13.5px !important;
+   color:#5E7168 !important;
+ }
+-.page[data-page="print"] .wplan #wpSegStatus .wp-seg-btn.on,
+-.page[data-page="print"] .wplan #wpSegView .wp-seg-btn.on{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan #wpSegStatus .wp-seg-btn.on,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan #wpSegView .wp-seg-btn.on{
+   background:#FFFFFF !important;
+   color:#0B6E4D !important;
+   font-weight:700 !important;
+   box-shadow:0 1px 3px rgba(17,45,32,.10) !important;
+ }
+-.page[data-page="print"] .wplan .wp-list-count{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-list-count{
+   font-size:12.5px !important; color:#93A49B !important;
+ }
+-.page[data-page="print"] .wplan .wp-row{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row{
+   border-bottom:1px solid #EDF3EF !important;
+ }
+-.page[data-page="print"] .wplan .wp-row:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row:hover{
+   background:#F5FBF7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-row.on{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row.on{
+   background:#E7F7EF !important;
+   box-shadow:inset 3px 0 0 #0E9A6A !important;
+ }
+-.page[data-page="print"] .wplan .wp-row.head{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row.head{
+   background:#F7FBF8 !important;
+ }
+-.page[data-page="print"] .wplan .wp-row.head:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row.head:hover{
+   background:#F7FBF8 !important;
+ }
+-.page[data-page="print"] .wplan .wp-row.head > div{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-row.head > div{
+   font-size:11.5px !important; color:#5E7168 !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-time{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-time{
+   font-size:13px !important; color:#93A49B !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-guest{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-guest{
+   font-size:14px !important; color:#16231D !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-dish{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-dish{
+   font-size:14px !important; color:#16231D !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-dish .sub{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-dish .sub{
+   font-size:10.5px !important; color:#93A49B !important; font-weight:400 !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-cnt{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-cnt{
+   font-size:12.5px !important; color:#93A49B !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-total{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-total{
+   font-size:14px !important; color:#16231D !important; font-weight:700 !important;
+   font-variant-numeric:tabular-nums;
+ }
+-.page[data-page="print"] .wplan .wp-c-status .tag{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-status .tag{
+   font-size:11.5px !important; border-radius:999px !important; padding:2px 9px !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-status .tag.done{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-status .tag.done{
+   background:#E7F7EF !important; border-color:#CFEADF !important; color:#0B6E4D !important;
+ }
+-.page[data-page="print"] .wplan .wp-c-status .tag.undone{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-c-status .tag.undone{
+   background:#FCF4E4 !important; border-color:#EEDDBB !important; color:#C08A2E !important;
+ }
+-.page[data-page="print"] .wplan .wp-list-empty{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-list-empty{
+   font-size:13px !important; color:#93A49B !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-row{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-row{
+   border-bottom:1px solid #EDF3EF !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-row:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-row:hover{
+   background:#F5FBF7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-row.on{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-row.on{
+   background:#E7F7EF !important;
+   box-shadow:inset 3px 0 0 #0E9A6A !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-name{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-name{
+   color:#16231D !important; font-size:14.5px !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-sub{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-sub{
+   color:#93A49B !important; font-size:11.5px !important;
+ }
+-.page[data-page="print"] .wplan .wp-plan-amt{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-plan-amt{
+   color:#0B6E4D !important; font-size:14px !important; font-weight:700 !important;
+ }
+-.page[data-page="print"] .wplan button{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan button{
+   border-radius:9px !important;
+   font-size:14px !important;
+   font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan button.sm{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan button.sm{
+   font-size:12.5px !important;
+ }
+-.page[data-page="print"] .wplan button.pri{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan button.pri{
+   background:#0E9A6A !important; border-color:#0E9A6A !important; color:#FFFFFF !important;
+   box-shadow:0 6px 16px rgba(14,154,106,.18) !important;
+ }
+-.page[data-page="print"] .wplan button.pri:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan button.pri:hover{
+   background:#0B7F57 !important; border-color:#0B7F57 !important;
+ }
+-.page[data-page="print"] .wplan button.danger{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan button.danger{
+   background:#FBEDEB !important; border-color:#EFCFCA !important; color:#D25B4E !important;
+ }
+-.page[data-page="print"] .wplan .wp-detail{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-detail{
+   background:#F3F8F5 !important;
+ }
+-.page[data-page="print"] .wplan .wp-detail-head{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-detail-head{
+   background:#FFFFFF !important;
+   border-bottom:1px solid #E4ECE7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-detail-title{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-detail-title{
+   font-size:17px !important; font-weight:600 !important; color:#16231D !important;
+ }
+-.page[data-page="print"] .wplan .wp-detail-no{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-detail-no{
+   font-size:12px !important; color:#93A49B !important;
+ }
+-.page[data-page="print"] .wplan .wp-order{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-order{
+   background:#FFFFFF !important;
+   border:1px solid #E4ECE7 !important;
+   border-radius:14px !important;
+   box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+ }
+-.page[data-page="print"] .wplan .wp-field label{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-field label{
+   font-size:12px !important; color:#5E7168 !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-in{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-in{
+   border:1px solid #D6E3DC !important; border-radius:9px !important;
+   background:#FFFFFF !important; color:#16231D !important;
+   font-size:14px !important;
+ }
+-.page[data-page="print"] .wplan .wp-in[readonly]{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-in[readonly]{
+   background:#F7FBF8 !important; color:#5E7168 !important;
+ }
+-.page[data-page="print"] .wplan .wp-in:focus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-in:focus{
+   border-color:#0E9A6A !important;
+   box-shadow:0 0 0 3px rgba(14,154,106,.12) !important;
+   outline:none !important;
+ }
+-.page[data-page="print"] .wplan .wp-block{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-block{
+   background:#FFFFFF !important;
+   border:1px solid #E4ECE7 !important;
+   border-radius:14px !important;
+   box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+ }
+-.page[data-page="print"] .wplan .wp-block-head{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-block-head{
+   background:#F7FBF8 !important;
+   border-bottom:1px solid #E4ECE7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-block-title{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-block-title{
+   font-size:15px !important; font-weight:600 !important; color:#16231D !important;
+   border-bottom-color:#D6E3DC !important;
+ }
+-.page[data-page="print"] .wplan .wp-sub{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-sub{
+   font-size:12px !important; color:#5E7168 !important;
+ }
+-.page[data-page="print"] .wplan .wp-sub b{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-sub b{
+   color:#16231D !important; font-variant-numeric:tabular-nums;
+ }
+-.page[data-page="print"] .wplan .wp-block-tools{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-block-tools{
+   background:#F7FBF8 !important;
+   border-bottom:1px solid #E4ECE7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl th{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl th{
+   background:#F7FBF8 !important;
+   color:#5E7168 !important;
+   border-bottom:1px solid #DDE7E1 !important;
+   font-size:13.5px !important;
+   padding:12px 16px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl td{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td{
+   border-bottom:1px solid #EDF3EF !important;
+   padding:12px 16px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl col.c-plus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl col.c-plus{
+   width:136px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl th:first-child{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl th:first-child{
+   padding-left:80px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl th:last-child{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl th:last-child{
+   padding-right:calc(var(--wp-pad-x) + 10px) !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td.wp-plus-td{
+   padding:12px 6px 12px 80px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl td.row-act{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td.row-act{
+   padding:12px calc(var(--wp-pad-x) + 10px) 12px 16px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl tbody tr:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl tbody tr:hover{
+   background:#F5FBF7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-nm,
+-.page[data-page="print"] .wplan .wp-tbl .num,
+-.page[data-page="print"] .wplan .wp-tbl .wp-unit-in,
+-.page[data-page="print"] .wplan .wp-tbl .wp-rm-in{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-nm,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .num,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-unit-in,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-rm-in{
+   border:1px solid transparent !important;
+   border-radius:5px !important;
+   background:transparent !important;
+@@ -16809,12 +16872,12 @@
+   font-size:13.5px !important;
+   padding:0 8px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-nm{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-nm{
+   font-size:15.5px !important;
+ }
+ /* 药品名右侧的「仓库标准药」灰色标签：与右侧药品目录的字母标签同一套样式
+    （11px/600、neutral-2 底、neutral-5 字、5px 圆角、20px 高） */
+-.page[data-page="print"] .wplan .wp-tbl .wp-std{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-std{
+   font-size:11px !important;
+   font-weight:600 !important;
+   line-height:20px !important;
+@@ -16826,20 +16889,20 @@
+   max-width:84px !important;
+ }
+ /* 详情表：药名左侧第一列自动显示序号（不新增 DOM / 不改数据结构） */
+-.page[data-page="print"] .wplan .wp-tbl tbody{ counter-reset:wpx-seq; }
+-.page[data-page="print"] .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
+-.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td{ position:relative; }
+-.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td .wp-plus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl tbody{ counter-reset:wpx-seq; }
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl tbody tr{ counter-increment:wpx-seq; }
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td.wp-plus-td{ position:relative; }
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td.wp-plus-td .wp-plus{
+   position:absolute; right:4px; top:50%; transform:translateY(-50%);
+ }
+-.page[data-page="print"] .wplan .wp-tbl thead th:first-child{ position:relative; }
+-.page[data-page="print"] .wplan .wp-tbl thead th:first-child::before{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl thead th:first-child{ position:relative; }
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl thead th:first-child::before{
+   content:'序号';
+   position:absolute; left:80px; width:28px;
+   top:50%; transform:translateY(-50%); text-align:center;
+   font-size:13.5px; font-weight:600; color:#5E7168; white-space:nowrap;
+ }
+-.page[data-page="print"] .wplan .wp-tbl td.wp-plus-td::before{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl td.wp-plus-td::before{
+   content:counter(wpx-seq);
+   position:absolute; left:80px; width:28px;
+   top:50%; transform:translateY(-50%); text-align:center;
+@@ -16847,66 +16910,66 @@
+   font-variant-numeric:tabular-nums; pointer-events:none;
+ }
+ /* 保留药名格右侧的「仓库标准药 / 先煎」灰色小标签空间，避免被换肤覆盖 */
+-.page[data-page="print"] .wplan .wp-nm-wrap.has-std .wp-nm{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-nm-wrap.has-std .wp-nm{
+   padding-right:118px !important;
+ }
+-.page[data-page="print"] .wplan .wp-nm-wrap.has-sfx .wp-nm{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-nm-wrap.has-sfx .wp-nm{
+   padding-right:80px !important;
+ }
+-.page[data-page="print"] .wplan .wp-nm-wrap.has-std.has-sfx .wp-nm{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-nm-wrap.has-std.has-sfx .wp-nm{
+   padding-right:158px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-nm:hover,
+-.page[data-page="print"] .wplan .wp-tbl .num:hover,
+-.page[data-page="print"] .wplan .wp-tbl .wp-unit-in:hover,
+-.page[data-page="print"] .wplan .wp-tbl .wp-rm-in:hover{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-nm:hover,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .num:hover,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-unit-in:hover,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-rm-in:hover{
+   background:#F7FBF8 !important;
+   border-color:#E4ECE7 !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-nm:focus,
+-.page[data-page="print"] .wplan .wp-tbl .num:focus,
+-.page[data-page="print"] .wplan .wp-tbl .wp-unit-in:focus,
+-.page[data-page="print"] .wplan .wp-tbl .wp-rm-in:focus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-nm:focus,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .num:focus,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-unit-in:focus,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-rm-in:focus{
+   background:#FFFFFF !important;
+   border-color:#0E9A6A !important;
+   box-shadow:0 0 0 2px rgba(14,154,106,.11) !important;
+   outline:none !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-amt{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-amt{
+   color:#16231D !important; font-weight:600 !important;
+ }
+-.page[data-page="print"] .wplan .wp-tbl .wp-plus{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tbl .wp-plus{
+   border-radius:50% !important;
+   color:#0B7F57 !important;
+   background:#E7F7EF !important;
+   border-color:#CFEADF !important;
+ }
+-.page[data-page="print"] .wplan .wp-foot{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-foot{
+   background:#FFFFFF !important;
+   border:1px solid #E4ECE7 !important;
+   border-radius:14px !important;
+   box-shadow:0 8px 26px rgba(17,45,32,.06) !important;
+ }
+-.page[data-page="print"] .wplan .wp-foot .wp-line{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-foot .wp-line{
+   font-size:14px !important; color:#5E7168 !important;
+ }
+-.page[data-page="print"] .wplan .wp-foot .wp-line b{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-foot .wp-line b{
+   color:#16231D !important; font-variant-numeric:tabular-nums;
+ }
+-.page[data-page="print"] .wplan .wp-foot .wp-grand{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-foot .wp-grand{
+   font-size:17px !important;
+ }
+-.page[data-page="print"] .wplan .wp-foot .wp-grand b{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-foot .wp-grand b{
+   color:#0B6E4D !important; font-size:20px !important;
+ }
+-.page[data-page="print"] .wplan .wp-hint{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-hint{
+   font-size:12px !important; color:#93A49B !important; line-height:1.8 !important;
+ }
+-.page[data-page="print"] .wplan .wp-add .btn.pri{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-add .btn.pri{
+   border-radius:9px !important;
+   font-size:14px !important;
+ }
+-.page[data-page="print"] .wplan .wp-tag{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan .wp-tag{
+   border-radius:999px !important;
+   background:#E7F7EF !important;
+   border-color:#CFEADF !important;
+@@ -16923,8 +16986,8 @@
+ }
+ /* 打印页主题用 `background:#fff!important` 把上面的背景三角重置了，
+    这里用更高优先级把可输入下拉的灰三角重新画回来（距右边框 10px）。 */
+-.page[data-page="print"] .wplan #wpGuest,
+-.page[data-page="print"] .wplan input[data-ddlist].pur-name{
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan #wpGuest,
++:is(.page[data-page="print"],.page[data-page="purchase"]) .wplan input[data-ddlist].pur-name{
+   background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpath fill='%239AA39A' d='M0 0l4.5 5L9 0z'/%3E%3C/svg%3E")!important;
+   background-repeat:no-repeat!important;
+   background-position:right 10px center!important;
