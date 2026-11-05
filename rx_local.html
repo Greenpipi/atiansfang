@@ -3148,6 +3148,11 @@ body{ --navw:0px; }
   opacity:0; pointer-events:none; transition:opacity .18s ease; }
 .wplan .wp-tbl .wp-plus:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
 .wp-tbl tbody tr:hover .wp-plus, .wp-tbl tbody tr:focus-within .wp-plus, .wp-tbl td.wp-plus-td:hover .wp-plus, .wplan .wp-tbl .wp-plus:focus-visible{ opacity:1; pointer-events:auto; }
+/* 加号 / 减号圆形按钮：悬停与按下都原地不动（全站 button:hover 会上移、:active 会缩放） */
+.wplan .wp-tbl .wp-plus:hover, .wplan .wp-tbl .wp-plus:active, .wplan .wp-tbl .wp-plus:focus,
+.wplan .wp-tbl .wp-minus:hover, .wplan .wp-tbl .wp-minus:active, .wplan .wp-tbl .wp-minus:focus{
+  transform:none!important; box-shadow:none!important;
+}
 /* 克数 + 单位同格：两个输入框之间留 10px */
 .wp-qty-cell{ display:flex; align-items:center; gap:10px; }
 .wp-qty-cell .wp-qty{ flex:1 1 auto; min-width:0; }
