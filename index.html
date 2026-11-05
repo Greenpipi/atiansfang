@@ -3219,8 +3219,11 @@ body{ --navw:0px; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
 /* 预览里的数量 / 单位可直接修改 */
 .wp-imp-tbl .imp-qty, .wp-imp-tbl .imp-unit{ width:100%; box-sizing:border-box; height:30px!important; min-height:30px!important; padding:2px 6px!important; text-align:center!important; font-size:12px!important; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; }
-/* 数量只做展示：识别出的数字居中完整显示，不显示上下调节箭头、不可再被挤窄 */
-.wp-imp-tbl .imp-qty-cell{ text-align:center!important; font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap; padding:6px 4px!important; }
+/* 数量可手动输入（居中、无上下调节箭头、完整显示） */
+.wp-imp-tbl .imp-qty-cell{ text-align:center!important; white-space:nowrap; padding:6px 4px!important; }
+.wp-imp-tbl .imp-qty-cell .imp-qty{ min-width:52px; font-variant-numeric:tabular-nums; font-weight:600; -moz-appearance:textfield; appearance:textfield; }
+.wp-imp-tbl .imp-qty-cell .imp-qty::-webkit-outer-spin-button,
+.wp-imp-tbl .imp-qty-cell .imp-qty::-webkit-inner-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
 .wp-imp-tbl th.imp-th-qty{ text-align:center; }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
 /* 识别列表每行的删除按钮：与药品行同款红色圆形减号 */
@@ -3228,6 +3231,13 @@ body{ --navw:0px; }
 .wp-imp-tbl td.imp-del{ text-align:right; padding-right:6px!important; width:36px; }
 .wp-imp-tbl .imp-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
 .wp-imp-tbl .imp-minus:hover{ background:var(--danger)!important; color:#fff!important; }
+/* 药方备注按钮（黑色实心）+ 已填备注展示 */
+.wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
+.wp-note-btn:hover{ background:#333!important; border-color:#333!important; color:#fff!important; }
+.wp-note-show{ font-size:12px; color:var(--neutral-6); padding:4px 2px 6px; white-space:pre-wrap; word-break:break-word; }
+.wp-note-show b{ color:var(--neutral-title); font-weight:600; }
+/* 备注弹窗：文本框随内容自动增高 */
+#wpNoteTa{ width:100%; box-sizing:border-box; min-height:96px; resize:none; overflow:hidden; line-height:1.6; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
 .wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
 /* 单价悬停：客户历史 / 其他成交 / 进货价 三档时间线 */
@@ -4262,6 +4272,19 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <div class="wp-mb-actions">
               <button class="btn" type="button" onclick="WPlan.impCancel()">取消</button>
               <button class="btn pri" type="button" onclick="WPlan.impConfirm()">确认导入</button>
+            </div>
+          </div>
+        </div>
+        <!-- 小订单备注：文本框随内容自动增高，保存后写入该药方并出现在导出图片里 -->
+        <div class="modal" id="wpNoteModal">
+          <div class="wp-mw" style="width:min(560px,94vw)">
+            <div class="wp-mh">药方备注 <button class="x" type="button" onclick="WPlan.closeModal('wpNoteModal')">×</button></div>
+            <div class="wp-mb">
+              <textarea id="wpNoteTa" class="wp-ta" placeholder="填写这张药方的备注，例如煎法、忌口、配送说明…" oninput="WPlan.growNote(this)"></textarea>
+              <div class="wp-mb-actions">
+                <button class="btn" type="button" onclick="WPlan.closeModal('wpNoteModal')">取消</button>
+                <button class="btn pri" type="button" onclick="WPlan.saveBlockRemark()">保存备注</button>
+              </div>
             </div>
           </div>
         </div>
@@ -13417,7 +13440,9 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
+      + '<button class="btn sm wp-note-btn" type="button" title="' + esc(String(b.remark || '')) + '" onclick="WPlan.openBlockRemark(\'' + b.id + '\')">添加备注</button>'
       + '</div>'
+      + (String(b.remark || '').trim() ? '<div class="wp-note-show"><b>备注：</b>' + esc(b.remark) + '</div>' : '')
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>'
       + '</div>';
@@ -13767,14 +13792,20 @@ var WPlan = (function(){
   function genOrderImage(o, blocks, cb){
     /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
     var W = 960, shown = blocks || (o.blocks || []);
-    var items = 0, i, j, feeN = 0;
+    var items = 0, i, j, feeN = 0, noteN = 0, notePads = 0;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
     for(i=0;i<shown.length;i++){ if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++; }
+    /* 小订单备注：按约 46 字一行估算额外高度，保证长备注不被裁掉 */
+    for(i=0;i<shown.length;i++){
+      var rmk0 = String(shown[i].remark || '').trim();
+      if(rmk0){ noteN += Math.max(1, Math.ceil(rmk0.length / 46)); notePads++; }
+    }
     /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
     var ROW_H = 47, BLOCK_H = 150, multi = 0;
     for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
     /* 多付时每块额外两行汇总：1付 / XX付 */
-    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN) * ROW_H;
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN) * ROW_H
+      + noteN * 24 + notePads * 14;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
@@ -13819,6 +13850,7 @@ var WPlan = (function(){
         + '<table><thead><tr><th style="width:7%">序号</th><th style="width:35%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:18%">单价</th><th style="width:18%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeightInfo(b).g > 0 ? ('　总重 ' + blockWeightInfo(b).v + blockWeightInfo(b).u) : '') + '</div>'
+        + (String(b.remark || '').trim() ? '<div class="bnote"><b>备注：</b>' + esc(String(b.remark).trim()) + '</div>' : '')
         + '</div>';
     }
     var css = ''
@@ -13841,6 +13873,8 @@ var WPlan = (function(){
       + '.prow .plb{color:#555}'
       + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
+      + '.bnote{padding:9px 14px;font-size:13px;color:#444;background:#fbfcfb;border-top:1px solid #e3e6ea;text-align:left;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
+      + '.bnote b{color:#111}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
       + '.sum b{font-size:22px;color:#12693a}'
       + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#888}';
@@ -14342,6 +14376,36 @@ var WPlan = (function(){
     saveDebounced(); renderFoot();
   }
   function setRemark(bid, v){ var b = blockById(bid); if(!b) return; b.remark = v; saveDebounced(); }
+  /* ---- 小订单备注弹窗 ---- */
+  var _noteBid = null;
+  function growNote(el){
+    if(!el) return;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+  }
+  function openBlockRemark(bid){
+    var b = blockById(bid); if(!b) return;
+    _noteBid = bid;
+    var ta = document.getElementById('wpNoteTa');
+    if(ta) ta.value = String(b.remark || '');
+    openModal('wpNoteModal');
+    setTimeout(function(){
+      if(!ta) return;
+      growNote(ta);
+      try{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){}
+    }, 0);
+  }
+  function saveBlockRemark(){
+    var b = blockById(_noteBid);
+    var ta = document.getElementById('wpNoteTa');
+    if(b){
+      b.remark = String(ta ? ta.value : '').trim();
+      saveDebounced();
+      renderBlocks(); renderFoot();
+      toast(b.remark ? '备注已保存' : '备注已清空');
+    }
+    closeModal('wpNoteModal');
+  }
   function setItemRemark(bid, i, v){
     var b = blockById(bid); if(!b) return;
     if(!b.items[i]) b.items[i] = BLANK_ITEM();
@@ -15145,7 +15209,7 @@ var WPlan = (function(){
       h += '<tr class="' + cls + '">'
         + '<td>' + esc(r.orig) + '</td>'
         + '<td>' + stdCell + '</td>'
-        + '<td class="imp-qty-cell">' + esc(r.qty == null ? '' : String(r.qty)) + '</td>'
+        + '<td class="imp-qty-cell"><input class="imp-qty" type="text" inputmode="decimal" autocomplete="off" value="' + esc(r.qty == null ? '' : String(r.qty)) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
         + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(unitOptionsFor(r.std || r.orig))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
@@ -15395,7 +15459,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal','wpNoteModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -15433,7 +15497,7 @@ var WPlan = (function(){
     reuseTab: reuseTab, reuseToggle: reuseToggle, reuseDoseSet: reuseDoseSet, reuseOne: reuseOne,
     reuseHover: reuseHover, reuseLeave: reuseLeave, openReusePreview: openReusePreview,
     getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
-    openText: openText, doText: doText,
+    openText: openText, doText: doText, openBlockRemark: openBlockRemark, growNote: growNote, saveBlockRemark: saveBlockRemark,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
     openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impDelRow: impDelRow, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
