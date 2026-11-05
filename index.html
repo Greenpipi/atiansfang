@@ -12976,10 +12976,29 @@ var WPlan = (function(){
       if(b.commonId == null) b.commonId = '';
     }
   }
+  /* 一次性清理测试单据（2026-11-05 用户要求：测试数据别留到线上）。
+     只清「并发测试 / 探花」这类测试单，只跑一次；原数据备份在本机 rx_wplan_test_backup 以便恢复。 */
+  var PURGE_TEST_KEY = 'rx_wplan_purge_test_v1';
+  function purgeTestOrders(){
+    if(RX_STORE.getItem(PURGE_TEST_KEY)) return;
+    var keep = [], gone = [], i, o, name;
+    for(i=0;i<S.orders.length;i++){
+      o = S.orders[i]; if(!o) continue;
+      name = String(o.dish || '') + '|';
+      for(var j=0;j<(o.blocks||[]).length;j++) name += String((o.blocks[j] && o.blocks[j].title) || '') + '|';
+      if(/并发测试|探花/.test(name)) gone.push(o); else keep.push(o);
+    }
+    try{ RX_STORE.setItem(PURGE_TEST_KEY, '1'); }catch(e){}
+    if(!gone.length) return;
+    try{ RX_STORE.setItem('rx_wplan_test_backup', JSON.stringify(gone)); }catch(e){}
+    S.orders = keep;
+    save();
+  }
   function load(){
     try{ var s = RX_STORE.getItem(LS); S.orders = s ? (JSON.parse(s) || []) : []; }catch(e){ S.orders = []; }
     if(!Array.isArray(S.orders)) S.orders = [];
     S.orders.forEach(normalizeOrder);
+    purgeTestOrders();
     var curId = S.cur && S.cur.id;
     S.cur = curId ? findOrder(curId) : null;
     if(!S.cur) _sub = 'list';
