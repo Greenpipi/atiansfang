@@ -3413,6 +3413,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
   font-size:12px; padding:0 8px; }
 .wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:24px; cursor:pointer; border-radius:10px; }
 .wp-bi input.bi-in{ width:126px; }
+/* 快递配送费：选择「快递配送」时出现在配送右侧，手填金额计入小订单总价 */
+.wp-bi.wp-ship-fee input.bi-in{ width:84px; text-align:right; }
 .wp-field-dish .wp-in{ min-width:260px; width:280px; }
 /* 计划分组 */
 .wp-plan-row{ display:grid; grid-template-columns:1fr 96px 120px 96px; align-items:center; gap:12px;
@@ -12968,6 +12970,8 @@ var WPlan = (function(){
       if(!(n(b.doses) >= 1)) b.doses = o.doses;
       if(b.date == null) b.date = '';
       if(b.ship == null) b.ship = '';
+      if(b.ship === '同城配送') b.ship = '快递配送';      /* 旧数据：同城配送已改名为快递配送 */
+      if(b.shipFee == null) b.shipFee = 0;
       if(b.saveCommon == null) b.saveCommon = false;
       if(b.commonId == null) b.commonId = '';
     }
@@ -13001,7 +13005,7 @@ var WPlan = (function(){
     var d = S.cur ? (n(S.cur.doses) || 1) : 1;
     var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
     return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d,
-             date: (S.cur && S.cur.date) || '', ship: '', saveCommon: false, commonId: '' };
+             date: (S.cur && S.cur.date) || '', ship: '', shipFee: 0, saveCommon: false, commonId: '' };
   }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
@@ -13060,15 +13064,20 @@ var WPlan = (function(){
   }
   function amountOf(it){ if(!it || it.zibei) return 0; return (it.price == null ? 0 : n(it.price)) * n(it.qty); }
   function blockSub(b){ var s = 0; for(var i=0;i<b.items.length;i++) s += amountOf(b.items[i]); return s; }
-  /* 单付价 × 付数 = 该药方总价（加工 / 耗材已并入明细行，不再单列加工费） */
-  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1); }
+  /* 单付价 × 付数 = 该药方总价（加工 / 耗材已并入明细行，不再单列加工费）；
+     选择「快递配送」时另加手工填写的快递费 */
+  function blockShipFee(b){
+    if(!b || String(b.ship || '') !== '快递配送') return 0;
+    return Math.max(0, n(b.shipFee));
+  }
+  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1) + blockShipFee(b); }
   /* 订单总付数：各药方付数之和（订单级付数输入已移除） */
   function orderDosesOf(o){
     var bs = (o && o.blocks) || [], d = 0, i;
     for(i=0;i<bs.length;i++) d += n(bs[i].doses) || 1;
     return d || 1;
   }
-  var SHIP_LIST = ['自取', '快递', '同城配送', '送货上门'];
+  var SHIP_LIST = ['自取', '快递', '快递配送', '送货上门'];
   function shipOptions(cur){
     var h = '<option value="">无</option>';
     for(var i=0;i<SHIP_LIST.length;i++) h += '<option value="' + SHIP_LIST[i] + '"' + (SHIP_LIST[i] === cur ? ' selected' : '') + '>' + SHIP_LIST[i] + '</option>';
@@ -13107,8 +13116,10 @@ var WPlan = (function(){
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
     var wi = blockWeightInfo(b);
-    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockTotal(b)) + '</b>'
-      + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
+    var base = blockSub(b) * d, fee = blockShipFee(b);
+    var h = '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(base) + '</b>';
+    if(fee > 0) h += ' ＋ 快递 <b>¥' + money(fee) + '</b> = <b>¥' + money(base + fee) + '</b>';
+    return h + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
   }
 
   /* ---- 渲染 ---- */
@@ -13372,6 +13383,7 @@ var WPlan = (function(){
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
       + '<label class="wp-bi">配送 <select class="bi-in" onchange="WPlan.setBlockShip(\'' + b.id + '\',this.value)">' + shipOptions(b.ship) + '</select></label>'
+      + '<label class="wp-bi wp-ship-fee" id="wpShipFee-' + b.id + '"' + (b.ship === '快递配送' ? '' : ' style="display:none"') + '>快递费 <input class="bi-in" type="number" min="0" step="0.01" value="' + (n(b.shipFee) > 0 ? money(n(b.shipFee)) : '') + '" placeholder="0" oninput="WPlan.setBlockShipFee(\'' + b.id + '\',this.value)"></label>'
       + '<span class="wp-sub wp-sub-sum" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
       + '<span class="spacer"></span>'
       + '<label class="wp-ck"><input type="checkbox"' + (b.saveCommon ? ' checked' : '') + ' onchange="WPlan.setBlockSaveCommon(\'' + b.id + '\',this.checked)">存为药方</label>'
@@ -13733,17 +13745,19 @@ var WPlan = (function(){
   function genOrderImage(o, blocks, cb){
     /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
     var W = 960, shown = blocks || (o.blocks || []);
-    var items = 0, i, j;
+    var items = 0, i, j, feeN = 0;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
+    for(i=0;i<shown.length;i++){ if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++; }
     /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
     var ROW_H = 47, BLOCK_H = 150, multi = 0;
     for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
     /* 多付时每块额外两行汇总：1付 / XX付 */
-    var H = 220 + shown.length * BLOCK_H + (items + multi * 2) * ROW_H;
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN) * ROW_H;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
-      var amt = blockSub(b) * d;
+      var sFee = blockShipFee(b);
+      var amt = blockSub(b) * d + sFee;
       total += amt;
       var rs = '';
       if(!(b.items || []).length) rs = '<tr><td colspan="6" style="color:#999">（药方为空）</td></tr>';
@@ -13768,7 +13782,11 @@ var WPlan = (function(){
         var kgT = wT > 0 ? String(roundW(wT)) : '—';
         var uu = (wi.g > 0) ? wi.u : '—';
         rs += '<tr class="prow"><td class="sq"></td><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
-          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
+          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b) * d) + '</td></tr>';
+      }
+      if(sFee > 0){
+        rs += '<tr><td class="sq" style="color:#777"></td><td class="dr">快递费</td><td>1</td><td>—</td>'
+          + '<td>' + money(sFee) + '</td><td>' + money(sFee) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13884,6 +13902,12 @@ var WPlan = (function(){
             + '<td class="cc">' + money(amountOf(it)) + '</td></tr>';
         }
         if(!items) items = '<tr><td colspan="6" style="color:#888;text-align:center">（药方为空）</td></tr>';
+        var sFee = blockShipFee(b);
+        if(sFee > 0){
+          items += '<tr><td class="cc"></td><td>快递费</td><td class="cc"></td>'
+            + '<td class="cc"></td><td class="cc"></td>'
+            + '<td class="cc">' + money(sFee) + '</td></tr>';
+        }
         detail += '<div class="det"><table class="dt"><thead>'
           + '<tr class="dh"><th colspan="3" class="dhn">订单名称：'
           + esc(String(b.title || '').trim() || ('药方' + (bi + 1)))
@@ -14280,7 +14304,15 @@ var WPlan = (function(){
   function setBlockShip(bid, v){
     var b = blockById(bid); if(!b) return;
     b.ship = String(v || '');
-    saveDebounced();
+    var fe = document.getElementById('wpShipFee-' + bid);
+    if(fe) fe.style.display = (b.ship === '快递配送') ? '' : 'none';
+    saveDebounced(); recount();
+  }
+  /* 快递配送费：手填金额，计入该小订单总价 */
+  function setBlockShipFee(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.shipFee = Math.max(0, n(v));
+    saveDebounced(); recount();
   }
   function setBlockSaveCommon(bid, v){
     var b = blockById(bid); if(!b) return;
@@ -15348,7 +15380,7 @@ var WPlan = (function(){
     openPlan: openPlan, closePlan: closePlan, exportPlanWord: exportPlanWord,
     openPay: openPay, copyPay: copyPay, downloadPay: downloadPay,
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
-    setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
+    setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockShipFee: setBlockShipFee, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
     toggleFold: toggleFold, sortBlocks: sortBlocks,
     priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
@@ -15731,6 +15763,12 @@ var WPrint=(function(){
           og:(dd&&dd.og)?String(dd.og):'',
           qty:q, price:pr, amount:it.zibei?0:r2(pr*q),
           note:it.rm||'', zibei:!!it.zibei });
+      }
+      /* 快递配送：手填快递费作为一行计入小订单金额 */
+      if(String(b.ship||'') === '快递配送'){
+        var fee=n2(b.shipFee);
+        if(fee>0) out.push({ name:'快递费', sfx:'', unit:'', og:'',
+          qty:1, price:fee, amount:fee, note:'', zibei:false });
       }
     }
     return out;
