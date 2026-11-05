@@ -3231,11 +3231,10 @@ body{ --navw:0px; }
 .wp-imp-tbl td.imp-del{ text-align:right; padding-right:6px!important; width:36px; }
 .wp-imp-tbl .imp-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
 .wp-imp-tbl .imp-minus:hover{ background:var(--danger)!important; color:#fff!important; }
-/* 药方备注按钮（黑色实心）+ 已填备注展示 */
+/* 药方备注按钮：无备注=普通「添加备注」；已保存=黑底白字「查看备注」 */
 .wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
-.wp-note-btn:hover{ background:#333!important; border-color:#333!important; color:#fff!important; }
-.wp-note-show{ font-size:12px; color:var(--neutral-6); padding:4px 2px 6px; white-space:pre-wrap; word-break:break-word; }
-.wp-note-show b{ color:var(--neutral-title); font-weight:600; }
+.wplan .btn.wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
+.wplan .btn.wp-note-btn:hover{ background:#333!important; border-color:#333!important; color:#fff!important; }
 /* 备注弹窗：文本框随内容自动增高 */
 #wpNoteTa{ width:100%; box-sizing:border-box; min-height:96px; resize:none; overflow:hidden; line-height:1.6; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
@@ -13440,9 +13439,8 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
-      + '<button class="btn sm wp-note-btn" type="button" title="' + esc(String(b.remark || '')) + '" onclick="WPlan.openBlockRemark(\'' + b.id + '\')">添加备注</button>'
+      + '<button class="btn sm' + (String(b.remark || '').trim() ? ' wp-note-btn' : '') + '" type="button" title="' + esc(String(b.remark || '')) + '" onclick="WPlan.openBlockRemark(\'' + b.id + '\')">' + (String(b.remark || '').trim() ? '查看备注' : '添加备注') + '</button>'
       + '</div>'
-      + (String(b.remark || '').trim() ? '<div class="wp-note-show"><b>备注：</b>' + esc(b.remark) + '</div>' : '')
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>'
       + '</div>';
