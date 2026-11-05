@@ -6124,7 +6124,8 @@ function acSearch(q){
 }
 
 /* ---------------- 药方文本解析 / 生成 ---------------- */
-var UNIT_RE='g|克|kg|KG|斤|个|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
+var UNIT_RE='公斤|千克|毫升|g|克|kg|KG|㎏|斤|个|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
+var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$');
 var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 function normUnit(u){
@@ -6150,7 +6151,13 @@ function parseItems(txt){
     var t=toks[i];
     if(DOSE_RE.test(t)){ i++; continue; }
     var m=(i+1<toks.length)?toks[i+1].match(DOSE_RE):null;
-    if(m){ out.push(mkItem(t,parseFloat(m[1]),normUnit(m[2]))); i+=2; continue; }
+    if(m){
+      var uu=m[2] || '';
+      /* 「紫苏叶 1 公斤」——数量与单位被空格拆成两段时，把后面那段单位也吃掉 */
+      if(!uu && i+2<toks.length && UNIT_ONLY_RE.test(toks[i+2])){ uu=toks[i+2]; i++; }
+      out.push(mkItem(t,parseFloat(m[1]),normUnit(uu)));
+      i+=2; continue;
+    }
     if(/自备$/.test(t)){ out.push(mkItem(t.replace(/自备$/,''),0,'',true)); i++; continue; }
     var sm=t.match(GLUE_RE);
     if(sm && sm[1]){ out.push(mkItem(sm[1],parseFloat(sm[2]),normUnit(sm[3]))); i++; continue; }
