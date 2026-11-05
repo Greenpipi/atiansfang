@@ -3282,6 +3282,13 @@ body{ --navw:0px; }
 .wp-reuse-tabs{ display:flex; gap:6px; margin-bottom:12px; }
 .wp-reuse-tabs button{ min-height:30px; padding:4px 16px; border-radius:var(--r-pill); border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6); font-size:13px; cursor:pointer; }
 .wp-reuse-tabs button.on{ background:#111!important; border-color:#111!important; color:#fff!important; font-weight:700; }
+/* 选中的黑色胶囊按钮：悬停 / 按下都保持黑底白字（不被全局 button:hover 染色） */
+.wp-reuse-tabs button.on:hover,
+.wp-reuse-tabs button.on:active,
+.wp-reuse-tabs button.on:focus{
+  background:#111!important; border-color:#111!important; color:#fff!important;
+  box-shadow:none!important; transform:none!important;
+}
 .wp-reuse-card{ display:flex; align-items:center; gap:12px; padding:12px 12px; border:1px solid var(--neutral-2); border-radius:12px; margin-bottom:10px; background:var(--n-white); }
 .wp-reuse-card:hover{ border-color:var(--pri-line); box-shadow:0 4px 14px rgba(21,163,74,.08); }
 .wp-reuse-card .chk{ width:16px; height:16px; flex:0 0 auto; cursor:pointer; }
