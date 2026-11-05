@@ -15030,25 +15030,38 @@ var WPlan = (function(){
     var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
     if(!lines.length) return { rows: [], miss: [] };
     function pl(l){ var out=[], cur='', q=false; for(var i=0;i<l.length;i++){ var c=l[i]; if(q){ if(c==='"'){ if(l[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; } else if(c==='"'){ q=true; } else if(c===','){ out.push(cur); cur=''; } else cur+=c; } out.push(cur); return out; }
-    var head = pl(lines[0]), idx = {}, hi;
-    for(hi=0;hi<head.length;hi++) idx[String(head[hi]).trim()] = hi;
+    var head = null, headIdx = -1, hi, hi2;
+    /* 表头不一定在第一行（Excel 里常有标题行/多级表头）：前 10 行里找含「药名/名称…」的那行 */
+    for(hi=0; hi<lines.length && hi<10; hi++){
+      var cand = pl(lines[hi]);
+      if(/药名|名称|品名|药材|药品/.test(cand.join('|'))){ head = cand; headIdx = hi; break; }
+    }
+    var idx = {};
+    if(head){ for(hi2=0;hi2<head.length;hi2++) idx[String(head[hi2]).trim()] = hi2; }
     function col(){
       for(var a=0;a<arguments.length;a++){ if(idx[arguments[a]] != null) return idx[arguments[a]]; }
       for(var key in idx){ for(var m=0;m<arguments.length;m++){ if(idx.hasOwnProperty(key) && key.indexOf(arguments[m]) >= 0) return idx[key]; } }
       return -1;
     }
-    var cn = col('药名','名称','品名','药材','药品'), cq = col('数量','克数','重量','剂量','克','量'), cu = col('单位','规格');
-    if(cn < 0){ toastErr('没找到药名列（表头需含 药名/名称/品名）'); return null; }
-    var cr = col('备注','说明');
-    /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
-    var extras = [];
-    for(hi=0;hi<head.length;hi++){
-      var hd = String(head[hi] || '').trim();
-      if(!hd || hi === cn || hi === cq || hi === cu || hi === cr) continue;
-      if(/签名|签字|经手|制表|序号|编号|行号|单号/.test(hd)) continue;
-      extras.push(hi);
+    var cn, cq, cu, cr, extras = [];
+    if(head){
+      cn = col('药名','名称','品名','药材','药品');
+      cq = col('数量','克数','重量','剂量','克','量');
+      cu = col('单位','规格');
+      if(cn < 0) cn = 0;                    /* 有表头但没认到药名列：退回第一列 */
+      cr = col('备注','说明');
+      /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
+      for(hi2=0;hi2<head.length;hi2++){
+        var hd = String(head[hi2] || '').trim();
+        if(!hd || hi2 === cn || hi2 === cq || hi2 === cu || hi2 === cr) continue;
+        if(/签名|签字|经手|制表|序号|编号|行号|单号/.test(hd)) continue;
+        extras.push(hi2);
+      }
+    }else{
+      /* 完全没有表头：按「第1列药名 / 第2列数量 / 第3列单位 / 第4列备注」读 */
+      cn = 0; cq = 1; cu = 2; cr = 3;
     }
-    var rows = lines.slice(1).map(pl).filter(function(a){ return a.length > 1; });
+    var rows = lines.slice(head ? headIdx + 1 : 0).map(pl).filter(function(a){ return a.length > 1; });
     var out = [], miss = [], cache = {};
     for(var r=0;r<rows.length;r++){
       var nm0 = String(rows[r][cn] || '').trim(); if(!nm0) continue;
@@ -15326,9 +15339,11 @@ var WPlan = (function(){
     readBuf(f, function(buf){
       var u = new Uint8Array(buf);
       if(u.length > 2 && u[0] === 0x50 && u[1] === 0x4B){
-        xlsxToCsv(buf).then(function(txt){ handleImportText(txt); }).catch(function(e){
-          toastErr('读取 Excel 失败：' + ((e && e.message) || e));
-        });
+        try{
+          xlsxToCsv(buf).then(function(txt){ handleImportText(txt); }).catch(function(e){
+            toastErr('读取 Excel 失败：' + ((e && e.message) || e));
+          });
+        }catch(e){ toastErr('读取 Excel 失败：' + ((e && e.message) || e)); }
         return;
       }
       if(u.length > 8 && u[0] === 0xD0 && u[1] === 0xCF && u[2] === 0x11 && u[3] === 0xE0){
@@ -15339,11 +15354,13 @@ var WPlan = (function(){
     function handleImportText(txt){
       var res = parseImportRows(txt);
       if(res === null) return;
-      if(!res.rows.length){ toast('没有可导入的药名行'); return; }
+      if(!res.rows.length){
+        toastErr('没有可导入的药名行：请确认表格里有「药名」列（或药名在第 1 列）');
+        return;
+      }
       if(res.miss.length){
-        var msg = '有 ' + res.miss.length + ' 行未识别到单位：\n' + res.miss.slice(0, 10).join('\n') + (res.miss.length > 10 ? '\n…' : '')
-          + '\n\n这些行按「g」导入，继续？\n（点「取消」中止本次导入）';
-        if(!confirm(msg)) return;
+        /* 不弹阻断式确认框（部分环境会被拦截导致“点了没反应”），直接按 g 导入并提示 */
+        toastErr('有 ' + res.miss.length + ' 行未识别到单位，已按「g」导入');
       }
       _imp.tgt = _tgt; _imp.guest = curGuest();
       _imp.rows = res.rows; _imp.inline = false;
