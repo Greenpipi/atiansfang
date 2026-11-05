@@ -3240,6 +3240,18 @@ body{ --navw:0px; }
 .wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
 .wplan .btn.wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
 .wplan .btn.wp-note-btn:hover{ background:#333!important; border-color:#333!important; color:#fff!important; }
+/* 药方加工弹窗 */
+.wp-proc-head, .wp-proc-row{ display:grid; grid-template-columns:1fr 92px 92px 78px 30px; gap:8px; align-items:center; }
+.wp-proc-head{ font-size:12px; color:var(--neutral-5); padding:0 2px 6px; }
+.wp-proc-list{ max-height:46vh; overflow:auto; }
+.wp-proc-row{ margin-bottom:6px; }
+.wp-proc-row input{ height:32px!important; min-height:32px!important; padding:2px 8px!important; font-size:13px!important; box-sizing:border-box; width:100%; }
+.wp-proc-row .proc-amt{ text-align:right; font-weight:700; color:var(--pri-deep); }
+.wp-proc-row .proc-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
+.wp-proc-row .proc-minus:hover{ background:var(--danger)!important; color:#fff!important; }
+.wp-proc-foot{ display:flex; align-items:center; justify-content:space-between; margin:6px 0 12px; }
+.wp-proc-sum{ font-size:13px; color:var(--neutral-6); }
+.wp-proc-sum b{ color:#12693a; font-size:16px; }
 /* 备注弹窗：文本框随内容自动增高 */
 #wpNoteTa{ width:100%; box-sizing:border-box; min-height:96px; resize:none; overflow:hidden; line-height:1.6; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
@@ -4283,6 +4295,24 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <div class="wp-mb-actions">
               <button class="btn" type="button" onclick="WPlan.impCancel()">取消</button>
               <button class="btn pri" type="button" onclick="WPlan.impConfirm()">确认导入</button>
+            </div>
+          </div>
+        </div>
+        <!-- 小订单加工：可添加多行加工方式，金额可直接手填，也可用单价×数量 -->
+        <div class="modal" id="wpProcModal">
+          <div class="wp-mw" style="width:min(660px,95vw)">
+            <div class="wp-mh">药方加工 <button class="x" type="button" onclick="WPlan.closeModal('wpProcModal')">×</button></div>
+            <div class="wp-mb">
+              <div class="wp-proc-head"><span>加工方式</span><span style="text-align:right">金额</span><span style="text-align:right">单价</span><span style="text-align:right">数量</span><span></span></div>
+              <div class="wp-proc-list" id="wpProcList"></div>
+              <div class="wp-proc-foot">
+                <button class="btn sm" type="button" onclick="WPlan.procAddRow()">＋ 添加一行</button>
+                <span class="wp-proc-sum">汇总加工金额：<b id="wpProcSum">¥0.00</b></span>
+              </div>
+              <div class="wp-mb-actions">
+                <button class="btn" type="button" onclick="WPlan.closeModal('wpProcModal')">取消</button>
+                <button class="btn pri" type="button" onclick="WPlan.procSave()">保存加工</button>
+              </div>
             </div>
           </div>
         </div>
@@ -13009,6 +13039,7 @@ var WPlan = (function(){
       if(b.ship == null) b.ship = '';
       if(b.ship === '同城配送') b.ship = '快递配送';      /* 旧数据：同城配送已改名为快递配送 */
       if(b.shipFee == null) b.shipFee = 0;
+      if(!Array.isArray(b.proc)) b.proc = [];
       if(b.saveCommon == null) b.saveCommon = false;
       if(b.commonId == null) b.commonId = '';
     }
@@ -13061,7 +13092,7 @@ var WPlan = (function(){
     var d = S.cur ? (n(S.cur.doses) || 1) : 1;
     var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
     return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d,
-             date: (S.cur && S.cur.date) || '', ship: '', shipFee: 0, saveCommon: false, commonId: '' };
+             date: (S.cur && S.cur.date) || '', ship: '', shipFee: 0, proc: [], saveCommon: false, commonId: '' };
   }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
@@ -13126,7 +13157,15 @@ var WPlan = (function(){
     if(!b || String(b.ship || '') !== '快递配送') return 0;
     return Math.max(0, n(b.shipFee));
   }
-  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1) + blockShipFee(b); }
+  /* 加工费合计（可多行加工方式，金额可手填或单价×数量） */
+  function blockProcTotal(b){
+    var arr = (b && b.proc) || [], s = 0, i;
+    for(i=0;i<arr.length;i++) s += Math.max(0, n(arr[i] && arr[i].amt));
+    return s;
+  }
+  function blockTotal(b){
+    return blockSub(b) * (n(b.doses) || 1) + blockShipFee(b) + blockProcTotal(b);
+  }
   /* 订单总付数：各药方付数之和（订单级付数输入已移除） */
   function orderDosesOf(o){
     var bs = (o && o.blocks) || [], d = 0, i;
@@ -13172,9 +13211,11 @@ var WPlan = (function(){
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
     var wi = blockWeightInfo(b);
-    var base = blockSub(b) * d, fee = blockShipFee(b);
+    var base = blockSub(b) * d, fee = blockShipFee(b), proc = blockProcTotal(b);
     var h = '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(base) + '</b>';
-    if(fee > 0) h += ' ＋ 快递 <b>¥' + money(fee) + '</b> = <b>¥' + money(base + fee) + '</b>';
+    if(fee > 0) h += ' ＋ 快递 <b>¥' + money(fee) + '</b>';
+    if(proc > 0) h += ' ＋ 加工 <b>¥' + money(proc) + '</b>';
+    if(fee > 0 || proc > 0) h += ' = <b>¥' + money(base + fee + proc) + '</b>';
     return h + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
   }
 
@@ -13452,6 +13493,7 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
       + '<button class="btn sm' + (String(b.remark || '').trim() ? ' wp-note-btn' : '') + '" type="button" title="' + esc(String(b.remark || '')) + '" onclick="WPlan.openBlockRemark(\'' + b.id + '\')">' + (String(b.remark || '').trim() ? '查看备注' : '添加备注') + '</button>'
+      + '<button class="btn sm' + (blockProcTotal(b) > 0 ? ' wp-note-btn' : '') + '" type="button" title="加工费计入该药方" onclick="WPlan.openBlockProc(\'' + b.id + '\')">' + (blockProcTotal(b) > 0 ? '查看加工' : '添加加工') + '</button>'
       + '</div>'
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>'
@@ -13802,9 +13844,15 @@ var WPlan = (function(){
   function genOrderImage(o, blocks, cb){
     /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
     var W = 960, shown = blocks || (o.blocks || []);
-    var items = 0, i, j, feeN = 0, noteN = 0, notePads = 0;
+    var items = 0, i, j, feeN = 0, procN = 0, noteN = 0, notePads = 0;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
-    for(i=0;i<shown.length;i++){ if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++; }
+    for(i=0;i<shown.length;i++){
+      if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++;
+      var pArr = (shown[i].proc || []);
+      for(j=0;j<pArr.length;j++){
+        if(Math.max(0, n(pArr[j] && pArr[j].amt)) > 0 || String((pArr[j] && pArr[j].n) || '').trim()) procN++;
+      }
+    }
     /* 小订单备注：按约 40 字一行估算额外高度，保证长备注不被裁掉 */
     for(i=0;i<shown.length;i++){
       var rmk0 = String(shown[i].remark || '').trim();
@@ -13814,13 +13862,13 @@ var WPlan = (function(){
     var ROW_H = 47, BLOCK_H = 150, multi = 0;
     for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
     /* 多付时每块额外两行汇总：1付 / XX付 */
-    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN) * ROW_H
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN + procN) * ROW_H
       + noteN * 28 + notePads * 14;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
-      var sFee = blockShipFee(b);
-      var amt = blockSub(b) * d + sFee;
+      var sFee = blockShipFee(b), pFee = blockProcTotal(b);
+      var amt = blockSub(b) * d + sFee + pFee;
       total += amt;
       var rs = '';
       if(!(b.items || []).length) rs = '<tr><td colspan="6" style="color:#999">（药方为空）</td></tr>';
@@ -13850,6 +13898,17 @@ var WPlan = (function(){
       if(sFee > 0){
         rs += '<tr><td class="sq" style="color:#777"></td><td class="dr">快递费</td><td>1</td><td>—</td>'
           + '<td>' + money(sFee) + '</td><td>' + money(sFee) + '</td></tr>';
+      }
+      /* 加工方式：与快递费同款行 */
+      var procArr = (b.proc || []);
+      for(j=0;j<procArr.length;j++){
+        var pc = procArr[j], pamt = Math.max(0, n(pc && pc.amt));
+        var pnm = String((pc && pc.n) || '').trim();
+        if(!pnm && pamt <= 0) continue;
+        rs += '<tr><td class="sq" style="color:#777"></td><td class="dr">' + esc(pnm || '加工') + '</td>'
+          + '<td>' + (pc && pc.qty != null ? esc(String(n(pc.qty))) : '1') + '</td><td>—</td>'
+          + '<td>' + money(pc && pc.price != null ? n(pc.price) : pamt) + '</td>'
+          + '<td>' + money(pamt) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13991,6 +14050,18 @@ var WPlan = (function(){
         items += '<tr><td class="cc"></td><td>快递费</td><td class="cc"></td>'
           + '<td class="cc"></td><td class="cc"></td>'
           + '<td class="cc">' + money(sFee) + '</td></tr>';
+      }
+      /* 加工：每种加工方式一行（与快递费同口径计入合计） */
+      var pcs = (b.proc || []);
+      for(var pi2=0;pi2<pcs.length;pi2++){
+        var p2 = pcs[pi2], pa2 = Math.max(0, n(p2 && p2.amt));
+        var pn2 = String((p2 && p2.n) || '').trim();
+        if(!pn2 && pa2 <= 0) continue;
+        items += '<tr><td class="cc"></td><td>' + esc(pn2 || '加工') + '</td>'
+          + '<td class="cc">' + (p2 && p2.qty != null ? esc(String(n(p2.qty))) : '') + '</td>'
+          + '<td class="cc"></td>'
+          + '<td class="cc">' + (p2 && p2.price != null ? money(n(p2.price)) : '') + '</td>'
+          + '<td class="cc">' + money(pa2) + '</td></tr>';
       }
       detail += '<div class="det"><table class="dt"><thead>'
         + '<tr class="dh"><th colspan="3" class="dhn">订单名称：'
@@ -14436,6 +14507,88 @@ var WPlan = (function(){
       toast(b.remark ? '备注已保存' : '备注已清空');
     }
     closeModal('wpNoteModal');
+  }
+  /* ---- 小订单加工弹窗：可多行，金额可手填，也可单价×数量 ---- */
+  var _procBid = null, _procRows = [];
+  function procSum(rows){
+    var s = 0;
+    for(var i=0;i<rows.length;i++) s += Math.max(0, n(rows[i] && rows[i].amt));
+    return s;
+  }
+  function procRender(){
+    var box = document.getElementById('wpProcList');
+    if(!box) return;
+    var h = '', i;
+    for(i=0;i<_procRows.length;i++){
+      var r = _procRows[i];
+      h += '<div class="wp-proc-row">'
+        + '<input class="proc-n" value="' + esc(r.n || '') + '" placeholder="加工方式，如 打细粉" oninput="WPlan.procEdit(' + i + ',\'n\',this.value)">'
+        + '<input class="proc-amt" inputmode="decimal" value="' + (n(r.amt) > 0 ? money(n(r.amt)) : '') + '" placeholder="金额" oninput="WPlan.procEdit(' + i + ',\'amt\',this.value)">'
+        + '<input inputmode="decimal" value="' + (r.price === '' || r.price == null ? '' : money(n(r.price))) + '" placeholder="单价" oninput="WPlan.procEdit(' + i + ',\'price\',this.value)">'
+        + '<input inputmode="decimal" value="' + (r.qty === '' || r.qty == null ? '' : r.qty) + '" placeholder="数量" oninput="WPlan.procEdit(' + i + ',\'qty\',this.value)">'
+        + '<button class="proc-minus" type="button" title="删除这一行" onmousedown="return false" onclick="WPlan.procDelRow(' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'
+        + '</div>';
+    }
+    box.innerHTML = h;
+    var s = document.getElementById('wpProcSum');
+    if(s) s.textContent = '¥' + money(procSum(_procRows));
+  }
+  function openBlockProc(bid){
+    var b = blockById(bid); if(!b) return;
+    _procBid = bid;
+    _procRows = [];
+    var arr = (b.proc || []), i;
+    for(i=0;i<arr.length;i++){
+      _procRows.push({ n: String((arr[i] && arr[i].n) || ''), amt: Math.max(0, n(arr[i] && arr[i].amt)),
+        price: (arr[i] && arr[i].price != null) ? n(arr[i].price) : '',
+        qty: (arr[i] && arr[i].qty != null) ? n(arr[i].qty) : '' });
+    }
+    if(!_procRows.length) _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+    openModal('wpProcModal');
+  }
+  function procAddRow(){
+    _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+  }
+  function procDelRow(i){
+    if(i < 0 || i >= _procRows.length) return;
+    _procRows.splice(i, 1);
+    if(!_procRows.length) _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+  }
+  function procEdit(i, f, v){
+    var r = _procRows[i]; if(!r) return;
+    if(f === 'n') r.n = String(v || '');
+    else if(f === 'amt') r.amt = Math.max(0, n(v));
+    else if(f === 'price') r.price = String(v || '').trim() === '' ? '' : Math.max(0, n(v));
+    else if(f === 'qty') r.qty = String(v || '').trim() === '' ? '' : Math.max(0, n(v));
+    /* 单价 + 数量都填了 → 自动算金额（金额本身仍可直接手填） */
+    if((f === 'price' || f === 'qty') && r.price !== '' && r.qty !== ''){
+      r.amt = Math.round(n(r.price) * n(r.qty) * 100) / 100;
+      var box = document.getElementById('wpProcList'), rowEl = box && box.children[i];
+      var ae = rowEl && rowEl.querySelector('.proc-amt');
+      if(ae) ae.value = n(r.amt) > 0 ? money(n(r.amt)) : '';
+    }
+    var s = document.getElementById('wpProcSum');
+    if(s) s.textContent = '¥' + money(procSum(_procRows));
+  }
+  function procSave(){
+    var b = blockById(_procBid);
+    var out = [], i;
+    for(i=0;i<_procRows.length;i++){
+      var r = _procRows[i], nm = String(r.n || '').trim(), amt = Math.max(0, n(r.amt));
+      if(!nm && amt <= 0) continue;
+      out.push({ n: nm || '加工', amt: amt,
+        price: (r.price === '' ? null : n(r.price)), qty: (r.qty === '' ? null : n(r.qty)) });
+    }
+    if(b){
+      b.proc = out;
+      saveDebounced();
+      renderBlocks(); renderFoot();
+      toast(out.length ? ('加工已保存，合计 ¥' + money(procSum(out))) : '加工已清空');
+    }
+    closeModal('wpProcModal');
   }
   function setItemRemark(bid, i, v){
     var b = blockById(bid); if(!b) return;
@@ -15490,7 +15643,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal','wpNoteModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal','wpNoteModal','wpProcModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -15529,6 +15682,7 @@ var WPlan = (function(){
     reuseHover: reuseHover, reuseLeave: reuseLeave, openReusePreview: openReusePreview,
     getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText, openBlockRemark: openBlockRemark, growNote: growNote, saveBlockRemark: saveBlockRemark,
+    openBlockProc: openBlockProc, procAddRow: procAddRow, procDelRow: procDelRow, procEdit: procEdit, procSave: procSave,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
     openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impDelRow: impDelRow, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
@@ -15903,6 +16057,17 @@ var WPrint=(function(){
         var fee=n2(b.shipFee);
         if(fee>0) out.push({ name:'快递费', sfx:'', unit:'', og:'',
           qty:1, price:fee, amount:fee, note:'', zibei:false });
+      }
+      /* 加工：每种加工方式一行，计入小订单金额 */
+      var procs=(b.proc||[]);
+      for(var pi=0;pi<procs.length;pi++){
+        var p=procs[pi], pa=Math.max(0,n2(p && p.amt));
+        var pn=String((p && p.n) || '').trim();
+        if(!pn && pa<=0) continue;
+        out.push({ name:(pn||'加工'), sfx:'', unit:'', og:'',
+          qty:(p && p.qty != null ? n2(p.qty) : 1),
+          price:(p && p.price != null ? n2(p.price) : pa),
+          amount:pa, note:'', zibei:false });
       }
     }
     return out;
