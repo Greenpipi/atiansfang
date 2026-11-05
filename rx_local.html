@@ -15217,14 +15217,94 @@ var WPlan = (function(){
     if(aliased) msg += '，已记住 ' + aliased + ' 个别名（' + ah.slice(0, 3).join('、') + (ah.length > 3 ? '…' : '') + '）';
     (skipped ? toastErr : toast)(msg);
   }
+  /* ---------- .xlsx 直接读取：ZIP 解包 + sharedStrings + 第一张工作表 ---------- */
+  function zipEntries(buf){
+    var u = new Uint8Array(buf), n = u.length, eocd = -1, i;
+    for(i = n - 22; i >= 0 && i >= n - 65558; i--){
+      if(u[i] === 0x50 && u[i+1] === 0x4B && u[i+2] === 0x05 && u[i+3] === 0x06){ eocd = i; break; }
+    }
+    if(eocd < 0) throw new Error('不是有效的 xlsx 文件');
+    function u16(p){ return u[p] | (u[p+1] << 8); }
+    function u32(p){ return (u[p] | (u[p+1] << 8) | (u[p+2] << 16) | (u[p+3] << 24)) >>> 0; }
+    var cnt = u16(eocd + 10), p = u32(eocd + 16), dec = new TextDecoder(), out = [];
+    for(i = 0; i < cnt && p < n; i++){
+      if(!(u[p] === 0x50 && u[p+1] === 0x4B && u[p+2] === 0x01 && u[p+3] === 0x02)) break;
+      var nl = u16(p + 28), el = u16(p + 30), cl = u16(p + 32);
+      out.push({ name: dec.decode(u.subarray(p + 46, p + 46 + nl)),
+        method: u16(p + 10), csize: u32(p + 20), off: u32(p + 42) });
+      p += 46 + nl + el + cl;
+    }
+    return out;
+  }
+  function unzipEntry(buf, ent){
+    var u = new Uint8Array(buf);
+    if(!(u[ent.off] === 0x50 && u[ent.off+1] === 0x4B && u[ent.off+2] === 0x03 && u[ent.off+3] === 0x04)) throw new Error('xlsx 内部结构异常');
+    var nl = u[ent.off+26] | (u[ent.off+27] << 8), el = u[ent.off+28] | (u[ent.off+29] << 8);
+    var start = ent.off + 30 + nl + el, data = u.subarray(start, start + ent.csize);
+    var dec = new TextDecoder();
+    if(ent.method === 0) return Promise.resolve(dec.decode(data));
+    if(typeof DecompressionStream === 'undefined') return Promise.reject(new Error('当前浏览器不支持直接解析 xlsx，请用 Excel「另存为 → CSV」后导入'));
+    var ds = new DecompressionStream('deflate-raw');
+    return new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer().then(function(ab){ return dec.decode(ab); });
+  }
+  function gridToCsv(grid){
+    return grid.map(function(row){
+      return row.map(function(v){
+        var s = String(v == null ? '' : v);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\n');
+  }
+  function xlsxToCsv(buf){
+    var ents = zipEntries(buf), map = {}, ws = null, i;
+    for(i = 0; i < ents.length; i++) map[ents[i].name] = ents[i];
+    for(i = 1; i <= 30; i++){ if(map['xl/worksheets/sheet' + i + '.xml']){ ws = map['xl/worksheets/sheet' + i + '.xml']; break; } }
+    if(!ws) throw new Error('xlsx 里没有找到工作表');
+    var sstP = map['xl/sharedStrings.xml'] ? unzipEntry(buf, map['xl/sharedStrings.xml']) : Promise.resolve('');
+    return Promise.all([sstP, unzipEntry(buf, ws)]).then(function(arr){
+      var dp = new DOMParser();
+      var sst = [], sdoc = dp.parseFromString(arr[0] || '<x/>', 'application/xml');
+      var si = sdoc.getElementsByTagName('si'), k, t2;
+      for(k = 0; k < si.length; k++){
+        var tt = si[k].getElementsByTagName('t'), s = '';
+        for(t2 = 0; t2 < tt.length; t2++) s += tt[t2].textContent || '';
+        sst.push(s);
+      }
+      var wdoc = dp.parseFromString(arr[1], 'application/xml');
+      var rows = wdoc.getElementsByTagName('row'), grid = [], r, c;
+      for(r = 0; r < rows.length; r++){
+        var cells = rows[r].getElementsByTagName('c'), row = [];
+        for(c = 0; c < cells.length; c++){
+          var cell = cells[c], ref = String(cell.getAttribute('r') || ''), ci = 0;
+          for(var q = 0; q < ref.length; q++){ var ch = ref.charAt(q); if(ch >= 'A' && ch <= 'Z') ci = ci * 26 + (ch.charCodeAt(0) - 64); else break; }
+          ci = Math.max(0, ci - 1);
+          var ty = cell.getAttribute('t'), v = '', vel = cell.getElementsByTagName('v')[0];
+          if(ty === 's'){ v = sst[parseInt(vel ? vel.textContent : '', 10)] || ''; }
+          else if(ty === 'inlineStr'){ var it = cell.getElementsByTagName('t')[0]; v = it ? (it.textContent || '') : ''; }
+          else v = vel ? (vel.textContent || '') : '';
+          row[ci] = v;
+        }
+        grid.push(row);
+      }
+      return gridToCsv(grid);
+    });
+  }
   function onExcelFile(fi){
     var f = fi.files && fi.files[0]; fi.value = ''; if(!f) return;
     readBuf(f, function(buf){
       var u = new Uint8Array(buf);
       if(u.length > 2 && u[0] === 0x50 && u[1] === 0x4B){
-        toastErr('不支持直接读取 .xlsx/.xls 二进制，请改用 Excel「另存为 → CSV（逗号分隔）」后导入'); return;
+        xlsxToCsv(buf).then(function(txt){ handleImportText(txt); }).catch(function(e){
+          toastErr('读取 Excel 失败：' + ((e && e.message) || e));
+        });
+        return;
       }
-      var txt = decodeCsvBuffer(buf);
+      if(u.length > 8 && u[0] === 0xD0 && u[1] === 0xCF && u[2] === 0x11 && u[3] === 0xE0){
+        toastErr('不支持旧版 .xls，请在 Excel 里另存为 .xlsx 或 CSV 后导入'); return;
+      }
+      handleImportText(decodeCsvBuffer(buf));
+    });
+    function handleImportText(txt){
       var res = parseImportRows(txt);
       if(res === null) return;
       if(!res.rows.length){ toast('没有可导入的药名行'); return; }
@@ -15237,7 +15317,7 @@ var WPlan = (function(){
       _imp.rows = res.rows; _imp.inline = false;
       impRender();
       openModal('wpImportModal');
-    });
+    }
   }
 
   /* ---- 弹窗 ---- */
