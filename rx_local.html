@@ -3203,6 +3203,11 @@ body{ --navw:0px; }
 /* 预览里的数量 / 单位可直接修改 */
 .wp-imp-tbl .imp-qty, .wp-imp-tbl .imp-unit{ width:100%; box-sizing:border-box; height:30px!important; min-height:30px!important; padding:2px 6px!important; text-align:center!important; font-size:12px!important; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
+/* 识别列表每行的删除按钮：与药品行同款红色圆形减号 */
+.wp-imp-tbl col.c-del{ width:36px; }
+.wp-imp-tbl td.imp-del{ text-align:right; padding-right:6px!important; width:36px; }
+.wp-imp-tbl .imp-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
+.wp-imp-tbl .imp-minus:hover{ background:var(--danger)!important; color:#fff!important; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
 .wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
 /* 单价悬停：客户历史 / 其他成交 / 进货价 三档时间线 */
@@ -4205,8 +4210,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <div class="wp-imp-sum" id="wpTextMatchSum"></div>
                 <div class="wp-imp-wrap">
                   <table class="wp-imp-tbl">
-                    <colgroup><col style="width:26%"><col style="width:34%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col></colgroup>
-                    <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th></tr></thead>
+                    <colgroup><col style="width:23%"><col style="width:31%"><col style="width:10%"><col style="width:8%"><col style="width:10%"><col><col class="c-del"></colgroup>
+                    <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th><th></th></tr></thead>
                     <tbody id="wpTextMatchBody"></tbody>
                   </table>
                 </div>
@@ -4226,8 +4231,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="wp-imp-sum" id="wpImportSum"></div>
               <div class="wp-imp-wrap">
                 <table class="wp-imp-tbl">
-                  <colgroup><col style="width:26%"><col style="width:34%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col></colgroup>
-                  <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th></tr></thead>
+                  <colgroup><col style="width:23%"><col style="width:31%"><col style="width:10%"><col style="width:8%"><col style="width:10%"><col><col class="c-del"></colgroup>
+                  <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th><th></th></tr></thead>
                   <tbody id="wpImportBody"></tbody>
                 </table>
               </div>
@@ -14573,25 +14578,41 @@ var WPlan = (function(){
     var dz = document.getElementById('wpTextDoses'); if(dz) dz.value = '1';
     var mt = document.getElementById('wpTextMatch'); if(mt) mt.style.display = 'none';
   }
+  /* 文本制表：付数 / 剂数 / 天数等非药材描述，不进入识别列表 */
+  var IMP_NON_DRUG = /^(共|每|每日|每天|一日|一天|早晚|早|晚|日|天|次|付|服|剂)$/;
+  function impNonDrugName(nm){
+    var t = String(nm || '').replace(/\s+/g, '');
+    if(!t) return true;
+    if(!/[一-龥A-Za-z]/.test(t)) return true;      /* 纯符号/数字：不是药名 */
+    if(/^[0-9.]+$/.test(t)) return true;
+    if(IMP_NON_DRUG.test(t)) return true;
+    if(/^[0-9一二三四五六七八九十百千几两]+(付|服|剂|天|日|次)$/.test(t)) return true;
+    return false;
+  }
   function doText(){
     var ta = document.getElementById('wpText'); var txt = ta ? String(ta.value || '') : '';
     if(!txt.trim()){ toastErr('请先粘贴药方文本'); return; }
-    /* 识别标题：第一行不是「药名+剂量」的文本 → 标题 */
+    /* 识别标题：第一行不是「药名+剂量」的文本 → 标题（付数行不当标题） */
     var lines = txt.split(/\r?\n/), title = '', titleLine = '', i;
     for(i=0;i<lines.length;i++){
       var line = String(lines[i] || '').trim();
       if(!line) continue;
       var drugLine = /[一-龥]{1,12}\s*[0-9]+(?:\.[0-9]+)?\s*(g|kg|克|千克|公斤|ml|毫升|片|个|只|袋|盒|瓶)/i.test(line);
       if(drugLine) continue;
+      if(/^(共|每|每日|每天)?\s*[0-9一二三四五六七八九十百千几两]+\s*(付|服|剂)/.test(line)) continue;
       title = line; titleLine = line; break;
     }
-    /* 识别付数：30付 / 30包 / 30剂 */
-    var dm = txt.match(/([0-9]+)\s*(付|包|剂)/);
-    var doses = dm ? Math.max(1, parseInt(dm[1], 10)) : 1;
+    /* 识别付数：30付 / 三十付 / 30包 / 30剂 */
+    var dm = txt.match(/([0-9一二三四五六七八九十]+)\s*(付|包|剂)/);
+    var CN_DOSE = { '一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10 };
+    var doses = 1;
+    if(dm){ doses = /^[0-9]+$/.test(dm[1]) ? parseInt(dm[1], 10) : (CN_DOSE[dm[1]] || 1); doses = Math.max(1, doses || 1); }
     var ti = document.getElementById('wpTextTitle'); if(ti) ti.value = title;
     var dz = document.getElementById('wpTextDoses'); if(dz) dz.value = doses;
     /* 标题行不参与药材解析 */
     var bodyTxt = titleLine ? txt.replace(titleLine, ' ') : txt;
+    /* 付数 / 剂数等描述先剔除，避免「一付」「几付」混进识别列表 */
+    bodyTxt = bodyTxt.replace(/[（(]?\s*(?:共|每|每日|每天)?\s*(?:[0-9]+|[一二三四五六七八九十百千几两]+)\s*(?:付|服|剂)\s*[）)]?/g, ' ');
     var its = parseItems(bodyTxt);
     if(!its.length){ toastErr('没解析到药材，请检查格式'); return; }
     var rows = [];
@@ -14600,7 +14621,8 @@ var WPlan = (function(){
       if(!it || !it.name) continue;
       var sp = splitSfx(it.name);
       var orig = sp.nm; if(!orig) continue;
-      if(/^[0-9.]+$/.test(orig) || /^[0-9]+(付|包|剂|克|g|kg)?$/.test(orig)) continue;
+      if(impNonDrugName(orig)) continue;
+      if(/^[0-9]+(克|g|kg)?$/i.test(orig)) continue;
       var unit = String(it.unit || 'g');
       var m = impMatch(orig);
       var d = m.drug, std = d ? String(d.n) : '';
@@ -15013,9 +15035,10 @@ var WPlan = (function(){
         + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(unitOptionsFor(r.std || r.orig))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
+        + '<td class="imp-del"><button class="imp-minus" type="button" title="从识别列表移除这一行" onmousedown="return false" onclick="WPlan.impDelRow(' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
         + '</tr>';
     }
-    body.innerHTML = h || '<tr><td colspan="6" class="imp-empty">没有可导入的药名行</td></tr>';
+    body.innerHTML = h || '<tr><td colspan="7" class="imp-empty">没有可导入的药名行</td></tr>';
     if(sum){
       sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
         + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）';
@@ -15085,6 +15108,13 @@ var WPlan = (function(){
   function impEditQty(ri, v){
     var r = _imp.rows[ri]; if(!r) return;
     var q = parseFloat(v); r.qty = isNaN(q) ? 0 : q;
+  }
+  /* 从识别列表移除一行（不弹确认，误删可重新识别） */
+  function impDelRow(ri){
+    if(ri < 0 || ri >= _imp.rows.length) return;
+    closeAc();
+    _imp.rows.splice(ri, 1);
+    impRender();
   }
   function impEditUnit(ri, v){
     var r = _imp.rows[ri]; if(!r) return;
@@ -15207,7 +15237,7 @@ var WPlan = (function(){
     getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
     openText: openText, doText: doText,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impDelRow: impDelRow, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
