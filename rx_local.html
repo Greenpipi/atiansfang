@@ -13800,17 +13800,17 @@ var WPlan = (function(){
     var items = 0, i, j, feeN = 0, noteN = 0, notePads = 0;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
     for(i=0;i<shown.length;i++){ if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++; }
-    /* 小订单备注：按约 46 字一行估算额外高度，保证长备注不被裁掉 */
+    /* 小订单备注：按约 40 字一行估算额外高度，保证长备注不被裁掉 */
     for(i=0;i<shown.length;i++){
       var rmk0 = String(shown[i].remark || '').trim();
-      if(rmk0){ noteN += Math.max(1, Math.ceil(rmk0.length / 46)); notePads++; }
+      if(rmk0){ noteN += Math.max(1, Math.ceil(rmk0.length / 40)); notePads++; }
     }
     /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
     var ROW_H = 47, BLOCK_H = 150, multi = 0;
     for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
     /* 多付时每块额外两行汇总：1付 / XX付 */
     var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN) * ROW_H
-      + noteN * 24 + notePads * 14;
+      + noteN * 28 + notePads * 14;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
@@ -13878,7 +13878,7 @@ var WPlan = (function(){
       + '.prow .plb{color:#555}'
       + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
-      + '.bnote{padding:9px 14px;font-size:13px;color:#444;background:#fbfcfb;border-top:1px solid #e3e6ea;text-align:left;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
+      + '.bnote{padding:9px 14px;font-size:15px;color:#444;background:#fbfcfb;border-top:1px solid #e3e6ea;text-align:left;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
       + '.bnote b{color:#111}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
       + '.sum b{font-size:22px;color:#12693a}'
