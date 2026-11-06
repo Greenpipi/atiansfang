@@ -16456,7 +16456,10 @@ var WPrint=(function(){
     /* ---- 表头：下单单名 + 下单日期同一行；横线下方排客户单位/客户地址（信息长） ---- */
     var custName = String(o.guest || '').trim();
     var gi = (typeof GUESTS !== 'undefined' && GUESTS) ? (GUESTS[custName] || null) : null;
-    var custAddr = gi ? String(gi.addr || '').trim() : '';
+    /* 客户地址优先用模板里填写的「地址」（勾选「地址」显示项）；
+       模板没填时退回客户档案里的地址 */
+    var custAddr = '';
+    if(t.showAddr !== false) custAddr = String(t.addr || '').trim() || (gi ? String(gi.addr || '').trim() : '');
     var left = '', right = '', custLines = '';
     if(t.showDish !== false) left += '<div>下单单名：' + esc(String(o.dish || '').trim() || '—') + '</div>';
     right += '<div>下单日期：' + esc(o.date || '') + '</div>';
