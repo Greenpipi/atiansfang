@@ -3707,6 +3707,16 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wps-sec-h{ display:flex; align-items:center; justify-content:space-between; gap:8px;
   margin-bottom:9px; font-size:11px; font-weight:700; letter-spacing:.5px;
   color:var(--neutral-4); text-transform:uppercase; }
+/* 打印范围：小订单勾选列表 */
+.wps-pick-list{ display:flex; flex-direction:column; gap:6px; }
+.wps-pick{ display:flex; align-items:center; gap:8px; padding:6px 9px; border:1px solid var(--neutral-2);
+  border-radius:var(--r-md); background:var(--n-white); font-size:12px; cursor:pointer; }
+.wps-pick:hover{ border-color:var(--neutral-4); }
+.wps-pick input{ margin:0; }
+.wps-pick .nm{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--neutral-title); font-weight:600; }
+.wps-pick .dt{ flex:none; color:var(--neutral-5); font-variant-numeric:tabular-nums; }
+.wps-pick-empty{ font-size:12px; color:var(--neutral-4); padding:4px 2px; }
 /* 模板条目 */
 .wps-tpl{ display:flex; align-items:center; gap:8px; padding:8px 9px; margin-bottom:6px;
   border:1px solid var(--neutral-2); border-radius:var(--r-md); background:var(--n-white); cursor:pointer; }
@@ -4118,6 +4128,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <span class="wp-blocks-lb">药方排序</span>
                   <button class="btn sm" type="button" onclick="WPlan.sortBlocks('asc')">日期升序 ↑</button>
                   <button class="btn sm" type="button" onclick="WPlan.sortBlocks('desc')">日期降序 ↓</button>
+                  <button class="btn sm" type="button" id="wpFoldAllBtn" onclick="WPlan.toggleFoldAll()">全部折叠</button>
                 </div>
                 <div class="wp-blocks" id="wpBlocks"></div>
 
@@ -4143,6 +4154,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <button class="wps-ico" type="button" id="wpsNewBtn" onclick="WPrint.addTpl()" title="新建模板">＋</button>
                 </div>
                 <div id="wpsTplList"></div>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>打印范围</span>
+                  <label class="wps-sw" style="margin:0"><input type="checkbox" id="wpsPickAll" onchange="WPrint.pickAll(this.checked)">全选</label>
+                </div>
+                <div id="wpsPickList" class="wps-pick-list"></div>
               </div>
 
               <div class="wps-sec">
@@ -13443,17 +13461,38 @@ var WPlan = (function(){
   function renderBlocks(){
     var box = document.getElementById('wpBlocks'); if(!box) return;
     var o = curOrder();
-    if(!o){ box.innerHTML = '<div class="wp-empty">请先新建或选择计划单</div>'; return; }
-    if(!o.blocks.length){ box.innerHTML = '<div class="wp-empty">本单还没有药方。点下方「+ 添加药方」开始；或从日常药方数据里调取该客人的历史药方带入。</div>'; return; }
+    if(!o){ box.innerHTML = '<div class="wp-empty">请先新建或选择计划单</div>'; syncFoldAllBtn(); return; }
+    if(!o.blocks.length){ box.innerHTML = '<div class="wp-empty">本单还没有药方。点下方「+ 添加药方」开始；或从日常药方数据里调取该客人的历史药方带入。</div>'; syncFoldAllBtn(); return; }
     var h = '';
     for(var i=0;i<o.blocks.length;i++) h += blockHTML(o.blocks[i]);
     box.innerHTML = h;
+    syncFoldAllBtn();
+  }
+  /* 全部折叠 / 全部展开：按钮文字随当前状态切换 */
+  function syncFoldAllBtn(){
+    var btn = document.getElementById('wpFoldAllBtn'); if(!btn) return;
+    var o = curOrder(), bs = (o && o.blocks) || [], all = bs.length > 0, i;
+    for(i=0;i<bs.length;i++){ if(!_fold[bs[i].id]){ all = false; break; } }
+    btn.textContent = all ? '全部展开' : '全部折叠';
+  }
+  function toggleFoldAll(){
+    var o = curOrder(), bs = (o && o.blocks) || [], i;
+    if(!bs.length) return;
+    var allFolded = true;
+    for(i=0;i<bs.length;i++){ if(!_fold[bs[i].id]){ allFolded = false; break; } }
+    for(i=0;i<bs.length;i++){
+      if(allFolded) delete _fold[bs[i].id];
+      else _fold[bs[i].id] = 1;
+    }
+    renderBlocks();
+    toast(allFolded ? '已展开全部小订单' : '已折叠全部小订单');
   }
   /* 折叠 / 展开某张小订单 */
   function toggleFold(bid){
     _fold[bid] = !_fold[bid];
     var el = document.getElementById('wpBlock-' + bid);
     if(el) el.classList.toggle('folded', !!_fold[bid]);
+    syncFoldAllBtn();
   }
   /* 小订单按日期排序：asc=升序，desc=降序（直接改 blocks 顺序，打印 / 导出也跟着变） */
   function sortBlocks(dir){
@@ -15669,7 +15708,7 @@ var WPlan = (function(){
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
     setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockShipFee: setBlockShipFee, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
-    toggleFold: toggleFold, sortBlocks: sortBlocks,
+    toggleFold: toggleFold, sortBlocks: sortBlocks, toggleFoldAll: toggleFoldAll,
     priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
     setDish: setDish, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
@@ -15709,6 +15748,8 @@ var WPrint=(function(){
   };
   var TEXTKEYS={title:1,shop:1,tel:1,addr:1,custLabel:1,footNote:1};
   var S={tpls:[], curId:'', order:null, loaded:false};
+  /* 打印范围：null=全部；对象 = 勾选的小订单 id → 1 */
+  var _printSel=null;
   function n2(x){ var v=parseFloat(x); return isFinite(v)?v:0; }
   function r2(x){ return Math.round(n2(x)*100)/100; }
   function mm2px(mm){ return Math.round(n2(mm)*96/25.4*100)/100; }
@@ -15865,9 +15906,52 @@ var WPrint=(function(){
     if(!o){ toast('先在订单列表里点开一张单据'); return; }
     load();
     S.order=o;
+    initPrintSel();
     var sh=$('wpsSheet'); if(!sh) return;
     sh.classList.add('on');
-    renderList(); syncForm(); renderPreview(); pullCloud();
+    renderList(); syncForm(); renderPickList(); renderPreview(); pullCloud();
+  }
+  /* 打开面板时默认全选所有小订单 */
+  function initPrintSel(){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    _printSel={};
+    for(i=0;i<bs.length;i++){ if(bs[i]) _printSel[bs[i].id]=1; }
+    if(!bs.length) _printSel=null;
+  }
+  function pickedBlocks(){
+    var o=S.order, bs=(o&&o.blocks)||[], out=[], i;
+    if(!_printSel) return bs;
+    for(i=0;i<bs.length;i++){ if(_printSel[bs[i].id]) out.push(bs[i]); }
+    return out;
+  }
+  function allSelected(){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    for(i=0;i<bs.length;i++){ if(!_printSel || !_printSel[bs[i].id]) return false; }
+    return bs.length>0;
+  }
+  function renderPickList(){
+    var box=$('wpsPickList'); if(!box) return;
+    var o=S.order||{}, bs=o.blocks||[], h='', i, b;
+    for(i=0;i<bs.length;i++){
+      b=bs[i]; if(!b || !((b.items||[]).length)) continue;
+      var on = !_printSel || _printSel[b.id];
+      h+='<label class="wps-pick"><input type="checkbox" '+(on?'checked':'')+' onchange="WPrint.pickBlock(\''+esc(b.id)+'\',this.checked)">'
+        +'<span class="nm">'+esc(String(b.title||'').trim()||('药方'+(i+1)))+'</span>'
+        +'<span class="dt">'+esc(String(b.date||o.date||''))+'</span></label>';
+    }
+    box.innerHTML = h || '<div class="wps-pick-empty">该订单还没有可打印的药方</div>';
+    var all=$('wpsPickAll'); if(all){ all.checked = allSelected(); all.disabled = !bs.length; }
+  }
+  function pickBlock(id, on){
+    if(!_printSel) initPrintSel();
+    _printSel[id] = on ? 1 : 0;
+    renderPickList(); renderPreview();
+  }
+  function pickAll(on){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    _printSel={};
+    for(i=0;i<bs.length;i++){ if(on && bs[i]) _printSel[bs[i].id]=1; }
+    renderPickList(); renderPreview();
   }
   function close(){ var sh=$('wpsSheet'); if(sh) sh.classList.remove('on'); }
   function isOpen(){ var sh=$('wpsSheet'); return !!(sh && sh.classList.contains('on')); }
@@ -16222,6 +16306,12 @@ var WPrint=(function(){
      都从新的一页开始，并各自带标题 / 顾客 / 日期 / 订单名称 */
   function blockDocs(o, t){
     var bs=(o&&o.blocks)||[], out=[], i, j, b, rows, pages, sum, grand;
+    /* 打印范围：只出勾选的小订单 */
+    if(_printSel){
+      var sel=[], si;
+      for(si=0;si<bs.length;si++){ if(bs[si] && _printSel[bs[si].id]) sel.push(bs[si]); }
+      bs=sel;
+    }
     for(i=0;i<bs.length;i++){
       b=bs[i]; if(!b) continue;
       if(!((b.items||[]).length)) continue;
@@ -16234,7 +16324,7 @@ var WPrint=(function(){
       grand={ sum:sum, wt:weightOf(rows) };
       out.push({ order:sub, rows:rows, pages:pages, grand:grand });
     }
-    if(!out.length){
+    if(!out.length && !_printSel){
       rows=flatRows(o||{blocks:[]}); pages=paginate(rows, t); sum=0;
       for(j=0;j<rows.length;j++) sum+=rows[j].amount;
       out.push({ order:o||{blocks:[]}, rows:rows, pages:pages, grand:{sum:sum, wt:weightOf(rows)} });
@@ -16269,7 +16359,7 @@ var WPrint=(function(){
     paper.style.background='transparent';
     paper.style.boxShadow='none';
     paper.style.fontSize=Math.round(n2(t.fs))+'px';
-    paper.innerHTML=html;
+    paper.innerHTML = html || '<div style="padding:40px 20px;text-align:center;color:#999;font-size:13px">没有勾选要打印的小订单</div>';
     var avail=(stage?stage.clientWidth:900)-52;
     var sc=avail/pw; if(sc>1) sc=1; if(sc<0.2) sc=0.2;
     paper.style.zoom=Math.round(sc*1000)/1000;
@@ -16290,6 +16380,7 @@ var WPrint=(function(){
   function doPrint(){
     var t=curTpl(), o=S.order;
     if(!o){ toast('没有可打印的订单'); return; }
+    if(_printSel && pickedBlocks().length === 0){ toastErr('请至少勾选一张小订单再打印'); return; }
     var area=$('wpPrintArea'), css=$('wpPrintPageCss');
     if(!area || !css) return;
     var p=PAPER[t.paper]||PAPER.a5;
@@ -16325,6 +16416,7 @@ var WPrint=(function(){
   return { open:open, close:close, isOpen:isOpen, cfg:cfg, pick:pick, togglePageSub:togglePageSub,
     addTpl:addTpl, renameTpl:renameTpl, delTpl:delTpl, saveTpl:saveTpl,
     doPrint:doPrint, renderPreview:renderPreview, docHtml:docHtml,
+    pickBlock:pickBlock, pickAll:pickAll, renderPickList:renderPickList,
     upperMoney:upperMoney, flatRows:flatRows, weightOf:weightOf,
     tpls:function(){ load(); return S.tpls; }, cur:curTpl,
     _state:S };
