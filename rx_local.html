@@ -3782,8 +3782,11 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wpd-title{ font-size:1.9em; font-weight:700; letter-spacing:2px; }
 .wpd-sub{ font-size:.92em; color:#333; margin-top:3px; }
 .wpd-metas{ display:flex; justify-content:space-between; gap:14px; margin-top:8px;
-  padding-top:6px; border-top:1px solid #000; text-align:left; font-size:.95em; line-height:1.6; }
-.wpd-metas .r{ text-align:right; white-space:nowrap; }
+  padding-bottom:4px; border-bottom:1px solid #000; text-align:left; font-size:.95em; line-height:1.6; }
+.wpd-metas .l{ flex:1 1 auto; min-width:0; }
+.wpd-metas .r{ text-align:right; white-space:nowrap; flex:0 0 auto; }
+/* 横线下方的客户单位 / 客户地址（信息较长，单独排两行） */
+.wpd-cust{ text-align:left; font-size:.95em; line-height:1.6; margin-top:4px; }
 .wpd-tbl{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:fixed;
   font-variant-numeric:tabular-nums; }
 .wpd-tbl th,.wpd-tbl td{ border:1px solid #000; padding:2px 5px; text-align:left;
@@ -3812,7 +3815,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wpd-pagebreak{ break-after:page; page-break-after:always; }
 .wpd-pagebreak:last-child{ break-after:auto; page-break-after:auto; }
 /* 小票（58/80mm）：表头竖排、合计分行，别硬挤两列 */
-.wpd-narrow .wpd-metas{ display:block; border-top:none; }
+.wpd-narrow .wpd-metas{ display:block; }
 .wpd-narrow .wpd-metas .r{ text-align:left; white-space:normal; margin-top:2px; }
 .wpd-narrow .wpd-title{ font-size:1.5em; letter-spacing:1px; }
 .wpd-narrow .wpd-shop{ font-size:1.1em; }
@@ -16450,17 +16453,18 @@ var WPrint=(function(){
     var narrow=(t.paper==='58'||t.paper==='80');
     for(i=0;i<cols.length;i++) colW+=cols[i].w;
 
-    /* ---- 表头：店名 / 电话 / 地址 / 标题 全部来自模板 ---- */
-    var left='', right='';
-    left+='<div>'+esc(t.custLabel||'顾客')+'：'+esc(String(o.guest||'').trim()||'—')+'</div>';
-    if(t.showDish !== false) left+='<div>订单名称：'+esc(String(o.dish||'').trim()||'—')+'</div>';
-    left+='<div>业务日期：'+esc(o.date||'')+'</div>';
-    if(o.no && t.showNo !== false) left+='<div>单号：'+esc(o.no)+'</div>';
+    /* ---- 表头：下单单名 + 下单日期同一行；横线下方排客户单位/客户地址（信息长） ---- */
+    var custName = String(o.guest || '').trim();
+    var gi = (typeof GUESTS !== 'undefined' && GUESTS) ? (GUESTS[custName] || null) : null;
+    var custAddr = gi ? String(gi.addr || '').trim() : '';
+    var left = '', right = '', custLines = '';
+    if(t.showDish !== false) left += '<div>下单单名：' + esc(String(o.dish || '').trim() || '—') + '</div>';
+    right += '<div>下单日期：' + esc(o.date || '') + '</div>';
+    if(custName) custLines += '<div>客户单位：' + esc(custName) + '</div>';
+    if(custAddr) custLines += '<div>客户地址：' + esc(custAddr) + '</div>';
+    if(o.no && t.showNo !== false) custLines += '<div>单号：' + esc(o.no) + '</div>';
     var rmk=orderRemark(o);
-    if(rmk) left+='<div>备注：'+esc(rmk)+'</div>';
-    if(t.showShop && t.shop) right+='<div>制单：'+esc(t.shop)+'</div>';
-    if(t.showTel && t.tel) right+='<div>电话：'+esc(t.tel)+'</div>';
-    if(t.showAddr && t.addr) right+='<div>地址：'+esc(t.addr)+'</div>';
+    if(rmk) custLines += '<div>备注：' + esc(rmk) + '</div>';
 
     h+='<div class="wpd'+(narrow?' wpd-narrow':'')+'" style="--wpd-rh:'+Math.round(n2(t.rh))+'px">';
     /* 只有第一页显示抬头，后续页直接续表格 */
@@ -16469,6 +16473,7 @@ var WPrint=(function(){
       if(t.showShop && t.shop) h+='<div class="wpd-shop">'+esc(t.shop)+'</div>';
       if(t.showTitle) h+='<div class="wpd-title">'+esc(t.title||'发货单')+'</div>';
       h+='<div class="wpd-metas"><div class="l">'+left+'</div><div class="r">'+right+'</div></div>';
+      if(custLines) h+='<div class="wpd-cust">'+custLines+'</div>';
       h+='</div>';
     }
 
