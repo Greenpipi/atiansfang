@@ -7535,7 +7535,9 @@ var Guest=(function(){
     for(var k=0;k<pl.length;k++){
       var p=pl[k];
       var fd=findDrug(String(p.drug||''));
-      var bu=fd?String(fd.u||'g'):'g', bp=fd?n(fd.p):0;
+      var bu=fd?String(fd.u||'g'):'g';
+      var bp=0;
+      if(fd){ bp = (n(fd.p)>0) ? n(fd.p) : ((n(fd.cost)>0) ? n(fd.cost)*unitCoef('kg',bu) : 0); }
       var f=(p.from_price==null||p.from_price==='')?'—':('¥'+money(histPriceIn(p.from_price,bu,bp,bu))+' / '+bu);
       var tt=(p.to_price==null||p.to_price==='')?'—':('¥'+money(histPriceIn(p.to_price,bu,bp,bu))+' / '+bu);
       rows.push({ ts:feedTs(p.created_at), tag:'price', label:'药价',
@@ -10451,7 +10453,8 @@ function dmSaleScan(d){
 }
 function ddLoadSaleLog(d){
   var saleBox=$('ddSaleLog'); if(!saleBox) return;
-  var u0=String((d&&d.u)||'g'), p0=d?n(d.p):0;
+  var u0=String((d&&d.u)||'g');
+  var p0=(d&&n(d.p)>0)?n(d.p):((d&&n(d.cost)>0)?n(d.cost)*unitCoef('kg',u0):0);
   var sales=dmSaleScan(d);
   function render(list){
     if(!list.length){ saleBox.innerHTML='<div class="dd-empty">暂无成交记录（发药后的成交价与导入的历史价都会显示在这里）</div>'; return; }
@@ -14339,6 +14342,15 @@ var WPlan = (function(){
     tip.style.left = left + 'px';
     tip.style.top = top + 'px';
   }
+  /* 历史价单位判别参照（元/基础单位）：零售价 → 进货价/kg → 批发价/kg → 当前行单价 */
+  function priceRefBase(d, it, baseU, formU){
+    var ref = 0;
+    if(d && n(d.p) > 0) ref = n(d.p);
+    if(!ref && d && n(d.cost) > 0) ref = n(d.cost) * unitCoef('kg', baseU);
+    if(!ref && d && n(d.wp) > 0) ref = n(d.wp) * unitCoef('kg', baseU);
+    if(!ref) ref = n(it && it.price) * unitCoef(formU, baseU);
+    return ref;
+  }
   function priceHover(bid, i, el){
     var b = blockById(bid), it = b && b.items[i];
     if(!it || !it.name) return;
@@ -14352,7 +14364,7 @@ var WPlan = (function(){
     var rowU = 'kg';
     var baseU = String((d && d.u) || 'g');
     var formU = String(it.du || it.unit || baseU);
-    var baseP = (d && n(d.p) > 0) ? n(d.p) : (n(it.price) * unitCoef(formU, baseU));
+    var baseP = priceRefBase(d, it, baseU, formU);
     var cv = function(v){ return histPriceIn(v, baseU, baseP, rowU); };
     var glog = (DOCTORS[guest] && DOCTORS[guest].log) || [];
     tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true, rowU, cv);
@@ -14451,7 +14463,7 @@ var WPlan = (function(){
       if(!out.length) return '<div class="empty">暂无专属价历史</div>';
       out.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
       out = out.slice(0,5);
-      var cv = function(v){ return histPriceIn(v, u, n(d.p), rowU); }, s = '';
+      var cv = function(v){ return histPriceIn(v, u, priceRefBase(d, it, u, rowU), rowU); }, s = '';
       for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + peekMoney(cv(out[i].p), rowU) + '</span></div>';
       return s;
     }
@@ -14467,7 +14479,7 @@ var WPlan = (function(){
           arr.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
           arr = arr.slice(0,5);
           if(!arr.length){ el.innerHTML = '<div class="empty">暂无专属价历史</div>'; return; }
-          var cv2 = function(v){ return histPriceIn(v, u, n(d.p), rowU); }, s = '';
+          var cv2 = function(v){ return histPriceIn(v, u, priceRefBase(d, it, u, rowU), rowU); }, s = '';
           for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + peekMoney(cv2(arr[i].p), rowU) + '</span></div>';
           el.innerHTML = s;
         }).catch(function(){});
