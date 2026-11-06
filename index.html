@@ -5495,13 +5495,17 @@ var XW = (function(){
       out += '<w:tr>';
       for(j=0;j<rows[i].length;j++){
         var c = rows[i][j] || {};
+        /* 单元格文本用 \n 换行 → 拆成多个段落（如日期/配送两行） */
+        var lines = String(c.t == null ? '' : c.t).split('\n'), cellPs = '', q;
+        for(q=0;q<lines.length;q++){
+          cellPs += '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="260" w:lineRule="auto"/>'
+            + (c.align ? '<w:jc w:val="' + c.align + '"/>' : '') + '</w:pPr>'
+            + run(lines[q], {bold: c.bold, sz: c.sz || 22, color: c.color}) + '</w:p>';
+        }
         out += '<w:tc><w:tcPr><w:tcW w:w="' + (c.w || 0) + '" w:type="dxa"/>'
           + (c.span ? '<w:gridSpan w:val="' + c.span + '"/>' : '')
           + (c.fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + c.fill + '"/>' : '')
-          + '<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr>'
-          + '<w:spacing w:before="0" w:after="0" w:line="260" w:lineRule="auto"/>'
-          + (c.align ? '<w:jc w:val="' + c.align + '"/>' : '') + '</w:pPr>'
-          + run(c.t == null ? '' : String(c.t), {bold: c.bold, sz: c.sz || 19, color: c.color}) + '</w:p></w:tc>';
+          + '<w:vAlign w:val="center"/></w:tcPr>' + cellPs + '</w:tc>';
       }
       out += '</w:tr>';
     }
@@ -7997,9 +8001,9 @@ var Guest=(function(){
       bodyRows.push([
         {t:i+1, w:600, align:'center'},
         {t:gstFmtTime(row.dt), w:2300},
-        {t:name, w:3560},
+        {t:name, w:3560, bold:1},
         {t:doses, w:700, align:'center'},
-        {t:money(amt), w:1400, align:'right'},
+        {t:money(amt), w:1400, align:'right', bold:1},
         {t:st, w:1300, align:'center'}
       ]);
     }
@@ -14243,7 +14247,7 @@ var WPlan = (function(){
         {t:row.date, w:1500},
         {t:row.title || ('药方' + (k+1)), w:5700, bold:1},
         {t:row.doses, w:640, align:'center'},
-        {t:money(row.amount), w:1380, align:'right'}
+        {t:money(row.amount), w:1380, align:'right', bold:1}
       ]);
       var o = row.o, b = row.b, d = row.doses, iRows = [], sn = 0;
       for(var j=0;j<(b.items || []).length;j++){
@@ -14253,19 +14257,37 @@ var WPlan = (function(){
         var qn = it.zibei ? '自备' : (Math.round(dispQty(it) * 100) / 100);
         iRows.push([
           {t:sn, w:600, align:'center'},
-          {t:it.name || '', w:5160},
+          {t:it.name || '', w:5160, bold:1},
           {t:qn, w:900, align:'center'},
           {t:um, w:700, align:'center'},
           {t:it.price == null ? '' : money(it.price), w:1300, align:'center'},
-          {t:money(amountOf(it)), w:1200, align:'center'}
+          {t:money(amountOf(it)), w:1200, align:'center', bold:1}
         ]);
       }
       if(!iRows.length) iRows.push([{t:'（药方为空）', w:9860, span:6, align:'center', color:'888888'}]);
+      /* 多付：与订单导图一致，在明细下方列出 1付 / N付 的克数与金额 */
+      if(d > 1){
+        var wT = blockWeight(b), w1 = wT / d, wi = blockWeightInfo(b);
+        var roundW = function(x){ return wi.useKg ? (Math.round(x / 1000 * 1000) / 1000) : (Math.round(x * 10) / 10); };
+        var q1 = w1 > 0 ? String(roundW(w1)) : '—';
+        var qT = wT > 0 ? String(roundW(wT)) : '—';
+        var wu = (wi.g > 0) ? wi.u : '—';
+        iRows.push([
+          {t:'', w:600}, {t:'1付', w:5160, bold:1},
+          {t:q1, w:900, align:'center'}, {t:wu, w:700, align:'center'}, {t:'', w:1300},
+          {t:money(blockSub(b)), w:1200, align:'center', bold:1}
+        ]);
+        iRows.push([
+          {t:'', w:600}, {t:d + '付', w:5160, bold:1},
+          {t:qT, w:900, align:'center'}, {t:wu, w:700, align:'center'}, {t:'', w:1300},
+          {t:money(blockSub(b) * d), w:1200, align:'center', bold:1}
+        ]);
+      }
       var sFee = blockShipFee(b);
       if(sFee > 0){
         iRows.push([
-          {t:'', w:600}, {t:'快递费', w:5160}, {t:'', w:900}, {t:'', w:700}, {t:'', w:1300},
-          {t:money(sFee), w:1200, align:'center'}
+          {t:'', w:600}, {t:'快递费', w:5160, bold:1}, {t:'', w:900}, {t:'', w:700}, {t:'', w:1300},
+          {t:money(sFee), w:1200, align:'center', bold:1}
         ]);
       }
       /* 加工：每种加工方式一行（与快递费同口径计入合计） */
@@ -14275,11 +14297,11 @@ var WPlan = (function(){
         var pn2 = String((p2 && p2.n) || '').trim();
         if(!pn2 && pa2 <= 0) continue;
         iRows.push([
-          {t:'', w:600}, {t:pn2 || '加工', w:5160},
+          {t:'', w:600}, {t:pn2 || '加工', w:5160, bold:1},
           {t:p2 && p2.qty != null ? n(p2.qty) : '', w:900, align:'center'},
           {t:'', w:700},
           {t:p2 && p2.price != null ? money(n(p2.price)) : '', w:1300, align:'center'},
-          {t:money(pa2), w:1200, align:'center'}
+          {t:money(pa2), w:1200, align:'center', bold:1}
         ]);
       }
       iRows.push([
@@ -14288,8 +14310,8 @@ var WPlan = (function(){
       ]);
       detail += XW.tbl([600,5160,900,700,1300,1200], [[
         {t:'订单名称：' + (String(b.title || '').trim() || ('药方' + (k + 1))), w:6660, span:3, bold:1, fill:'F7F8FA'},
-        {t:'日期：' + (blockDate(o, b) || '') + '　' + d + '付' + (b.ship ? ('　配送 ' + b.ship) : ''),
-         w:3200, span:3, align:'right', color:'555555', sz:18, fill:'F7F8FA'}
+        {t:'日期：' + (blockDate(o, b) || '') + (b.ship ? ('\n配送：' + b.ship) : ''),
+         w:3200, span:3, align:'right', color:'555555', fill:'F7F8FA'}
       ],[
         {t:'序号', w:600, align:'center', bold:1, fill:'F2F4F6'},
         {t:'药名', w:5160, bold:1, fill:'F2F4F6'},
