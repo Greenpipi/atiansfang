@@ -14309,8 +14309,8 @@ var WPlan = (function(){
     }
     costArr = sortTop(costArr);
     var gLabel = guest || '未指定客人';
-    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cf)
-      + tipSection('其他历史成交', other, unit, cf)
+    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cv)
+      + tipSection('其他历史成交', other, unit, cv)
       + tipSection('历史进货价', costArr, 'kg')
       + (loading ? '<div class="empty" style="padding-top:6px">正在同步云端记录…</div>' : '');
   }
