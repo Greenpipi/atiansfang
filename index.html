@@ -6049,10 +6049,41 @@ function normKey(s){
   if(ALIAS[raw]) return ALIAS[raw];
   return raw;
 }
+/* ---- 已删除药品「墓碑」 ----
+   药物管理里删掉的药（含「某药（单位）」这种一行)不许再被识别命中、也不许被导入/改单位时自动重建。
+   存本地 localStorage；云端若因 DELETE 失败把这条又拉回来，加载时按墓碑再剔一次。
+   键：药名归一化后的写法；子规格记作「药名（单位）」。
+   用户后来又想用了（手工新建/改名成这个名字）→ 自动拆掉墓碑。 */
+var DEL_DRUGS={};
+var LS_DELDRUGS='rx_del_drugs_v1';
+function delDrugKey(nm){ return normName(nm).toLowerCase(); }
+function loadDelDrugs(){
+  DEL_DRUGS={};
+  try{
+    var arr=JSON.parse(RX_STORE.getItem(LS_DELDRUGS)||'[]');
+    for(var i=0;i<arr.length;i++){ var k=delDrugKey(arr[i]); if(k) DEL_DRUGS[k]=1; }
+  }catch(e){ DEL_DRUGS={}; }
+}
+function saveDelDrugs(){
+  try{
+    var arr=[]; for(var k in DEL_DRUGS){ if(DEL_DRUGS[k]) arr.push(k); }
+    RX_STORE.setItem(LS_DELDRUGS, JSON.stringify(arr));
+  }catch(e){}
+}
+function markDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; DEL_DRUGS[k]=1; saveDelDrugs(); }
+function unmarkDrugDeleted(nm){ var k=delDrugKey(nm); if(!k||!DEL_DRUGS[k]) return; delete DEL_DRUGS[k]; saveDelDrugs(); }
+function drugDeleted(nm){ var k=delDrugKey(nm); return !!(k && DEL_DRUGS[k]); }
+/* 子规格（药名 + 单位）是否被删过 */
+function specDeleted(name, unit){
+  var nm=String(name||''), u=String(unit||'').trim();
+  if(!nm||!u) return false;
+  return drugDeleted(nm+'（'+u+'）') || drugDeleted(nm+'('+u+')');
+}
 function buildIndex(){
   _idx={};
   for(var i=0;i<drugsList.length;i++){
     var d=drugsList[i]; if(!d||!d.n) continue;
+    if(drugDeleted(d.n)) continue;              /* 墓碑：删掉的药不参与任何查名/识别 */
     var k=normKey(d.n); if(k) _idx[k]=d;
     var bare=normName(d.n).replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,'').replace(/[\[\]]/g,'');
     if(bare && !_idx[bare]) _idx[bare]=d;
@@ -6070,6 +6101,7 @@ function findDrug(name){
   if(_idx && _idx[core]) return _idx[core];
   var best=null, bl=0;
   for(var i=0;i<drugsList.length;i++){
+    if(drugDeleted(drugsList[i] && drugsList[i].n)) continue;
     var kk=normName(drugsList[i].n).replace(/[\[\](){}]/g,'');
     if(!kk) continue;
     if(core.indexOf(kk)>=0 || kk.indexOf(core)>=0){
@@ -6086,7 +6118,7 @@ function findDrugAll(name){
   var key=normKey(name);
   var bare=normName(name).replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,'').replace(/[\[\]()]/g,'');
   var core=key.replace(/[\[\](){}]/g,'');
-  function push(d){ if(!d) return; var k=d.n+'|'+d.u+'|'+d.p; if(seen[k]) return; seen[k]=1; out.push(d); }
+  function push(d){ if(!d) return; if(drugDeleted(d.n)) return; var k=d.n+'|'+d.u+'|'+d.p; if(seen[k]) return; seen[k]=1; out.push(d); }
   if(_idx){
     push(_idx[key]); push(_idx[bare]); push(_idx[core]);
     /* 别名/去尾缀登记的同名条目也一并取出 */
@@ -6389,7 +6421,7 @@ function acSearch(q){
 }
 
 /* ---------------- 药方文本解析 / 生成 ---------------- */
-var UNIT_RE='公斤|千克|毫升|g|克|kg|KG|㎏|斤|个|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
+var UNIT_RE='公斤|千克|毫升|g|克|kg|KG|㎏|斤|个|枚|颗|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
 var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$');
 var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
@@ -6399,6 +6431,7 @@ function normUnit(u){
   if(u==='克'||u==='g'||u==='ｇ') return 'g';
   if(u==='kg'||u==='千克'||u==='公斤'||u==='㎏') return 'kg';   /* kg/Kg/KG 与 千克/公斤 统一 */
   if(u==='ml'||u==='毫升') return 'ml';
+  if(u==='枚'||u==='颗'||u==='只') return '个';   /* 枚/颗/只 = 个（否则「红枣5枚」会被当成自备、数量丢失） */
   return u;                         /* 个/条/盒/斤 等非重量单位原样保留 */
 }
 /* CSV 导入可识别的单位（normUnit 归一后）。不在此表 → 视为「未识别到单位」，须提示用户。 */
@@ -6931,6 +6964,7 @@ function specEntryOf(name, want){
     for(var j=1;j<sp.length;j++){
       var x=sp[j];
       if(String(x.unit||'').toLowerCase()!==w) continue;
+      if(specDeleted(all[i].n, x.unit)) continue;    /* 删掉的规格不再参与计价/识别 */
       return { n:all[i].n, u:x.unit, p:x.p, c:x.amt, cat:all[i].cat, py:all[i].py, __sub:1 };
     }
   }
@@ -8438,6 +8472,16 @@ SUPA.loadDrugs=function(noSave){
       }else{ _map[it.n]=it; _ord.push(it); }
     }
     drugsList=_ord.filter(Boolean);
+    /* 墓碑过滤：删除时云端 DELETE 若失败（离线 / 没权限），刷新会把这条又拉回来；
+       这里再剔一次，删掉的药就真的不会再出现、也不会被识别命中。 */
+    drugsList=drugsList.filter(function(d){
+      if(!d||!d.n) return false;
+      if(drugDeleted(d.n)) return false;
+      if(Array.isArray(d.un)&&d.un.length){
+        d.un=d.un.filter(function(x){ return !(x&&x.unit&&specDeleted(d.n,x.unit)); });
+      }
+      return true;
+    });
     /* 一药多规格：云端没有 stock 列，库存只存在 units jsonb 里 →
        主规格库存要从「同单位镜像」回读（dmNormalizeSpecs 里做），顺便清掉空/重复单位。 */
     for(var q2=0;q2<drugsList.length;q2++){ if(drugsList[q2]) dmNormalizeSpecs(drugsList[q2]); }
@@ -10655,6 +10699,8 @@ function dmDelSpec(idx, s){
   if(!confirm('删除「'+(d.n||'')+'」的「'+ut+'」规格？\n该规格库存 '+(qty===''?'0':qty)+' '+ut+' 会一起删掉。')) return;
   var k=d.un.indexOf(u);
   if(k>=0) d.un.splice(k,1);
+  /* 墓碑：删掉的规格（药名（单位））不许再被计价/识别用上，也不许自动重建 */
+  markDrugDeleted(String(d.n||'')+'（'+ut+'）');
   saveDrugsLS(); renderDrugTable();
   toast('已删除规格「'+ut+'」');
 }
@@ -11447,6 +11493,8 @@ function dmDelByIdx(idx){
   if(!confirm('确定删除「'+(d.n||'(空)')+'」？')) return;
   var nm=String(d.n||'').trim();
   drugsList.splice(idx,1); selDrugRow=-1;
+  /* 墓碑：删掉的药名记下来，之后识别/导入/改单位都不许再命中或自动重建 */
+  if(nm) markDrugDeleted(nm);
   /* 删除必须同步云端：否则刷新时 SUPA.loadDrugs() 会把这一味重新拉回来
      （整表 upsert 只写不删，数据库里的行还在）。2026-10-08 一并修。 */
   saveDrugsLS();
@@ -11505,6 +11553,7 @@ function dmCommit(td,tr){
     if(f==='n'){
       d.n=v.trim();
       d.py=genPinyin(d.n);
+      unmarkDrugDeleted(d.n);              /* 用户手工又叫回这个名字 → 拆墓碑，允许识别命中 */
       saveDrugsLS();
       td.classList.remove('dm-editing'); renderDrugTable();
       toast('已保存「'+d.n+'」');
@@ -11514,7 +11563,11 @@ function dmCommit(td,tr){
       }
       return;
     }
-    if(f==='u'){ if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v); }
+    if(f==='u'){
+      if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v);
+      /* 用户手工加回这个规格 → 拆墓碑 */
+      unmarkDrugDeleted(String(d.n||'')+'（'+v+'）');
+    }
     else dmCellSet(d,f,s,v);
     /* 改进货价（元/kg）→ 批发价按「进货价 × 批发倍率」联动（同为元/kg，无需换算）
        + 建议价重算（进货价变了建议价才变，改批发价不动建议价） */
@@ -13006,6 +13059,7 @@ function readCsvFile(file, cb){
 function init(){
   loadSet();
   sfxLoad();          /* 云端 KV 已在启动时载入内存 */
+  loadDelDrugs();     /* 已删除药品墓碑：必须在 loadDrugs/buildIndex 之前 */
   loadDrugs();
   /* 处方/客人数据全部在 supaBoot 里从 Supabase 拉取；启动时先保持为空。 */
   SAVED=[];
@@ -13451,6 +13505,7 @@ var WPlan = (function(){
     for(i=0;i<all.length;i++){
       if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
     }
+    if(specDeleted(name, unit)) return null;
     var sub = specEntryOf(name, unit);
     if(sub && sub.p != null && sub.p !== '') return n(sub.p);
     return null;
@@ -13463,9 +13518,13 @@ var WPlan = (function(){
     var u = normUnit((fileUnit == null || fileUnit === '') ? 'g' : fileUnit) || 'g';
     var q = qty || 0;
     if(keepUnit){
-      var nm = name;
-      if(u !== 'g' && u !== 'kg'){ nm = baseOf({ name: name, unit: u }) + '（' + u + '）'; ensureUnitDrug(nm, u); }
-      return { name: nm, qty: q, unit: u, du: u, price: priceFor(nm, guest, u), manual: false, zibei: false };
+      var nm = name, base = baseOf({ name: name, unit: u });
+      if(u !== 'g' && u !== 'kg'){
+        nm = base + '（' + u + '）';
+        /* 该单位那味药被删过 → 不重建，退回主药名 + 单位，价仍按药库取 */
+        if(!ensureUnitDrug(nm, u)) nm = base;
+      }
+      return { name: nm, qty: q, unit: u, du: u, price: priceForUnit(base, guest, u), manual: false, zibei: false };
     }
     var all = findDrugAll(name) || []; var d = all[0] || null;
     var du = d ? String(d.u || 'g') : u;
@@ -13862,7 +13921,7 @@ var WPlan = (function(){
       var sp = (typeof dmSpecsOf === 'function') ? dmSpecsOf(d) : [];
       for(j=1;j<sp.length;j++){
         var su = String(sp[j].unit || '');
-        if(su && !seen[su]){ seen[su] = 1; out.push(su); }
+        if(su && !seen[su] && !specDeleted(name, su)){ seen[su] = 1; out.push(su); }
       }
     }
     if(!out.length){ out = ['g', 'kg']; }
@@ -15011,6 +15070,8 @@ var WPlan = (function(){
   }
   /* 药库没有该单位 → 新增一条「药名（单位）」记录（独立价格/库存），并落本机+云端 */
   function ensureUnitDrug(name, unit){
+    /* 已被删掉的药名（墓碑）不再自动重建：否则导入一次就又在药物管理里长出一条 */
+    if(drugDeleted(name)) return null;
     var all = findDrugAll(name) || [];
     for(var i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === String(unit).toLowerCase()) return all[i]; }
     var rec = { n: name, py: '', u: unit, c: '', cat: '中药', tccat: '', p: null, bp: null, st: 0 };
@@ -15041,10 +15102,12 @@ var WPlan = (function(){
       save(); renderBlocks(); recount(); return;
     }
     var uname = (u === 'g' || u === 'kg') ? base : (base + '（' + u + '）');
-    it.name = uname;
     it.manual = false;
-    if(u !== 'g' && u !== 'kg') ensureUnitDrug(uname, u);
-    it.price = priceFor(uname, blockGuest(b), u);
+    /* 该单位那味药被删过 → 不重建，直接用主药名 + 单位 */
+    var rec = (u === 'g' || u === 'kg') ? null : ensureUnitDrug(uname, u);
+    if(u !== 'g' && u !== 'kg' && !rec) uname = base;
+    it.name = uname;
+    it.price = priceForUnit(base, blockGuest(b), u);
     save(); renderBlocks(); recount();
   }
   function toggleUnit(bid, i){
@@ -15620,6 +15683,7 @@ var WPlan = (function(){
       var d = drugsList[i];
       if(!d || !String(d.n || '').trim()) continue;
       if((d.cat || '中药') !== '中药') continue;
+      if(drugDeleted(d.n)) continue;                 /* 删掉的药不进备选框 */
       var k = normName(d.n); if(seen[k]) continue; seen[k] = 1;
       out.push(d);
     }
@@ -15629,14 +15693,14 @@ var WPlan = (function(){
     var key = normName(name); if(!key) return null;
     for(var i=0;i<drugsList.length;i++){
       var d = drugsList[i];
-      if(d && d.n && normName(d.n) === key) return d;
+      if(d && d.n && !drugDeleted(d.n) && normName(d.n) === key) return d;
     }
     return null;
   }
   function impAliasName(name){
     var key = normName(name); if(!key) return null;
     for(var i=0;i<drugsList.length;i++){
-      var d = drugsList[i]; if(!d || !d.n) continue;
+      var d = drugsList[i]; if(!d || !d.n || drugDeleted(d.n)) continue;
       var al = Array.isArray(d.al) ? d.al : [];
       for(var j=0;j<al.length;j++){ if(al[j] && normName(al[j]) === key) return d; }
     }
