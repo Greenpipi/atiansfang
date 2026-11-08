@@ -9569,7 +9569,13 @@ function agentPingBase(base){
   return fetch(base+'/ping',{method:'GET',mode:'cors',cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(j){ return !!(j && j.ok); })
-    .catch(function(){ return false; });
+    .catch(function(){
+      /* CORS 读不到 JSON，但本地服务其实是活的（常见于 https 页面访问 127.0.0.1）：
+         用 no-cors 再探一次，只要能连上就认为助手在线。 */
+      return fetch(base+'/ping',{method:'GET',mode:'no-cors',cache:'no-store'})
+        .then(function(){ return true; })
+        .catch(function(){ return false; });
+    });
 }
 function agentPing(){
   try{
@@ -9583,12 +9589,29 @@ function agentPing(){
     });
   }catch(e){ AGENT_ON=false; return Promise.resolve(false); }
 }
-function agentPrint(job){
-  return fetch(agentBase()+'/print',{method:'POST',mode:'cors',cache:'no-store',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
+/* 统一发往助手：优先可读响应（cors）；若因跨域读不到响应，退回 no-cors 直接发出去
+   —— 请求本身已经送达助手，照样会打印，只是拿不到返回结果。 */
+function agentPost(path, job){
+  var url=agentBase()+path, body=JSON.stringify(job);
+  return fetch(url,{method:'POST',mode:'cors',cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},body:body})
     .then(function(r){ return r.json(); })
-    .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
+    .then(function(j){
+      if(!j || !j.ok) throw Object.assign(new Error((j&&j.msg)||'打印助手返回失败'), {agentReply:true});
+      return j;
+    })
+    .catch(function(e){
+      if(e && e.agentReply) throw e;          /* 助手明确回了失败：不要用盲发掩盖 */
+      /* 只有「网络/跨域层面根本读不到响应」才盲发一次；
+         响应能读但格式不对（SyntaxError）说明助手已收到，再发会重复打印。 */
+      if(!(e instanceof TypeError)) throw e;
+      return fetch(url,{method:'POST',mode:'no-cors',cache:'no-store',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},body:body})
+        .then(function(){ return {ok:true, blind:true}; })
+        .catch(function(){ throw e; });
+    });
 }
+function agentPrint(job){ return agentPost('/print', job); }
 /* 把一段 HTML 渲染成 PNG（与图片复制同一条管线） */
 function rasterize(svg,w,h,scale){
   return new Promise(function(resolve,reject){
@@ -9640,10 +9663,29 @@ function buildA5Image(){
 /* buildReceiptImage 已随「打印预览」弹窗一起移除（2026-10-08）：
    它只被预览弹窗调用。「复制小票」用的是 copyReceiptImage()，走另一条管线，保留。 */
 /* 助手在/不在，两行提示文案不同 */
-var AGENT_TOLD=false;
+var AGENT_TOLD=false, _agentWasOn=null;
 function agentTips(){
-  var ag=$('agentState'); if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（会改用打印窗口）';
+  var ag=$('agentState');
+  if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（正在等待助手启动…）';
+  if(_agentWasOn===null){ _agentWasOn=AGENT_ON; return; }
+  if(AGENT_ON && !_agentWasOn){
+    _agentWasOn=true;
+    try{ toast('打印助手已自动连接，点打印直接出纸'); }catch(e){}
+  }else if(!AGENT_ON){
+    _agentWasOn=false;
+  }
   /* 界面不挂小字说明；只在助手没运行时给一次浮动提示 */
+}
+/* 连不上时短时间内多试几次（助手刚双击启动的几秒窗口），别急着退回浏览器打印 */
+function agentPingRetry(times, gap){
+  times=times||3; gap=gap||500;
+  function once(i){
+    return agentPing().then(function(ok){
+      if(ok || i<=1) return ok;
+      return new Promise(function(res){ setTimeout(function(){ res(once(i-1)); }, gap); });
+    });
+  }
+  return once(times);
 }
 /* 打印机下拉：选项来自助手的 /printers（本机真实列表）。
    助手没运行或取不到时，退回默认值，保证仍可手动选。
@@ -9710,9 +9752,10 @@ function printRx(){
     });
   }
   if(AGENT_ON){ silent(); return; }
-  /* 状态可能是「助手刚启动 / 30 秒轮询还没到 / 之前失败过」：点打印时先当场再探一次，
-     别一上来就退回浏览器打印窗口。 */
-  agentPing().then(function(ok){
+  /* 状态可能是「助手刚启动 / 轮询还没到 / 之前失败过」：点打印时当场再探，
+     连不上就连续多试几次（给刚双击启动的助手留几秒），别一上来就退回浏览器打印窗口。 */
+  toast('正在连接打印助手…');
+  agentPingRetry(4, 600).then(function(ok){
     agentTips();
     if(ok){ silent(); return; }
     toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
@@ -9728,12 +9771,7 @@ function printRx(){
    保留：复制小票（copyReceiptImage）所需的模板/CSS/rcptWrap 一整套；
    保留：agentPrintPdf —— agentHtmlPrint 内部要用它，A5 处方与价格清单打印都走这条。
    移除：printReceipt / receiptContentMm 及小票打印入口（按钮、图标映射、点击绑定）。 */
-function agentPrintPdf(job){
-  return fetch(agentBase()+'/printpdf',{method:'POST',mode:'cors',cache:'no-store',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
-    .then(function(r){ return r.json(); })
-    .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
-}
+function agentPrintPdf(job){ return agentPost('/printpdf', job); }
 
 /* ================= 热敏小票模板（Paperang P2，58mm 卷纸） =================
    规则：每行最多 2 味；带尾缀（[另包]/[后下]/[代煎]…）或过长的药独占整行；
@@ -10121,7 +10159,8 @@ function printList(){
       });
   }
   if(AGENT_ON){ silent(); return; }
-  agentPing().then(function(ok){
+  toast('正在连接打印助手…');
+  agentPingRetry(4, 600).then(function(ok){
     agentTips();
     if(ok){ silent(); return; }
     toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
@@ -12974,7 +13013,13 @@ function init(){
   try{ HIST_EDIT=JSON.parse(RX_STORE.getItem(LS_HISTEDIT)||'{}'); }catch(e){ HIST_EDIT={}; }
   bind();
   agentPing().then(agentTips);
-  setInterval(function(){ agentPing().then(agentTips); }, 30000);
+  /* 自动重连：8 秒探一次 + 回到页面/窗口获得焦点时立刻再探，
+     助手后启动也能自动接上，不用手动刷新或点「重新检测」 */
+  setInterval(function(){ agentPing().then(agentTips); }, 8000);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) agentPing().then(agentTips);
+  });
+  window.addEventListener('focus', function(){ agentPing().then(agentTips); });
   rxWatchResize();
   vsBind();
   navInit();
