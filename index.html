@@ -13421,6 +13421,40 @@ var WPlan = (function(){
     var x = dirPricePerUnit(name, unit);
     return x ? x.price : null;
   }
+  /* 按「当前单位」取价（导入预览 / 改单位时用）：
+     - 重量单位（g/kg/斤）：沿用「客人专属价 → 目录价」，按重量系数换算
+     - 非重量单位（个/枚/盒/瓶…）：只认药库里这个规格自己的价（主条目或一药多规格的子规格），
+       绝不把元/g 硬乘 1 当成元/个（这正是「单位换了单价没换」的根因） */
+  function priceForUnit(name, guest, unit){
+    unit = String(unit || 'g').toLowerCase();
+    var all = findDrugAll(name) || [], i, d0 = all[0] || null;
+    if(isWeightUnit(unit)){
+      if(guest){
+        var dp = docPrice(guest, name);
+        if(dp != null) return dp * unitCoef(d0 ? String(d0.u || 'g') : unit, unit);
+      }
+      for(i=0;i<all.length;i++){
+        if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
+      }
+      for(i=0;i<all.length;i++){
+        if(String(all[i].u || 'g').toLowerCase() === 'g' && all[i].p != null && all[i].p !== ''){
+          return n(all[i].p) * unitCoef('g', unit);
+        }
+      }
+      return null;
+    }
+    /* 非重量单位：专属价也只认「药名（单位）」这个键，避免把按 g 存的价格套到「个」上 */
+    if(guest){
+      var gp = docPrice(guest, name + '（' + unit + '）');
+      if(gp != null) return gp * 1;
+    }
+    for(i=0;i<all.length;i++){
+      if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
+    }
+    var sub = specEntryOf(name, unit);
+    if(sub && sub.p != null && sub.p !== '') return n(sub.p);
+    return null;
+  }
   /* mk(name, guest, qty, fileUnit, keepUnit)
      keepUnit=true：保留原始单位（CSV 导入用）——数量不做任何换算，单价按该单位带出，
                      kg 行就存 kg、g 行就存 g，各行独立计价。
@@ -15736,7 +15770,7 @@ var WPlan = (function(){
       var mk2 = cache[nm0] || (cache[nm0] = impMatch(nm0));
       var d = mk2.drug;
       var std = d ? String(d.n) : '';
-      var price = d ? priceFor(std, guest, u || 'g') : null;
+      var price = d ? priceForUnit(std, guest, u || 'g') : null;
       out.push({
         orig: nm0, qty: qv, unit: u || 'g', sfx: sp.sfx || '',
         std: std, autoStd: std, autoHow: d ? mk2.how : 'none', drug: d, price: price, ok: !!d,
@@ -15840,7 +15874,7 @@ var WPlan = (function(){
     if(!d) return;
     r.drug = d; r.std = String(d.n); r.ok = true;
     r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
-    r.price = priceFor(r.std, _imp.guest, r.unit);
+    r.price = priceForUnit(r.std, _imp.guest, r.unit);
     closeAc();
     impRender();
   }
@@ -15858,10 +15892,18 @@ var WPlan = (function(){
   function impEditUnit(ri, v){
     var r = _imp.rows[ri]; if(!r) return;
     var u = normUnit(v) || 'g';
+    var old = String(r.unit || 'g').toLowerCase();
     r.unit = u;
-    if(r.ok && r.std) r.price = priceFor(r.std, _imp.guest, u);
+    /* 重量单位之间（g↔kg↔斤）数量按系数换算，保证总额不变 */
+    if(old !== u && _isWt(old) && _isWt(u)){
+      var q = parseFloat(r.qty);
+      if(!isNaN(q)) r.qty = Math.round(q * unitCoef(u, old) * 1000) / 1000;
+    }
+    /* 单位换了，单价跟着按新单位重取（非重量单位不再把元/g 硬套成元/个） */
+    if(r.ok && r.std) r.price = priceForUnit(r.std, _imp.guest, u);
     impRender();
   }
+  function _isWt(u){ u = String(u || '').toLowerCase(); return u === 'g' || u === 'kg' || u === '斤'; }
   function impCancel(){
     closeModal('wpImportModal');
     var mt = document.getElementById('wpTextMatch'); if(mt) mt.style.display = 'none';
@@ -15875,6 +15917,8 @@ var WPlan = (function(){
       var std = r.std, sfx = r.sfx || '';
       /* 仓库标准名做计价；[先煎] 等脚注仍单独存 it.sfx，避免与药名重复展示 */
       var it = mk(std, _imp.guest, r.qty, r.unit, true);
+      /* 预览里按新单位算好的单价直接沿用，避免确认后又按别的单位重取一次 */
+      if(r.price != null && isFinite(r.price)) it.price = r.price;
       it.sfx = sfx;
       if(r.rm) it.rm = r.rm;
       /* 输入框保留客户原始药名（it.disp）；底层仍用仓库标准药 it.name / sid 计价与扣减 */
