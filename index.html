@@ -13526,6 +13526,17 @@ var WPlan = (function(){
     if(sub && sub.p != null && sub.p !== '') return n(sub.p);
     return null;
   }
+  /* 一条药材该用的单价：按它自己的单位取（含一药多规格的规格价），
+     非重量单位取不到就留空（绝不拿元/g 冒充元/个） */
+  function itemPriceFor(it, guest){
+    if(!it || !it.name) return null;
+    var u = String(it.du || it.unit || 'g') || 'g';
+    var base = baseOf(it);
+    var p = priceForUnit(base, guest, u);
+    if(p == null && base !== String(it.name)) p = priceForUnit(it.name, guest, u);
+    if(p == null && isWeightUnit(u)) p = priceFor(it.name, guest, u);
+    return p;
+  }
   /* mk(name, guest, qty, fileUnit, keepUnit)
      keepUnit=true：保留原始单位（CSV 导入用）——数量不做任何换算，单价按该单位带出，
                      kg 行就存 kg、g 行就存 g，各行独立计价。
@@ -13547,7 +13558,7 @@ var WPlan = (function(){
     /* 数量换算：fileUnit → du（如 kg→g 应 ×1000）。
        unitCoef(a,b) 是「价格/单位a → 价格/单位b」系数，数量换算用其逆，即 unitCoef(du, fileUnit)。 */
     if(u !== du){ q = q * unitCoef(du, u); }
-    return { name: name, qty: q, unit: du, du: du, price: priceFor(name, guest, du), manual: false, zibei: false };
+    return { name: name, qty: q, unit: du, du: du, price: priceForUnit(name, guest, du), manual: false, zibei: false };
   }
   function mkFromParsed(it, guest){
     if(it.zibei) return { name: it.name, qty: 0, unit: '', du: '', price: 0, manual: false, zibei: true, sfx: '' };
@@ -14565,7 +14576,8 @@ var WPlan = (function(){
       var b = bs[i];
       for(j=0;j<b.items.length;j++){
         var it = b.items[j]; if(!it || it.zibei || it.manual) continue;
-        it.price = priceFor(it.name, blockGuest(b), it.du);
+        var np = itemPriceFor(it, blockGuest(b));
+        if(np != null) it.price = np;   /* 取不到就保留原价，别把行价清空 */
       }
     }
   }
@@ -15145,7 +15157,7 @@ var WPlan = (function(){
     /* 用户手动改了输入框 → 不再沿用导入时的客户原名映射 */
     if(it.disp && String(v) !== String(it.disp)){ it.disp = null; it.sid = null; }
     it.name = v;
-    if(!it.manual){ it.price = priceFor(it.name, blockGuest(b), it.du); }
+    if(!it.manual){ var np1 = itemPriceFor(it, blockGuest(b)); if(np1 != null) it.price = np1; }
     saveDebounced(); updateAmt(bid,i); recount();
   }
   function delItem(bid, i){ var b = blockById(bid); if(!b) return; b.items.splice(i,1); save(); renderBlocks(); recount(); }
@@ -15161,7 +15173,8 @@ var WPlan = (function(){
     for(var i=0;i<(b.items||[]).length;i++){
       var it = b.items[i];
       if(!it || it.zibei || it.manual) continue;
-      it.price = priceFor(it.name, '', it.du || it.unit || 'g');
+      var np2 = itemPriceFor(it, '');
+      if(np2 != null) it.price = np2;
     }
   }
   function saveNow(){
@@ -15466,7 +15479,7 @@ var WPlan = (function(){
       var d = m.drug, std = d ? String(d.n) : '';
       rows.push({ orig: orig, qty: n(it.qty) || 0, unit: unit, sfx: sp.sfx || '',
         std: std, autoStd: std, autoHow: d ? m.how : 'none', drug: d,
-        price: d ? priceFor(std, gst, unit) : null, ok: !!d,
+        price: d ? priceForUnit(std, gst, unit) : null, ok: !!d,
         how: d ? m.how : 'none', rm: '' });
     }
     if(!rows.length){ toastErr('没解析到可导入的药材'); return; }
@@ -15644,7 +15657,7 @@ var WPlan = (function(){
     var it = b.items[_ac.i];
     it.name = name;
     it.disp = null; it.sid = null;     /* 从备选里重新选药 → 以标准药名为准 */
-    it.price = priceFor(name, blockGuest(b), it.du);
+    it.price = itemPriceFor({ name: name, du: it.du, unit: it.du }, blockGuest(b));
     it.unit = it.du;
     it.manual = false;
     var pos = { bid: _ac.bid, i: _ac.i };
