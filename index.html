@@ -5138,7 +5138,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <select id="setPrinterA5" class="set-in set-sel"></select>
         </div>
         <!-- 2026-10-08 移除「打印小票」后，小票打印机选择器一并去掉；上面的小票字号/加粗/行距仍作用于「复制小票」 -->
-        <div class="set-note">助手状态：<b id="agentState">检测中…</b>　需先双击桌面「启动打印助手」；助手没运行时会自动改用浏览器打印窗口。</div>
+        <div class="set-note">助手状态：<b id="agentState">检测中…</b>
+          <button type="button" class="mini" id="agentRetry" onclick="agentPing().then(agentTips)">重新检测</button>
+          <br>需先双击桌面「启动打印助手」。若一直「未运行」：确认助手窗口开着；浏览器若弹出「访问本地网络」请选允许。
+          助手没运行时会自动改用浏览器打印窗口。</div>
       </section>
 
       <!-- 后缀管理：日常药方打印的「后缀」快捷框与候选里的后缀变体都读这一份 -->
@@ -9558,17 +9561,30 @@ function sheetHTML(){
    助手在运行：点「打印处方」或清单打印直接出纸，不弹打印窗口、也不用选打印机。
    助手没运行：自动退回浏览器打印窗口（功能不受影响）。
    助手是本机后台程序，只监听 127.0.0.1:8899，需先双击「启动打印助手.vbs」。 */
-var RX_AGENT='http://127.0.0.1:8899', AGENT_ON=false;
+var RX_AGENT='http://127.0.0.1:8899', RX_AGENT_ALT='http://localhost:8899', AGENT_ON=false;
+/* 助手地址：优先 127.0.0.1；不通就换 localhost（有些环境里两者解析/监听不同） */
+var _agentBase=RX_AGENT;
+function agentBase(){ return _agentBase; }
+function agentPingBase(base){
+  return fetch(base+'/ping',{method:'GET',mode:'cors',cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return !!(j && j.ok); })
+    .catch(function(){ return false; });
+}
 function agentPing(){
   try{
-    return fetch(RX_AGENT+'/ping',{method:'GET',mode:'cors',cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(j){ AGENT_ON=!!(j&&j.ok); return AGENT_ON; })
-      .catch(function(){ AGENT_ON=false; return false; });
+    return agentPingBase(_agentBase).then(function(ok){
+      if(ok){ AGENT_ON=true; return true; }
+      var other=(_agentBase===RX_AGENT)?RX_AGENT_ALT:RX_AGENT;
+      return agentPingBase(other).then(function(ok2){
+        if(ok2){ _agentBase=other; AGENT_ON=true; return true; }
+        AGENT_ON=false; return false;
+      });
+    });
   }catch(e){ AGENT_ON=false; return Promise.resolve(false); }
 }
 function agentPrint(job){
-  return fetch(RX_AGENT+'/print',{method:'POST',mode:'cors',cache:'no-store',
+  return fetch(agentBase()+'/print',{method:'POST',mode:'cors',cache:'no-store',
       headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
     .then(function(r){ return r.json(); })
     .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
@@ -9656,7 +9672,7 @@ function fillPrinterSelects(list){
 }
 function loadPrinterList(){
   if(!AGENT_ON){ fillPrinterSelects(); return; }
-  fetch(RX_AGENT+'/printers',{method:'GET',mode:'cors',cache:'no-store'})
+  fetch(agentBase()+'/printers',{method:'GET',mode:'cors',cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(j){ fillPrinterSelects(j&&j.printers); })
     .catch(function(){ fillPrinterSelects(); });
@@ -9685,12 +9701,22 @@ function printA5Silent(){
 function printRx(){
   if(!filledCount()){ toastErr('处方为空，无法打印'); return; }
   try{ RX_STORE.setItem('rx_last_print','a5'); }catch(e){}
-  if(!AGENT_ON){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); return; }
-  toast('正在打印…');
-  printA5Silent().catch(function(e){
-    AGENT_ON=false;
-    toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
-    setTimeout(function(){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); }, 1500);
+  function silent(){
+    toast('正在打印…');
+    printA5Silent().catch(function(e){
+      AGENT_ON=false;
+      toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
+      setTimeout(function(){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); }, 1500);
+    });
+  }
+  if(AGENT_ON){ silent(); return; }
+  /* 状态可能是「助手刚启动 / 30 秒轮询还没到 / 之前失败过」：点打印时先当场再探一次，
+     别一上来就退回浏览器打印窗口。 */
+  agentPing().then(function(ok){
+    agentTips();
+    if(ok){ silent(); return; }
+    toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
+    doPrint(sheetHTML(), SET.paper||'A5 portrait');
   });
 }
 
@@ -9703,7 +9729,7 @@ function printRx(){
    保留：agentPrintPdf —— agentHtmlPrint 内部要用它，A5 处方与价格清单打印都走这条。
    移除：printReceipt / receiptContentMm 及小票打印入口（按钮、图标映射、点击绑定）。 */
 function agentPrintPdf(job){
-  return fetch(RX_AGENT+'/printpdf',{method:'POST',mode:'cors',cache:'no-store',
+  return fetch(agentBase()+'/printpdf',{method:'POST',mode:'cors',cache:'no-store',
       headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
     .then(function(r){ return r.json(); })
     .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
@@ -10084,18 +10110,23 @@ function printList(){
   if(!priced){ toastErr('请先点「自动划价」'); return; }
   if(!filledCount()){ toastErr('处方为空'); return; }
   var inner=listSheetHTML().html;
-  if(!AGENT_ON){
-    doPrint(inner, SET.paper||'A5 portrait', 8, listCSS());
-    return;
+  function silent(){
+    toast('正在打印清单…');
+    agentHtmlPrint(agentPrinterA5(), 148, 210, 8, inner, listCSS())
+      .then(function(){ toast('清单已打印'); })
+      .catch(function(e){
+        AGENT_ON=false;
+        toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
+        setTimeout(function(){ doPrint(inner, SET.paper||'A5 portrait', 8, listCSS()); }, 1500);
+      });
   }
-  toast('正在打印清单…');
-  agentHtmlPrint(agentPrinterA5(), 148, 210, 8, inner, listCSS())
-    .then(function(){ toast('清单已打印'); })
-    .catch(function(e){
-      AGENT_ON=false;
-      toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
-      setTimeout(function(){ doPrint(inner, SET.paper||'A5 portrait', 8, listCSS()); }, 1500);
-    });
+  if(AGENT_ON){ silent(); return; }
+  agentPing().then(function(ok){
+    agentTips();
+    if(ok){ silent(); return; }
+    toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
+    doPrint(inner, SET.paper||'A5 portrait', 8, listCSS());
+  });
 }
 /* 复制清单快照图片（与「复制处方图片」同一管线） */
 function copyListImage(){
