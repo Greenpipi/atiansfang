@@ -6050,10 +6050,11 @@ function normKey(s){
   return raw;
 }
 /* ---- 已删除药品「墓碑」 ----
-   药物管理里删掉的药（含「某药（单位）」这种一行)不许再被识别命中、也不许被导入/改单位时自动重建。
-   存本地 localStorage；云端若因 DELETE 失败把这条又拉回来，加载时按墓碑再剔一次。
-   键：药名归一化后的写法；子规格记作「药名（单位）」。
-   用户后来又想用了（手工新建/改名成这个名字）→ 自动拆掉墓碑。 */
+   药物管理里删掉的东西不许再被识别命中、也不许被导入/改单位时自动重建。
+   ⚠ 两类必须分开记，否则会误伤：
+     d|药名            → 删掉的是**一整条药品**（如「无花果（个）」这条独立记录）
+     s|药名|单位       → 删掉的是**某味药里的一个规格**（如 无花果 的「个」规格）
+   只有 s 类才影响该药自己的计价；d 类只挡「这条药再出现/再被匹配」。 */
 var DEL_DRUGS={};
 var LS_DELDRUGS='rx_del_drugs_v1';
 function delDrugKey(nm){ return normName(nm).toLowerCase(); }
@@ -6061,7 +6062,12 @@ function loadDelDrugs(){
   DEL_DRUGS={};
   try{
     var arr=JSON.parse(RX_STORE.getItem(LS_DELDRUGS)||'[]');
-    for(var i=0;i<arr.length;i++){ var k=delDrugKey(arr[i]); if(k) DEL_DRUGS[k]=1; }
+    for(var i=0;i<arr.length;i++){
+      var k=String(arr[i]||'');
+      if(!k) continue;
+      if(k.indexOf('d|')!==0 && k.indexOf('s|')!==0) k='d|'+delDrugKey(k);   /* 旧格式：只有药名，按「整条药」处理 */
+      DEL_DRUGS[k]=1;
+    }
   }catch(e){ DEL_DRUGS={}; }
 }
 function saveDelDrugs(){
@@ -6070,14 +6076,24 @@ function saveDelDrugs(){
     RX_STORE.setItem(LS_DELDRUGS, JSON.stringify(arr));
   }catch(e){}
 }
-function markDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; DEL_DRUGS[k]=1; saveDelDrugs(); }
-function unmarkDrugDeleted(nm){ var k=delDrugKey(nm); if(!k||!DEL_DRUGS[k]) return; delete DEL_DRUGS[k]; saveDelDrugs(); }
-function drugDeleted(nm){ var k=delDrugKey(nm); return !!(k && DEL_DRUGS[k]); }
+function markDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; DEL_DRUGS['d|'+k]=1; saveDelDrugs(); }
+function unmarkDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; delete DEL_DRUGS['d|'+k]; saveDelDrugs(); }
+function drugDeleted(nm){ var k=delDrugKey(nm); return !!(k && DEL_DRUGS['d|'+k]); }
+function markSpecDeleted(name, unit){
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
+  if(!nm||!u) return;
+  DEL_DRUGS['s|'+nm+'|'+u]=1; saveDelDrugs();
+}
+function unmarkSpecDeleted(name, unit){
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
+  if(!nm||!u) return;
+  delete DEL_DRUGS['s|'+nm+'|'+u]; saveDelDrugs();
+}
 /* 子规格（药名 + 单位）是否被删过 */
 function specDeleted(name, unit){
-  var nm=String(name||''), u=String(unit||'').trim();
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
   if(!nm||!u) return false;
-  return drugDeleted(nm+'（'+u+'）') || drugDeleted(nm+'('+u+')');
+  return !!DEL_DRUGS['s|'+nm+'|'+u];
 }
 function buildIndex(){
   _idx={};
@@ -10699,8 +10715,8 @@ function dmDelSpec(idx, s){
   if(!confirm('删除「'+(d.n||'')+'」的「'+ut+'」规格？\n该规格库存 '+(qty===''?'0':qty)+' '+ut+' 会一起删掉。')) return;
   var k=d.un.indexOf(u);
   if(k>=0) d.un.splice(k,1);
-  /* 墓碑：删掉的规格（药名（单位））不许再被计价/识别用上，也不许自动重建 */
-  markDrugDeleted(String(d.n||'')+'（'+ut+'）');
+  /* 墓碑：删掉的规格不再被计价/识别用上（只记这一个规格，不影响这味药其他单位） */
+  markSpecDeleted(d.n, ut);
   saveDrugsLS(); renderDrugTable();
   toast('已删除规格「'+ut+'」');
 }
@@ -11566,7 +11582,7 @@ function dmCommit(td,tr){
     if(f==='u'){
       if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v);
       /* 用户手工加回这个规格 → 拆墓碑 */
-      unmarkDrugDeleted(String(d.n||'')+'（'+v+'）');
+      unmarkSpecDeleted(d.n, v);
     }
     else dmCellSet(d,f,s,v);
     /* 改进货价（元/kg）→ 批发价按「进货价 × 批发倍率」联动（同为元/kg，无需换算）
