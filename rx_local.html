@@ -672,27 +672,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 /* ================= 通知浮层（2026-10-25 重构 + 样式优化 + 红框定位）=================
    位置：左下角，贴「共 N 条」底部区域（按用户红框定位：left:12px / bottom:16px）。
    - 白底 + 浅色描边 + 弥散阴影，轻盈悬浮感；普通通知绿字、警告/出错红字（.err）。
-   - 宽固定 400；**高度随文字自适应**（一行字就是一行字的高度，不留大片空白）。
+   - 宽度按文字自适应、**上限 400px**；高度随文字自适应。
    - 多条竖向堆叠：**新通知叠在上一条之上**（不横向排），每条独立 5 秒自动淡出。
    - 右上角「关闭」为纯 SVG ×图标（无按钮样式），点击即关。
    - 容器 pointer-events:none 永不挡点击；只有弹窗自身可点（删除图标）。 */
 #toastWrap{
   position:fixed;left:12px;bottom:16px;           /* 红框位置：左下角，贴「共 N 条」底部区域 */
   display:flex;flex-direction:column;gap:8px;    /* 竖向堆叠：新通知叠在上一条之上（不横向排） */
+  align-items:flex-start;                         /* 宽度跟随文字，不再撑满 400 */
   z-index:99;
   pointer-events:none;                            /* 容器不挡任何点击 */
 }
 #toastWrap .tst{
   pointer-events:auto;                            /* 弹窗自身可点（关闭图标） */
   position:relative;
-  width:400px;height:auto;box-sizing:border-box;  /* 宽固定 400；高度随文字自适应，不留空白 */
+  width:auto;max-width:400px;height:auto;box-sizing:border-box;  /* 宽度按文字自适应，上限 400 */
   display:flex;align-items:center;                /* 文字垂直居中 */
   background:#fff;                                /* 白底 */
   border:1px solid var(--neutral-3);              /* 浅色描边 */
   border-radius:var(--r-md);                      /* 与按钮同款圆角 */
   color:var(--pri);                               /* 普通通知：绿字 */
-  padding:12px 20px;
-  font-size:var(--fs-sub);line-height:1.6;
+  padding:8px 14px;
+  font-size:13px;line-height:1.45;
   box-shadow:0 2px 6px rgba(20,25,35,.06), 0 12px 36px rgba(20,25,35,.16);   /* 弥散阴影 */
   text-align:left;
   opacity:0;transform:translateY(8px);            /* 入场：上浮 + 淡入 */
@@ -702,7 +703,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 #toastWrap .tst.err{color:var(--danger)}          /* 警告/出错：红字 */
 #toastWrap .tst.in{opacity:1;transform:none}
 #toastWrap .tst.out{opacity:0;transform:translateY(6px)}   /* 出场：淡出（.in 之后定义，压过入场态） */
-#toastWrap .tst-tx{flex:1;min-width:0;padding-right:24px}  /* 给右上角 × 让位 */
+#toastWrap .tst-tx{flex:1;min-width:0;padding-right:20px}  /* 给右上角 × 让位 */
 #toastWrap .tst-x{                                /* 右上角「关闭」图标按钮：纯 SVG ×图标，无按钮样式。
    ⚠ 全站有一条 button{…!important} 基座规则（边框/背景/圆角/min-height），
      这里必须同样用 !important 盖回去，否则会带按钮边框、白底、34px 最小高。 */
@@ -6040,7 +6041,7 @@ function copyAddr(a, brief){
   var txt=String(a||'').trim();
   if(!txt){ toastErr('地址为空'); return; }
   /* brief=true（摘要行的「复制」按钮）→ 只给一句轻提示，不把长地址顶出来 */
-  function ok(){ toast(brief?'已复制':('地址已复制：'+txt)); }
+  function ok(){ toast(brief?'已复制':'地址已复制'); }
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(ok,function(){ fallbackCopy(txt, brief); });
   }else fallbackCopy(txt, brief);
@@ -6052,7 +6053,7 @@ function fallbackCopy(txt, brief){
     document.body.appendChild(ta); ta.select();
     var okd=document.execCommand&&document.execCommand('copy');
     document.body.removeChild(ta);
-    toast(okd?(brief?'已复制':('地址已复制：'+txt)):('复制失败，请手动选中地址文字复制'));
+    toast(okd?(brief?'已复制':'地址已复制'):'复制失败，请手动复制');
   }catch(e){ toastErr('复制失败，请手动选中地址文字复制'); }
 }
 
@@ -6911,7 +6912,7 @@ function selectAllCells(){
   for(var i=0;i<nodes.length;i++) nodes[i].classList.toggle('allsel',!!(items[i]&&items[i].name));
   var first=cellEl(0);
   if(first){ try{ first.querySelector('.nm').focus(); first.querySelector('.nm').setSelectionRange(0,first.querySelector('.nm').value.length); }catch(e){} }
-  toast('已全选 '+L+' 味　按 Delete 键清空整个药方（点任意格可取消）');
+  toast('已全选 '+L+' 味，按 Delete 清空');
 }
 function clearAllCells(){
   if(!selAll) return;
@@ -9104,7 +9105,7 @@ function doctorLoadRx(rx){
   for(var i=0;i<list.length;i++){ if(list[i].no===rx.no){ found=list[i]; break; } }
   if(!found){ toastErr('找不到这条处方'); return; }
   loadRx(found);
-  toast('已载入 '+found.n+' 的处方，可直接修改后保存为新单');
+  toast('已载入');
 }
 
 /* ---------- 新处方编号：全局唯一，绝不能撞号 ----------
@@ -9533,7 +9534,7 @@ function loadRx(r){
   if(curRec){
     var tip='已载入 '+r.n+'（'+(r.fy?'【发】':(k>=0?'已保存':'历史'))+'）　直接修改后点「保存」即覆盖本条，不会新建';
     if($('saveTip')) $('saveTip').textContent=tip;
-    toast(tip);
+    toast('已载入');
   }
 }
 /* 复制处方：把当前载入的处方另开为「当日」新单，保存时新建 */
@@ -9577,7 +9578,7 @@ function copyRx(){
   rxQuiet(function(){ recalc(); });   /* 静默：复制不该触发写回 */
   markHistSel('');
   if($('saveTip')) $('saveTip').textContent='已复制为 '+today()+' 新单　点「保存」将新建一条当日处方';
-  toast('已复制为当日新单，点「保存」新建');
+  toast('已复制为新单');
 }
 /* ---------------- 续开（2026-10-14 按用户最新规格）----------------
    场景：李丽珍的方子开完了，要照着计算区再开一张（如家人同名/复诊调整药味）。
@@ -9617,7 +9618,7 @@ function continueRx(){
   $('hFrom').value=$('fDate').value||today(); $('hTo').value=$('hFrom').value; $('hName').value='';
   renderHistory();
   var c=cellEl(0); if(c) c.querySelector('.nm').focus();
-  toast('已续开新单：明细与药费已清空，计算区保留　录入药味后保存');
+  toast('已续开新单');
 }
 function newRx(){
   rxMarkClean();
@@ -10797,7 +10798,7 @@ function dmAddSpec(idx){
   try{ tr.scrollIntoView({block:'center'}); }catch(e){}
   var td=tr.querySelector('td[data-f="u"]');
   if(td) dmStartEdit(td,tr);
-  toast('已为「'+(d.n||'')+'」新增规格，填个单位（盒 / 个 / 斤…）');
+  toast('已新增规格，请填单位');
 }
 /* 子规格行上的「×」：删掉这一条规格（库存一起删） */
 function dmDelSpec(idx, s){
@@ -12314,7 +12315,7 @@ function bind(){
       for(var i2=0;i2<ns.length;i2++) ns[i2].classList.remove('picked');
       selAll=false; clearSelMark();
     }
-    toast(pickMode?'点选模式：点要删除的药味（可多选），再按 Delete 或右键删除；按 Esc 退出':'已退出点选模式');
+    toast(pickMode?'点选要删除的药味，按 Esc 退出':'已退出点选模式');
   }
   function pickedList(){
     var ns=$('sGrid').querySelectorAll('.cell'), out=[];
@@ -12539,7 +12540,7 @@ function bind(){
     acHide();
     /* 粘贴后按原样铺开（不预先排版），保存时才排成一行三味 */
     if($('saveTip')) $('saveTip').textContent='已铺入 '+parsed.length+' 味（按原顺序）　点「保存」后自动排成一行三味';
-    toast('已铺入 '+parsed.length+' 味药，点「保存」自动排版');
+    toast('已铺入 '+parsed.length+' 味，点「保存」排版');
     recalc();
   }
   $('rxSheet').addEventListener('paste',handlePaste);
@@ -13266,7 +13267,7 @@ function supaSaveFail(msg){
   /* 被总闸拦截（明细为空）时走轻提示：那不是"写入失败"，
      云端原数据完好，不需要用户重试保存，避免用户误操作反复点保存。 */
   if(String(msg).indexOf('明细为空')>=0){
-    toast('明细为空，本次未上传（云端原数据已保留）');
+    toast('明细为空，未上传');
     return;
   }
   try{
@@ -14208,7 +14209,7 @@ var WPlan = (function(){
     }
     if(any){
       gstCfPersist();
-      toast('已存为药方：' + names.join('、'));
+      toast('已存为药方');
     }
     return true;
   }
@@ -14237,7 +14238,7 @@ var WPlan = (function(){
       try{ saveCommonFromOrder(o); }catch(err2){ console.warn('常用方保存异常:', err2 && err2.message); }
       try{ renderList(); }catch(err3){ console.warn('列表渲染异常:', err3 && err3.message); }
     }
-    toast('已保存，已返回订单列表');
+    toast('已保存');
   }
   function backToList(){
     var o = curOrder();
@@ -15272,7 +15273,7 @@ var WPlan = (function(){
   function saveNow(){
     save(); var st = document.getElementById('wpSaveState');
     if(st) st.textContent = '已保存 · ' + nowHM();
-    toast('已保存到云端（自动同步）');
+    toast('已保存');
   }
 
   /* ---- 药方复用：历史药方 + 常用方，卡片列表（可勾选多张） ---- */
