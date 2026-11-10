@@ -672,27 +672,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 /* ================= 通知浮层（2026-10-25 重构 + 样式优化 + 红框定位）=================
    位置：左下角，贴「共 N 条」底部区域（按用户红框定位：left:12px / bottom:16px）。
    - 白底 + 浅色描边 + 弥散阴影，轻盈悬浮感；普通通知绿字、警告/出错红字（.err）。
-   - 宽固定 400；**高度随文字自适应**（一行字就是一行字的高度，不留大片空白）。
+   - 宽度按文字自适应、**上限 400px**；高度随文字自适应。
    - 多条竖向堆叠：**新通知叠在上一条之上**（不横向排），每条独立 5 秒自动淡出。
    - 右上角「关闭」为纯 SVG ×图标（无按钮样式），点击即关。
    - 容器 pointer-events:none 永不挡点击；只有弹窗自身可点（删除图标）。 */
 #toastWrap{
   position:fixed;left:12px;bottom:16px;           /* 红框位置：左下角，贴「共 N 条」底部区域 */
   display:flex;flex-direction:column;gap:8px;    /* 竖向堆叠：新通知叠在上一条之上（不横向排） */
+  align-items:flex-start;                         /* 宽度跟随文字，不再撑满 400 */
   z-index:99;
   pointer-events:none;                            /* 容器不挡任何点击 */
 }
 #toastWrap .tst{
   pointer-events:auto;                            /* 弹窗自身可点（关闭图标） */
   position:relative;
-  width:400px;height:auto;box-sizing:border-box;  /* 宽固定 400；高度随文字自适应，不留空白 */
+  width:auto;max-width:400px;height:auto;box-sizing:border-box;  /* 宽度按文字自适应，上限 400 */
   display:flex;align-items:center;                /* 文字垂直居中 */
   background:#fff;                                /* 白底 */
   border:1px solid var(--neutral-3);              /* 浅色描边 */
   border-radius:var(--r-md);                      /* 与按钮同款圆角 */
   color:var(--pri);                               /* 普通通知：绿字 */
-  padding:12px 20px;
-  font-size:var(--fs-sub);line-height:1.6;
+  padding:8px 14px;
+  font-size:13px;line-height:1.45;
   box-shadow:0 2px 6px rgba(20,25,35,.06), 0 12px 36px rgba(20,25,35,.16);   /* 弥散阴影 */
   text-align:left;
   opacity:0;transform:translateY(8px);            /* 入场：上浮 + 淡入 */
@@ -702,7 +703,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);box-shadow:0 0 0
 #toastWrap .tst.err{color:var(--danger)}          /* 警告/出错：红字 */
 #toastWrap .tst.in{opacity:1;transform:none}
 #toastWrap .tst.out{opacity:0;transform:translateY(6px)}   /* 出场：淡出（.in 之后定义，压过入场态） */
-#toastWrap .tst-tx{flex:1;min-width:0;padding-right:24px}  /* 给右上角 × 让位 */
+#toastWrap .tst-tx{flex:1;min-width:0;padding-right:20px}  /* 给右上角 × 让位 */
 #toastWrap .tst-x{                                /* 右上角「关闭」图标按钮：纯 SVG ×图标，无按钮样式。
    ⚠ 全站有一条 button{…!important} 基座规则（边框/背景/圆角/min-height），
      这里必须同样用 !important 盖回去，否则会带按钮边框、白底、34px 最小高。 */
@@ -3061,6 +3062,9 @@ body{ --navw:0px; }
 .wp-sub-sum:hover{ background:transparent!important; }
 .wp-sub-sum b{ color:#0B7E57!important; font-weight:700; }
 .wp-block-head .spacer{ flex:1; }
+/* 零售价药方标记 */
+.wp-retail-tag{ flex:none; font-size:11px; line-height:20px; padding:0 8px; border-radius:10px;
+  background:#fff4e5; color:#b26a00; border:1px solid #f0d3a8; white-space:nowrap; }
 /* 小订单（药方）折叠：点标题左侧的箭头收起工具条与药名表；折叠状态记在 _fold 里，重渲染不丢 */
 .wp-fold{ flex:0 0 auto; width:22px; height:22px; min-height:22px!important; padding:0!important; margin:0!important;
   display:inline-flex; align-items:center; justify-content:center;
@@ -3148,6 +3152,11 @@ body{ --navw:0px; }
   opacity:0; pointer-events:none; transition:opacity .18s ease; }
 .wplan .wp-tbl .wp-plus:hover{ background:var(--pri)!important; border-color:var(--pri)!important; color:#fff!important; }
 .wp-tbl tbody tr:hover .wp-plus, .wp-tbl tbody tr:focus-within .wp-plus, .wp-tbl td.wp-plus-td:hover .wp-plus, .wplan .wp-tbl .wp-plus:focus-visible{ opacity:1; pointer-events:auto; }
+/* 加号 / 减号圆形按钮：悬停与按下都原地不动（全站 button:hover 会上移、:active 会缩放） */
+.wplan .wp-tbl .wp-plus:hover, .wplan .wp-tbl .wp-plus:active, .wplan .wp-tbl .wp-plus:focus,
+.wplan .wp-tbl .wp-minus:hover, .wplan .wp-tbl .wp-minus:active, .wplan .wp-tbl .wp-minus:focus{
+  transform:none!important; box-shadow:none!important;
+}
 /* 克数 + 单位同格：两个输入框之间留 10px */
 .wp-qty-cell{ display:flex; align-items:center; gap:10px; }
 .wp-qty-cell .wp-qty{ flex:1 1 auto; min-width:0; }
@@ -3219,7 +3228,38 @@ body{ --navw:0px; }
 .wp-imp-tbl .imp-noprice{ color:var(--warn,#c77c02); }
 /* 预览里的数量 / 单位可直接修改 */
 .wp-imp-tbl .imp-qty, .wp-imp-tbl .imp-unit{ width:100%; box-sizing:border-box; height:30px!important; min-height:30px!important; padding:2px 6px!important; text-align:center!important; font-size:12px!important; border:1px solid var(--neutral-3)!important; border-radius:6px!important; background:#fff!important; color:var(--neutral-ink)!important; }
+/* 数量可手动输入（居中、无上下调节箭头、完整显示） */
+.wp-imp-tbl .imp-qty-cell{ text-align:center!important; white-space:nowrap; padding:6px 4px!important; }
+.wp-imp-tbl .imp-qty-cell .imp-qty{ min-width:52px; font-variant-numeric:tabular-nums; font-weight:600; -moz-appearance:textfield; appearance:textfield; }
+.wp-imp-tbl .imp-qty-cell .imp-qty::-webkit-outer-spin-button,
+.wp-imp-tbl .imp-qty-cell .imp-qty::-webkit-inner-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
+.wp-imp-tbl th.imp-th-qty{ text-align:center; }
 .wp-imp-tbl .imp-empty{ text-align:center; color:var(--neutral-4); padding:22px; }
+/* 识别列表每行的删除按钮：与药品行同款红色圆形减号 */
+.wp-imp-tbl col.c-del{ width:36px; }
+.wp-imp-tbl td.imp-del{ text-align:right; padding-right:6px!important; width:36px; }
+.wp-imp-tbl .imp-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
+.wp-imp-tbl .imp-minus:hover{ background:var(--danger)!important; color:#fff!important; }
+/* 药方备注按钮：无备注=普通「添加备注」；已保存=黑底白字「查看备注」 */
+.wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
+.wplan .btn.wp-note-btn{ background:#111!important; border-color:#111!important; color:#fff!important; }
+.wplan .btn.wp-note-btn:hover{ background:#333!important; border-color:#333!important; color:#fff!important; }
+/* 药方加工弹窗 */
+.wp-proc-wt{ font-size:12px; color:var(--neutral-5); padding:0 2px 10px; }
+.wp-proc-wt b{ color:var(--neutral-title); font-weight:700; font-variant-numeric:tabular-nums; }
+.wp-proc-head, .wp-proc-row{ display:grid; grid-template-columns:1fr 92px 92px 78px 30px; gap:8px; align-items:center; }
+.wp-proc-head{ font-size:12px; color:var(--neutral-5); padding:0 2px 6px; }
+.wp-proc-list{ max-height:46vh; overflow:auto; }
+.wp-proc-row{ margin-bottom:6px; }
+.wp-proc-row input{ height:32px!important; min-height:32px!important; padding:2px 8px!important; font-size:13px!important; box-sizing:border-box; width:100%; }
+.wp-proc-row .proc-amt{ text-align:right; font-weight:700; color:var(--pri-deep); }
+.wp-proc-row .proc-minus{ width:20px!important; height:20px!important; min-width:20px!important; min-height:20px!important; padding:0!important; border-radius:50%!important; border:1px solid var(--danger)!important; background:#fff!important; color:var(--danger)!important; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; line-height:1; }
+.wp-proc-row .proc-minus:hover{ background:var(--danger)!important; color:#fff!important; }
+.wp-proc-foot{ display:flex; align-items:center; justify-content:space-between; margin:6px 0 12px; }
+.wp-proc-sum{ font-size:13px; color:var(--neutral-6); }
+.wp-proc-sum b{ color:#12693a; font-size:16px; }
+/* 备注弹窗：文本框随内容自动增高 */
+#wpNoteTa{ width:100%; box-sizing:border-box; min-height:96px; resize:none; overflow:hidden; line-height:1.6; }
 /* 订单详情：输入框内右侧的「标准药」小胶囊（超长单行省略，悬停看全名） */
 .wp-tbl .wp-std{ max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; line-height:18px; color:var(--neutral-4); background:#f1f2ee; border-radius:9px; padding:0 6px; pointer-events:auto; }
 /* 单价悬停：客户历史 / 其他成交 / 进货价 三档时间线 */
@@ -3265,6 +3305,13 @@ body{ --navw:0px; }
 .wp-reuse-tabs{ display:flex; gap:6px; margin-bottom:12px; }
 .wp-reuse-tabs button{ min-height:30px; padding:4px 16px; border-radius:var(--r-pill); border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-6); font-size:13px; cursor:pointer; }
 .wp-reuse-tabs button.on{ background:#111!important; border-color:#111!important; color:#fff!important; font-weight:700; }
+/* 选中的黑色胶囊按钮：悬停 / 按下都保持黑底白字（不被全局 button:hover 染色） */
+.wp-reuse-tabs button.on:hover,
+.wp-reuse-tabs button.on:active,
+.wp-reuse-tabs button.on:focus{
+  background:#111!important; border-color:#111!important; color:#fff!important;
+  box-shadow:none!important; transform:none!important;
+}
 .wp-reuse-card{ display:flex; align-items:center; gap:12px; padding:12px 12px; border:1px solid var(--neutral-2); border-radius:12px; margin-bottom:10px; background:var(--n-white); }
 .wp-reuse-card:hover{ border-color:var(--pri-line); box-shadow:0 4px 14px rgba(21,163,74,.08); }
 .wp-reuse-card .chk{ width:16px; height:16px; flex:0 0 auto; cursor:pointer; }
@@ -3408,6 +3455,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
   font-size:12px; padding:0 8px; }
 .wp-bi select.bi-in{ min-width:104px; max-width:150px; padding-right:24px; cursor:pointer; border-radius:10px; }
 .wp-bi input.bi-in{ width:126px; }
+/* 快递配送费：选择「快递配送」时出现在配送右侧，手填金额计入小订单总价 */
+.wp-bi.wp-ship-fee input.bi-in{ width:84px; text-align:right; }
 .wp-field-dish .wp-in{ min-width:260px; width:280px; }
 /* 计划分组 */
 .wp-plan-row{ display:grid; grid-template-columns:1fr 96px 120px 96px; align-items:center; gap:12px;
@@ -3664,6 +3713,16 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wps-sec-h{ display:flex; align-items:center; justify-content:space-between; gap:8px;
   margin-bottom:9px; font-size:11px; font-weight:700; letter-spacing:.5px;
   color:var(--neutral-4); text-transform:uppercase; }
+/* 打印范围：小订单勾选列表 */
+.wps-pick-list{ display:flex; flex-direction:column; gap:6px; }
+.wps-pick{ display:flex; align-items:center; gap:8px; padding:6px 9px; border:1px solid var(--neutral-2);
+  border-radius:var(--r-md); background:var(--n-white); font-size:12px; cursor:pointer; }
+.wps-pick:hover{ border-color:var(--neutral-4); }
+.wps-pick input{ margin:0; }
+.wps-pick .nm{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--neutral-title); font-weight:600; }
+.wps-pick .dt{ flex:none; color:var(--neutral-5); font-variant-numeric:tabular-nums; }
+.wps-pick-empty{ font-size:12px; color:var(--neutral-4); padding:4px 2px; }
 /* 模板条目 */
 .wps-tpl{ display:flex; align-items:center; gap:8px; padding:8px 9px; margin-bottom:6px;
   border:1px solid var(--neutral-2); border-radius:var(--r-md); background:var(--n-white); cursor:pointer; }
@@ -3724,8 +3783,11 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wpd-title{ font-size:1.9em; font-weight:700; letter-spacing:2px; }
 .wpd-sub{ font-size:.92em; color:#333; margin-top:3px; }
 .wpd-metas{ display:flex; justify-content:space-between; gap:14px; margin-top:8px;
-  padding-top:6px; border-top:1px solid #000; text-align:left; font-size:.95em; line-height:1.6; }
-.wpd-metas .r{ text-align:right; white-space:nowrap; }
+  padding-bottom:4px; border-bottom:1px solid #000; text-align:left; font-size:.95em; line-height:1.6; }
+.wpd-metas .l{ flex:1 1 auto; min-width:0; }
+.wpd-metas .r{ text-align:right; white-space:nowrap; flex:0 0 auto; }
+/* 横线下方的客户单位 / 客户地址（信息较长，单独排两行） */
+.wpd-cust{ text-align:left; font-size:.95em; line-height:1.6; margin-top:4px; }
 .wpd-tbl{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:fixed;
   font-variant-numeric:tabular-nums; }
 .wpd-tbl th,.wpd-tbl td{ border:1px solid #000; padding:2px 5px; text-align:left;
@@ -3754,7 +3816,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .wpd-pagebreak{ break-after:page; page-break-after:always; }
 .wpd-pagebreak:last-child{ break-after:auto; page-break-after:auto; }
 /* 小票（58/80mm）：表头竖排、合计分行，别硬挤两列 */
-.wpd-narrow .wpd-metas{ display:block; border-top:none; }
+.wpd-narrow .wpd-metas{ display:block; }
 .wpd-narrow .wpd-metas .r{ text-align:left; white-space:normal; margin-top:2px; }
 .wpd-narrow .wpd-title{ font-size:1.5em; letter-spacing:1px; }
 .wpd-narrow .wpd-shop{ font-size:1.1em; }
@@ -4053,7 +4115,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <!-- 订单详情 / 制表：独立全屏页，列表页只负责展示与入口 -->
             <div class="wp-detail" id="wpSubEdit">
               <div class="wp-detail-head">
-                <button class="btn" type="button" onclick="WPlan.backToList()">← 返回列表</button>
+                <button class="btn" type="button" onclick="WPlan.saveAndBack()">← 保存并返回列表</button>
                 <b class="wp-detail-title" id="wpDetailTitle">订单详情</b>
                 <span class="wp-detail-no" id="wpDetailNo"></span>
                 <span class="spacer"></span>
@@ -4075,10 +4137,14 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <span class="wp-blocks-lb">药方排序</span>
                   <button class="btn sm" type="button" onclick="WPlan.sortBlocks('asc')">日期升序 ↑</button>
                   <button class="btn sm" type="button" onclick="WPlan.sortBlocks('desc')">日期降序 ↓</button>
+                  <button class="btn sm" type="button" id="wpFoldAllBtn" onclick="WPlan.toggleFoldAll()">全部折叠</button>
                 </div>
                 <div class="wp-blocks" id="wpBlocks"></div>
 
-                <div class="wp-add"><button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加药方</button></div>
+                <div class="wp-add">
+                  <button class="btn pri" type="button" onclick="WPlan.addBlock()">+ 添加订单</button>
+                  <button class="btn" type="button" style="margin-left:8px" onclick="WPlan.addRetailBlock()">+ 添加药方</button>
+                </div>
 
                 <div class="wp-foot" id="wpFoot"></div>
                 <div class="wp-hint" id="wpHint">提示：在药名格直接输入药名、耗材名或拼音（如 md）即可检索选药，自动带出单价；打细粉 / 包装袋 / 无纺布袋等加工耗材也按同一行录入，按「数量 × 单价」计入总价。回车换下一行连续录入。也可用「历史复用 / 文本制表 / 导入Excel」，与输入检索混用。数据自动存入云端，刷新不丢。</div>
@@ -4100,6 +4166,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   <button class="wps-ico" type="button" id="wpsNewBtn" onclick="WPrint.addTpl()" title="新建模板">＋</button>
                 </div>
                 <div id="wpsTplList"></div>
+              </div>
+
+              <div class="wps-sec">
+                <div class="wps-sec-h"><span>打印范围</span>
+                  <label class="wps-sw" style="margin:0"><input type="checkbox" id="wpsPickAll" onchange="WPrint.pickAll(this.checked)">全选</label>
+                </div>
+                <div id="wpsPickList" class="wps-pick-list"></div>
               </div>
 
               <div class="wps-sec">
@@ -4222,8 +4295,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <div class="wp-imp-sum" id="wpTextMatchSum"></div>
                 <div class="wp-imp-wrap">
                   <table class="wp-imp-tbl">
-                    <colgroup><col style="width:26%"><col style="width:34%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col></colgroup>
-                    <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th></tr></thead>
+                    <colgroup><col style="width:23%"><col style="width:31%"><col style="width:10%"><col style="width:8%"><col style="width:10%"><col><col class="c-del"></colgroup>
+                    <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="imp-th-qty">数量</th><th>单位</th><th class="num">单价</th><th>备注</th><th></th></tr></thead>
                     <tbody id="wpTextMatchBody"></tbody>
                   </table>
                 </div>
@@ -4243,8 +4316,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="wp-imp-sum" id="wpImportSum"></div>
               <div class="wp-imp-wrap">
                 <table class="wp-imp-tbl">
-                  <colgroup><col style="width:26%"><col style="width:34%"><col style="width:9%"><col style="width:8%"><col style="width:11%"><col></colgroup>
-                  <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="num">数量</th><th>单位</th><th class="num">单价</th><th>备注</th></tr></thead>
+                  <colgroup><col style="width:23%"><col style="width:31%"><col style="width:10%"><col style="width:8%"><col style="width:10%"><col><col class="c-del"></colgroup>
+                  <thead><tr><th>客户原始药名</th><th>匹配仓库标准药名</th><th class="imp-th-qty">数量</th><th>单位</th><th class="num">单价</th><th>备注</th><th></th></tr></thead>
                   <tbody id="wpImportBody"></tbody>
                 </table>
               </div>
@@ -4252,6 +4325,38 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             <div class="wp-mb-actions">
               <button class="btn" type="button" onclick="WPlan.impCancel()">取消</button>
               <button class="btn pri" type="button" onclick="WPlan.impConfirm()">确认导入</button>
+            </div>
+          </div>
+        </div>
+        <!-- 小订单加工：可添加多行加工方式，金额可直接手填，也可用单价×数量 -->
+        <div class="modal" id="wpProcModal">
+          <div class="wp-mw" style="width:min(660px,95vw)">
+            <div class="wp-mh">药方加工 <button class="x" type="button" onclick="WPlan.closeModal('wpProcModal')">×</button></div>
+            <div class="wp-mb">
+              <div class="wp-proc-wt" id="wpProcWt"></div>
+              <div class="wp-proc-head"><span>加工方式</span><span style="text-align:right">金额</span><span style="text-align:right">单价</span><span style="text-align:right">数量</span><span></span></div>
+              <div class="wp-proc-list" id="wpProcList"></div>
+              <div class="wp-proc-foot">
+                <button class="btn sm" type="button" onclick="WPlan.procAddRow()">＋ 添加一行</button>
+                <span class="wp-proc-sum">汇总加工金额：<b id="wpProcSum">¥0.00</b></span>
+              </div>
+              <div class="wp-mb-actions">
+                <button class="btn" type="button" onclick="WPlan.closeModal('wpProcModal')">取消</button>
+                <button class="btn pri" type="button" onclick="WPlan.procSave()">保存加工</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 小订单备注：文本框随内容自动增高，保存后写入该药方并出现在导出图片里 -->
+        <div class="modal" id="wpNoteModal">
+          <div class="wp-mw" style="width:min(560px,94vw)">
+            <div class="wp-mh">药方备注 <button class="x" type="button" onclick="WPlan.closeModal('wpNoteModal')">×</button></div>
+            <div class="wp-mb">
+              <textarea id="wpNoteTa" class="wp-ta" placeholder="填写这张药方的备注，例如煎法、忌口、配送说明…" oninput="WPlan.growNote(this)"></textarea>
+              <div class="wp-mb-actions">
+                <button class="btn" type="button" onclick="WPlan.closeModal('wpNoteModal')">取消</button>
+                <button class="btn pri" type="button" onclick="WPlan.saveBlockRemark()">保存备注</button>
+              </div>
             </div>
           </div>
         </div>
@@ -4298,6 +4403,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="wp-list">
                 <div class="wp-list-bar">
                   <input id="purSearch" class="wp-search sch" placeholder="搜索 月份 / 单号 / 状态" oninput="Purchase.setSearch(this.value)">
+                  <button class="btn sm" type="button" onclick="Purchase.histOpen()">导入历史Excel</button>
                   <span class="wp-list-count" id="purListCount"></span>
                 </div>
                 <div id="purList" class="wp-list-body"></div>
@@ -4305,14 +4411,16 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
             </div>
             <div class="wp-detail" id="purSubEdit">
               <div class="wp-detail-head">
-                <button class="btn" type="button" onclick="Purchase.showSub('list')">← 返回列表</button>
+                <button class="btn" type="button" onclick="Purchase.saveAndBack()">← 保存并返回列表</button>
                 <b class="wp-detail-title" id="purTitle">进货单</b>
                 <span class="wp-detail-no" id="purNo"></span>
                 <span class="spacer"></span>
                 <button class="btn danger" type="button" onclick="Purchase.delOrder()">删除本月</button>
+                <button class="btn" type="button" onclick="Purchase.saveDraft()">保存草稿</button>
                 <button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button>
               </div>
               <div class="wp-detail-body">
+                <div id="purMsg" class="redhint pur-topmsg" hidden><span id="purMsgTx"></span><button type="button" class="pur-msgx" aria-label="关闭提示" onclick="Purchase.closeMsg()">×</button></div>
                 <div class="wp-order">
                   <div class="wp-order-row">
                     <div class="wp-field wp-req"><label>月份 *</label><input id="purMonth" class="wp-in" type="month" onchange="Purchase.setMonth(this.value)"></div>
@@ -4320,10 +4428,20 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                     <div class="wp-field"><label>入库状态</label><input id="purStatus" class="wp-in" readonly></div>
                   </div>
                 </div>
+                <div class="pur-imp">
+                  <label class="wp-bi">导入到进货日期
+                    <input class="bi-in cal-input" type="text" readonly id="purImpDate" data-cal-mode="day" placeholder="选择日期">
+                  </label>
+                  <button class="btn sm" type="button" onclick="Purchase.openTextImport()">粘贴文本制表</button>
+                  <button class="btn sm" type="button" onclick="Purchase.openExcelImport()">导入Excel</button>
+                  <button class="btn sm" type="button" onclick="Purchase.histOpen()">导入历史Excel</button>
+                  <input type="file" id="purFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="Purchase.onExcelFile(this)">
+                  <input type="file" id="purHistFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="Purchase.histOnFile(this)">
+                  <span class="pur-imp-hint">「导入Excel」写进上面这个进货日期；「导入历史Excel」按月建单、按日期拆小订单</span>
+                </div>
                 <div class="wp-blocks" id="purBlocks"></div>
                 <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
                 <div class="wp-foot" id="purFoot"></div>
-                <div id="purMsg" class="redhint"></div>
                 <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或用拼音选，单价按 元/kg 录入（数量填 g/kg/斤 均可，金额自动换算）；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
               </div>
             </div>
@@ -4363,7 +4481,67 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           </div>
         </div>
 
+        <!-- 进货单：粘贴文本制表 -->
+        <div class="modal" id="purTextModal">
+          <div class="pur-mw">
+            <div class="pur-mh">粘贴文本制表</div>
+            <div class="pur-mb">
+              <p class="pur-dt">把药材名 + 数量 + 单位粘贴进来，每行一味（如「黄芪 30g」或「黄芪 30 g」）；单价会自动带出最近进货价，可再手动改。</p>
+              <textarea id="purText" class="pur-ta" placeholder="黄芪 30g&#10;茯苓 15g&#10;当归 20g"></textarea>
+              <div id="purTextMsg" class="redhint"></div>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.closeTextImport()">取消</button>
+              <button type="button" class="pri" onclick="Purchase.doTextImport()">导入</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 进货单：导入历史 Excel（按月建大单，按日期拆小订单，先审匹配再写库） -->
+        <div class="modal" id="purHistModal">
+          <div class="pur-mw wide">
+            <div class="pur-mh">导入历史进货单
+              <button class="x" type="button" onclick="Purchase.histCancel()">×</button>
+            </div>
+            <div class="pur-mb">
+              <div class="pur-hist-bar">
+                <label>日期没写年份时按
+                  <input id="purHistYear" type="number" min="2000" max="2099" class="pur-hist-y" onchange="Purchase.histYear(this.value)"> 年
+                </label>
+                <label class="pur-hist-chk">
+                  <input type="checkbox" id="purHistStock" onchange="Purchase.histStock(this.checked)">
+                  同时写入库存（只对勾选且已匹配的行）
+                </label>
+                <span class="pur-hist-stat" id="purHistStat"></span>
+              </div>
+              <div class="pur-hist-wrap">
+                <table class="pur-hist-tbl">
+                  <thead><tr>
+                    <th class="c1">导入</th><th class="c2">进货日期</th><th class="c3">表格品名</th>
+                    <th class="c4">匹配药材</th><th class="c5">数量</th><th class="c6">单位</th>
+                    <th class="c7">单价/元kg</th><th class="c8">金额</th><th class="c9">匹配方式</th>
+                  </tr></thead>
+                  <tbody id="purHistBody"></tbody>
+                </table>
+              </div>
+              <datalist id="purHistDrugs"></datalist>
+              <div id="purHistMsg" class="redhint"></div>
+              <p class="pur-dt pur-hist-note">不勾「写入库存」＝只记进货价历史，库存不动；入库状态显示「价格导入」。勾选后按审核通过的匹配写入库存并标「已入库」。</p>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.histCancel()">取消</button>
+              <button type="button" class="pri" onclick="Purchase.histConfirm()">开始导入</button>
+            </div>
+          </div>
+        </div>
+
         <style>
+          .pur-imp{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
+          .pur-imp-hint{ font-size:11px; color:var(--neutral-5,#8a8f98); }
+          .pur-ta{ width:100%; box-sizing:border-box; min-height:150px; padding:10px 12px;
+            font-family:inherit; font-size:13px; line-height:1.7; color:var(--neutral-title);
+            background:var(--n-white); border:1px solid var(--neutral-3); border-radius:8px; resize:vertical; }
+          .pur-ta:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 3px var(--pri-soft); }
           .pur-mw{ width:460px; background:var(--n-white); border-radius:var(--radius-card);
             box-shadow:var(--shadow-3,0 18px 48px rgba(0,0,0,.18)); overflow:hidden; }
           .pur-mh{ padding:15px 18px; font-size:15px; font-weight:700; color:var(--neutral-title);
@@ -4378,6 +4556,35 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           .pur-dh{ margin:8px 0 0; font-size:13px; font-weight:600; color:var(--neutral-title); }
           .pur-dl{ margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--neutral-6); line-height:1.9; }
           .pur-dl b{ color:var(--pri-deep); }
+          .pur-mw.wide{ width:min(1120px,94vw); }
+          .pur-hist-bar{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--neutral-6); }
+          .pur-hist-y{ width:70px; height:28px; box-sizing:border-box; padding:0 6px; font-family:inherit; font-size:12px;
+            border:1px solid var(--neutral-3); border-radius:6px; background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-chk{ display:flex; align-items:center; gap:5px; cursor:pointer; }
+          .pur-hist-stat{ margin-left:auto; font-weight:600; color:var(--pri-deep); }
+          .pur-hist-wrap{ max-height:56vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:8px; }
+          .pur-hist-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
+          .pur-hist-tbl th{ position:sticky; top:0; z-index:1; background:var(--neutral-0,#fbfbfa); text-align:left;
+            font-weight:600; color:var(--neutral-6); padding:7px 8px; border-bottom:1px solid var(--neutral-2); white-space:nowrap; }
+          .pur-hist-tbl td{ padding:5px 8px; border-bottom:1px solid var(--neutral-1,#f0f0ee); vertical-align:middle; }
+          .pur-hist-tbl .c1{ width:44px; text-align:center; }
+          .pur-hist-tbl .c5,.pur-hist-tbl .c7,.pur-hist-tbl .c8{ text-align:right; white-space:nowrap; }
+          .pur-hist-tbl .c9{ white-space:nowrap; color:var(--neutral-5,#8a8f98); }
+          .pur-hist-tbl tr.pur-hist-m td{ background:var(--pri-soft,#eef6f0); font-weight:700; color:var(--pri-deep);
+            padding:8px; position:sticky; top:30px; }
+          .pur-hist-m select{ height:26px; font-family:inherit; font-size:12px; margin-left:8px; border-radius:6px;
+            border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-tbl tr.ok td.c9{ color:#2e7d4f; }
+          .pur-hist-tbl tr.warn{ background:#fff9e8; }
+          .pur-hist-tbl tr.warn td.c9{ color:#a7720a; }
+          .pur-hist-tbl tr.bad{ background:#fdeeee; }
+          .pur-hist-tbl tr.bad td.c9{ color:var(--danger,#c0392b); }
+          .pur-hist-tbl tr.off{ opacity:.45; }
+          .pur-hist-in{ width:100%; min-width:110px; height:26px; box-sizing:border-box; padding:0 6px;
+            font-family:inherit; font-size:12px; border:1px solid var(--neutral-3); border-radius:6px;
+            background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-in:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 2px var(--pri-soft); }
+          .pur-hist-note{ margin-top:10px; font-size:11px; }
         </style>
         <style>
           .pur-form{padding:4px 2px;max-width:1120px}
@@ -4414,6 +4621,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           }
           .pur-prod:hover{background:#e7f7ee!important}
           #purMsg:empty{display:none}
+          #purMsg.pur-topmsg{ position:relative; display:flex!important; align-items:flex-start; gap:6px;
+            margin:0 0 10px!important; padding:9px 36px 9px 12px!important; border-radius:8px!important; line-height:1.6; }
+          #purMsg .pur-msgx{ position:absolute; right:6px; top:4px; width:24px; height:24px;
+            padding:0; border:0; background:transparent; color:inherit; opacity:.6;
+            font-size:16px; line-height:24px; text-align:center; cursor:pointer; border-radius:6px; }
+          #purMsg .pur-msgx:hover{ opacity:1; background:rgba(0,0,0,.06); }
+          #purMsg[hidden]{display:none!important}
           .pur-hint.ok{color:#5b8c5a}
           .pur-del{color:var(--danger,#c0392b)}
           .pur-total{font-size:13px}
@@ -5002,7 +5216,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <select id="setPrinterA5" class="set-in set-sel"></select>
         </div>
         <!-- 2026-10-08 移除「打印小票」后，小票打印机选择器一并去掉；上面的小票字号/加粗/行距仍作用于「复制小票」 -->
-        <div class="set-note">助手状态：<b id="agentState">检测中…</b>　需先双击桌面「启动打印助手」；助手没运行时会自动改用浏览器打印窗口。</div>
+        <div class="set-note">助手状态：<b id="agentState">检测中…</b>
+          <button type="button" class="mini" id="agentRetry" onclick="agentPing().then(agentTips)">重新检测</button>
+          <br>需先双击桌面「启动打印助手」。若一直「未运行」：确认助手窗口开着；浏览器若弹出「访问本地网络」请选允许。
+          助手没运行时会自动改用浏览器打印窗口。</div>
       </section>
 
       <!-- 后缀管理：日常药方打印的「后缀」快捷框与候选里的后缀变体都读这一份 -->
@@ -5311,6 +5528,137 @@ function fitMoneyInputs(){
   }catch(e){}
 }
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* ---------------- Word(.docx) 导出 ----------------
+   历史实现：把 HTML 文本命名成 .doc（application/msword）。桌面版 Word 兼容，
+   但手机微信内置预览会按二进制格式校验 → 提示「文件可能已损坏/未知格式」。
+   这里改为生成真正的最小 OOXML 包（ZIP + word/document.xml），
+   微信、QQ、Office、WPS 均可直接预览。 */
+var XW = (function(){
+  var PAGE_W = 9860; /* A4 去 18mm 左右边距后的可用宽度（twips / dxa） */
+  var _crcTable = (function(){
+    var t = new Uint32Array(256), c, i, k;
+    for(i=0;i<256;i++){ c = i; for(k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[i] = c; }
+    return t;
+  })();
+  function crc32(b){
+    var c = 0xFFFFFFFF;
+    for(var i=0;i<b.length;i++) c = _crcTable[(c ^ b[i]) & 255] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function utf8(s){
+    if(typeof TextEncoder !== 'undefined') return new TextEncoder().encode(s);
+    var q = unescape(encodeURIComponent(s)), out = new Uint8Array(q.length);
+    for(var i=0;i<q.length;i++) out[i] = q.charCodeAt(i);
+    return out;
+  }
+  function xesc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  /* 最小 ZIP（store 不压缩）：本地头 + 数据 + 中央目录 + EOCD */
+  function zip(files){
+    var now = new Date();
+    var dosTime = ((now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2));
+    var dosDate = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate());
+    var parts = [], central = [], off = 0, i;
+    for(i=0;i<files.length;i++){
+      var nm = utf8(files[i].name), data = utf8(files[i].data), crc = crc32(data);
+      var lh = new Uint8Array(30 + nm.length), lv = new DataView(lh.buffer);
+      lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true);
+      lv.setUint16(8, 0, true); lv.setUint16(10, dosTime, true); lv.setUint16(12, dosDate, true);
+      lv.setUint32(14, crc, true); lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+      lv.setUint16(26, nm.length, true); lv.setUint16(28, 0, true); lh.set(nm, 30);
+      var cd = new Uint8Array(46 + nm.length), cv = new DataView(cd.buffer);
+      cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true); cv.setUint16(12, dosTime, true);
+      cv.setUint16(14, dosDate, true); cv.setUint32(16, crc, true); cv.setUint32(20, data.length, true);
+      cv.setUint32(24, data.length, true); cv.setUint16(28, nm.length, true);
+      cv.setUint32(42, off, true); cd.set(nm, 46);
+      parts.push(lh, data); central.push(cd); off += lh.length + data.length;
+    }
+    var cdSize = 0;
+    for(i=0;i<central.length;i++){ parts.push(central[i]); cdSize += central[i].length; }
+    var eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, central.length, true);
+    ev.setUint16(10, central.length, true); ev.setUint32(12, cdSize, true); ev.setUint32(16, off, true);
+    parts.push(eo);
+    return new Blob(parts, {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  }
+  function run(text, o){
+    o = o || {}; var sz = o.sz || 21; /* 半磅：21 = 10.5pt */
+    return '<w:r><w:rPr>' + (o.bold ? '<w:b/><w:bCs/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '')
+      + '<w:sz w:val="' + sz + '"/><w:szCs w:val="' + sz + '"/></w:rPr>'
+      + '<w:t xml:space="preserve">' + xesc(text) + '</w:t></w:r>';
+  }
+  /* 段落：o = {bold,sz(半磅),align,color,before/after(磅)} */
+  function p(text, o){
+    o = o || {};
+    return '<w:p><w:pPr><w:spacing w:before="' + Math.round((o.before || 0) * 20) + '" w:after="'
+      + Math.round((o.after || 0) * 20) + '" w:line="276" w:lineRule="auto"/>'
+      + (o.align ? '<w:jc w:val="' + o.align + '"/>' : '') + '</w:pPr>'
+      + (text === '' || text == null ? '' : run(text, o)) + '</w:p>';
+  }
+  /* 表格：widths=各列宽(dxa)，rows=[[{t,w,span,align,bold,fill,sz,color}]] */
+  function tbl(widths, rows){
+    var grid = '', bd = '', i, j, W = 0;
+    for(i=0;i<widths.length;i++){ grid += '<w:gridCol w:w="' + widths[i] + '"/>'; W += widths[i]; }
+    var sides = ['top','left','bottom','right','insideH','insideV'];
+    for(i=0;i<sides.length;i++) bd += '<w:' + sides[i] + ' w:val="single" w:sz="6" w:space="0" w:color="999999"/>';
+    var out = '<w:tbl><w:tblPr><w:tblW w:w="' + W + '" w:type="dxa"/><w:tblBorders>' + bd
+      + '</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar>'
+      + '<w:top w:w="40" w:type="dxa"/><w:left w:w="80" w:type="dxa"/>'
+      + '<w:bottom w:w="40" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>'
+      + '<w:tblGrid>' + grid + '</w:tblGrid>';
+    for(i=0;i<rows.length;i++){
+      out += '<w:tr>';
+      for(j=0;j<rows[i].length;j++){
+        var c = rows[i][j] || {};
+        /* 单元格文本用 \n 换行 → 拆成多个段落（如日期/配送两行） */
+        var lines = String(c.t == null ? '' : c.t).split('\n'), cellPs = '', q;
+        for(q=0;q<lines.length;q++){
+          cellPs += '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="260" w:lineRule="auto"/>'
+            + (c.align ? '<w:jc w:val="' + c.align + '"/>' : '') + '</w:pPr>'
+            + run(lines[q], {bold: c.bold, sz: c.sz || 22, color: c.color}) + '</w:p>';
+        }
+        out += '<w:tc><w:tcPr><w:tcW w:w="' + (c.w || 0) + '" w:type="dxa"/>'
+          + (c.span ? '<w:gridSpan w:val="' + c.span + '"/>' : '')
+          + (c.fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + c.fill + '"/>' : '')
+          + '<w:vAlign w:val="center"/></w:tcPr>' + cellPs + '</w:tc>';
+      }
+      out += '</w:tr>';
+    }
+    return out + '</w:tbl>';
+  }
+  function brk(){ return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'; }
+  function save(fileName, body){
+    var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      + '<Default Extension="xml" ContentType="application/xml"/>'
+      + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+      + '</Types>';
+    var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+      + '</Relationships>';
+    var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
+      + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>'
+      + body
+      + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1020" w:right="1020" w:bottom="1020" '
+      + 'w:left="1020" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    var blob = zip([
+      {name: '[Content_Types].xml', data: ct},
+      {name: '_rels/.rels', data: rels},
+      {name: 'word/document.xml', data: doc}
+    ]);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  }
+  return { p: p, tbl: tbl, brk: brk, save: save, W: PAGE_W, run: run };
+})();
+
 /* ⚠️ 不能用 String.prototype.padStart（ES2017）——旧版 Safari/Mac 上不存在，
    会让today() 抛错返回 undefined，日期框变空，
    再点「上一天/下一天」就会跳到 2022/2023（2026-10-07 用户在 Mac 上遇到）。 */
@@ -5693,7 +6041,7 @@ function copyAddr(a, brief){
   var txt=String(a||'').trim();
   if(!txt){ toastErr('地址为空'); return; }
   /* brief=true（摘要行的「复制」按钮）→ 只给一句轻提示，不把长地址顶出来 */
-  function ok(){ toast(brief?'已复制':('地址已复制：'+txt)); }
+  function ok(){ toast(brief?'已复制':'地址已复制'); }
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(ok,function(){ fallbackCopy(txt, brief); });
   }else fallbackCopy(txt, brief);
@@ -5705,7 +6053,7 @@ function fallbackCopy(txt, brief){
     document.body.appendChild(ta); ta.select();
     var okd=document.execCommand&&document.execCommand('copy');
     document.body.removeChild(ta);
-    toast(okd?(brief?'已复制':('地址已复制：'+txt)):('复制失败，请手动选中地址文字复制'));
+    toast(okd?(brief?'已复制':'地址已复制'):'复制失败，请手动复制');
   }catch(e){ toastErr('复制失败，请手动选中地址文字复制'); }
 }
 
@@ -5779,10 +6127,57 @@ function normKey(s){
   if(ALIAS[raw]) return ALIAS[raw];
   return raw;
 }
+/* ---- 已删除药品「墓碑」 ----
+   药物管理里删掉的东西不许再被识别命中、也不许被导入/改单位时自动重建。
+   ⚠ 两类必须分开记，否则会误伤：
+     d|药名            → 删掉的是**一整条药品**（如「无花果（个）」这条独立记录）
+     s|药名|单位       → 删掉的是**某味药里的一个规格**（如 无花果 的「个」规格）
+   只有 s 类才影响该药自己的计价；d 类只挡「这条药再出现/再被匹配」。 */
+var DEL_DRUGS={};
+var LS_DELDRUGS='rx_del_drugs_v1';
+function delDrugKey(nm){ return normName(nm).toLowerCase(); }
+function loadDelDrugs(){
+  DEL_DRUGS={};
+  try{
+    var arr=JSON.parse(RX_STORE.getItem(LS_DELDRUGS)||'[]');
+    for(var i=0;i<arr.length;i++){
+      var k=String(arr[i]||'');
+      if(!k) continue;
+      if(k.indexOf('d|')!==0 && k.indexOf('s|')!==0) k='d|'+delDrugKey(k);   /* 旧格式：只有药名，按「整条药」处理 */
+      DEL_DRUGS[k]=1;
+    }
+  }catch(e){ DEL_DRUGS={}; }
+}
+function saveDelDrugs(){
+  try{
+    var arr=[]; for(var k in DEL_DRUGS){ if(DEL_DRUGS[k]) arr.push(k); }
+    RX_STORE.setItem(LS_DELDRUGS, JSON.stringify(arr));
+  }catch(e){}
+}
+function markDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; DEL_DRUGS['d|'+k]=1; saveDelDrugs(); }
+function unmarkDrugDeleted(nm){ var k=delDrugKey(nm); if(!k) return; delete DEL_DRUGS['d|'+k]; saveDelDrugs(); }
+function drugDeleted(nm){ var k=delDrugKey(nm); return !!(k && DEL_DRUGS['d|'+k]); }
+function markSpecDeleted(name, unit){
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
+  if(!nm||!u) return;
+  DEL_DRUGS['s|'+nm+'|'+u]=1; saveDelDrugs();
+}
+function unmarkSpecDeleted(name, unit){
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
+  if(!nm||!u) return;
+  delete DEL_DRUGS['s|'+nm+'|'+u]; saveDelDrugs();
+}
+/* 子规格（药名 + 单位）是否被删过 */
+function specDeleted(name, unit){
+  var nm=delDrugKey(name), u=String(unit||'').trim().toLowerCase();
+  if(!nm||!u) return false;
+  return !!DEL_DRUGS['s|'+nm+'|'+u];
+}
 function buildIndex(){
   _idx={};
   for(var i=0;i<drugsList.length;i++){
     var d=drugsList[i]; if(!d||!d.n) continue;
+    if(drugDeleted(d.n)) continue;              /* 墓碑：删掉的药不参与任何查名/识别 */
     var k=normKey(d.n); if(k) _idx[k]=d;
     var bare=normName(d.n).replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,'').replace(/[\[\]]/g,'');
     if(bare && !_idx[bare]) _idx[bare]=d;
@@ -5800,6 +6195,7 @@ function findDrug(name){
   if(_idx && _idx[core]) return _idx[core];
   var best=null, bl=0;
   for(var i=0;i<drugsList.length;i++){
+    if(drugDeleted(drugsList[i] && drugsList[i].n)) continue;
     var kk=normName(drugsList[i].n).replace(/[\[\](){}]/g,'');
     if(!kk) continue;
     if(core.indexOf(kk)>=0 || kk.indexOf(core)>=0){
@@ -5816,7 +6212,7 @@ function findDrugAll(name){
   var key=normKey(name);
   var bare=normName(name).replace(/\[[^\[\]]*\]/g,'').replace(/\{[^{}]*\}/g,'').replace(/[\[\]()]/g,'');
   var core=key.replace(/[\[\](){}]/g,'');
-  function push(d){ if(!d) return; var k=d.n+'|'+d.u+'|'+d.p; if(seen[k]) return; seen[k]=1; out.push(d); }
+  function push(d){ if(!d) return; if(drugDeleted(d.n)) return; var k=d.n+'|'+d.u+'|'+d.p; if(seen[k]) return; seen[k]=1; out.push(d); }
   if(_idx){
     push(_idx[key]); push(_idx[bare]); push(_idx[core]);
     /* 别名/去尾缀登记的同名条目也一并取出 */
@@ -6119,7 +6515,8 @@ function acSearch(q){
 }
 
 /* ---------------- 药方文本解析 / 生成 ---------------- */
-var UNIT_RE='g|克|kg|KG|斤|个|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
+var UNIT_RE='公斤|千克|毫升|g|克|kg|KG|㎏|斤|个|枚|颗|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
+var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$');
 var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
 function normUnit(u){
@@ -6128,6 +6525,7 @@ function normUnit(u){
   if(u==='克'||u==='g'||u==='ｇ') return 'g';
   if(u==='kg'||u==='千克'||u==='公斤'||u==='㎏') return 'kg';   /* kg/Kg/KG 与 千克/公斤 统一 */
   if(u==='ml'||u==='毫升') return 'ml';
+  if(u==='枚'||u==='颗'||u==='只') return '个';   /* 枚/颗/只 = 个（否则「红枣5枚」会被当成自备、数量丢失） */
   return u;                         /* 个/条/盒/斤 等非重量单位原样保留 */
 }
 /* CSV 导入可识别的单位（normUnit 归一后）。不在此表 → 视为「未识别到单位」，须提示用户。 */
@@ -6145,7 +6543,13 @@ function parseItems(txt){
     var t=toks[i];
     if(DOSE_RE.test(t)){ i++; continue; }
     var m=(i+1<toks.length)?toks[i+1].match(DOSE_RE):null;
-    if(m){ out.push(mkItem(t,parseFloat(m[1]),normUnit(m[2]))); i+=2; continue; }
+    if(m){
+      var uu=m[2] || '';
+      /* 「紫苏叶 1 公斤」——数量与单位被空格拆成两段时，把后面那段单位也吃掉 */
+      if(!uu && i+2<toks.length && UNIT_ONLY_RE.test(toks[i+2])){ uu=toks[i+2]; i++; }
+      out.push(mkItem(t,parseFloat(m[1]),normUnit(uu)));
+      i+=2; continue;
+    }
     if(/自备$/.test(t)){ out.push(mkItem(t.replace(/自备$/,''),0,'',true)); i++; continue; }
     var sm=t.match(GLUE_RE);
     if(sm && sm[1]){ out.push(mkItem(sm[1],parseFloat(sm[2]),normUnit(sm[3]))); i++; continue; }
@@ -6508,7 +6912,7 @@ function selectAllCells(){
   for(var i=0;i<nodes.length;i++) nodes[i].classList.toggle('allsel',!!(items[i]&&items[i].name));
   var first=cellEl(0);
   if(first){ try{ first.querySelector('.nm').focus(); first.querySelector('.nm').setSelectionRange(0,first.querySelector('.nm').value.length); }catch(e){} }
-  toast('已全选 '+L+' 味　按 Delete 键清空整个药方（点任意格可取消）');
+  toast('已全选 '+L+' 味，按 Delete 清空');
 }
 function clearAllCells(){
   if(!selAll) return;
@@ -6631,6 +7035,18 @@ function unitCoef(from,to){
 }
 /* 计价单位：用户显式选定的候选单位(du)优先，其次剂量框里的单位(unit)，最后 g */
 function priceUnit(it){ return String((it&&(it.du||it.unit))||'g'); }
+/* ---- 历史成交价单位判定（全局，多个模块共用） ----
+   旧数据里同一味药有的按 g 记（0.12），有的按 kg 记（120）；
+   若记录值相对零售价放大约 100 倍以上，视为当时按 kg 录入的 kg 价。 */
+function histPriceUnit(p, baseU, baseP){
+  var x = Math.abs(n(p)), b = n(baseP);
+  if(String(baseU || 'g') === 'g' && b > 0 && x >= b * 100) return 'kg';
+  return String(baseU || 'g');
+}
+/* 把历史成交价换算到目标单位（toU） */
+function histPriceIn(p, baseU, baseP, toU){
+  return n(p) * unitCoef(histPriceUnit(p, baseU, baseP), toU);
+}
 /* 子规格（盒 / 个 / 瓶…）不占顶层条目，价格挂在药物的 units 里。
    这里把「药名 + 单位」摊成一条可计价的虚拟条目，让划价能认出「1 盒 = 400 元」。 */
 function specEntryOf(name, want){
@@ -6642,6 +7058,7 @@ function specEntryOf(name, want){
     for(var j=1;j<sp.length;j++){
       var x=sp[j];
       if(String(x.unit||'').toLowerCase()!==w) continue;
+      if(specDeleted(all[i].n, x.unit)) continue;    /* 删掉的规格不再参与计价/识别 */
       return { n:all[i].n, u:x.unit, p:x.p, c:x.amt, cat:all[i].cat, py:all[i].py, __sub:1 };
     }
   }
@@ -7414,11 +7831,15 @@ var Guest=(function(){
     var pl=GST_PRICE_LOGS[guest]||[];
     for(var k=0;k<pl.length;k++){
       var p=pl[k];
-      var f=(p.from_price==null||p.from_price==='')?'—':money(p.from_price);
-      var tt=(p.to_price==null||p.to_price==='')?'—':money(p.to_price);
+      var fd=findDrug(String(p.drug||''));
+      var bu=fd?String(fd.u||'g'):'g';
+      var bp=0;
+      if(fd){ bp = (n(fd.p)>0) ? n(fd.p) : ((n(fd.cost)>0) ? n(fd.cost)*unitCoef('kg',bu) : 0); }
+      var f=(p.from_price==null||p.from_price==='')?'—':('¥'+money(histPriceIn(p.from_price,bu,bp,bu))+' / '+bu);
+      var tt=(p.to_price==null||p.to_price==='')?'—':('¥'+money(histPriceIn(p.to_price,bu,bp,bu))+' / '+bu);
       rows.push({ ts:feedTs(p.created_at), tag:'price', label:'药价',
         title:'药价改动 · '+String(p.drug||''),
-        sub:'专属价 ¥'+f+' → ¥'+tt,
+        sub:'专属价 '+f+' → '+tt,
         amt:'', time:gstFmtTime(p.created_at) });
     }
     rows.sort(function(a,b){ return b.ts-a.ts; });
@@ -7731,7 +8152,7 @@ var Guest=(function(){
     if(!GUEST_CUR){ toastErr('请先选择客户'); return; }
     var g=GUESTS[GUEST_CUR], rows=historyRows();
     if(!rows.length){ toastErr('没有可导出的单据'); return; }
-    var total=0, unpaid=0, body='';
+    var total=0, unpaid=0, bodyRows=[];
     for(var i=0;i<rows.length;i++){
       var row=rows[i], amt=0, name='', doses='', st='';
       if(row.kind==='order'){
@@ -7743,30 +8164,31 @@ var Guest=(function(){
         amt=a.total; name=(r.no||'未编号')+'（处方）'; doses=a.j; st=rxIsFayao(r)?'已发':'未发';
       }
       total+=amt;
-      body+='<tr><td>'+(i+1)+'</td><td>'+esc(gstFmtTime(row.dt))+'</td>'
-        +'<td>'+esc(name)+'</td><td>'+doses+'</td>'
-        +'<td style="text-align:right">'+money(amt)+'</td><td>'+st+'</td></tr>';
+      bodyRows.push([
+        {t:i+1, w:600, align:'center'},
+        {t:gstFmtTime(row.dt), w:2300},
+        {t:name, w:3560, bold:1},
+        {t:doses, w:700, align:'center'},
+        {t:money(amt), w:1400, align:'right', bold:1},
+        {t:st, w:1300, align:'center'}
+      ]);
     }
     var title=(_month?_month+' ':'')+(g.name||'')+' 历史账单';
-    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
-      +'<head><meta charset="utf-8"><title>'+esc(title)+'</title>'
-      +'<style>@page{size:A4;margin:18mm} body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
-      +'h1{font-size:20pt;margin:0 0 6pt} .meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
-      +'table{border-collapse:collapse;width:100%;font-size:10.5pt} th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}'
-      +'th{background:#f2f4f6} .tot{margin-top:14pt;font-size:12pt} .tot b{font-size:15pt}</style></head><body>'
-      +'<h1>'+esc(title)+'</h1>'
-      +'<div class="meta">客户：'+esc(g.name||'')+'　电话：'+esc(g.phone||'—')+'　类型：'+esc(g.ctype||'散客')
-      +'　导出时间：'+esc(nowStr())+'</div>'
-      +'<table><thead><tr><th style="width:40pt">序号</th><th>时间</th><th>单名</th><th style="width:52pt">付数</th><th style="width:86pt">总金额(元)</th><th style="width:52pt">状态</th></tr></thead><tbody>'
-      +body+'</tbody></table>'
-      +'<div class="tot">本页合计：<b>¥'+money(total)+'</b>　未结：¥'+money(unpaid)+'</div>'
-      +'</body></html>';
-    var blob=new Blob(['\ufeff'+html],{type:'application/msword'});
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=safeFile((_month?_month+'_':'')+(g.name||'客户')+'_历史账单')+'.doc';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
+    var body = XW.p(title, {bold:1, sz:40, after:2})
+      + XW.p('客户：'+(g.name||'')+'　电话：'+(g.phone||'—')+'　类型：'+(g.ctype||'散客')+'　导出时间：'+nowStr(),
+             {sz:20, color:'666666', after:10})
+      + XW.tbl([600,2300,3560,700,1400,1300], [[
+          {t:'序号', w:600, bold:1, fill:'F2F4F6', align:'center'},
+          {t:'时间', w:2300, bold:1, fill:'F2F4F6'},
+          {t:'单名', w:3560, bold:1, fill:'F2F4F6'},
+          {t:'付数', w:700, bold:1, fill:'F2F4F6', align:'center'},
+          {t:'总金额(元)', w:1400, bold:1, fill:'F2F4F6', align:'right'},
+          {t:'状态', w:1300, bold:1, fill:'F2F4F6', align:'center'}
+        ]].concat(bodyRows))
+      + '<w:p><w:pPr><w:spacing w:before="160" w:after="0" w:line="276" w:lineRule="auto"/></w:pPr>'
+      + XW.run('本页合计：', {sz:24}) + XW.run('¥'+money(total), {sz:30, bold:1, color:'12693A'})
+      + XW.run('　未结：¥'+money(unpaid), {sz:24, color:'999999'}) + '</w:p>';
+    XW.save(safeFile((_month?_month+'_':'')+(g.name||'客户')+'_历史账单')+'.docx', body);
     toast('已导出 Word 账单');
   }
 
@@ -8144,6 +8566,16 @@ SUPA.loadDrugs=function(noSave){
       }else{ _map[it.n]=it; _ord.push(it); }
     }
     drugsList=_ord.filter(Boolean);
+    /* 墓碑过滤：删除时云端 DELETE 若失败（离线 / 没权限），刷新会把这条又拉回来；
+       这里再剔一次，删掉的药就真的不会再出现、也不会被识别命中。 */
+    drugsList=drugsList.filter(function(d){
+      if(!d||!d.n) return false;
+      if(drugDeleted(d.n)) return false;
+      if(Array.isArray(d.un)&&d.un.length){
+        d.un=d.un.filter(function(x){ return !(x&&x.unit&&specDeleted(d.n,x.unit)); });
+      }
+      return true;
+    });
     /* 一药多规格：云端没有 stock 列，库存只存在 units jsonb 里 →
        主规格库存要从「同单位镜像」回读（dmNormalizeSpecs 里做），顺便清掉空/重复单位。 */
     for(var q2=0;q2<drugsList.length;q2++){ if(drugsList[q2]) dmNormalizeSpecs(drugsList[q2]); }
@@ -8156,7 +8588,8 @@ SUPA.loadDrugs=function(noSave){
 };
 /* ---------- 进货单 / 进货价历史 ---------- */
 SUPA.loadPurchases=function(){
-  return SUPA.q('purchases?select=*&order=dt.desc&limit=6000')
+  /* 列表 + 编辑只用到这几列，不再 select=*（items 才是大头，其余字段没用） */
+  return SUPA.q('purchases?select=no,dt,total,note,items&order=dt.desc&limit=6000')
     .then(function(rows){ return rows||[]; });
 };
 SUPA.savePurchase=function(rec){
@@ -8166,10 +8599,24 @@ SUPA.loadCostLog=function(name){
   return SUPA.q('drug_cost_log?drug=eq.'+encodeURIComponent(name)+'&order=created_at.desc&limit=300')
     .then(function(rows){ return rows||[]; });
 };
-/* 进货价历史全量（进货单页启动时用）：云端唯一来源 */
+/* 进货价历史全量（进货单页用）：云端唯一来源。
+   只取「判已入库 / 算最近进价」必需的 4 列；并且两页并发翻页
+   （原来 qAll 一页等一页，1460 行要 2 个网络来回）。 */
 SUPA.loadAllCostLogs=function(){
-  return SUPA.qAll('drug_cost_log?select=*&order=created_at.desc')
-    .then(function(rows){ return rows||[]; });
+  var base='drug_cost_log?select=drug,dt,cost,purchase_no&order=created_at.desc';
+  var PS=1000, out=[];
+  function page(off){
+    return SUPA.q(base+'&limit='+PS+'&offset='+off).then(function(rows){ return rows||[]; });
+  }
+  function step(off){
+    return Promise.all([page(off), page(off+PS)]).then(function(res){
+      res[0].forEach(function(r){ out.push(r); });
+      res[1].forEach(function(r){ out.push(r); });
+      if(res[0].length<PS || res[1].length<PS) return out;
+      return step(off+PS*2);
+    });
+  }
+  return step(0);
 };
 SUPA.addCostLog=function(row){
   return SUPA.q('drug_cost_log', {method:'POST', body:row});
@@ -8658,7 +9105,7 @@ function doctorLoadRx(rx){
   for(var i=0;i<list.length;i++){ if(list[i].no===rx.no){ found=list[i]; break; } }
   if(!found){ toastErr('找不到这条处方'); return; }
   loadRx(found);
-  toast('已载入 '+found.n+' 的处方，可直接修改后保存为新单');
+  toast('已载入');
 }
 
 /* ---------- 新处方编号：全局唯一，绝不能撞号 ----------
@@ -9087,7 +9534,7 @@ function loadRx(r){
   if(curRec){
     var tip='已载入 '+r.n+'（'+(r.fy?'【发】':(k>=0?'已保存':'历史'))+'）　直接修改后点「保存」即覆盖本条，不会新建';
     if($('saveTip')) $('saveTip').textContent=tip;
-    toast(tip);
+    toast('已载入');
   }
 }
 /* 复制处方：把当前载入的处方另开为「当日」新单，保存时新建 */
@@ -9131,7 +9578,7 @@ function copyRx(){
   rxQuiet(function(){ recalc(); });   /* 静默：复制不该触发写回 */
   markHistSel('');
   if($('saveTip')) $('saveTip').textContent='已复制为 '+today()+' 新单　点「保存」将新建一条当日处方';
-  toast('已复制为当日新单，点「保存」新建');
+  toast('已复制为新单');
 }
 /* ---------------- 续开（2026-10-14 按用户最新规格）----------------
    场景：李丽珍的方子开完了，要照着计算区再开一张（如家人同名/复诊调整药味）。
@@ -9171,7 +9618,7 @@ function continueRx(){
   $('hFrom').value=$('fDate').value||today(); $('hTo').value=$('hFrom').value; $('hName').value='';
   renderHistory();
   var c=cellEl(0); if(c) c.querySelector('.nm').focus();
-  toast('已续开新单：明细与药费已清空，计算区保留　录入药味后保存');
+  toast('已续开新单');
 }
 function newRx(){
   rxMarkClean();
@@ -9267,21 +9714,57 @@ function sheetHTML(){
    助手在运行：点「打印处方」或清单打印直接出纸，不弹打印窗口、也不用选打印机。
    助手没运行：自动退回浏览器打印窗口（功能不受影响）。
    助手是本机后台程序，只监听 127.0.0.1:8899，需先双击「启动打印助手.vbs」。 */
-var RX_AGENT='http://127.0.0.1:8899', AGENT_ON=false;
+var RX_AGENT='http://127.0.0.1:8899', RX_AGENT_ALT='http://localhost:8899', AGENT_ON=false;
+/* 助手地址：优先 127.0.0.1；不通就换 localhost（有些环境里两者解析/监听不同） */
+var _agentBase=RX_AGENT;
+function agentBase(){ return _agentBase; }
+function agentPingBase(base){
+  return fetch(base+'/ping',{method:'GET',mode:'cors',cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return !!(j && j.ok); })
+    .catch(function(){
+      /* CORS 读不到 JSON，但本地服务其实是活的（常见于 https 页面访问 127.0.0.1）：
+         用 no-cors 再探一次，只要能连上就认为助手在线。 */
+      return fetch(base+'/ping',{method:'GET',mode:'no-cors',cache:'no-store'})
+        .then(function(){ return true; })
+        .catch(function(){ return false; });
+    });
+}
 function agentPing(){
   try{
-    return fetch(RX_AGENT+'/ping',{method:'GET',mode:'cors',cache:'no-store'})
-      .then(function(r){ return r.json(); })
-      .then(function(j){ AGENT_ON=!!(j&&j.ok); return AGENT_ON; })
-      .catch(function(){ AGENT_ON=false; return false; });
+    return agentPingBase(_agentBase).then(function(ok){
+      if(ok){ AGENT_ON=true; return true; }
+      var other=(_agentBase===RX_AGENT)?RX_AGENT_ALT:RX_AGENT;
+      return agentPingBase(other).then(function(ok2){
+        if(ok2){ _agentBase=other; AGENT_ON=true; return true; }
+        AGENT_ON=false; return false;
+      });
+    });
   }catch(e){ AGENT_ON=false; return Promise.resolve(false); }
 }
-function agentPrint(job){
-  return fetch(RX_AGENT+'/print',{method:'POST',mode:'cors',cache:'no-store',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
+/* 统一发往助手：优先可读响应（cors）；若因跨域读不到响应，退回 no-cors 直接发出去
+   —— 请求本身已经送达助手，照样会打印，只是拿不到返回结果。 */
+function agentPost(path, job){
+  var url=agentBase()+path, body=JSON.stringify(job);
+  return fetch(url,{method:'POST',mode:'cors',cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},body:body})
     .then(function(r){ return r.json(); })
-    .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
+    .then(function(j){
+      if(!j || !j.ok) throw Object.assign(new Error((j&&j.msg)||'打印助手返回失败'), {agentReply:true});
+      return j;
+    })
+    .catch(function(e){
+      if(e && e.agentReply) throw e;          /* 助手明确回了失败：不要用盲发掩盖 */
+      /* 只有「网络/跨域层面根本读不到响应」才盲发一次；
+         响应能读但格式不对（SyntaxError）说明助手已收到，再发会重复打印。 */
+      if(!(e instanceof TypeError)) throw e;
+      return fetch(url,{method:'POST',mode:'no-cors',cache:'no-store',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},body:body})
+        .then(function(){ return {ok:true, blind:true}; })
+        .catch(function(){ throw e; });
+    });
 }
+function agentPrint(job){ return agentPost('/print', job); }
 /* 把一段 HTML 渲染成 PNG（与图片复制同一条管线） */
 function rasterize(svg,w,h,scale){
   return new Promise(function(resolve,reject){
@@ -9333,10 +9816,29 @@ function buildA5Image(){
 /* buildReceiptImage 已随「打印预览」弹窗一起移除（2026-10-08）：
    它只被预览弹窗调用。「复制小票」用的是 copyReceiptImage()，走另一条管线，保留。 */
 /* 助手在/不在，两行提示文案不同 */
-var AGENT_TOLD=false;
+var AGENT_TOLD=false, _agentWasOn=null;
 function agentTips(){
-  var ag=$('agentState'); if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（会改用打印窗口）';
+  var ag=$('agentState');
+  if(ag) ag.textContent=AGENT_ON?'已连接（点打印直接出纸）':'未运行（正在等待助手启动…）';
+  if(_agentWasOn===null){ _agentWasOn=AGENT_ON; return; }
+  if(AGENT_ON && !_agentWasOn){
+    _agentWasOn=true;
+    try{ toast('打印助手已自动连接，点打印直接出纸'); }catch(e){}
+  }else if(!AGENT_ON){
+    _agentWasOn=false;
+  }
   /* 界面不挂小字说明；只在助手没运行时给一次浮动提示 */
+}
+/* 连不上时短时间内多试几次（助手刚双击启动的几秒窗口），别急着退回浏览器打印 */
+function agentPingRetry(times, gap){
+  times=times||3; gap=gap||500;
+  function once(i){
+    return agentPing().then(function(ok){
+      if(ok || i<=1) return ok;
+      return new Promise(function(res){ setTimeout(function(){ res(once(i-1)); }, gap); });
+    });
+  }
+  return once(times);
 }
 /* 打印机下拉：选项来自助手的 /printers（本机真实列表）。
    助手没运行或取不到时，退回默认值，保证仍可手动选。
@@ -9365,7 +9867,7 @@ function fillPrinterSelects(list){
 }
 function loadPrinterList(){
   if(!AGENT_ON){ fillPrinterSelects(); return; }
-  fetch(RX_AGENT+'/printers',{method:'GET',mode:'cors',cache:'no-store'})
+  fetch(agentBase()+'/printers',{method:'GET',mode:'cors',cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(j){ fillPrinterSelects(j&&j.printers); })
     .catch(function(){ fillPrinterSelects(); });
@@ -9394,12 +9896,23 @@ function printA5Silent(){
 function printRx(){
   if(!filledCount()){ toastErr('处方为空，无法打印'); return; }
   try{ RX_STORE.setItem('rx_last_print','a5'); }catch(e){}
-  if(!AGENT_ON){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); return; }
-  toast('正在打印…');
-  printA5Silent().catch(function(e){
-    AGENT_ON=false;
-    toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
-    setTimeout(function(){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); }, 1500);
+  function silent(){
+    toast('正在打印…');
+    printA5Silent().catch(function(e){
+      AGENT_ON=false;
+      toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
+      setTimeout(function(){ doPrint(sheetHTML(), SET.paper||'A5 portrait'); }, 1500);
+    });
+  }
+  if(AGENT_ON){ silent(); return; }
+  /* 状态可能是「助手刚启动 / 轮询还没到 / 之前失败过」：点打印时当场再探，
+     连不上就连续多试几次（给刚双击启动的助手留几秒），别一上来就退回浏览器打印窗口。 */
+  toast('正在连接打印助手…');
+  agentPingRetry(4, 600).then(function(ok){
+    agentTips();
+    if(ok){ silent(); return; }
+    toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
+    doPrint(sheetHTML(), SET.paper||'A5 portrait');
   });
 }
 
@@ -9411,12 +9924,7 @@ function printRx(){
    保留：复制小票（copyReceiptImage）所需的模板/CSS/rcptWrap 一整套；
    保留：agentPrintPdf —— agentHtmlPrint 内部要用它，A5 处方与价格清单打印都走这条。
    移除：printReceipt / receiptContentMm 及小票打印入口（按钮、图标映射、点击绑定）。 */
-function agentPrintPdf(job){
-  return fetch(RX_AGENT+'/printpdf',{method:'POST',mode:'cors',cache:'no-store',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(job)})
-    .then(function(r){ return r.json(); })
-    .then(function(j){ if(!j||!j.ok) throw new Error((j&&j.msg)||'打印助手返回失败'); return j; });
-}
+function agentPrintPdf(job){ return agentPost('/printpdf', job); }
 
 /* ================= 热敏小票模板（Paperang P2，58mm 卷纸） =================
    规则：每行最多 2 味；带尾缀（[另包]/[后下]/[代煎]…）或过长的药独占整行；
@@ -9793,18 +10301,24 @@ function printList(){
   if(!priced){ toastErr('请先点「自动划价」'); return; }
   if(!filledCount()){ toastErr('处方为空'); return; }
   var inner=listSheetHTML().html;
-  if(!AGENT_ON){
-    doPrint(inner, SET.paper||'A5 portrait', 8, listCSS());
-    return;
+  function silent(){
+    toast('正在打印清单…');
+    agentHtmlPrint(agentPrinterA5(), 148, 210, 8, inner, listCSS())
+      .then(function(){ toast('清单已打印'); })
+      .catch(function(e){
+        AGENT_ON=false;
+        toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
+        setTimeout(function(){ doPrint(inner, SET.paper||'A5 portrait', 8, listCSS()); }, 1500);
+      });
   }
-  toast('正在打印清单…');
-  agentHtmlPrint(agentPrinterA5(), 148, 210, 8, inner, listCSS())
-    .then(function(){ toast('清单已打印'); })
-    .catch(function(e){
-      AGENT_ON=false;
-      toastErr('打印助手失败：'+e.message+'（已改用浏览器打印）');
-      setTimeout(function(){ doPrint(inner, SET.paper||'A5 portrait', 8, listCSS()); }, 1500);
-    });
+  if(AGENT_ON){ silent(); return; }
+  toast('正在连接打印助手…');
+  agentPingRetry(4, 600).then(function(ok){
+    agentTips();
+    if(ok){ silent(); return; }
+    toastErr('打印助手没在运行：请先双击桌面「启动打印助手」；这次已改用浏览器打印窗口');
+    doPrint(inner, SET.paper||'A5 portrait', 8, listCSS());
+  });
 }
 /* 复制清单快照图片（与「复制处方图片」同一管线） */
 function copyListImage(){
@@ -10284,7 +10798,7 @@ function dmAddSpec(idx){
   try{ tr.scrollIntoView({block:'center'}); }catch(e){}
   var td=tr.querySelector('td[data-f="u"]');
   if(td) dmStartEdit(td,tr);
-  toast('已为「'+(d.n||'')+'」新增规格，填个单位（盒 / 个 / 斤…）');
+  toast('已新增规格，请填单位');
 }
 /* 子规格行上的「×」：删掉这一条规格（库存一起删） */
 function dmDelSpec(idx, s){
@@ -10294,6 +10808,8 @@ function dmDelSpec(idx, s){
   if(!confirm('删除「'+(d.n||'')+'」的「'+ut+'」规格？\n该规格库存 '+(qty===''?'0':qty)+' '+ut+' 会一起删掉。')) return;
   var k=d.un.indexOf(u);
   if(k>=0) d.un.splice(k,1);
+  /* 墓碑：删掉的规格不再被计价/识别用上（只记这一个规格，不影响这味药其他单位） */
+  markSpecDeleted(d.n, ut);
   saveDrugsLS(); renderDrugTable();
   toast('已删除规格「'+ut+'」');
 }
@@ -10329,13 +10845,17 @@ function dmSaleScan(d){
 }
 function ddLoadSaleLog(d){
   var saleBox=$('ddSaleLog'); if(!saleBox) return;
+  var u0=String((d&&d.u)||'g');
+  var p0=(d&&n(d.p)>0)?n(d.p):((d&&n(d.cost)>0)?n(d.cost)*unitCoef('kg',u0):0);
   var sales=dmSaleScan(d);
   function render(list){
     if(!list.length){ saleBox.innerHTML='<div class="dd-empty">暂无成交记录（发药后的成交价与导入的历史价都会显示在这里）</div>'; return; }
     var hs='<table><thead><tr><th>日期</th><th>客人</th><th style="text-align:right">成交单价</th></tr></thead><tbody>';
     var n1=Math.min(list.length,30);
     for(var i=0;i<n1;i++){ var x=list[i];
-      hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+esc(x.p)+'</td></tr>';
+      var pv = x.p;
+      var txt = (pv==null || pv==='') ? '—' : (isFinite(parseFloat(pv)) ? ('¥'+money(pv)+' / '+u0) : esc(String(pv)));
+      hs+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.guest)+'</td><td class="num">'+txt+'</td></tr>';
     }
     saleBox.innerHTML=hs+'</tbody></table>';
   }
@@ -10346,7 +10866,9 @@ function ddLoadSaleLog(d){
     .then(function(rows){
       for(var i=0;i<(rows||[]).length;i++){
         var r=rows[i];
-        sales.push({dt:String(r.created_at||'').slice(0,10), guest:r.doctor||'—', p:r.to_price});
+        /* 旧记录可能是按 kg 记的 kg 价：统一换算回基础单位再展示 */
+        sales.push({dt:String(r.created_at||'').slice(0,10), guest:r.doctor||'—',
+          p: histPriceIn(r.to_price, u0, p0, u0)});
       }
       sales.sort(function(a,b){ return String(b.dt||'') > String(a.dt||'') ? 1 : -1; });
       render(sales);
@@ -11080,6 +11602,8 @@ function dmDelByIdx(idx){
   if(!confirm('确定删除「'+(d.n||'(空)')+'」？')) return;
   var nm=String(d.n||'').trim();
   drugsList.splice(idx,1); selDrugRow=-1;
+  /* 墓碑：删掉的药名记下来，之后识别/导入/改单位都不许再命中或自动重建 */
+  if(nm) markDrugDeleted(nm);
   /* 删除必须同步云端：否则刷新时 SUPA.loadDrugs() 会把这一味重新拉回来
      （整表 upsert 只写不删，数据库里的行还在）。2026-10-08 一并修。 */
   saveDrugsLS();
@@ -11138,6 +11662,7 @@ function dmCommit(td,tr){
     if(f==='n'){
       d.n=v.trim();
       d.py=genPinyin(d.n);
+      unmarkDrugDeleted(d.n);              /* 用户手工又叫回这个名字 → 拆墓碑，允许识别命中 */
       saveDrugsLS();
       td.classList.remove('dm-editing'); renderDrugTable();
       toast('已保存「'+d.n+'」');
@@ -11147,7 +11672,11 @@ function dmCommit(td,tr){
       }
       return;
     }
-    if(f==='u'){ if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v); }
+    if(f==='u'){
+      if(s>0) dmCellSet(d,'u',s,v); else dmRenameMainUnit(d, old, v);
+      /* 用户手工加回这个规格 → 拆墓碑 */
+      unmarkSpecDeleted(d.n, v);
+    }
     else dmCellSet(d,f,s,v);
     /* 改进货价（元/kg）→ 批发价按「进货价 × 批发倍率」联动（同为元/kg，无需换算）
        + 建议价重算（进货价变了建议价才变，改批发价不动建议价） */
@@ -11786,7 +12315,7 @@ function bind(){
       for(var i2=0;i2<ns.length;i2++) ns[i2].classList.remove('picked');
       selAll=false; clearSelMark();
     }
-    toast(pickMode?'点选模式：点要删除的药味（可多选），再按 Delete 或右键删除；按 Esc 退出':'已退出点选模式');
+    toast(pickMode?'点选要删除的药味，按 Esc 退出':'已退出点选模式');
   }
   function pickedList(){
     var ns=$('sGrid').querySelectorAll('.cell'), out=[];
@@ -12011,7 +12540,7 @@ function bind(){
     acHide();
     /* 粘贴后按原样铺开（不预先排版），保存时才排成一行三味 */
     if($('saveTip')) $('saveTip').textContent='已铺入 '+parsed.length+' 味（按原顺序）　点「保存」后自动排成一行三味';
-    toast('已铺入 '+parsed.length+' 味药，点「保存」自动排版');
+    toast('已铺入 '+parsed.length+' 味，点「保存」排版');
     recalc();
   }
   $('rxSheet').addEventListener('paste',handlePaste);
@@ -12639,6 +13168,7 @@ function readCsvFile(file, cb){
 function init(){
   loadSet();
   sfxLoad();          /* 云端 KV 已在启动时载入内存 */
+  loadDelDrugs();     /* 已删除药品墓碑：必须在 loadDrugs/buildIndex 之前 */
   loadDrugs();
   /* 处方/客人数据全部在 supaBoot 里从 Supabase 拉取；启动时先保持为空。 */
   SAVED=[];
@@ -12646,7 +13176,13 @@ function init(){
   try{ HIST_EDIT=JSON.parse(RX_STORE.getItem(LS_HISTEDIT)||'{}'); }catch(e){ HIST_EDIT={}; }
   bind();
   agentPing().then(agentTips);
-  setInterval(function(){ agentPing().then(agentTips); }, 30000);
+  /* 自动重连：8 秒探一次 + 回到页面/窗口获得焦点时立刻再探，
+     助手后启动也能自动接上，不用手动刷新或点「重新检测」 */
+  setInterval(function(){ agentPing().then(agentTips); }, 8000);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) agentPing().then(agentTips);
+  });
+  window.addEventListener('focus', function(){ agentPing().then(agentTips); });
   rxWatchResize();
   vsBind();
   navInit();
@@ -12731,7 +13267,7 @@ function supaSaveFail(msg){
   /* 被总闸拦截（明细为空）时走轻提示：那不是"写入失败"，
      云端原数据完好，不需要用户重试保存，避免用户误操作反复点保存。 */
   if(String(msg).indexOf('明细为空')>=0){
-    toast('明细为空，本次未上传（云端原数据已保留）');
+    toast('明细为空，未上传');
     return;
   }
   try{
@@ -12956,14 +13492,37 @@ var WPlan = (function(){
       if(!(n(b.doses) >= 1)) b.doses = o.doses;
       if(b.date == null) b.date = '';
       if(b.ship == null) b.ship = '';
+      if(b.ship === '同城配送') b.ship = '快递配送';      /* 旧数据：同城配送已改名为快递配送 */
+      if(b.shipFee == null) b.shipFee = 0;
+      if(!Array.isArray(b.proc)) b.proc = [];
+      if(b.retail == null) b.retail = false;
       if(b.saveCommon == null) b.saveCommon = false;
       if(b.commonId == null) b.commonId = '';
     }
+  }
+  /* 一次性清理测试单据（2026-11-05 用户要求：测试数据别留到线上）。
+     只清「并发测试 / 探花」这类测试单，只跑一次；原数据备份在本机 rx_wplan_test_backup 以便恢复。 */
+  var PURGE_TEST_KEY = 'rx_wplan_purge_test_v1';
+  function purgeTestOrders(){
+    if(RX_STORE.getItem(PURGE_TEST_KEY)) return;
+    var keep = [], gone = [], i, o, name;
+    for(i=0;i<S.orders.length;i++){
+      o = S.orders[i]; if(!o) continue;
+      name = String(o.dish || '') + '|';
+      for(var j=0;j<(o.blocks||[]).length;j++) name += String((o.blocks[j] && o.blocks[j].title) || '') + '|';
+      if(/并发测试|探花/.test(name)) gone.push(o); else keep.push(o);
+    }
+    try{ RX_STORE.setItem(PURGE_TEST_KEY, '1'); }catch(e){}
+    if(!gone.length) return;
+    try{ RX_STORE.setItem('rx_wplan_test_backup', JSON.stringify(gone)); }catch(e){}
+    S.orders = keep;
+    save();
   }
   function load(){
     try{ var s = RX_STORE.getItem(LS); S.orders = s ? (JSON.parse(s) || []) : []; }catch(e){ S.orders = []; }
     if(!Array.isArray(S.orders)) S.orders = [];
     S.orders.forEach(normalizeOrder);
+    purgeTestOrders();
     var curId = S.cur && S.cur.id;
     S.cur = curId ? findOrder(curId) : null;
     if(!S.cur) _sub = 'list';
@@ -12985,12 +13544,17 @@ var WPlan = (function(){
     var d = (today() || '').replace(/-/g, '');
     return 'WP-' + d + '-' + pad3(S.orders.length + 1);
   }
-  function blankBlock(){
+  function blankBlock(retail){
     var d = S.cur ? (n(S.cur.doses) || 1) : 1;
-    var t = (S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1));
+    var t = retail
+      ? ('零售药方 ' + (curBlocks().length + 1))
+      : ((S.cur && String(S.cur.dish || '').trim()) || ('药方 ' + (curBlocks().length + 1)));
     return { id: uid(), title: t, source: 'manual', fromRxNo: '', remark: '', items: [], fy: '', doses: d,
-             date: (S.cur && S.cur.date) || '', ship: '', saveCommon: false, commonId: '' };
+             retail: !!retail,
+             date: (S.cur && S.cur.date) || '', ship: '', shipFee: 0, proc: [], saveCommon: false, commonId: '' };
   }
+  /* 该药方取价时用的客人：零售价药方不带客人 → 走目录零售价，且不并入专属价 */
+  function blockGuest(b){ return (b && b.retail) ? '' : curGuest(); }
   function curOrder(){ return S.cur; }
   function curBlocks(){ return (S.cur && S.cur.blocks) || []; }
   function blockById(bid){ var bs = curBlocks(); for(var i=0;i<bs.length;i++) if(bs[i].id === bid) return bs[i]; return null; }
@@ -13020,6 +13584,52 @@ var WPlan = (function(){
     var x = dirPricePerUnit(name, unit);
     return x ? x.price : null;
   }
+  /* 按「当前单位」取价（导入预览 / 改单位时用）：
+     - 重量单位（g/kg/斤）：沿用「客人专属价 → 目录价」，按重量系数换算
+     - 非重量单位（个/枚/盒/瓶…）：只认药库里这个规格自己的价（主条目或一药多规格的子规格），
+       绝不把元/g 硬乘 1 当成元/个（这正是「单位换了单价没换」的根因） */
+  function priceForUnit(name, guest, unit){
+    unit = String(unit || 'g').toLowerCase();
+    var all = findDrugAll(name) || [], i, d0 = all[0] || null;
+    if(isWeightUnit(unit)){
+      if(guest){
+        var dp = docPrice(guest, name);
+        if(dp != null) return dp * unitCoef(d0 ? String(d0.u || 'g') : unit, unit);
+      }
+      for(i=0;i<all.length;i++){
+        if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
+      }
+      for(i=0;i<all.length;i++){
+        if(String(all[i].u || 'g').toLowerCase() === 'g' && all[i].p != null && all[i].p !== ''){
+          return n(all[i].p) * unitCoef('g', unit);
+        }
+      }
+      return null;
+    }
+    /* 非重量单位：专属价也只认「药名（单位）」这个键，避免把按 g 存的价格套到「个」上 */
+    if(guest){
+      var gp = docPrice(guest, name + '（' + unit + '）');
+      if(gp != null) return gp * 1;
+    }
+    for(i=0;i<all.length;i++){
+      if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
+    }
+    if(specDeleted(name, unit)) return null;
+    var sub = specEntryOf(name, unit);
+    if(sub && sub.p != null && sub.p !== '') return n(sub.p);
+    return null;
+  }
+  /* 一条药材该用的单价：按它自己的单位取（含一药多规格的规格价），
+     非重量单位取不到就留空（绝不拿元/g 冒充元/个） */
+  function itemPriceFor(it, guest){
+    if(!it || !it.name) return null;
+    var u = String(it.du || it.unit || 'g') || 'g';
+    var base = baseOf(it);
+    var p = priceForUnit(base, guest, u);
+    if(p == null && base !== String(it.name)) p = priceForUnit(it.name, guest, u);
+    if(p == null && isWeightUnit(u)) p = priceFor(it.name, guest, u);
+    return p;
+  }
   /* mk(name, guest, qty, fileUnit, keepUnit)
      keepUnit=true：保留原始单位（CSV 导入用）——数量不做任何换算，单价按该单位带出，
                      kg 行就存 kg、g 行就存 g，各行独立计价。
@@ -13028,16 +13638,20 @@ var WPlan = (function(){
     var u = normUnit((fileUnit == null || fileUnit === '') ? 'g' : fileUnit) || 'g';
     var q = qty || 0;
     if(keepUnit){
-      var nm = name;
-      if(u !== 'g' && u !== 'kg'){ nm = baseOf({ name: name, unit: u }) + '（' + u + '）'; ensureUnitDrug(nm, u); }
-      return { name: nm, qty: q, unit: u, du: u, price: priceFor(nm, guest, u), manual: false, zibei: false };
+      var nm = name, base = baseOf({ name: name, unit: u });
+      if(u !== 'g' && u !== 'kg'){
+        nm = base + '（' + u + '）';
+        /* 该单位那味药被删过 → 不重建，退回主药名 + 单位，价仍按药库取 */
+        if(!ensureUnitDrug(nm, u)) nm = base;
+      }
+      return { name: nm, qty: q, unit: u, du: u, price: priceForUnit(base, guest, u), manual: false, zibei: false };
     }
     var all = findDrugAll(name) || []; var d = all[0] || null;
     var du = d ? String(d.u || 'g') : u;
     /* 数量换算：fileUnit → du（如 kg→g 应 ×1000）。
        unitCoef(a,b) 是「价格/单位a → 价格/单位b」系数，数量换算用其逆，即 unitCoef(du, fileUnit)。 */
     if(u !== du){ q = q * unitCoef(du, u); }
-    return { name: name, qty: q, unit: du, du: du, price: priceFor(name, guest, du), manual: false, zibei: false };
+    return { name: name, qty: q, unit: du, du: du, price: priceForUnit(name, guest, du), manual: false, zibei: false };
   }
   function mkFromParsed(it, guest){
     if(it.zibei) return { name: it.name, qty: 0, unit: '', du: '', price: 0, manual: false, zibei: true, sfx: '' };
@@ -13048,15 +13662,28 @@ var WPlan = (function(){
   }
   function amountOf(it){ if(!it || it.zibei) return 0; return (it.price == null ? 0 : n(it.price)) * n(it.qty); }
   function blockSub(b){ var s = 0; for(var i=0;i<b.items.length;i++) s += amountOf(b.items[i]); return s; }
-  /* 单付价 × 付数 = 该药方总价（加工 / 耗材已并入明细行，不再单列加工费） */
-  function blockTotal(b){ return blockSub(b) * (n(b.doses) || 1); }
+  /* 单付价 × 付数 = 该药方总价（加工 / 耗材已并入明细行，不再单列加工费）；
+     选择「快递配送」时另加手工填写的快递费 */
+  function blockShipFee(b){
+    if(!b || String(b.ship || '') !== '快递配送') return 0;
+    return Math.max(0, n(b.shipFee));
+  }
+  /* 加工费合计（可多行加工方式，金额可手填或单价×数量） */
+  function blockProcTotal(b){
+    var arr = (b && b.proc) || [], s = 0, i;
+    for(i=0;i<arr.length;i++) s += Math.max(0, n(arr[i] && arr[i].amt));
+    return s;
+  }
+  function blockTotal(b){
+    return blockSub(b) * (n(b.doses) || 1) + blockShipFee(b) + blockProcTotal(b);
+  }
   /* 订单总付数：各药方付数之和（订单级付数输入已移除） */
   function orderDosesOf(o){
     var bs = (o && o.blocks) || [], d = 0, i;
     for(i=0;i<bs.length;i++) d += n(bs[i].doses) || 1;
     return d || 1;
   }
-  var SHIP_LIST = ['自取', '快递', '同城配送', '送货上门'];
+  var SHIP_LIST = ['自取', '快递', '快递配送', '送货上门'];
   function shipOptions(cur){
     var h = '<option value="">无</option>';
     for(var i=0;i<SHIP_LIST.length;i++) h += '<option value="' + SHIP_LIST[i] + '"' + (SHIP_LIST[i] === cur ? ' selected' : '') + '>' + SHIP_LIST[i] + '</option>';
@@ -13095,8 +13722,12 @@ var WPlan = (function(){
   function blockSubHtml(b){
     var d = n(b.doses) || 1;
     var wi = blockWeightInfo(b);
-    return '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(blockTotal(b)) + '</b>'
-      + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
+    var base = blockSub(b) * d, fee = blockShipFee(b), proc = blockProcTotal(b);
+    var h = '单付 <b>¥' + money(blockSub(b)) + '</b> × ' + d + '付 = <b>¥' + money(base) + '</b>';
+    if(fee > 0) h += ' ＋ 快递 <b>¥' + money(fee) + '</b>';
+    if(proc > 0) h += ' ＋ 加工 <b>¥' + money(proc) + '</b>';
+    if(fee > 0 || proc > 0) h += ' = <b>¥' + money(base + fee + proc) + '</b>';
+    return h + (wi.g > 0 ? ' · 总重 ' + wi.v + wi.u : '');
   }
 
   /* ---- 渲染 ---- */
@@ -13323,17 +13954,38 @@ var WPlan = (function(){
   function renderBlocks(){
     var box = document.getElementById('wpBlocks'); if(!box) return;
     var o = curOrder();
-    if(!o){ box.innerHTML = '<div class="wp-empty">请先新建或选择计划单</div>'; return; }
-    if(!o.blocks.length){ box.innerHTML = '<div class="wp-empty">本单还没有药方。点下方「+ 添加药方」开始；或从日常药方数据里调取该客人的历史药方带入。</div>'; return; }
+    if(!o){ box.innerHTML = '<div class="wp-empty">请先新建或选择计划单</div>'; syncFoldAllBtn(); return; }
+    if(!o.blocks.length){ box.innerHTML = '<div class="wp-empty">本单还没有药方。点下方「+ 添加药方」开始；或从日常药方数据里调取该客人的历史药方带入。</div>'; syncFoldAllBtn(); return; }
     var h = '';
     for(var i=0;i<o.blocks.length;i++) h += blockHTML(o.blocks[i]);
     box.innerHTML = h;
+    syncFoldAllBtn();
+  }
+  /* 全部折叠 / 全部展开：按钮文字随当前状态切换 */
+  function syncFoldAllBtn(){
+    var btn = document.getElementById('wpFoldAllBtn'); if(!btn) return;
+    var o = curOrder(), bs = (o && o.blocks) || [], all = bs.length > 0, i;
+    for(i=0;i<bs.length;i++){ if(!_fold[bs[i].id]){ all = false; break; } }
+    btn.textContent = all ? '全部展开' : '全部折叠';
+  }
+  function toggleFoldAll(){
+    var o = curOrder(), bs = (o && o.blocks) || [], i;
+    if(!bs.length) return;
+    var allFolded = true;
+    for(i=0;i<bs.length;i++){ if(!_fold[bs[i].id]){ allFolded = false; break; } }
+    for(i=0;i<bs.length;i++){
+      if(allFolded) delete _fold[bs[i].id];
+      else _fold[bs[i].id] = 1;
+    }
+    renderBlocks();
+    toast(allFolded ? '已展开全部小订单' : '已折叠全部小订单');
   }
   /* 折叠 / 展开某张小订单 */
   function toggleFold(bid){
     _fold[bid] = !_fold[bid];
     var el = document.getElementById('wpBlock-' + bid);
     if(el) el.classList.toggle('folded', !!_fold[bid]);
+    syncFoldAllBtn();
   }
   /* 小订单按日期排序：asc=升序，desc=降序（直接改 blocks 顺序，打印 / 导出也跟着变） */
   function sortBlocks(dir){
@@ -13357,9 +14009,11 @@ var WPlan = (function(){
       + '<div class="wp-block-head">'
       + '<button class="wp-fold" type="button" title="折叠 / 展开该小订单" onclick="WPlan.toggleFold(\'' + b.id + '\')"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 4.2 L6 8 L9.8 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
       + '<input class="wp-block-title" value="' + esc(b.title || '') + '" oninput="WPlan.setBlockTitle(\'' + b.id + '\',this.value)">'
+      + (b.retail ? '<span class="wp-retail-tag" title="按目录零售价计价，不并入该客人的专属价">零售价</span>' : '')
       + '<span class="wp-dose">付数 <input class="wp-dose-in" type="number" min="1" step="1" value="' + (n(b.doses) || 1) + '" oninput="WPlan.setDoses(\'' + b.id + '\',this.value)"></span>'
       + '<label class="wp-bi">日期 <input class="bi-in cal-input" type="text" readonly data-cal-mode="day" data-date="' + esc(bd) + '" value="' + esc(bd) + '" placeholder="选择日期" onchange="WPlan.setBlockDate(\'' + b.id + '\',this.value)"></label>'
       + '<label class="wp-bi">配送 <select class="bi-in" onchange="WPlan.setBlockShip(\'' + b.id + '\',this.value)">' + shipOptions(b.ship) + '</select></label>'
+      + '<label class="wp-bi wp-ship-fee" id="wpShipFee-' + b.id + '"' + (b.ship === '快递配送' ? '' : ' style="display:none"') + '>快递费 <input class="bi-in" type="number" min="0" step="0.01" value="' + (n(b.shipFee) > 0 ? money(n(b.shipFee)) : '') + '" placeholder="0" oninput="WPlan.setBlockShipFee(\'' + b.id + '\',this.value)"></label>'
       + '<span class="wp-sub wp-sub-sum" id="wpSub-' + b.id + '">' + blockSubHtml(b) + '</span>'
       + '<span class="spacer"></span>'
       + '<label class="wp-ck"><input type="checkbox"' + (b.saveCommon ? ' checked' : '') + ' onchange="WPlan.setBlockSaveCommon(\'' + b.id + '\',this.checked)">存为药方</label>'
@@ -13371,6 +14025,8 @@ var WPlan = (function(){
       + '<button class="btn sm" type="button" onclick="WPlan.openHistory(\'' + b.id + '\')">药方复用</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openText(\'' + b.id + '\')">粘贴文本制表</button>'
       + '<button class="btn sm" type="button" onclick="WPlan.openExcel(\'' + b.id + '\')">导入Excel</button>'
+      + '<button class="btn sm' + (String(b.remark || '').trim() ? ' wp-note-btn' : '') + '" type="button" title="' + esc(String(b.remark || '')) + '" onclick="WPlan.openBlockRemark(\'' + b.id + '\')">' + (String(b.remark || '').trim() ? '查看备注' : '添加备注') + '</button>'
+      + '<button class="btn sm' + (blockProcTotal(b) > 0 ? ' wp-note-btn' : '') + '" type="button" title="加工费计入该药方" onclick="WPlan.openBlockProc(\'' + b.id + '\')">' + (blockProcTotal(b) > 0 ? '查看加工' : '添加加工') + '</button>'
       + '</div>'
       + '<div class="wp-tbl-wrap"><table class="wp-tbl"><colgroup><col class="c-plus"><col style="width:29%"><col style="width:172px"><col style="width:104px"><col style="width:104px"><col><col class="c-act"></colgroup><thead><tr><th></th><th>药名 / 耗材名</th><th>克数 / 数量 · 单位</th><th style="text-align:center">单价</th><th style="text-align:right">金额</th><th>备注</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       + '</div>'
@@ -13385,7 +14041,7 @@ var WPlan = (function(){
       var sp = (typeof dmSpecsOf === 'function') ? dmSpecsOf(d) : [];
       for(j=1;j<sp.length;j++){
         var su = String(sp[j].unit || '');
-        if(su && !seen[su]){ seen[su] = 1; out.push(su); }
+        if(su && !seen[su] && !specDeleted(name, su)){ seen[su] = 1; out.push(su); }
       }
     }
     if(!out.length){ out = ['g', 'kg']; }
@@ -13553,7 +14209,7 @@ var WPlan = (function(){
     }
     if(any){
       gstCfPersist();
-      toast('已存为药方：' + names.join('、'));
+      toast('已存为药方');
     }
     return true;
   }
@@ -13582,7 +14238,7 @@ var WPlan = (function(){
       try{ saveCommonFromOrder(o); }catch(err2){ console.warn('常用方保存异常:', err2 && err2.message); }
       try{ renderList(); }catch(err3){ console.warn('列表渲染异常:', err3 && err3.message); }
     }
-    toast('已保存，已返回订单列表');
+    toast('已保存');
   }
   function backToList(){
     var o = curOrder();
@@ -13721,17 +14377,31 @@ var WPlan = (function(){
   function genOrderImage(o, blocks, cb){
     /* 图片宽度固定 960px（不再 2 倍放大到 1600+）；字号放大后按 1:1 出图 */
     var W = 960, shown = blocks || (o.blocks || []);
-    var items = 0, i, j;
+    var items = 0, i, j, feeN = 0, procN = 0, noteN = 0, notePads = 0;
     for(i=0;i<shown.length;i++) items += Math.max(1, (shown[i].items || []).length);
+    for(i=0;i<shown.length;i++){
+      if(String(shown[i].ship || '') === '快递配送' && n(shown[i].shipFee) > 0) feeN++;
+      var pArr = (shown[i].proc || []);
+      for(j=0;j<pArr.length;j++){
+        if(Math.max(0, n(pArr[j] && pArr[j].amt)) > 0 || String((pArr[j] && pArr[j].n) || '').trim()) procN++;
+      }
+    }
+    /* 小订单备注：按约 40 字一行估算额外高度，保证长备注不被裁掉 */
+    for(i=0;i<shown.length;i++){
+      var rmk0 = String(shown[i].remark || '').trim();
+      if(rmk0){ noteN += Math.max(1, Math.ceil(rmk0.length / 40)); notePads++; }
+    }
     /* 正文 16px、药名 18px 加粗；单行约 47px（行高随字号放大） */
     var ROW_H = 47, BLOCK_H = 150, multi = 0;
     for(i=0;i<shown.length;i++){ if((n(shown[i].doses) || 1) > 1) multi++; }
     /* 多付时每块额外两行汇总：1付 / XX付 */
-    var H = 220 + shown.length * BLOCK_H + (items + multi * 2) * ROW_H;
+    var H = 220 + shown.length * BLOCK_H + (items + multi * 2 + feeN + procN) * ROW_H
+      + noteN * 28 + notePads * 14;
     var total = 0, body = '';
     for(i=0;i<shown.length;i++){
       var b = shown[i], d = n(b.doses) || 1;
-      var amt = blockSub(b) * d;
+      var sFee = blockShipFee(b), pFee = blockProcTotal(b);
+      var amt = blockSub(b) * d + sFee + pFee;
       total += amt;
       var rs = '';
       if(!(b.items || []).length) rs = '<tr><td colspan="6" style="color:#999">（药方为空）</td></tr>';
@@ -13756,7 +14426,22 @@ var WPlan = (function(){
         var kgT = wT > 0 ? String(roundW(wT)) : '—';
         var uu = (wi.g > 0) ? wi.u : '—';
         rs += '<tr class="prow"><td class="sq"></td><td class="plb">1付</td><td>' + kg1 + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b)) + '</td></tr>'
-          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(amt) + '</td></tr>';
+          + '<tr class="prow"><td class="sq"></td><td class="plb">' + d + '付</td><td>' + kgT + '</td><td>' + uu + '</td><td></td><td>' + money(blockSub(b) * d) + '</td></tr>';
+      }
+      if(sFee > 0){
+        rs += '<tr><td class="sq" style="color:#777"></td><td class="dr">快递费</td><td>1</td><td>—</td>'
+          + '<td>' + money(sFee) + '</td><td>' + money(sFee) + '</td></tr>';
+      }
+      /* 加工方式：与快递费同款行 */
+      var procArr = (b.proc || []);
+      for(j=0;j<procArr.length;j++){
+        var pc = procArr[j], pamt = Math.max(0, n(pc && pc.amt));
+        var pnm = String((pc && pc.n) || '').trim();
+        if(!pnm && pamt <= 0) continue;
+        rs += '<tr><td class="sq" style="color:#777"></td><td class="dr">' + esc(pnm || '加工') + '</td>'
+          + '<td>' + (pc && pc.qty != null ? esc(String(n(pc.qty))) : '1') + '</td><td>—</td>'
+          + '<td>' + money(pc && pc.price != null ? n(pc.price) : pamt) + '</td>'
+          + '<td>' + money(pamt) + '</td></tr>';
       }
       body += '<div class="bk">'
         + '<div class="bh"><span class="bn">' + (i + 1) + '. ' + esc(b.title || ('药方' + (i + 1))) + '</span>'
@@ -13767,6 +14452,7 @@ var WPlan = (function(){
         + '<table><thead><tr><th style="width:7%">序号</th><th style="width:35%">药名</th><th style="width:12%">' + (d > 1 ? '数量(1付)' : '数量') + '</th><th style="width:10%">单位</th><th style="width:18%">单价</th><th style="width:18%">金额</th></tr></thead><tbody>'
         + rs + '</tbody></table>'
         + '<div class="bf">' + (d > 1 ? '合计' : '小计') + ' <b>¥' + money(amt) + '</b>' + (blockWeightInfo(b).g > 0 ? ('　总重 ' + blockWeightInfo(b).v + blockWeightInfo(b).u) : '') + '</div>'
+        + (String(b.remark || '').trim() ? '<div class="bnote"><b>备注：</b>' + esc(String(b.remark).trim()) + '</div>' : '')
         + '</div>';
     }
     var css = ''
@@ -13789,6 +14475,8 @@ var WPlan = (function(){
       + '.prow .plb{color:#555}'
       + '.bf{padding:10px 12px;font-size:13px;color:#555;text-align:center}'
       + '.bf b{color:#12693a}'
+      + '.bnote{padding:9px 14px;font-size:15px;color:#444;background:#fbfcfb;border-top:1px solid #e3e6ea;text-align:left;line-height:1.6;white-space:pre-wrap;word-break:break-word}'
+      + '.bnote b{color:#111}'
       + '.sum{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:11px 14px;background:#eef7f1;border:1px solid #cfe8d8;border-radius:6px;font-size:15px}'
       + '.sum b{font-size:22px;color:#12693a}'
       + '.foot{margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#888}';
@@ -13848,76 +14536,129 @@ var WPlan = (function(){
     var groups = planGroups(filtered()), g = null;
     for(var i=0;i<groups.length;i++){ if(groups[i].key === _planKey){ g = groups[i]; break; } }
     if(!g){ toastErr('请先打开一个计划汇总'); return; }
-    var rows = '', detail = '', total = 0, k, bi;
+    /* 汇总口径 = 每个「小订单（药方）」一行，按日期从最旧到最新 */
+    var blocks = [], k, bi;
     for(k=0;k<g.orders.length;k++){
-      var o = g.orders[k], amt = orderTotal(o); total += amt;
-      var bs = o.blocks || [];
-      rows += '<tr><td style="width:44pt;text-align:center">' + (k+1) + '</td>'
-        + '<td style="width:92pt">' + esc(o.date || '') + '</td>'
-        + '<td class="nm">' + esc(dishOf(o)) + '</td>'
-        + '<td style="width:44pt;text-align:center">' + orderDosesOf(o) + '</td>'
-        + '<td style="width:76pt;text-align:right">' + money(amt) + '</td></tr>';
-      for(bi=0;bi<bs.length;bi++){
-        var b = bs[bi], d = n(b.doses) || 1, items = '', sn = 0;
-        for(var j=0;j<(b.items || []).length;j++){
-          var it = b.items[j]; if(!it) continue;
-          sn++;
-          var um = it.zibei ? '' : String(it.unit || it.du || 'g');
-          var qn = it.zibei ? '自备' : (Math.round(dispQty(it) * 100) / 100);
-          items += '<tr><td class="cc">' + sn + '</td>'
-            + '<td>' + esc(it.name || '') + '</td>'
-            + '<td class="cc">' + esc(String(qn)) + '</td>'
-            + '<td class="cc">' + esc(um) + '</td>'
-            + '<td class="cc">' + (it.price == null ? '' : money(it.price)) + '</td>'
-            + '<td class="cc">' + money(amountOf(it)) + '</td></tr>';
-        }
-        if(!items) items = '<tr><td colspan="6" style="color:#888;text-align:center">（药方为空）</td></tr>';
-        detail += '<div class="det"><table class="dt"><thead>'
-          + '<tr class="dh"><th colspan="3" class="dhn">订单名称：'
-          + esc(String(b.title || '').trim() || ('药方' + (bi + 1)))
-          + '</th><th colspan="3" class="dhd2">日期：' + esc(blockDate(o, b) || '') + '　' + d + '付'
-          + (b.ship ? ('　配送 ' + esc(b.ship)) : '') + '</th></tr>'
-          + '<tr><th style="width:44pt">序号</th><th>药名</th><th style="width:52pt">克数</th>'
-          + '<th style="width:40pt">单位</th><th style="width:64pt">单价</th><th style="width:70pt">金额</th></tr>'
-          + '</thead><tbody>' + items
-          + '<tr class="rtot"><td colspan="5">合计金额</td>'
-          + '<td class="cc"><b>¥' + money(blockTotal(b)) + '</b></td></tr>'
-          + '</tbody></table></div>';
+      var o0 = g.orders[k];
+      for(bi=0;bi<(o0.blocks || []).length;bi++){
+        var bb = o0.blocks[bi];
+        blocks.push({ o: o0, b: bb,
+          date: String(blockDate(o0, bb) || ''),
+          title: String((bb.title || '').trim()),
+          doses: n(bb.doses) || 1,
+          amount: blockTotal(bb) });
       }
     }
-    var title = g.label + ' · 汇总账单';
-    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
-      + '<head><meta charset="utf-8"><title>' + esc(title) + '</title>'
-      + '<style>@page{size:A4;margin:18mm}body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#111;font-size:12pt}'
-      + 'h1{font-size:20pt;margin:0 0 6pt}h2{font-size:13pt;margin:18pt 0 6pt}'
-      + '.meta{color:#666;font-size:10.5pt;margin-bottom:14pt}'
-      + 'table{border-collapse:collapse;width:900px;font-size:10.5pt}th,td{border:1px solid #999;padding:6pt 8pt;text-align:left}th{white-space:nowrap}'
-      + 'th{background:#f2f4f6}td.nm{font-weight:600}'
-      + '.tot{margin-top:14pt;font-size:12pt}.tot b{font-size:16pt}'
-      + '.det{page-break-inside:avoid}'
-      + '.dt{font-size:10pt}.dt th,.dt td{padding:4pt 6pt}'
-      + '.dt th{text-align:center}.dt td.cc{text-align:center}'
-      + '.dt tr.dh th{text-align:left;background:#f7f8fa}'
-      + '.dt tr.dh th.dhd2{text-align:right;font-weight:400;color:#555;font-size:9.5pt}'
-      + '.dt tr.rtot td{background:#f7f8fa;font-weight:600}.dt tr.rtot b{color:#12693a}'
-      + '</style></head><body>'
-      + '<h1>' + esc(g.label) + '</h1>'
-      + '<div class="meta">客户：' + esc(g.guest) + '　｜　月份：' + esc(g.mm ? (g.ym) : '未定') + '　｜　单据数：' + g.count + '</div>'
-      + '<table><thead><tr><th style="width:44pt;text-align:center">序号</th><th style="width:92pt">日期</th>'
-      + '<th>订单名称</th>'
-      + '<th style="width:44pt;text-align:center">付数</th><th style="width:76pt;text-align:right">金额(元)</th></tr></thead><tbody>'
-      + rows + '</tbody></table>'
-      + '<div class="tot">计划汇总金额：<b>¥' + money(total) + '</b></div>'
-      + '<div style="page-break-before:always"></div>'
-      + '<h2>药方明细</h2>'
-      + detail
-      + '</body></html>';
-    var blob = new Blob(['\ufeff' + html], {type: 'application/msword'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = safeFile(g.label + '_汇总账单') + '.doc';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    blocks.sort(function(a,b){
+      if(a.date === b.date) return 0;
+      if(!a.date) return 1;
+      if(!b.date) return -1;
+      return a.date > b.date ? 1 : -1;
+    });
+    var sRows = [[
+      {t:'序号', w:640, align:'center', bold:1, fill:'F2F4F6'},
+      {t:'日期', w:1500, bold:1, fill:'F2F4F6'},
+      {t:'订单名称', w:5700, bold:1, fill:'F2F4F6'},
+      {t:'付数', w:640, align:'center', bold:1, fill:'F2F4F6'},
+      {t:'金额(元)', w:1380, align:'right', bold:1, fill:'F2F4F6'}
+    ]];
+    var detail = '', total = 0;
+    for(k=0;k<blocks.length;k++){
+      var row = blocks[k];
+      total += row.amount;
+      sRows.push([
+        {t:k+1, w:640, align:'center'},
+        {t:row.date, w:1500},
+        {t:row.title || ('药方' + (k+1)), w:5700, bold:1},
+        {t:row.doses, w:640, align:'center'},
+        {t:money(row.amount), w:1380, align:'right', bold:1}
+      ]);
+      var o = row.o, b = row.b, d = row.doses, iRows = [], sn = 0;
+      for(var j=0;j<(b.items || []).length;j++){
+        var it = b.items[j]; if(!it) continue;
+        sn++;
+        var um = it.zibei ? '' : String(it.unit || it.du || 'g');
+        var qn = it.zibei ? '自备' : (Math.round(dispQty(it) * 100) / 100);
+        iRows.push([
+          {t:sn, w:600, align:'center'},
+          {t:it.name || '', w:5160, bold:1},
+          {t:qn, w:900, align:'center'},
+          {t:um, w:700, align:'center'},
+          {t:it.price == null ? '' : money(it.price), w:1300, align:'center'},
+          {t:money(amountOf(it)), w:1200, align:'center', bold:1}
+        ]);
+      }
+      if(!iRows.length) iRows.push([{t:'（药方为空）', w:9860, span:6, align:'center', color:'888888'}]);
+      /* 多付：与订单导图一致，在明细下方列出 1付 / N付 的克数与金额 */
+      if(d > 1){
+        var wT = blockWeight(b), w1 = wT / d, wi = blockWeightInfo(b);
+        var roundW = function(x){ return wi.useKg ? (Math.round(x / 1000 * 1000) / 1000) : (Math.round(x * 10) / 10); };
+        var q1 = w1 > 0 ? String(roundW(w1)) : '—';
+        var qT = wT > 0 ? String(roundW(wT)) : '—';
+        var wu = (wi.g > 0) ? wi.u : '—';
+        iRows.push([
+          {t:'', w:600}, {t:'1付', w:5160, bold:1},
+          {t:q1, w:900, align:'center'}, {t:wu, w:700, align:'center'}, {t:'', w:1300},
+          {t:money(blockSub(b)), w:1200, align:'center', bold:1}
+        ]);
+        iRows.push([
+          {t:'', w:600}, {t:d + '付', w:5160, bold:1},
+          {t:qT, w:900, align:'center'}, {t:wu, w:700, align:'center'}, {t:'', w:1300},
+          {t:money(blockSub(b) * d), w:1200, align:'center', bold:1}
+        ]);
+      }
+      var sFee = blockShipFee(b);
+      if(sFee > 0){
+        iRows.push([
+          {t:'', w:600}, {t:'快递费', w:5160, bold:1}, {t:'', w:900}, {t:'', w:700}, {t:'', w:1300},
+          {t:money(sFee), w:1200, align:'center', bold:1}
+        ]);
+      }
+      /* 加工：每种加工方式一行（与快递费同口径计入合计） */
+      var pcs = (b.proc || []);
+      for(var pi2=0;pi2<pcs.length;pi2++){
+        var p2 = pcs[pi2], pa2 = Math.max(0, n(p2 && p2.amt));
+        var pn2 = String((p2 && p2.n) || '').trim();
+        if(!pn2 && pa2 <= 0) continue;
+        iRows.push([
+          {t:'', w:600}, {t:pn2 || '加工', w:5160, bold:1},
+          {t:p2 && p2.qty != null ? n(p2.qty) : '', w:900, align:'center'},
+          {t:'', w:700},
+          {t:p2 && p2.price != null ? money(n(p2.price)) : '', w:1300, align:'center'},
+          {t:money(pa2), w:1200, align:'center', bold:1}
+        ]);
+      }
+      iRows.push([
+        {t:'合计金额', w:8660, span:5, bold:1, fill:'F7F8FA'},
+        {t:'¥' + money(blockTotal(b)), w:1200, align:'center', bold:1, fill:'F7F8FA', color:'12693A'}
+      ]);
+      detail += XW.tbl([600,5160,900,700,1300,1200], [[
+        {t:'订单名称：' + (String(b.title || '').trim() || ('药方' + (k + 1))), w:6660, span:3, bold:1, fill:'F7F8FA'},
+        {t:'日期：' + (blockDate(o, b) || '') + (b.ship ? ('\n配送：' + b.ship) : ''),
+         w:3200, span:3, align:'right', color:'555555', fill:'F7F8FA'}
+      ],[
+        {t:'序号', w:600, align:'center', bold:1, fill:'F2F4F6'},
+        {t:'药名', w:5160, bold:1, fill:'F2F4F6'},
+        {t:'克数', w:900, align:'center', bold:1, fill:'F2F4F6'},
+        {t:'单位', w:700, align:'center', bold:1, fill:'F2F4F6'},
+        {t:'单价', w:1300, align:'center', bold:1, fill:'F2F4F6'},
+        {t:'金额', w:1200, align:'center', bold:1, fill:'F2F4F6'}
+      ]].concat(iRows));
+      /* 每个小订单之间空 2 行 */
+      detail += XW.p('') + XW.p('');
+    }
+    /* 标题用大订单自己的名称；单据数 = 小订单（药方）数量 */
+    var title = (String((g.orders[0] && dishOf(g.orders[0])) || '').trim()) || g.label;
+    var body = XW.p(title, {bold:1, sz:40, after:2})
+      + XW.p('客户：' + g.guest + '　｜　月份：' + (g.mm ? g.ym : '未定') + '　｜　单据数：' + blocks.length, {sz:20, color:'666666', after:10})
+      + XW.tbl([640,1500,5700,640,1380], sRows)
+      + '<w:p><w:pPr><w:spacing w:before="160" w:after="0" w:line="276" w:lineRule="auto"/></w:pPr>'
+      + XW.run('计划汇总金额：', {sz:24})
+      + XW.run('¥' + money(total), {sz:32, bold:1, color:'12693A'}) + '</w:p>'
+      + XW.brk()
+      + XW.p('药方明细', {bold:1, sz:26, before:6, after:6})
+      + detail;
+    XW.save(safeFile(title + '_汇总账单') + '.docx', body);
     toast('已导出 Word 汇总账单（含明细）');
   }
 
@@ -13928,7 +14669,8 @@ var WPlan = (function(){
       var b = bs[i];
       for(j=0;j<b.items.length;j++){
         var it = b.items[j]; if(!it || it.zibei || it.manual) continue;
-        it.price = priceFor(it.name, g, it.du);
+        var np = itemPriceFor(it, blockGuest(b));
+        if(np != null) it.price = np;   /* 取不到就保留原价，别把行价清空 */
       }
     }
   }
@@ -13962,16 +14704,23 @@ var WPlan = (function(){
     var rows = [], logs = [], seen = {}, i, j, b, it;
     for(i=0;i<(o.blocks||[]).length;i++){
       b = o.blocks[i];
+      if(b && b.retail) continue;      /* 零售价药方不计入该客人的专属价历史 */
       for(j=0;j<(b.items||[]).length;j++){
         it = b.items[j];
         if(!it || it.zibei || !String(it.name||'').trim()) continue;
         if(it.price == null || it.price === '') continue;
         var nm = String(it.name).trim(), price = n(it.price);
-        rows.push({doctor:guest, drug:nm, from_price:null, to_price:price,
+        /* 统一按药品基础单位落库（g 行的 0.12 与 kg 行的 120 都换算成 0.12/g），
+           避免「同一味药不同行单位」把历史价放大 1000 倍 */
+        var bd0 = (findDrugAll(nm) || [])[0];
+        var baseU0 = bd0 ? String(bd0.u || 'g') : 'g';
+        var rowU0 = String(it.unit || it.du || 'g');
+        var basePrice = Math.round(price * unitCoef(rowU0, baseU0) * 1000000) / 1000000;
+        rows.push({doctor:guest, drug:nm, from_price:null, to_price:basePrice,
                    rx_no:o.no||'', created_at:dstr+'T12:00:00+08:00'});
         if(!seen[nm]){
           seen[nm] = 1;
-          logs.push({t:dstr+' '+nowHM(), d:nm, from:'', to:String(price), rx:o.no||'', who:guest});
+          logs.push({t:dstr+' '+nowHM(), d:nm, from:'', to:String(basePrice), rx:o.no||'', who:guest, u:baseU0});
         }
       }
     }
@@ -13981,20 +14730,7 @@ var WPlan = (function(){
     var d = DOCTORS[guest]; d.price = d.price || {}; d.log = d.log || [];
     for(i=0;i<logs.length;i++){
       var ln = logs[i];
-      var bd = (findDrugAll(ln.d) || [])[0];
-      var baseU = bd ? String(bd.u || 'g') : 'g';
-      var orig = null, ic;
-      for(ic=0;ic<(o.blocks||[]).length;ic++){
-        var bb=o.blocks[ic];
-        for(var jj=0;jj<(bb.items||[]).length;jj++){
-          var ii=bb.items[jj];
-          if(ii && String(ii.name||'').trim()===ln.d){ orig=ii; break; }
-        }
-        if(orig) break;
-      }
-      var price = n(ln.to);
-      if(orig) price = price * unitCoef(String(orig.unit||orig.du||'g'), baseU);
-      d.price[drugKey(ln.d)] = Math.round(price*1000000)/1000000;
+      d.price[drugKey(ln.d)] = Math.round(n(ln.to) * 1000000) / 1000000;
       d.log.unshift(ln);
     }
     if(d.log.length > 800) d.log.length = 800;
@@ -14019,17 +14755,18 @@ var WPlan = (function(){
     if(v == null || v === '') return '—';
     return '¥' + money(v) + ' / ' + String(unit || 'g');
   }
-  function tipSection(title, arr, unit, cf){
+  /* 历史成交价单位判定（实现见全局 histPriceUnit / histPriceIn） */
+  function tipSection(title, arr, unit, cv){
     var h = '<div class="sec"><h4>' + esc(title) + '</h4>';
     if(!arr.length) return h + '<div class="empty">暂无记录</div></div>';
     for(var i=0;i<arr.length;i++){
       var p = arr[i].p;
-      if(cf && cf !== 1 && p != null && p !== '') p = n(p) * cf;
+      if(cv && typeof cv === 'function' && p != null && p !== '') p = cv(p);
       h += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + histMoney(p, unit) + '</span></div>';
     }
     return h + '</div>';
   }
-  function renderPriceTip(deals, guestLog, costs, drug, guest, loading, unit, cf){
+  function renderPriceTip(deals, guestLog, costs, drug, guest, loading, unit, cv){
     deals = deals || []; costs = costs || [];
     var cust = [], other = [], i;
     for(i=0;i<deals.length;i++){
@@ -14060,8 +14797,8 @@ var WPlan = (function(){
     }
     costArr = sortTop(costArr);
     var gLabel = guest || '未指定客人';
-    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cf)
-      + tipSection('其他历史成交', other, unit, cf)
+    return tipSection('客户历史成交（' + gLabel + '专属）', cust, unit, cv)
+      + tipSection('其他历史成交', other, unit, cv)
       + tipSection('历史进货价', costArr, 'kg')
       + (loading ? '<div class="empty" style="padding-top:6px">正在同步云端记录…</div>' : '');
   }
@@ -14076,6 +14813,15 @@ var WPlan = (function(){
     tip.style.left = left + 'px';
     tip.style.top = top + 'px';
   }
+  /* 历史价单位判别参照（元/基础单位）：零售价 → 进货价/kg → 批发价/kg → 当前行单价 */
+  function priceRefBase(d, it, baseU, formU){
+    var ref = 0;
+    if(d && n(d.p) > 0) ref = n(d.p);
+    if(!ref && d && n(d.cost) > 0) ref = n(d.cost) * unitCoef('kg', baseU);
+    if(!ref && d && n(d.wp) > 0) ref = n(d.wp) * unitCoef('kg', baseU);
+    if(!ref) ref = n(it && it.price) * unitCoef(formU, baseU);
+    return ref;
+  }
   function priceHover(bid, i, el){
     var b = blockById(bid), it = b && b.items[i];
     if(!it || !it.name) return;
@@ -14085,11 +14831,14 @@ var WPlan = (function(){
     _tipShow = true;
     var token = ++_tipSeq;
     var d = findDrug(drug) || (findDrugAll(drug) || [])[0] || null;
-    /* 历史成交按表单当前行单位显示（目录价格按基础单位记录，需要换算）；进货价统一 kg */
-    var rowU = String(it.unit || it.du || (d && d.u) || 'g');
-    var cf = unitCoef(String((d && d.u) || 'g'), rowU);
+    /* 价格 hover 统一按 kg 显示；判别参照=目录零售价（基础单位），没有则用当前行单价换算 */
+    var rowU = 'kg';
+    var baseU = String((d && d.u) || 'g');
+    var formU = String(it.du || it.unit || baseU);
+    var baseP = priceRefBase(d, it, baseU, formU);
+    var cv = function(v){ return histPriceIn(v, baseU, baseP, rowU); };
     var glog = (DOCTORS[guest] && DOCTORS[guest].log) || [];
-    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true, rowU, cf);
+    tip.innerHTML = renderPriceTip([], glog, [], drug, guest, true, rowU, cv);
     tip.style.display = 'block';
     placePriceTip(tip, el);
     var pack = _tipCache[drug];
@@ -14107,7 +14856,7 @@ var WPlan = (function(){
     }
     p.then(function(packed){
       if(!_tipShow || token !== _tipSeq) return;
-      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false, rowU, cf);
+      tip.innerHTML = renderPriceTip(packed.deals, glog, packed.costs, drug, guest, false, rowU, cv);
       placePriceTip(tip, el);
     });
   }
@@ -14185,8 +14934,8 @@ var WPlan = (function(){
       if(!out.length) return '<div class="empty">暂无专属价历史</div>';
       out.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
       out = out.slice(0,5);
-      var cf = unitCoef(u, rowU), s = '';
-      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + peekMoney(n(out[i].p) * cf, rowU) + '</span></div>';
+      var cv = function(v){ return histPriceIn(v, u, priceRefBase(d, it, u, rowU), rowU); }, s = '';
+      for(i=0;i<out.length;i++) s += '<div class="row"><span>' + esc(histDay(out[i].t)) + '</span><span class="p">' + peekMoney(cv(out[i].p), rowU) + '</span></div>';
       return s;
     }
     if(guest && SUPA.on){
@@ -14201,8 +14950,8 @@ var WPlan = (function(){
           arr.sort(function(a,b){ return String(a.t||'') > String(b.t||'') ? -1 : 1; });
           arr = arr.slice(0,5);
           if(!arr.length){ el.innerHTML = '<div class="empty">暂无专属价历史</div>'; return; }
-          var cf = unitCoef(u, rowU), s = '';
-          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + peekMoney(n(arr[i].p) * cf, rowU) + '</span></div>';
+          var cv2 = function(v){ return histPriceIn(v, u, priceRefBase(d, it, u, rowU), rowU); }, s = '';
+          for(i=0;i<arr.length;i++) s += '<div class="row"><span>' + esc(histDay(arr[i].t)) + '</span><span class="p">' + peekMoney(cv2(arr[i].p), rowU) + '</span></div>';
           el.innerHTML = s;
         }).catch(function(){});
     }
@@ -14227,6 +14976,12 @@ var WPlan = (function(){
   function addBlock(){
     var o = curOrder(); if(!o) return;
     o.blocks.push(blankBlock()); save(); renderBlocks(); recount();
+  }
+  /* 添加「零售价药方」：按日常零售价计价，不并入该客人的专属价 */
+  function addRetailBlock(){
+    var o = curOrder(); if(!o) return;
+    o.blocks.push(blankBlock(true)); save(); renderBlocks(); recount();
+    toast('已添加零售价药方（按目录零售价计价）');
   }
   /* 通用确认弹层（不用 window.confirm，避免被运行环境拦截） */
   function askConfirm(title, msg, okText, cb){
@@ -14268,7 +15023,15 @@ var WPlan = (function(){
   function setBlockShip(bid, v){
     var b = blockById(bid); if(!b) return;
     b.ship = String(v || '');
-    saveDebounced();
+    var fe = document.getElementById('wpShipFee-' + bid);
+    if(fe) fe.style.display = (b.ship === '快递配送') ? '' : 'none';
+    saveDebounced(); recount();
+  }
+  /* 快递配送费：手填金额，计入该小订单总价 */
+  function setBlockShipFee(bid, v){
+    var b = blockById(bid); if(!b) return;
+    b.shipFee = Math.max(0, n(v));
+    saveDebounced(); recount();
   }
   function setBlockSaveCommon(bid, v){
     var b = blockById(bid); if(!b) return;
@@ -14276,6 +15039,129 @@ var WPlan = (function(){
     saveDebounced(); renderFoot();
   }
   function setRemark(bid, v){ var b = blockById(bid); if(!b) return; b.remark = v; saveDebounced(); }
+  /* ---- 小订单备注弹窗 ---- */
+  var _noteBid = null;
+  function growNote(el){
+    if(!el) return;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+  }
+  function openBlockRemark(bid){
+    var b = blockById(bid); if(!b) return;
+    _noteBid = bid;
+    var ta = document.getElementById('wpNoteTa');
+    if(ta) ta.value = String(b.remark || '');
+    openModal('wpNoteModal');
+    setTimeout(function(){
+      if(!ta) return;
+      growNote(ta);
+      try{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){}
+    }, 0);
+  }
+  function saveBlockRemark(){
+    var b = blockById(_noteBid);
+    var ta = document.getElementById('wpNoteTa');
+    if(b){
+      b.remark = String(ta ? ta.value : '').trim();
+      saveDebounced();
+      renderBlocks(); renderFoot();
+      toast(b.remark ? '备注已保存' : '备注已清空');
+    }
+    closeModal('wpNoteModal');
+  }
+  /* ---- 小订单加工弹窗：可多行，金额可手填，也可单价×数量 ---- */
+  var _procBid = null, _procRows = [];
+  function procSum(rows){
+    var s = 0;
+    for(var i=0;i<rows.length;i++) s += Math.max(0, n(rows[i] && rows[i].amt));
+    return s;
+  }
+  function procKg(g){ var v = Math.round((n(g) / 1000) * 1000) / 1000; return String(v); }
+  function procRender(){
+    var box = document.getElementById('wpProcList');
+    if(!box) return;
+    var h = '', i;
+    for(i=0;i<_procRows.length;i++){
+      var r = _procRows[i];
+      h += '<div class="wp-proc-row">'
+        + '<input class="proc-n" value="' + esc(r.n || '') + '" placeholder="加工方式，如 打细粉" oninput="WPlan.procEdit(' + i + ',\'n\',this.value)">'
+        + '<input class="proc-amt" inputmode="decimal" value="' + (n(r.amt) > 0 ? money(n(r.amt)) : '') + '" placeholder="金额" oninput="WPlan.procEdit(' + i + ',\'amt\',this.value)">'
+        + '<input inputmode="decimal" value="' + (r.price === '' || r.price == null ? '' : money(n(r.price))) + '" placeholder="单价" oninput="WPlan.procEdit(' + i + ',\'price\',this.value)">'
+        + '<input inputmode="decimal" value="' + (r.qty === '' || r.qty == null ? '' : r.qty) + '" placeholder="数量" oninput="WPlan.procEdit(' + i + ',\'qty\',this.value)">'
+        + '<button class="proc-minus" type="button" title="删除这一行" onmousedown="return false" onclick="WPlan.procDelRow(' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>'
+        + '</div>';
+    }
+    box.innerHTML = h;
+    var s = document.getElementById('wpProcSum');
+    if(s) s.textContent = '¥' + money(procSum(_procRows));
+  }
+  function openBlockProc(bid){
+    var b = blockById(bid); if(!b) return;
+    _procBid = bid;
+    _procRows = [];
+    var arr = (b.proc || []), i;
+    for(i=0;i<arr.length;i++){
+      _procRows.push({ n: String((arr[i] && arr[i].n) || ''), amt: Math.max(0, n(arr[i] && arr[i].amt)),
+        price: (arr[i] && arr[i].price != null) ? n(arr[i].price) : '',
+        qty: (arr[i] && arr[i].qty != null) ? n(arr[i].qty) : '' });
+    }
+    if(!_procRows.length) _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+    /* 重量信息：一付重量 + 总重量，统一按 kg */
+    var d0 = n(b.doses) || 1, wtG = blockWeight(b), perG = d0 ? (wtG / d0) : 0;
+    var el = document.getElementById('wpProcWt');
+    if(el){
+      if(wtG > 0){
+        el.innerHTML = '一付重量 <b>' + procKg(perG) + ' kg</b>　｜　共 <b>' + d0 + '</b> 付，总重量 <b>' + procKg(wtG) + ' kg</b>';
+      }else{
+        el.innerHTML = '一付重量 <b>—</b>　｜　共 <b>' + d0 + '</b> 付，总重量 <b>—</b>（无按重量计的药味）';
+      }
+    }
+    openModal('wpProcModal');
+  }
+  function procAddRow(){
+    _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+  }
+  function procDelRow(i){
+    if(i < 0 || i >= _procRows.length) return;
+    _procRows.splice(i, 1);
+    if(!_procRows.length) _procRows.push({ n: '', amt: 0, price: '', qty: '' });
+    procRender();
+  }
+  function procEdit(i, f, v){
+    var r = _procRows[i]; if(!r) return;
+    if(f === 'n') r.n = String(v || '');
+    else if(f === 'amt') r.amt = Math.max(0, n(v));
+    else if(f === 'price') r.price = String(v || '').trim() === '' ? '' : Math.max(0, n(v));
+    else if(f === 'qty') r.qty = String(v || '').trim() === '' ? '' : Math.max(0, n(v));
+    /* 单价 + 数量都填了 → 自动算金额（金额本身仍可直接手填） */
+    if((f === 'price' || f === 'qty') && r.price !== '' && r.qty !== ''){
+      r.amt = Math.round(n(r.price) * n(r.qty) * 100) / 100;
+      var box = document.getElementById('wpProcList'), rowEl = box && box.children[i];
+      var ae = rowEl && rowEl.querySelector('.proc-amt');
+      if(ae) ae.value = n(r.amt) > 0 ? money(n(r.amt)) : '';
+    }
+    var s = document.getElementById('wpProcSum');
+    if(s) s.textContent = '¥' + money(procSum(_procRows));
+  }
+  function procSave(){
+    var b = blockById(_procBid);
+    var out = [], i;
+    for(i=0;i<_procRows.length;i++){
+      var r = _procRows[i], nm = String(r.n || '').trim(), amt = Math.max(0, n(r.amt));
+      if(!nm && amt <= 0) continue;
+      out.push({ n: nm || '加工', amt: amt,
+        price: (r.price === '' ? null : n(r.price)), qty: (r.qty === '' ? null : n(r.qty)) });
+    }
+    if(b){
+      b.proc = out;
+      saveDebounced();
+      renderBlocks(); renderFoot();
+      toast(out.length ? ('加工已保存，合计 ¥' + money(procSum(out))) : '加工已清空');
+    }
+    closeModal('wpProcModal');
+  }
   function setItemRemark(bid, i, v){
     var b = blockById(bid); if(!b) return;
     if(!b.items[i]) b.items[i] = BLANK_ITEM();
@@ -14305,6 +15191,8 @@ var WPlan = (function(){
   }
   /* 药库没有该单位 → 新增一条「药名（单位）」记录（独立价格/库存），并落本机+云端 */
   function ensureUnitDrug(name, unit){
+    /* 已被删掉的药名（墓碑）不再自动重建：否则导入一次就又在药物管理里长出一条 */
+    if(drugDeleted(name)) return null;
     var all = findDrugAll(name) || [];
     for(var i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === String(unit).toLowerCase()) return all[i]; }
     var rec = { n: name, py: '', u: unit, c: '', cat: '中药', tccat: '', p: null, bp: null, st: 0 };
@@ -14335,10 +15223,12 @@ var WPlan = (function(){
       save(); renderBlocks(); recount(); return;
     }
     var uname = (u === 'g' || u === 'kg') ? base : (base + '（' + u + '）');
-    it.name = uname;
     it.manual = false;
-    if(u !== 'g' && u !== 'kg') ensureUnitDrug(uname, u);
-    it.price = priceFor(uname, curGuest(), u);
+    /* 该单位那味药被删过 → 不重建，直接用主药名 + 单位 */
+    var rec = (u === 'g' || u === 'kg') ? null : ensureUnitDrug(uname, u);
+    if(u !== 'g' && u !== 'kg' && !rec) uname = base;
+    it.name = uname;
+    it.price = priceForUnit(base, blockGuest(b), u);
     save(); renderBlocks(); recount();
   }
   function toggleUnit(bid, i){
@@ -14360,18 +15250,30 @@ var WPlan = (function(){
     /* 用户手动改了输入框 → 不再沿用导入时的客户原名映射 */
     if(it.disp && String(v) !== String(it.disp)){ it.disp = null; it.sid = null; }
     it.name = v;
-    if(!it.manual){ it.price = priceFor(it.name, curGuest(), it.du); }
+    if(!it.manual){ var np1 = itemPriceFor(it, blockGuest(b)); if(np1 != null) it.price = np1; }
     saveDebounced(); updateAmt(bid,i); recount();
   }
   function delItem(bid, i){ var b = blockById(bid); if(!b) return; b.items.splice(i,1); save(); renderBlocks(); recount(); }
   function addItems(bid, items){
     var b = blockById(bid); if(!b || !items || !items.length) return;
-    b.items = b.items.concat(items); save(); renderBlocks(); recount();
+    b.items = b.items.concat(items);
+    repriceRetailItems(b);
+    save(); renderBlocks(); recount();
+  }
+  /* 零售价药方：加进来的行统一按目录零售价重算（不套该客人的专属价） */
+  function repriceRetailItems(b){
+    if(!b || !b.retail) return;
+    for(var i=0;i<(b.items||[]).length;i++){
+      var it = b.items[i];
+      if(!it || it.zibei || it.manual) continue;
+      var np2 = itemPriceFor(it, '');
+      if(np2 != null) it.price = np2;
+    }
   }
   function saveNow(){
     save(); var st = document.getElementById('wpSaveState');
     if(st) st.textContent = '已保存 · ' + nowHM();
-    toast('已保存到云端（自动同步）');
+    toast('已保存');
   }
 
   /* ---- 药方复用：历史药方 + 常用方，卡片列表（可勾选多张） ---- */
@@ -14381,9 +15283,10 @@ var WPlan = (function(){
     for(var i=0;i<all.length;i++){ if(all[i].no === no) return all[i]; }
     return null;
   }
-  function rxItems(rx){
+  function rxItems(rx, guest){
     var its = parseItems(rx.m || ''); var items = [];
-    for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], curGuest()));
+    var g = (guest == null) ? curGuest() : guest;
+    for(var k=0;k<its.length;k++) items.push(mkFromParsed(its[k], g));
     return items;
   }
   function rkey(t, id){ return t + ':' + id; }
@@ -14417,9 +15320,12 @@ var WPlan = (function(){
     return names.length ? (names.join('、') + (its.length > 3 ? '…' : '')) : ('药方 ' + String(rx.no || ''));
   }
   function formulaOf(t, id){
+    /* 复用目标若是「零售价药方」，取价一律走零售价（不带客人） */
+    var pb = _prevBid ? blockById(_prevBid) : null;
+    var rg = pb ? blockGuest(pb) : curGuest();
     if(t === 'h'){
       var rx = findRx(id); if(!rx) return null;
-      return { t:t, id:id, title:rxTitle(rx), items:rxItems(rx),
+      return { t:t, id:id, title:rxTitle(rx), items:rxItems(rx, rg),
                doses:reuseDoseGet('h',id,n(rx.j)||1), date:rx.dt||'', tm:rx.tm||'', no:rx.no||'',
                guest:rx.n||'' };
     }
@@ -14526,6 +15432,7 @@ var WPlan = (function(){
       b.fromRxNo = t === 'h' ? (f.no || '') : '';
       if(t === 'c') b.commonId = id;
     }
+    repriceRetailItems(b);
     closeModal('wpHistModal'); closeModal('wpPrevModal'); reuseLeave();
     save(); renderBlocks(); renderOrderHead(); renderFoot(); recount();
     toast((edit ? '已载入「' : '已复用「') + (f.title || '药方') + '」');
@@ -14591,6 +15498,7 @@ var WPlan = (function(){
       b.source = t === 'h' ? 'history' : 'common';
       b.fromRxNo = t === 'h' ? (f.no || '') : '';
       if(t === 'c') b.commonId = id;
+      repriceRetailItems(b);
       cnt++; totalItems += f.items.length;
     }
     _prevSel = []; _prevSelCopy = [];
@@ -14613,44 +15521,62 @@ var WPlan = (function(){
     var dz = document.getElementById('wpTextDoses'); if(dz) dz.value = '1';
     var mt = document.getElementById('wpTextMatch'); if(mt) mt.style.display = 'none';
   }
+  /* 文本制表：付数 / 剂数 / 天数等非药材描述，不进入识别列表 */
+  var IMP_NON_DRUG = /^(共|每|每日|每天|一日|一天|早晚|早|晚|日|天|次|付|服|剂)$/;
+  function impNonDrugName(nm){
+    var t = String(nm || '').replace(/\s+/g, '');
+    if(!t) return true;
+    if(!/[一-龥A-Za-z]/.test(t)) return true;      /* 纯符号/数字：不是药名 */
+    if(/^[0-9.]+$/.test(t)) return true;
+    if(IMP_NON_DRUG.test(t)) return true;
+    if(/^[0-9一二三四五六七八九十百千几两]+(付|服|剂|天|日|次)$/.test(t)) return true;
+    return false;
+  }
   function doText(){
     var ta = document.getElementById('wpText'); var txt = ta ? String(ta.value || '') : '';
     if(!txt.trim()){ toastErr('请先粘贴药方文本'); return; }
-    /* 识别标题：第一行不是「药名+剂量」的文本 → 标题 */
+    /* 识别标题：第一行不是「药名+剂量」的文本 → 标题（付数行不当标题） */
     var lines = txt.split(/\r?\n/), title = '', titleLine = '', i;
     for(i=0;i<lines.length;i++){
       var line = String(lines[i] || '').trim();
       if(!line) continue;
       var drugLine = /[一-龥]{1,12}\s*[0-9]+(?:\.[0-9]+)?\s*(g|kg|克|千克|公斤|ml|毫升|片|个|只|袋|盒|瓶)/i.test(line);
       if(drugLine) continue;
+      if(/^(共|每|每日|每天)?\s*[0-9一二三四五六七八九十百千几两]+\s*(付|服|剂)/.test(line)) continue;
       title = line; titleLine = line; break;
     }
-    /* 识别付数：30付 / 30包 / 30剂 */
-    var dm = txt.match(/([0-9]+)\s*(付|包|剂)/);
-    var doses = dm ? Math.max(1, parseInt(dm[1], 10)) : 1;
+    /* 识别付数：30付 / 三十付 / 30包 / 30剂 */
+    var dm = txt.match(/([0-9一二三四五六七八九十]+)\s*(付|包|剂)/);
+    var CN_DOSE = { '一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10 };
+    var doses = 1;
+    if(dm){ doses = /^[0-9]+$/.test(dm[1]) ? parseInt(dm[1], 10) : (CN_DOSE[dm[1]] || 1); doses = Math.max(1, doses || 1); }
     var ti = document.getElementById('wpTextTitle'); if(ti) ti.value = title;
     var dz = document.getElementById('wpTextDoses'); if(dz) dz.value = doses;
     /* 标题行不参与药材解析 */
     var bodyTxt = titleLine ? txt.replace(titleLine, ' ') : txt;
+    /* 付数 / 剂数等描述先剔除，避免「一付」「几付」混进识别列表 */
+    bodyTxt = bodyTxt.replace(/[（(]?\s*(?:共|每|每日|每天)?\s*(?:[0-9]+|[一二三四五六七八九十百千几两]+)\s*(?:付|服|剂)\s*[）)]?/g, ' ');
     var its = parseItems(bodyTxt);
     if(!its.length){ toastErr('没解析到药材，请检查格式'); return; }
+    var gst = blockGuest(blockById(_tgt));
     var rows = [];
     for(i=0;i<its.length;i++){
       var it = its[i];
       if(!it || !it.name) continue;
       var sp = splitSfx(it.name);
       var orig = sp.nm; if(!orig) continue;
-      if(/^[0-9.]+$/.test(orig) || /^[0-9]+(付|包|剂|克|g|kg)?$/.test(orig)) continue;
+      if(impNonDrugName(orig)) continue;
+      if(/^[0-9]+(克|g|kg)?$/i.test(orig)) continue;
       var unit = String(it.unit || 'g');
       var m = impMatch(orig);
       var d = m.drug, std = d ? String(d.n) : '';
       rows.push({ orig: orig, qty: n(it.qty) || 0, unit: unit, sfx: sp.sfx || '',
         std: std, autoStd: std, autoHow: d ? m.how : 'none', drug: d,
-        price: d ? priceFor(std, curGuest(), unit) : null, ok: !!d,
+        price: d ? priceForUnit(std, gst, unit) : null, ok: !!d,
         how: d ? m.how : 'none', rm: '' });
     }
     if(!rows.length){ toastErr('没解析到可导入的药材'); return; }
-    _imp.tgt = _tgt; _imp.guest = curGuest(); _imp.rows = rows; _imp.inline = true;
+    _imp.tgt = _tgt; _imp.guest = gst; _imp.rows = rows; _imp.inline = true;
     var mt = document.getElementById('wpTextMatch'); if(mt) mt.style.display = 'block';
     impRender();
   }
@@ -14824,7 +15750,7 @@ var WPlan = (function(){
     var it = b.items[_ac.i];
     it.name = name;
     it.disp = null; it.sid = null;     /* 从备选里重新选药 → 以标准药名为准 */
-    it.price = priceFor(name, curGuest(), it.du);
+    it.price = itemPriceFor({ name: name, du: it.du, unit: it.du }, blockGuest(b));
     it.unit = it.du;
     it.manual = false;
     var pos = { bid: _ac.bid, i: _ac.i };
@@ -14879,6 +15805,7 @@ var WPlan = (function(){
       var d = drugsList[i];
       if(!d || !String(d.n || '').trim()) continue;
       if((d.cat || '中药') !== '中药') continue;
+      if(drugDeleted(d.n)) continue;                 /* 删掉的药不进备选框 */
       var k = normName(d.n); if(seen[k]) continue; seen[k] = 1;
       out.push(d);
     }
@@ -14888,14 +15815,14 @@ var WPlan = (function(){
     var key = normName(name); if(!key) return null;
     for(var i=0;i<drugsList.length;i++){
       var d = drugsList[i];
-      if(d && d.n && normName(d.n) === key) return d;
+      if(d && d.n && !drugDeleted(d.n) && normName(d.n) === key) return d;
     }
     return null;
   }
   function impAliasName(name){
     var key = normName(name); if(!key) return null;
     for(var i=0;i<drugsList.length;i++){
-      var d = drugsList[i]; if(!d || !d.n) continue;
+      var d = drugsList[i]; if(!d || !d.n || drugDeleted(d.n)) continue;
       var al = Array.isArray(d.al) ? d.al : [];
       for(var j=0;j<al.length;j++){ if(al[j] && normName(al[j]) === key) return d; }
     }
@@ -14964,30 +15891,44 @@ var WPlan = (function(){
   function impYes(v){ return /^(是|有|要|需要|加|真|true|yes|y|1)$/i.test(String(v || '').trim()); }
 
   /* 解析 CSV 为行数据（含原始药名、匹配结果、备注） */
-  function parseImportRows(text){
+  function parseImportRows(text, guest){
     text = String(text || '').replace(/^\ufeff/, '');
+    if(guest == null) guest = curGuest();
     var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
     if(!lines.length) return { rows: [], miss: [] };
     function pl(l){ var out=[], cur='', q=false; for(var i=0;i<l.length;i++){ var c=l[i]; if(q){ if(c==='"'){ if(l[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; } else if(c==='"'){ q=true; } else if(c===','){ out.push(cur); cur=''; } else cur+=c; } out.push(cur); return out; }
-    var head = pl(lines[0]), idx = {}, hi;
-    for(hi=0;hi<head.length;hi++) idx[String(head[hi]).trim()] = hi;
+    var head = null, headIdx = -1, hi, hi2;
+    /* 表头不一定在第一行（Excel 里常有标题行/多级表头）：前 10 行里找含「药名/名称…」的那行 */
+    for(hi=0; hi<lines.length && hi<10; hi++){
+      var cand = pl(lines[hi]);
+      if(/药名|名称|品名|药材|药品/.test(cand.join('|'))){ head = cand; headIdx = hi; break; }
+    }
+    var idx = {};
+    if(head){ for(hi2=0;hi2<head.length;hi2++) idx[String(head[hi2]).trim()] = hi2; }
     function col(){
       for(var a=0;a<arguments.length;a++){ if(idx[arguments[a]] != null) return idx[arguments[a]]; }
       for(var key in idx){ for(var m=0;m<arguments.length;m++){ if(idx.hasOwnProperty(key) && key.indexOf(arguments[m]) >= 0) return idx[key]; } }
       return -1;
     }
-    var cn = col('药名','名称','品名','药材','药品'), cq = col('数量','克数','重量','剂量','克','量'), cu = col('单位','规格');
-    if(cn < 0){ toastErr('没找到药名列（表头需含 药名/名称/品名）'); return null; }
-    var cr = col('备注','说明');
-    /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
-    var extras = [];
-    for(hi=0;hi<head.length;hi++){
-      var hd = String(head[hi] || '').trim();
-      if(!hd || hi === cn || hi === cq || hi === cu || hi === cr) continue;
-      if(/签名|签字|经手|制表|序号|编号|行号|单号/.test(hd)) continue;
-      extras.push(hi);
+    var cn, cq, cu, cr, extras = [];
+    if(head){
+      cn = col('药名','名称','品名','药材','药品');
+      cq = col('数量','克数','重量','剂量','克','量');
+      cu = col('单位','规格');
+      if(cn < 0) cn = 0;                    /* 有表头但没认到药名列：退回第一列 */
+      cr = col('备注','说明');
+      /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
+      for(hi2=0;hi2<head.length;hi2++){
+        var hd = String(head[hi2] || '').trim();
+        if(!hd || hi2 === cn || hi2 === cq || hi2 === cu || hi2 === cr) continue;
+        if(/签名|签字|经手|制表|序号|编号|行号|单号/.test(hd)) continue;
+        extras.push(hi2);
+      }
+    }else{
+      /* 完全没有表头：按「第1列药名 / 第2列数量 / 第3列单位 / 第4列备注」读 */
+      cn = 0; cq = 1; cu = 2; cr = 3;
     }
-    var rows = lines.slice(1).map(pl).filter(function(a){ return a.length > 1; });
+    var rows = lines.slice(head ? headIdx + 1 : 0).map(pl).filter(function(a){ return a.length > 1; });
     var out = [], miss = [], cache = {};
     for(var r=0;r<rows.length;r++){
       var nm0 = String(rows[r][cn] || '').trim(); if(!nm0) continue;
@@ -15015,7 +15956,7 @@ var WPlan = (function(){
       var mk2 = cache[nm0] || (cache[nm0] = impMatch(nm0));
       var d = mk2.drug;
       var std = d ? String(d.n) : '';
-      var price = d ? priceFor(std, curGuest(), u || 'g') : null;
+      var price = d ? priceForUnit(std, guest, u || 'g') : null;
       out.push({
         orig: nm0, qty: qv, unit: u || 'g', sfx: sp.sfx || '',
         std: std, autoStd: std, autoHow: d ? mk2.how : 'none', drug: d, price: price, ok: !!d,
@@ -15049,13 +15990,14 @@ var WPlan = (function(){
       h += '<tr class="' + cls + '">'
         + '<td>' + esc(r.orig) + '</td>'
         + '<td>' + stdCell + '</td>'
-        + '<td><input class="imp-qty" type="number" min="0" step="0.1" value="' + (r.qty == null ? '' : r.qty) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
+        + '<td class="imp-qty-cell"><input class="imp-qty" type="text" inputmode="decimal" autocomplete="off" value="' + esc(r.qty == null ? '' : String(r.qty)) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
         + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(unitOptionsFor(r.std || r.orig))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
+        + '<td class="imp-del"><button class="imp-minus" type="button" title="从识别列表移除这一行" onmousedown="return false" onclick="WPlan.impDelRow(' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
         + '</tr>';
     }
-    body.innerHTML = h || '<tr><td colspan="6" class="imp-empty">没有可导入的药名行</td></tr>';
+    body.innerHTML = h || '<tr><td colspan="7" class="imp-empty">没有可导入的药名行</td></tr>';
     if(sum){
       sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
         + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）';
@@ -15118,7 +16060,7 @@ var WPlan = (function(){
     if(!d) return;
     r.drug = d; r.std = String(d.n); r.ok = true;
     r.how = (r.autoStd && normName(r.std) === normName(r.autoStd)) ? (r.autoHow || 'exact') : 'manual';
-    r.price = priceFor(r.std, _imp.guest, r.unit);
+    r.price = priceForUnit(r.std, _imp.guest, r.unit);
     closeAc();
     impRender();
   }
@@ -15126,13 +16068,28 @@ var WPlan = (function(){
     var r = _imp.rows[ri]; if(!r) return;
     var q = parseFloat(v); r.qty = isNaN(q) ? 0 : q;
   }
+  /* 从识别列表移除一行（不弹确认，误删可重新识别） */
+  function impDelRow(ri){
+    if(ri < 0 || ri >= _imp.rows.length) return;
+    closeAc();
+    _imp.rows.splice(ri, 1);
+    impRender();
+  }
   function impEditUnit(ri, v){
     var r = _imp.rows[ri]; if(!r) return;
     var u = normUnit(v) || 'g';
+    var old = String(r.unit || 'g').toLowerCase();
     r.unit = u;
-    if(r.ok && r.std) r.price = priceFor(r.std, _imp.guest, u);
+    /* 重量单位之间（g↔kg↔斤）数量按系数换算，保证总额不变 */
+    if(old !== u && _isWt(old) && _isWt(u)){
+      var q = parseFloat(r.qty);
+      if(!isNaN(q)) r.qty = Math.round(q * unitCoef(u, old) * 1000) / 1000;
+    }
+    /* 单位换了，单价跟着按新单位重取（非重量单位不再把元/g 硬套成元/个） */
+    if(r.ok && r.std) r.price = priceForUnit(r.std, _imp.guest, u);
     impRender();
   }
+  function _isWt(u){ u = String(u || '').toLowerCase(); return u === 'g' || u === 'kg' || u === '斤'; }
   function impCancel(){
     closeModal('wpImportModal');
     var mt = document.getElementById('wpTextMatch'); if(mt) mt.style.display = 'none';
@@ -15146,6 +16103,8 @@ var WPlan = (function(){
       var std = r.std, sfx = r.sfx || '';
       /* 仓库标准名做计价；[先煎] 等脚注仍单独存 it.sfx，避免与药名重复展示 */
       var it = mk(std, _imp.guest, r.qty, r.unit, true);
+      /* 预览里按新单位算好的单价直接沿用，避免确认后又按别的单位重取一次 */
+      if(r.price != null && isFinite(r.price)) it.price = r.price;
       it.sfx = sfx;
       if(r.rm) it.rm = r.rm;
       /* 输入框保留客户原始药名（it.disp）；底层仍用仓库标准药 it.name / sid 计价与扣减 */
@@ -15180,26 +16139,125 @@ var WPlan = (function(){
     if(aliased) msg += '，已记住 ' + aliased + ' 个别名（' + ah.slice(0, 3).join('、') + (ah.length > 3 ? '…' : '') + '）';
     (skipped ? toastErr : toast)(msg);
   }
+  /* ---------- .xlsx 直接读取：ZIP 解包 + sharedStrings + 第一张工作表 ---------- */
+  function zipEntries(buf){
+    var u = new Uint8Array(buf), n = u.length, eocd = -1, i;
+    for(i = n - 22; i >= 0 && i >= n - 65558; i--){
+      if(u[i] === 0x50 && u[i+1] === 0x4B && u[i+2] === 0x05 && u[i+3] === 0x06){ eocd = i; break; }
+    }
+    if(eocd < 0) throw new Error('不是有效的 xlsx 文件');
+    function u16(p){ return u[p] | (u[p+1] << 8); }
+    function u32(p){ return (u[p] | (u[p+1] << 8) | (u[p+2] << 16) | (u[p+3] << 24)) >>> 0; }
+    var cnt = u16(eocd + 10), p = u32(eocd + 16), dec = new TextDecoder(), out = [];
+    for(i = 0; i < cnt && p < n; i++){
+      if(!(u[p] === 0x50 && u[p+1] === 0x4B && u[p+2] === 0x01 && u[p+3] === 0x02)) break;
+      var nl = u16(p + 28), el = u16(p + 30), cl = u16(p + 32);
+      out.push({ name: dec.decode(u.subarray(p + 46, p + 46 + nl)),
+        method: u16(p + 10), csize: u32(p + 20), off: u32(p + 42) });
+      p += 46 + nl + el + cl;
+    }
+    return out;
+  }
+  function unzipEntry(buf, ent){
+    var u = new Uint8Array(buf);
+    if(!(u[ent.off] === 0x50 && u[ent.off+1] === 0x4B && u[ent.off+2] === 0x03 && u[ent.off+3] === 0x04)) throw new Error('xlsx 内部结构异常');
+    var nl = u[ent.off+26] | (u[ent.off+27] << 8), el = u[ent.off+28] | (u[ent.off+29] << 8);
+    var start = ent.off + 30 + nl + el, data = u.subarray(start, start + ent.csize);
+    var dec = new TextDecoder();
+    if(ent.method === 0) return Promise.resolve(dec.decode(data));
+    if(typeof DecompressionStream === 'undefined') return Promise.reject(new Error('当前浏览器不支持直接解析 xlsx，请用 Excel「另存为 → CSV」后导入'));
+    var ds = new DecompressionStream('deflate-raw');
+    return new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer().then(function(ab){ return dec.decode(ab); });
+  }
+  function gridToCsv(grid){
+    return grid.map(function(row){
+      return row.map(function(v){
+        var s = String(v == null ? '' : v);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\n');
+  }
+  function xlsxToCsv(buf){
+    var ents = zipEntries(buf), map = {}, ws = null, i;
+    for(i = 0; i < ents.length; i++) map[ents[i].name] = ents[i];
+    for(i = 1; i <= 30; i++){ if(map['xl/worksheets/sheet' + i + '.xml']){ ws = map['xl/worksheets/sheet' + i + '.xml']; break; } }
+    if(!ws) throw new Error('xlsx 里没有找到工作表');
+    var sstP = map['xl/sharedStrings.xml'] ? unzipEntry(buf, map['xl/sharedStrings.xml']) : Promise.resolve('');
+    return Promise.all([sstP, unzipEntry(buf, ws)]).then(function(arr){
+      var dp = new DOMParser();
+      var sst = [], sdoc = dp.parseFromString(arr[0] || '<x/>', 'application/xml');
+      var si = sdoc.getElementsByTagName('si'), k, t2;
+      for(k = 0; k < si.length; k++){
+        var tt = si[k].getElementsByTagName('t'), s = '';
+        for(t2 = 0; t2 < tt.length; t2++) s += tt[t2].textContent || '';
+        sst.push(s);
+      }
+      var wdoc = dp.parseFromString(arr[1], 'application/xml');
+      var rows = wdoc.getElementsByTagName('row'), grid = [], r, c;
+      for(r = 0; r < rows.length; r++){
+        var cells = rows[r].getElementsByTagName('c'), row = [];
+        for(c = 0; c < cells.length; c++){
+          var cell = cells[c], ref = String(cell.getAttribute('r') || ''), ci = 0;
+          for(var q = 0; q < ref.length; q++){ var ch = ref.charAt(q); if(ch >= 'A' && ch <= 'Z') ci = ci * 26 + (ch.charCodeAt(0) - 64); else break; }
+          ci = Math.max(0, ci - 1);
+          var ty = cell.getAttribute('t'), v = '', vel = cell.getElementsByTagName('v')[0];
+          if(ty === 's'){ v = sst[parseInt(vel ? vel.textContent : '', 10)] || ''; }
+          else if(ty === 'inlineStr'){ var it = cell.getElementsByTagName('t')[0]; v = it ? (it.textContent || '') : ''; }
+          else v = vel ? (vel.textContent || '') : '';
+          row[ci] = v;
+        }
+        grid.push(row);
+      }
+      return gridToCsv(grid);
+    });
+  }
   function onExcelFile(fi){
     var f = fi.files && fi.files[0]; fi.value = ''; if(!f) return;
     readBuf(f, function(buf){
       var u = new Uint8Array(buf);
       if(u.length > 2 && u[0] === 0x50 && u[1] === 0x4B){
-        toastErr('不支持直接读取 .xlsx/.xls 二进制，请改用 Excel「另存为 → CSV（逗号分隔）」后导入'); return;
+        try{
+          xlsxToCsv(buf).then(function(txt){ handleImportText(txt); }).catch(function(e){
+            toastErr('读取 Excel 失败：' + ((e && e.message) || e));
+          });
+        }catch(e){ toastErr('读取 Excel 失败：' + ((e && e.message) || e)); }
+        return;
       }
-      var txt = decodeCsvBuffer(buf);
-      var res = parseImportRows(txt);
+      if(u.length > 8 && u[0] === 0xD0 && u[1] === 0xCF && u[2] === 0x11 && u[3] === 0xE0){
+        toastErr('不支持旧版 .xls，请在 Excel 里另存为 .xlsx 或 CSV 后导入'); return;
+      }
+      handleImportText(decodeCsvBuffer(buf));
+    });
+    function handleImportText(txt){
+      var res = parseImportRows(txt, blockGuest(blockById(_tgt)));
       if(res === null) return;
-      if(!res.rows.length){ toast('没有可导入的药名行'); return; }
-      if(res.miss.length){
-        var msg = '有 ' + res.miss.length + ' 行未识别到单位：\n' + res.miss.slice(0, 10).join('\n') + (res.miss.length > 10 ? '\n…' : '')
-          + '\n\n这些行按「g」导入，继续？\n（点「取消」中止本次导入）';
-        if(!confirm(msg)) return;
+      if(!res.rows.length){
+        toastErr('没有可导入的药名行：请确认表格里有「药名」列（或药名在第 1 列）');
+        return;
       }
-      _imp.tgt = _tgt; _imp.guest = curGuest();
+      if(res.miss.length){
+        /* 不弹阻断式确认框（部分环境会被拦截导致“点了没反应”），直接按 g 导入并提示 */
+        toastErr('有 ' + res.miss.length + ' 行未识别到单位，已按「g」导入');
+      }
+      _imp.tgt = _tgt; _imp.guest = blockGuest(blockById(_tgt));
       _imp.rows = res.rows; _imp.inline = false;
       impRender();
       openModal('wpImportModal');
+    }
+  }
+
+  /* 通用表格读取（进货单复用）：xlsx / csv → CSV 文本 */
+  function readSheet(file, cb){
+    readBuf(file, function(buf){
+      var u = new Uint8Array(buf);
+      if(u.length > 2 && u[0] === 0x50 && u[1] === 0x4B){
+        xlsxToCsv(buf).then(cb).catch(function(e){ toastErr('读取 Excel 失败：' + ((e && e.message) || e)); });
+        return;
+      }
+      if(u.length > 8 && u[0] === 0xD0 && u[1] === 0xCF && u[2] === 0x11 && u[3] === 0xE0){
+        toastErr('不支持旧版 .xls，请在 Excel 里另存为 .xlsx 或 CSV 后导入'); return;
+      }
+      cb(decodeCsvBuffer(buf));
     });
   }
 
@@ -15207,7 +16265,7 @@ var WPlan = (function(){
   function openModal(id){ var m = document.getElementById(id); if(m) m.classList.add('on'); }
   function closeModal(id){ var m = document.getElementById(id); if(m) m.classList.remove('on'); }
   function bindBackdrops(){
-    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal'].forEach(function(id){
+    ['wpHistModal','wpPrevModal','wpTextModal','wpPayModal','wpImportModal','wpNoteModal','wpProcModal'].forEach(function(id){
       var m = document.getElementById(id);
       if(m) m.onclick = function(e){ if(e.target === m) closeModal(id); };
     });
@@ -15231,9 +16289,10 @@ var WPlan = (function(){
     openPlan: openPlan, closePlan: closePlan, exportPlanWord: exportPlanWord,
     openPay: openPay, copyPay: copyPay, downloadPay: downloadPay,
     exportOrderImage: exportOrderImage, exportBlockImage: exportBlockImage,
-    setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockSaveCommon: setBlockSaveCommon,
+    setBlockDate: setBlockDate, setBlockShip: setBlockShip, setBlockShipFee: setBlockShipFee, setBlockSaveCommon: setBlockSaveCommon,
     setGuest: setGuest, commitGuest: commitGuest, setDate: setDate, toggleFy: toggleFy, addBlock: addBlock, delBlock: delBlock,
-    toggleFold: toggleFold, sortBlocks: sortBlocks,
+    toggleFold: toggleFold, sortBlocks: sortBlocks, toggleFoldAll: toggleFoldAll,
+    addRetailBlock: addRetailBlock,
     priceHover: priceHover, priceLeave: priceLeave, openDrugPeek: openDrugPeek, closeDrugPeek: closeDrugPeek,
     setDish: setDish, setSaveCommon: setSaveCommon,
     saveNow: saveNow, saveAndBack: saveAndBack, backToList: backToList,
@@ -15245,9 +16304,10 @@ var WPlan = (function(){
     reuseTab: reuseTab, reuseToggle: reuseToggle, reuseDoseSet: reuseDoseSet, reuseOne: reuseOne,
     reuseHover: reuseHover, reuseLeave: reuseLeave, openReusePreview: openReusePreview,
     getPrevSel: getPrevSel, openPreview: openPreview, confirmPreview: confirmPreview,
-    openText: openText, doText: doText,
+    openText: openText, doText: doText, openBlockRemark: openBlockRemark, growNote: growNote, saveBlockRemark: saveBlockRemark,
+    openBlockProc: openBlockProc, procAddRow: procAddRow, procDelRow: procDelRow, procEdit: procEdit, procSave: procSave,
     nameInput: nameInput, nameFocus: nameFocus, nameKey: nameKey, nameCursor: nameCursor, nameBlur: nameBlur, acPick: acPick, addBlankRow: addBlankRow,
-    openExcel: openExcel, onExcelFile: onExcelFile, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
+    openExcel: openExcel, onExcelFile: onExcelFile, readSheet: readSheet, parseImportRows: parseImportRows, impAcFocus: impAcFocus, impAcInput: impAcInput, impAcKey: impAcKey, impAcBlur: impAcBlur, impEditQty: impEditQty, impEditUnit: impEditUnit, impDelRow: impDelRow, impConfirm: impConfirm, impCancel: impCancel, closeModal: closeModal,
     getCur: function(){ return S.cur; },
     ordersList: function(){ return S.orders; }
   };
@@ -15272,6 +16332,8 @@ var WPrint=(function(){
   };
   var TEXTKEYS={title:1,shop:1,tel:1,addr:1,custLabel:1,footNote:1};
   var S={tpls:[], curId:'', order:null, loaded:false};
+  /* 打印范围：null=全部；对象 = 勾选的小订单 id → 1 */
+  var _printSel=null;
   function n2(x){ var v=parseFloat(x); return isFinite(v)?v:0; }
   function r2(x){ return Math.round(n2(x)*100)/100; }
   function mm2px(mm){ return Math.round(n2(mm)*96/25.4*100)/100; }
@@ -15428,9 +16490,52 @@ var WPrint=(function(){
     if(!o){ toast('先在订单列表里点开一张单据'); return; }
     load();
     S.order=o;
+    initPrintSel();
     var sh=$('wpsSheet'); if(!sh) return;
     sh.classList.add('on');
-    renderList(); syncForm(); renderPreview(); pullCloud();
+    renderList(); syncForm(); renderPickList(); renderPreview(); pullCloud();
+  }
+  /* 打开面板时默认全选所有小订单 */
+  function initPrintSel(){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    _printSel={};
+    for(i=0;i<bs.length;i++){ if(bs[i]) _printSel[bs[i].id]=1; }
+    if(!bs.length) _printSel=null;
+  }
+  function pickedBlocks(){
+    var o=S.order, bs=(o&&o.blocks)||[], out=[], i;
+    if(!_printSel) return bs;
+    for(i=0;i<bs.length;i++){ if(_printSel[bs[i].id]) out.push(bs[i]); }
+    return out;
+  }
+  function allSelected(){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    for(i=0;i<bs.length;i++){ if(!_printSel || !_printSel[bs[i].id]) return false; }
+    return bs.length>0;
+  }
+  function renderPickList(){
+    var box=$('wpsPickList'); if(!box) return;
+    var o=S.order||{}, bs=o.blocks||[], h='', i, b;
+    for(i=0;i<bs.length;i++){
+      b=bs[i]; if(!b || !((b.items||[]).length)) continue;
+      var on = !_printSel || _printSel[b.id];
+      h+='<label class="wps-pick"><input type="checkbox" '+(on?'checked':'')+' onchange="WPrint.pickBlock(\''+esc(b.id)+'\',this.checked)">'
+        +'<span class="nm">'+esc(String(b.title||'').trim()||('药方'+(i+1)))+'</span>'
+        +'<span class="dt">'+esc(String(b.date||o.date||''))+'</span></label>';
+    }
+    box.innerHTML = h || '<div class="wps-pick-empty">该订单还没有可打印的药方</div>';
+    var all=$('wpsPickAll'); if(all){ all.checked = allSelected(); all.disabled = !bs.length; }
+  }
+  function pickBlock(id, on){
+    if(!_printSel) initPrintSel();
+    _printSel[id] = on ? 1 : 0;
+    renderPickList(); renderPreview();
+  }
+  function pickAll(on){
+    var bs=(S.order&&S.order.blocks)||[], i;
+    _printSel={};
+    for(i=0;i<bs.length;i++){ if(on && bs[i]) _printSel[bs[i].id]=1; }
+    renderPickList(); renderPreview();
   }
   function close(){ var sh=$('wpsSheet'); if(sh) sh.classList.remove('on'); }
   function isOpen(){ var sh=$('wpsSheet'); return !!(sh && sh.classList.contains('on')); }
@@ -15615,6 +16720,23 @@ var WPrint=(function(){
           qty:q, price:pr, amount:it.zibei?0:r2(pr*q),
           note:it.rm||'', zibei:!!it.zibei });
       }
+      /* 快递配送：手填快递费作为一行计入小订单金额 */
+      if(String(b.ship||'') === '快递配送'){
+        var fee=n2(b.shipFee);
+        if(fee>0) out.push({ name:'快递费', sfx:'', unit:'', og:'',
+          qty:1, price:fee, amount:fee, note:'', zibei:false });
+      }
+      /* 加工：每种加工方式一行，计入小订单金额 */
+      var procs=(b.proc||[]);
+      for(var pi=0;pi<procs.length;pi++){
+        var p=procs[pi], pa=Math.max(0,n2(p && p.amt));
+        var pn=String((p && p.n) || '').trim();
+        if(!pn && pa<=0) continue;
+        out.push({ name:(pn||'加工'), sfx:'', unit:'', og:'',
+          qty:(p && p.qty != null ? n2(p.qty) : 1),
+          price:(p && p.price != null ? n2(p.price) : pa),
+          amount:pa, note:'', zibei:false });
+      }
     }
     return out;
   }
@@ -15684,17 +16806,21 @@ var WPrint=(function(){
     var narrow=(t.paper==='58'||t.paper==='80');
     for(i=0;i<cols.length;i++) colW+=cols[i].w;
 
-    /* ---- 表头：店名 / 电话 / 地址 / 标题 全部来自模板 ---- */
-    var left='', right='';
-    left+='<div>'+esc(t.custLabel||'顾客')+'：'+esc(String(o.guest||'').trim()||'—')+'</div>';
-    if(t.showDish !== false) left+='<div>订单名称：'+esc(String(o.dish||'').trim()||'—')+'</div>';
-    left+='<div>业务日期：'+esc(o.date||'')+'</div>';
-    if(o.no && t.showNo !== false) left+='<div>单号：'+esc(o.no)+'</div>';
+    /* ---- 表头：下单单名 + 下单日期同一行；横线下方排客户单位/客户地址（信息长） ---- */
+    var custName = String(o.guest || '').trim();
+    var gi = (typeof GUESTS !== 'undefined' && GUESTS) ? (GUESTS[custName] || null) : null;
+    /* 客户地址优先用模板里填写的「地址」（勾选「地址」显示项）；
+       模板没填时退回客户档案里的地址 */
+    var custAddr = '';
+    if(t.showAddr !== false) custAddr = String(t.addr || '').trim() || (gi ? String(gi.addr || '').trim() : '');
+    var left = '', right = '', custLines = '';
+    if(t.showDish !== false) left += '<div>下单单名：' + esc(String(o.dish || '').trim() || '—') + '</div>';
+    right += '<div>下单日期：' + esc(o.date || '') + '</div>';
+    if(custName) custLines += '<div>客户单位：' + esc(custName) + '</div>';
+    if(custAddr) custLines += '<div>客户地址：' + esc(custAddr) + '</div>';
+    if(o.no && t.showNo !== false) custLines += '<div>单号：' + esc(o.no) + '</div>';
     var rmk=orderRemark(o);
-    if(rmk) left+='<div>备注：'+esc(rmk)+'</div>';
-    if(t.showShop && t.shop) right+='<div>制单：'+esc(t.shop)+'</div>';
-    if(t.showTel && t.tel) right+='<div>电话：'+esc(t.tel)+'</div>';
-    if(t.showAddr && t.addr) right+='<div>地址：'+esc(t.addr)+'</div>';
+    if(rmk) custLines += '<div>备注：' + esc(rmk) + '</div>';
 
     h+='<div class="wpd'+(narrow?' wpd-narrow':'')+'" style="--wpd-rh:'+Math.round(n2(t.rh))+'px">';
     /* 只有第一页显示抬头，后续页直接续表格 */
@@ -15703,6 +16829,7 @@ var WPrint=(function(){
       if(t.showShop && t.shop) h+='<div class="wpd-shop">'+esc(t.shop)+'</div>';
       if(t.showTitle) h+='<div class="wpd-title">'+esc(t.title||'发货单')+'</div>';
       h+='<div class="wpd-metas"><div class="l">'+left+'</div><div class="r">'+right+'</div></div>';
+      if(custLines) h+='<div class="wpd-cust">'+custLines+'</div>';
       h+='</div>';
     }
 
@@ -15768,6 +16895,12 @@ var WPrint=(function(){
      都从新的一页开始，并各自带标题 / 顾客 / 日期 / 订单名称 */
   function blockDocs(o, t){
     var bs=(o&&o.blocks)||[], out=[], i, j, b, rows, pages, sum, grand;
+    /* 打印范围：只出勾选的小订单 */
+    if(_printSel){
+      var sel=[], si;
+      for(si=0;si<bs.length;si++){ if(bs[si] && _printSel[bs[si].id]) sel.push(bs[si]); }
+      bs=sel;
+    }
     for(i=0;i<bs.length;i++){
       b=bs[i]; if(!b) continue;
       if(!((b.items||[]).length)) continue;
@@ -15780,7 +16913,7 @@ var WPrint=(function(){
       grand={ sum:sum, wt:weightOf(rows) };
       out.push({ order:sub, rows:rows, pages:pages, grand:grand });
     }
-    if(!out.length){
+    if(!out.length && !_printSel){
       rows=flatRows(o||{blocks:[]}); pages=paginate(rows, t); sum=0;
       for(j=0;j<rows.length;j++) sum+=rows[j].amount;
       out.push({ order:o||{blocks:[]}, rows:rows, pages:pages, grand:{sum:sum, wt:weightOf(rows)} });
@@ -15815,7 +16948,7 @@ var WPrint=(function(){
     paper.style.background='transparent';
     paper.style.boxShadow='none';
     paper.style.fontSize=Math.round(n2(t.fs))+'px';
-    paper.innerHTML=html;
+    paper.innerHTML = html || '<div style="padding:40px 20px;text-align:center;color:#999;font-size:13px">没有勾选要打印的小订单</div>';
     var avail=(stage?stage.clientWidth:900)-52;
     var sc=avail/pw; if(sc>1) sc=1; if(sc<0.2) sc=0.2;
     paper.style.zoom=Math.round(sc*1000)/1000;
@@ -15836,6 +16969,7 @@ var WPrint=(function(){
   function doPrint(){
     var t=curTpl(), o=S.order;
     if(!o){ toast('没有可打印的订单'); return; }
+    if(_printSel && pickedBlocks().length === 0){ toastErr('请至少勾选一张小订单再打印'); return; }
     var area=$('wpPrintArea'), css=$('wpPrintPageCss');
     if(!area || !css) return;
     var p=PAPER[t.paper]||PAPER.a5;
@@ -15871,6 +17005,7 @@ var WPrint=(function(){
   return { open:open, close:close, isOpen:isOpen, cfg:cfg, pick:pick, togglePageSub:togglePageSub,
     addTpl:addTpl, renameTpl:renameTpl, delTpl:delTpl, saveTpl:saveTpl,
     doPrint:doPrint, renderPreview:renderPreview, docHtml:docHtml,
+    pickBlock:pickBlock, pickAll:pickAll, renderPickList:renderPickList,
     upperMoney:upperMoney, flatRows:flatRows, weightOf:weightOf,
     tpls:function(){ load(); return S.tpls; }, cur:curTpl,
     _state:S };
@@ -15880,11 +17015,8 @@ var WPrint=(function(){
 var Purchase = (function(){
   /* 进货单：录单 → 库存累加 → 进价历史 → 建议价联动；删除可回滚库存。
      ⚠ 库存严格按「药名 + 单位」匹配：同一味药的 g 和 kg 是两条独立库存。 */
-  var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[], fold:{}};
-  function load(){
-    /* 进货单 / 进价历史只从 Supabase 加载（见 ensure） */
-    S.orders=[]; S.log=[];
-  }
+  var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[], fold:{},
+         loaded:false, loadedAt:0, loading:false, err:false};
   /* 进货单写库由 SUPA.savePurchase / SUPA.addCostLog 完成，不再保存本地副本 */
   function saveLS(){}
   function saveLogLS(){}
@@ -15912,6 +17044,16 @@ var Purchase = (function(){
     if(!nm) return false;
     for(var i=0;i<S.log.length;i++){ if(String(S.log[i].purchase_no||'')===nm) return true; }
     return false;
+  }
+  /* 草稿状态用 purchases.note 里的标记位保存（表里没有独立 status 列） */
+  var DRAFT_TAG='__draft__';
+  function isDraftOf(o){ return String((o&&o.note)||'')===DRAFT_TAG; }
+  function statusTextOf(o){
+    if(!o) return '';
+    if(wasStocked(o.no)) return '已入库';
+    if(isDraftOf(o)) return '草稿';
+    if(isHistOf(o)) return '价格导入';
+    return '未入库';
   }
   function itemDt(it){
     var dt=String((it&&it.dt)||'').slice(0,10);
@@ -15972,20 +17114,45 @@ var Purchase = (function(){
     if(a==null||b==null) return parseFloat(qty)||0;
     return Math.round(((parseFloat(qty)||0)*a/b)*1000)/1000;
   }
-  function ensure(){
-    load();
-    renderList();
-    if(!SUPA.on) return Promise.resolve();
-    return Promise.all([
-      SUPA.loadPurchases().catch(function(){ return []; }),
-      SUPA.loadAllCostLogs().catch(function(){ return []; })
+  /* 进货单 / 进价历史只从云端取，取回后在内存里缓存 CACHE_TTL 毫秒。
+     进入页面先用已有数据渲染（0 等待），过期才后台再刷；
+     模块加载时会自动预取一次（见本模块底部），所以第一次点进来通常已就绪。 */
+  var CACHE_TTL=60000;
+  function ensureLoaded(){
+    if(!SUPA.on){ renderList(); return Promise.resolve(); }
+    if(S.loading) return S.loading;
+    if(S.loaded && (Date.now()-S.loadedAt)<CACHE_TTL){ renderList(); return Promise.resolve(); }
+    S.loading=true; S.err=false;
+    renderList();                 /* 没数据时显示「正在加载…」；有旧数据则先画旧数据 */
+    S.loading=Promise.all([
+      SUPA.loadPurchases().catch(function(){ return null; }),
+      SUPA.loadAllCostLogs().catch(function(){ return null; })
     ]).then(function(res){
-      S.orders=(res&&res[0])||[];
-      S.log=(res&&res[1])||[];
+      /* 有一个接口失败就保留上一次的数据，绝不把列表清空 */
+      if(res[0]) S.orders=res[0];
+      if(res[1]) S.log=res[1];
+      if(!res[0] && !S.orders.length) S.err=true;
+      if(res[0]) S.loaded=true;
+      S.loadedAt=Date.now(); S.loading=false;
+      renderList();
+    }, function(){
+      S.loading=false;
+      if(!S.orders.length) S.err=true;
       renderList();
     });
+    return S.loading;
   }
+  function ensure(){ return ensureLoaded(); }
   function setSearch(v){ S.search=(v||''); renderList(); }
+  /* 录单页顶部提示条：showMsg 显示、closeMsg 关闭（用户要求：提示在最上面、可手动关掉） */
+  function showMsg(t){
+    var m=$('purMsg'), tx=$('purMsgTx');
+    var s=String(t==null?'':t);
+    if(tx) tx.textContent=s;
+    if(m) m.hidden=!s;
+    if(s && m){ try{ m.scrollIntoView({block:'nearest'}); }catch(e){} }
+  }
+  function closeMsg(){ showMsg(''); }
   function showSub(sub){
     S.sub=sub;
     var bs=document.querySelectorAll('#purchaseRoot .wp-sub');
@@ -16007,6 +17174,8 @@ var Purchase = (function(){
     var o=findByNo(no); if(!o) return;
     var cp=JSON.parse(JSON.stringify(o));
     cp.month=monthOf(cp);
+    cp._draft=isDraftOf(cp);
+    cp.note='';
     cp.items=(cp.items||[]).map(function(it){
       var x=JSON.parse(JSON.stringify(it));
       x.dt=String(x.dt||'').slice(0,10) || (cp.month+'-01');
@@ -16283,9 +17452,12 @@ var Purchase = (function(){
       +'<div class="wp-line wp-grand"><span>本月进货合计</span><b id="purTotal">¥0.00</b></div>'
       +'</div>'
       +'<div class="wp-foot-actions"><span class="wp-sub">'
-      +(stocked?'本月已入库；再次入库会先扣回旧库存，再按当前单据重记。':'录完点「入库」写入库存与进货价。')
+      +(stocked?'本月已入库；再次入库会先扣回旧库存，再按当前单据重记。'
+        :(isDraftOf(S.cur)?'草稿已保存（未入库）；点「入库」才写入库存与进货价。'
+        :'录完点「入库」写入库存与进货价；也可以先存草稿。'))
       +'</span><span class="spacer"></span>'
       +'<button class="btn" type="button" onclick="Purchase.showSub(\'list\')">返回</button>'
+      +'<button class="btn" type="button" onclick="Purchase.saveDraft()">保存草稿</button>'
       +'<button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button></div>';
     recalc();
   }
@@ -16299,14 +17471,15 @@ var Purchase = (function(){
   function renderEdit(){
     var mo=$('purMonth'); if(mo) mo.value=S.cur.month||monthNow();
     var nv=$('purNoView'); if(nv) nv.value=S.cur.no||'';
-    var st=$('purStatus'); if(st) st.value=wasStocked(S.cur.no)?'已入库':'未入库';
+    var st=$('purStatus'); if(st) st.value=statusTextOf(S.cur);
     var t=$('purTitle'); if(t) t.textContent=monthLabel(S.cur.month);
     var n=$('purNo'); if(n) n.textContent=S.cur.no||'';
+    setImportDateDefault();
     if(!S.cur.items||!S.cur.items.length){
       S.cur.items=[{dt:(S.cur.month||monthNow())+'-01', name:'',qty:'',unit:'g',cost:'',amount:0}];
     }
     renderBlocks(); renderFoot(); fillDrugList();
-    var msg=$('purMsg'); if(msg) msg.textContent='';
+    showMsg('');
   }
   function addItem(dt){
     if(!S.cur) return;
@@ -16383,6 +17556,442 @@ var Purchase = (function(){
     renderEdit();
   }
 
+  /* ---------- 导入：粘贴文本制表 / 导入 Excel（整单顶部入口） ---------- */
+  function importDate(){
+    var el=$('purImpDate'), v=String(el&&el.value||'').slice(0,10);
+    if(v) return v;
+    var m=S.cur?(S.cur.month||monthNow()):monthNow();
+    return (today().slice(0,7)===m)?today():(m+'-01');
+  }
+  function setImportDateDefault(){
+    var el=$('purImpDate'); if(!el) return;
+    var m=S.cur?(S.cur.month||monthNow()):monthNow();
+    var v=String(el.value||'').slice(0,10);
+    if(v && v.slice(0,7)===m){ el.setAttribute('data-date',v); return; }
+    v=(today().slice(0,7)===m)?today():(m+'-01');
+    el.value=v; el.setAttribute('data-date',v);
+  }
+  /* 导入时的默认进货价：最近一次进货价 → 药品库进货价（元/kg） */
+  function costFor(nm){
+    var lc=latestCost(nm);
+    if(lc!=null && isFinite(lc)) return String(lc);
+    var d=findDrug(nm), bp=d?parseFloat(d.bp):NaN;
+    if(isFinite(bp) && bp>0) return String(bp);
+    return '';
+  }
+  function importRows(list){
+    if(!S.cur) return false;
+    var dt=importDate(), m=S.cur.month||monthNow();
+    if(dt.slice(0,7)!==m){ toastErr('导入日期要在本月（'+monthLabel(m)+'）内'); return false; }
+    var added=0;
+    for(var i=0;i<list.length;i++){
+      var r=list[i]||{}, nm=String(r.name||'').trim(); if(!nm) continue;
+      var d=findDrug(nm);
+      S.cur.items.push({ dt:dt, name:nm,
+        qty:(parseFloat(r.qty)>0?String(parseFloat(r.qty)):''),
+        unit:String(r.unit||(d&&d.u)||'g'),
+        cost:costFor(nm), amount:0 });
+      added++;
+    }
+    if(!added){ toastErr('没有可导入的药材行'); return false; }
+    renderBlocks(); renderFoot();
+    toast('已导入 '+added+' 味到 '+dt.slice(5)+' 的小订单');
+    return true;
+  }
+  function openTextImport(){
+    var ta=$('purText'); if(ta) ta.value='';
+    var msg=$('purTextMsg'); if(msg) msg.textContent='';
+    setImportDateDefault(); openM('purTextModal');
+  }
+  function closeTextImport(){ closeM('purTextModal'); }
+  function doTextImport(){
+    var ta=$('purText'), txt=String(ta&&ta.value||''), msg=$('purTextMsg');
+    if(!txt.trim()){ if(msg) msg.textContent='请先粘贴药材文本'; return; }
+    var its=parseItems(txt).filter(function(x){ return x && x.name; });
+    if(!its.length){ if(msg) msg.textContent='没解析到药材，请检查格式（每行「药名 数量 单位」）'; return; }
+    if(importRows(its.map(function(x){ return {name:x.name, qty:x.qty, unit:x.unit}; }))) closeM('purTextModal');
+  }
+  function openExcelImport(){ setImportDateDefault(); var f=$('purFile'); if(f) f.click(); }
+  function onExcelFile(fi){
+    var file=fi&&fi.files&&fi.files[0]; if(fi) fi.value='';
+    if(!file) return;
+    if(typeof WPlan==='undefined' || !WPlan.readSheet || !WPlan.parseImportRows){ toastErr('导入组件未就绪，请刷新页面重试'); return; }
+    setImportDateDefault();
+    WPlan.readSheet(file, function(txt){
+      var res=null;
+      try{ res=WPlan.parseImportRows(String(txt||''), ''); }catch(e){}
+      if(!res || !res.rows || !res.rows.length){ toastErr('没有识别到药名行：请确认表格里有「药名」列'); return; }
+      importRows(res.rows.map(function(r){ return {name:r.std||r.orig, qty:r.qty, unit:r.unit}; }));
+    });
+  }
+
+  /* ================= 导入历史 Excel（按月建大单 / 按日期拆小订单） =================
+     与上面的「导入Excel」是两条路：
+       上面 → 写进当前正在录的这张单、一个进货日期（当月补录）
+       这里 → 一次读完整张历史表，一个月生成一张大单，单内按「进货日期」拆小订单
+     单价用表格里的「单价」列（元/kg），不再用「最近进价」，否则历史价会被抹掉。 */
+  var HIST_TAG='__hist__';
+  var _hist=null;
+  function histPad(n){ return (n<10?'0':'')+n; }
+  function isHistOf(o){ return String((o&&o.note)||'')===HIST_TAG; }
+  function histAmt(r){ return round2(amountOf(r.qty, r.cost, r.unit)); }
+  function histNextMonth(m){
+    var y=parseInt(String(m).slice(0,4),10), mo=parseInt(String(m).slice(5,7),10);
+    if(!isFinite(y)||!isFinite(mo)) return m;
+    mo++; if(mo>12){ mo=1; y++; }
+    return y+'-'+histPad(mo);
+  }
+  /* 日期：9月7日 / 2025-09-07 / 2025/9/7 / 9-7 / 9/7 / Excel 序列号 */
+  function histDate(v, year){
+    var s=String(v==null?'':v).trim();
+    if(!s) return '';
+    if(/^\d{5}(\.\d+)?$/.test(s)){
+      var d=new Date(Date.UTC(1899,11,30)+Math.round(parseFloat(s))*86400000);
+      if(!isNaN(d.getTime())) return d.getUTCFullYear()+'-'+histPad(d.getUTCMonth()+1)+'-'+histPad(d.getUTCDate());
+    }
+    s=s.replace(/年|月/g,'-').replace(/日/g,'').replace(/[\/.]/g,'-').replace(/\s+/g,'');
+    var m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m) return m[1]+'-'+histPad(+m[2])+'-'+histPad(+m[3]);
+    m=s.match(/^(\d{4})-(\d{1,2})$/);
+    if(m) return m[1]+'-'+histPad(+m[2])+'-01';
+    m=s.match(/^(\d{1,2})-(\d{1,2})$/);
+    if(m) return year+'-'+histPad(+m[1])+'-'+histPad(+m[2]);
+    m=s.match(/^(\d{1,2})$/);
+    if(m) return year+'-'+histPad(+m[1])+'-01';
+    return '';
+  }
+  /* 匹配：精确 → 归一化精确 → 别名 → 去括号主干 → 唯一包含（标记疑似） */
+  function histMatch(raw){
+    var nm=String(raw||'').trim(); if(!nm) return null;
+    var d=findDrug(nm), i, j;
+    if(d) return {name:d.n, how:'精确'};
+    var nk=normName(nm);
+    for(i=0;i<drugsList.length;i++){
+      if(drugsList[i] && normName(drugsList[i].n)===nk) return {name:drugsList[i].n, how:'精确'};
+    }
+    for(i=0;i<drugsList.length;i++){
+      var al=(drugsList[i]&&drugsList[i].al)||[];
+      for(j=0;j<al.length;j++){ if(normName(al[j])===nk) return {name:drugsList[i].n, how:'别名'}; }
+    }
+    var core=nm.replace(/[（(【\[].*$/,'').trim();
+    if(core && core!==nm){
+      d=findDrug(core); if(d) return {name:d.n, how:'去括号'};
+      for(i=0;i<drugsList.length;i++){
+        if(drugsList[i] && normName(drugsList[i].n)===normName(core)) return {name:drugsList[i].n, how:'去括号'};
+      }
+    }
+    var key=normName(core||nm);
+    if(key.length>=2){
+      var hits=[];
+      for(i=0;i<drugsList.length;i++){
+        var dn=normName(drugsList[i]&&drugsList[i].n);
+        if(dn && (dn.indexOf(key)===0 || key.indexOf(dn)===0)){
+          hits.push(drugsList[i].n);
+          if(hits.length>1) break;
+        }
+      }
+      if(hits.length===1) return {name:hits[0], how:'疑似包含', suspect:true};
+    }
+    return null;
+  }
+  function histSplitLine(l){
+    var out=[],cur='',q=false;
+    for(var i=0;i<l.length;i++){
+      var c=l[i];
+      if(q){ if(c==='"'){ if(l[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else if(c==='"'){ q=true; }
+      else if(c===','){ out.push(cur); cur=''; }
+      else cur+=c;
+    }
+    out.push(cur); return out;
+  }
+  function histNum(v){
+    var m=String(v==null?'':v).replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);
+    return m?parseFloat(m[0]):0;
+  }
+  function histParse(text, year){
+    text=String(text||'').replace(/^\ufeff/,'');
+    var lines=text.split(/\r?\n/).filter(function(l){ return String(l||'').trim(); });
+    var head=null, hi=-1, k;
+    for(k=0;k<lines.length&&k<20;k++){
+      var cand=histSplitLine(lines[k]);
+      var s=cand.join('|');
+      if(/品名|药名|名称|药材/.test(s) && /数量|单价|金额|日期/.test(s)){ head=cand; hi=k; break; }
+    }
+    if(!head) head=['进货日期','品名','级别','单位','数量','单价','金额'];
+    var idx={};
+    for(k=0;k<head.length;k++) idx[String(head[k]==null?'':head[k]).trim()]=k;
+    function col(){
+      var a,m;
+      for(a=0;a<arguments.length;a++){ if(idx[arguments[a]]!=null) return idx[arguments[a]]; }
+      for(var key in idx){ for(m=0;m<arguments.length;m++){ if(key.indexOf(arguments[m])>=0) return idx[key]; } }
+      return -1;
+    }
+    var cd=col('进货日期','日期'), cn=col('品名','药名','名称','药材','药品'),
+        cu=col('单位','规格'), cq=col('数量','重量','克数','剂量'),
+        cc=col('单价','进价','价格'), ca=col('金额'), cl=col('级别','等级');
+    if(cn<0) cn=1;
+    var out=[], lastDate='';
+    for(var r=(hi>=0?hi+1:0); r<lines.length; r++){
+      var a=histSplitLine(lines[r]); if(!a || a.length<2) continue;
+      var dv=cd>=0?String(a[cd]==null?'':a[cd]).trim():'';
+      if(dv){ var dd=histDate(dv, year); if(dd) lastDate=dd; }
+      var nm=String(a[cn]==null?'':a[cn]).trim();
+      if(!nm) continue;
+      if(/合计|小计|总计|共计/.test(nm)) continue;
+      if(!/[一-龥A-Za-z]/.test(nm)) continue;
+      var qv=histNum(cq>=0?a[cq]:''), cv=histNum(cc>=0?a[cc]:''), av=histNum(ca>=0?a[ca]:'');
+      if(!(cv>0)){ cv=parseFloat(costFor(nm))||0; }   /* 表格没填单价时退回最近进价 */
+      var uv=cu>=0?normUnit(String(a[cu]==null?'':a[cu])):'';
+      if(!uv) uv='';
+      var mt=histMatch(nm);
+      out.push({ dt:lastDate, month:lastDate?lastDate.slice(0,7):'',
+        name:nm, lv:cl>=0?String(a[cl]==null?'':a[cl]).trim():'',
+        unit:uv, qty:qv, cost:cv, sheetAmount:av,
+        pick:mt?(mt.name||''):'', how:mt?(mt.how||''):'', suspect:!!(mt&&mt.suspect),
+        skip:!(mt && !mt.suspect) });
+    }
+    return out;
+  }
+  function histOpen(){
+    var y=$('purHistYear');
+    if(y && !y.value) y.value=String(new Date().getFullYear());
+    var f=$('purHistFile'); if(f) f.click();
+  }
+  function histOnFile(fi){
+    var file=fi&&fi.files&&fi.files[0]; if(fi) fi.value='';
+    if(!file) return;
+    if(typeof WPlan==='undefined' || !WPlan.readSheet){ toastErr('导入组件未就绪，请刷新页面重试'); return; }
+    var y=$('purHistYear'); var year=String((y&&y.value)||new Date().getFullYear());
+    WPlan.readSheet(file, function(txt){
+      var rows=histParse(String(txt||''), year);
+      if(!rows.length){ toastErr('没有识别到药材行：请确认表格有「进货日期 / 品名 / 数量 / 单价」列'); return; }
+      _hist={ text:String(txt||''), year:year, stock:false, conflict:{}, rows:rows };
+      var dl=$('purHistDrugs');
+      if(dl) dl.innerHTML=drugsList.map(function(d){ return '<option value="'+esc(d.n)+'">'; }).join('');
+      var msg=$('purHistMsg'); if(msg) msg.textContent='';
+      histRender();
+      openM('purHistModal');
+    });
+  }
+  function histYear(v){
+    if(!_hist) return;
+    var y=parseInt(v,10);
+    if(!isFinite(y) || y<2000 || y>2099){ return; }
+    _hist.year=String(y);
+    _hist.rows=histParse(_hist.text, _hist.year);
+    _hist.conflict={};
+    histRender();
+  }
+  function histStock(on){ if(_hist){ _hist.stock=!!on; histStat(); } }
+  function histCancel(){ _hist=null; closeM('purHistModal'); }
+  function histMsg(t){ var m=$('purHistMsg'); if(m) m.textContent=String(t||''); }
+  function histStat(){
+    if(!_hist) return;
+    var cnt=0, sum=0;
+    _hist.rows.forEach(function(r){ if(!r.skip && r.pick){ cnt++; sum+=histAmt(r); } });
+    var el=$('purHistStat');
+    if(el) el.textContent='待导入 '+cnt+' 味 · ¥'+fmt2(sum)+(_hist.stock?' · 含库存':' · 仅价格');
+  }
+  function histRender(){
+    if(!_hist) return;
+    var body=$('purHistBody'); if(!body) return;
+    var y=$('purHistYear'); if(y) y.value=_hist.year;
+    var st=$('purHistStock'); if(st) st.checked=!!_hist.stock;
+    var groups={}, order=[];
+    _hist.rows.forEach(function(r,i){
+      r._i=i;
+      var m=r.month||'';
+      if(!groups[m]){ groups[m]=[]; order.push(m); }
+      groups[m].push(r);
+    });
+    order.sort(function(a,b){
+      if(!a) return 1; if(!b) return -1;
+      return a<b?-1:(a>b?1:0);
+    });
+    var html='';
+    order.forEach(function(m){
+      var rows=groups[m], cnt=0, sum=0;
+      rows.forEach(function(r){ if(!r.skip && r.pick){ cnt++; sum+=histAmt(r); } });
+      var ex=m?findByMonth(m):null;
+      var mode=m?(_hist.conflict[m]||(ex?'skip':'import')):'skip';
+      if(m) _hist.conflict[m]=mode;
+      html+='<tr class="pur-hist-m"><td colspan="9">'
+        + (m?esc(monthLabel(m)):'未识别到日期（不会导入）')
+        + ' · 已确认 '+cnt+' 味 · ¥'+fmt2(sum)
+        + (ex?(' <span style="color:#a7720a">该月已有单据</span>'
+            + '<select data-k="mode" data-m="'+esc(m)+'">'
+            + '<option value="skip"'+(mode==='skip'?' selected':'')+'>跳过整月</option>'
+            + '<option value="import"'+(mode==='import'?' selected':'')+'>覆盖整月</option>'
+            + '</select>'):'')
+        + '</td></tr>';
+      rows.forEach(function(r){
+        var cls=r.pick?(r.suspect?'warn':'ok'):'bad';
+        if(r.skip) cls+=' off';
+        html+='<tr class="'+cls+'" data-i="'+r._i+'">'
+          +'<td class="c1"><input type="checkbox" data-k="skip"'+(r.skip?'':' checked')+'></td>'
+          +'<td class="c2">'+esc(r.dt||'—')+'</td>'
+          +'<td class="c3">'+esc(r.name)+(r.lv?' <span style="color:#8a8f98">('+esc(r.lv)+')</span>':'')+'</td>'
+          +'<td class="c4"><input class="pur-hist-in" list="purHistDrugs" data-k="pick" value="'+esc(r.pick||'')+'" placeholder="选择药材"></td>'
+          +'<td class="c5">'+(r.qty||'')+'</td>'
+          +'<td class="c6">'+esc(r.unit||'')+'</td>'
+          +'<td class="c7">'+(r.cost||'')+'</td>'
+          +'<td class="c8">¥'+fmt2(histAmt(r))+'</td>'
+          +'<td class="c9">'+(r.pick?esc(r.suspect?'疑似包含':(r.how||'')):'未匹配')+'</td>'
+          +'</tr>';
+      });
+    });
+    body.innerHTML=html;
+    body.onchange=histChange;
+    histStat();
+  }
+  function histChange(e){
+    var t=e&&e.target; if(!t || !_hist) return;
+    var k=t.getAttribute('data-k');
+    if(k==='mode'){ _hist.conflict[t.getAttribute('data-m')]=t.value; histRender(); return; }
+    if(k!=='skip' && k!=='pick') return;
+    var tr=t.parentNode; while(tr && tr.tagName!=='TR') tr=tr.parentNode;
+    if(!tr) return;
+    var r=_hist.rows[parseInt(tr.getAttribute('data-i'),10)]; if(!r) return;
+    if(k==='skip'){ r.skip=!t.checked; histRender(); return; }
+    var v=String(t.value||'').trim();
+    var m=histMatch(v);
+    if(m){ r.pick=m.name; r.how=m.how; r.suspect=!!m.suspect; r.skip=false; }
+    else { r.pick=''; r.how=''; r.suspect=false; r.skip=true; }
+    histRender();
+  }
+  /* 删掉某月「只记价格」留下的流水（purchase_no 为空 + 来源=历史导入） */
+  function histDropPriceLogs(m){
+    if(!m) return;
+    S.log=S.log.filter(function(r){
+      return !(r && !r.purchase_no && String(r.dt||'').slice(0,7)===String(m));
+    });
+    if(SUPA.on){
+      try{
+        /* drug_cost_log 没有 src 列（云端表结构如此），只能用「无单号 + 日期区间」界定价格导入的流水 */
+        SUPA.q('drug_cost_log?purchase_no=is.null'
+          +'&dt=gte.'+m+'-01&dt=lt.'+histNextMonth(m)+'-01',{method:'DELETE'}).catch(function(){});
+      }catch(e){}
+    }
+  }
+  /* 覆盖某月：先撤旧单（入库过的要回滚库存与流水），再删该月的「历史导入」价格流水 */
+  function histClearMonth(m){
+    var ex=findByMonth(m); if(!ex) return Promise.resolve();
+    var no=ex.no;
+    if(wasStocked(no)) undoStock(ex);
+    S.orders=S.orders.filter(function(x){ return x.no!==no; });
+    histDropPriceLogs(m);
+    var jobs=[];
+    try{ jobs.push(SUPA.q('purchases?no=eq.'+encodeURIComponent(no),{method:'DELETE'}).catch(function(){})); }catch(e){}
+    return Promise.all(jobs);
+  }
+  function histConfirm(){
+    if(!_hist) return;
+    var groups={}, order=[];
+    _hist.rows.forEach(function(r){
+      if(r.skip || !r.pick || !r.dt) return;
+      var m=r.dt.slice(0,7);
+      if(!groups[m]){ groups[m]=[]; order.push(m); }
+      groups[m].push(r);
+    });
+    if(!order.length){ histMsg('没有可导入的行：请勾选要导入的行，并在「匹配药材」里选到药品库里的药'); return; }
+    var stock=!!_hist.stock;
+    var todo=[], skipped=[];
+    order.sort().forEach(function(m){
+      var ex=findByMonth(m);
+      var mode=_hist.conflict[m]||(ex?'skip':'import');
+      if(mode==='skip'){ skipped.push(m); return; }
+      todo.push({m:m, rows:groups[m]});
+    });
+    if(!todo.length){ histMsg('这些月份都选了「跳过整月」，没有可导入的数据'); return; }
+    closeM('purHistModal');
+    histMsg('');
+    var added=0, months=0;
+    var jobs=todo.map(function(p){
+      return histClearMonth(p.m).then(function(){
+        var items=p.rows.map(function(r){
+          var d=findDrug(r.pick);
+          var unit=r.unit||(d&&d.u)||'g';
+          return {name:r.pick, qty:r.qty, unit:unit, cost:r.cost, amount:histAmt(r), dt:r.dt,
+                  lv:r.lv||'', su:stockUnit(d,unit), sq:stockQty(d,unit,r.qty)};
+        });
+        if(!items.length) return;
+        var total=0; items.forEach(function(it){ total+=it.amount; });
+        var o={no:'PF-'+p.m, month:p.m, dt:p.m+'-01', supplier:'', items:items,
+               total:round2(total), note:stock?'':HIST_TAG};
+        var rec={no:o.no, dt:o.dt, supplier:'', total:o.total, note:o.note,
+          items:items.map(function(it){
+            return {name:it.name,qty:it.qty,unit:it.unit,cost:it.cost,amount:it.amount,dt:it.dt,su:it.su,sq:it.sq,lv:it.lv||''};
+          })};
+        return SUPA.savePurchase(rec).then(function(){
+          items.forEach(function(it){
+            if(stock){
+              applyStock(it.name, it.su, it.sq, it.cost, it.dt, '', o.no);
+            }else{
+              var clog={drug:it.name, dt:it.dt, qty:it.sq, unit:it.su, cost:it.cost,
+                        supplier:'', purchase_no:null};
+              S.log.push(clog);
+              if(SUPA.on){ try{ SUPA.addCostLog(clog).catch(function(){}); }catch(e){} }
+            }
+          });
+          S.orders=upsert(S.orders,o);
+          added+=items.length; months++;
+        });
+      });
+    });
+    Promise.all(jobs).then(function(){
+      _hist=null;
+      S.loaded=true; S.loadedAt=Date.now();
+      renderList();
+      if(stock){ try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){} }
+      toast('历史导入完成：'+months+' 个月 / '+added+' 味药'+(stock?'（含库存）':'（只记价格）'));
+    }).catch(function(e){
+      S.loaded=true; S.loadedAt=Date.now();
+      renderList();
+      toastErr('历史导入中断：'+((e&&e.message)||'网络错误')+'，已写入的月份会保留');
+    });
+  }
+
+  /* ---------- 保存草稿 / 保存并返回列表 ---------- */
+  function normCur(){
+    var mo=$('purMonth'); if(mo && mo.value) S.cur.month=String(mo.value).slice(0,7);
+    if(!S.cur.month) S.cur.month=monthNow();
+    S.cur.no=autoNo(S.cur.month); S.cur.dt=S.cur.month+'-01';
+    S.cur.items=S.cur.items.filter(function(it){ return String(it.name||'').trim(); });
+  }
+  function saveDraft(){ persistDraft(false); }
+  function saveAndBack(){ persistDraft(true); }
+  function persistDraft(back){
+    if(!S.cur) return;
+    showMsg('');
+    normCur();
+    if(!S.cur.items.length){ showMsg('请至少录入一味药材'); return; }
+    if(wasStocked(S.cur.no)){
+      showMsg('这张单已经入库，不能存成草稿；改完后请点「入库」重新记账。');
+      return;
+    }
+    recalc();
+    S.cur.total=0; S.cur.items.forEach(function(it){ S.cur.total+=it.amount; });
+    S.cur.note=DRAFT_TAG; S.cur._draft=true;
+    /* 改过月份：旧月份那张草稿记录直接删掉（草稿没有库存流水，不用回滚） */
+    var orig=S.cur._origNo;
+    if(orig && orig!==S.cur.no){
+      S.orders=S.orders.filter(function(x){ return x.no!==orig; });
+      if(SUPA.on){ try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(orig),{method:'DELETE'}).catch(function(){}); }catch(e){} }
+    }
+    delete S.cur._origNo;
+    S.orders=upsert(S.orders,S.cur); saveLS();
+    S.loaded=true; S.loadedAt=Date.now();   /* 本地已是最新，缓存窗口重新计时 */
+    if(SUPA.on){
+      var rec={ no:S.cur.no, dt:S.cur.month+'-01', supplier:'',
+        items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount,dt:itemDt(it)}; }),
+        total:S.cur.total, note:DRAFT_TAG };
+      SUPA.savePurchase(rec).catch(function(e){ toastErr('草稿保存失败：'+e.message); });
+    }
+    if(back){ var lbl=monthLabel(S.cur.month); S.cur=null; showSub('list'); toast(lbl+'进货单已保存草稿'); }
+    else{ renderEdit(); toast('已保存草稿（未入库，库存未变动）'); }
+  }
+
   /* ---------- 保存 ---------- */
   function missingUnits(items){
     var out=[];
@@ -16400,12 +18009,20 @@ var Purchase = (function(){
     var mo=$('purMonth'); if(mo && mo.value) S.cur.month=String(mo.value).slice(0,7);
     S.cur.no=autoNo(S.cur.month); S.cur.dt=S.cur.month+'-01';
     S.cur.supplier=''; S.cur.note='';
-    S.cur.items=S.cur.items.filter(function(it){ return String(it.name||'').trim(); });
+    /* 「没确定好」的单不能入库：任何一行只要填了东西，就必须药名 / 数量 / 进货单价齐全 */
     var bad=[];
-    S.cur.items.forEach(function(it){ if(!(parseFloat(it.qty)>0)||!(parseFloat(it.cost)>=0)) bad.push(it.name); });
-    var m=$('purMsg'); if(m) m.textContent='';
-    if(!S.cur.items.length){ if(m) m.textContent='请至少录入一味药材'; return; }
-    if(bad.length){ if(m) m.textContent='有行的数量/单价没填好：'+bad.join('、'); return; }
+    S.cur.items.forEach(function(it, idx){
+      var nm=String(it.name||'').trim();
+      var touched=nm||String(it.qty||'').trim()||String(it.cost||'').trim();
+      if(!touched) return;
+      if(!nm){ bad.push('第 '+(idx+1)+' 行缺药名'); return; }
+      if(!(parseFloat(it.qty)>0)){ bad.push(nm+' 缺数量'); return; }
+      if(!(parseFloat(it.cost)>=0)){ bad.push(nm+' 缺进货单价'); }
+    });
+    S.cur.items=S.cur.items.filter(function(it){ return String(it.name||'').trim(); });
+    showMsg('');
+    if(!S.cur.items.length){ showMsg('请至少录入一味药材'); return; }
+    if(bad.length){ showMsg('有 '+bad.length+' 行还没确定好，不能入库：'+bad.join('、')); return; }
     /* 严格按「药名 + 单位」匹配库存：库里没有就先问一句，绝不偷偷建药 */
     var miss=missingUnits(S.cur.items);
     if(miss.length){
@@ -16424,6 +18041,8 @@ var Purchase = (function(){
     /* 重复入库：先把旧单造成的库存与进价流水撤回，再按新内容重记，否则库存会翻倍 */
     var prev=findByNo(S.cur.no);
     if(prev && wasStocked(prev.no)) undoStock(prev);
+    /* 价格导入的单据现在入库：先删掉当时只记价格的流水，避免同一批出现两套进价记录 */
+    if(prev && !wasStocked(prev.no) && isHistOf(prev)) histDropPriceLogs(monthOf(prev));
     /* 改过月份：把旧月份那张单撤掉（否则同一个月会同时存在两张单、库存也会重复累加） */
     var orig=S.cur._origNo;
     if(orig && orig!==S.cur.no){
@@ -16500,7 +18119,7 @@ var Purchase = (function(){
     saveDrugsLS();
     if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
     /* 进价历史：每次进货都留一条（时间 / 价格 / 来源=进货单） */
-    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno, src:'进货单'};
+    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno};
     S.log.push(clog); saveLogLS();
     if(SUPA.on){ try{ SUPA.addCostLog(clog).catch(function(){}); }catch(e){} }
   }
@@ -16554,7 +18173,11 @@ var Purchase = (function(){
     var t=$('purDelText');
     if(t) t.textContent=monthLabel(monthOf(o))+'（'+o.no+'）共 '+bs.length+' 个小订单、'+((o.items||[]).length)+' 项，合计 ¥'+fmt2(o.total||0)+'。';
     var dh=document.getElementById('purDelHead');
-    if(dh) dh.textContent=wasStocked(o.no)?'本月进货单已入库，删除时是否同时扣回对应库存？':'本月进货单还没入库，删除不会影响库存。';
+    if(dh) dh.textContent = wasStocked(o.no)
+      ? '本月进货单已入库，删除时是否同时扣回对应库存？'
+      : (isDraftOf(o) ? '这是草稿（还没入库），删除不会影响库存。'
+        : (isHistOf(o) ? '这是「价格导入」的单据（未入库），删除会连同该月历史进价一起删掉，库存不变。'
+                       : '本月进货单还没入库，删除不会影响库存。'));
     var ul=$('purDelList');
     if(ul) ul.innerHTML=(o.items||[]).map(function(it){
       return '<li>'+esc(it.name)+' <b>'+esc(String(it.qty))+' '+esc(it.unit)+'</b>'+(it.dt?' <span class="pur-hint">'+esc(String(it.dt).slice(5))+'</span>':'')+'</li>';
@@ -16567,11 +18190,16 @@ var Purchase = (function(){
     var stocked=wasStocked(o.no);
     if(withStock && stocked) undoStock(o);
     S.orders=S.orders.filter(function(x){ return x.no!==o.no; }); saveLS();
+    S.loaded=true; S.loadedAt=Date.now();
     if(SUPA.on){
       try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
       if(stocked && !withStock){
         /* 只删单据、不扣库存时，进价流水也一并删掉，避免留下来源已不存在的记录 */
         try{ SUPA.q('drug_cost_log?purchase_no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
+      }
+      if(!stocked && isHistOf(o)){
+        /* 价格导入的单据：流水没有 purchase_no，按「月份 + 来源」清掉 */
+        histDropPriceLogs(monthOf(o));
       }
     }
     if(S.cur && S.cur.no===o.no) S.cur=null;
@@ -16583,8 +18211,7 @@ var Purchase = (function(){
   /* ---------- 自动建药确认 ---------- */
   function closeNewDrug(){
     closeM('purNewModal');
-    var m=$('purMsg');
-    if(m) m.textContent='已取消保存：请先在「药物管理」里建好这些药材，再回来录单。';
+    showMsg('已取消保存：请先在「药物管理」里建好这些药材，再回来录单。');
     S.pending=null; S.missing=[];
   }
   function confirmNewDrug(){
@@ -16628,29 +18255,43 @@ var Purchase = (function(){
     var f=(S.search||'').toLowerCase();
     if(f){
       list=list.filter(function(o){
-        var st=wasStocked(o.no)?'已入库':'未入库';
+        var st=statusTextOf(o);
         return (monthLabel(monthOf(o))+o.no+st).toLowerCase().indexOf(f)>=0;
       });
     }
     var cnt=$('purListCount'); if(cnt) cnt.textContent=list.length?('共 '+list.length+' 个月'):'';
-    if(!list.length){ box.innerHTML='<div class="wp-list-empty">还没有进货单，点右上「新建 / 录单」开始。</div>'; return; }
+    if(!list.length){
+      box.innerHTML='<div class="wp-list-empty">'
+        +(S.loading?'正在加载进货单…'
+          :(S.err?'进货单加载失败，请检查网络后重试。'
+                 :'还没有进货单，点右上「新建 / 录单」开始。'))
+        +'</div>';
+      return;
+    }
     box.innerHTML=list.map(function(o){
       var its=(o.items||[]).filter(function(it){ return String(it.name||'').trim(); });
-      var bs=batchesOf(o), stocked=wasStocked(o.no);
+      var bs=batchesOf(o), st=statusTextOf(o), stocked=(st==='已入库');
       var names=its.slice(0,4).map(function(it){ return esc(it.name); }).join('、')+(its.length>4?' 等':'');
       return '<div class="wp-plan-row" data-no="'+esc(o.no)+'" onclick="Purchase.editOrder(\''+esc(o.no)+'\')">'
         +'<div><div class="wp-plan-name">'+esc(monthLabel(monthOf(o)))+'</div>'
         +'<div class="wp-plan-sub">'+esc(o.no)+' · '+bs.length+' 个小订单 · '+its.length+' 味药'+(its.length?(' · '+names):'')+'</div></div>'
         +'<div class="wp-plan-num">'+bs.length+' 单</div>'
         +'<div class="wp-plan-amt">¥'+fmt2(o.total||0)+'</div>'
-        +'<div class="wp-plan-act"><span class="wp-tag'+(stocked?'':' pur-undone')+'">'+(stocked?'已入库':'未入库')+'</span></div>'
+        +'<div class="wp-plan-act"><span class="wp-tag'+(stocked?'':' pur-undone')+'">'+(stocked?'已入库':st)+'</span></div>'
         +'</div>';
     }).join('');
   }
+  /* 进货单数据启动即预取（只拉进货单用到的两张表），
+     用户点进「进货单」时列表通常已经在内存里（0 等待）。 */
+  if(typeof SUPA!=='undefined' && SUPA.on) ensureLoaded();
   return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, addItemAfter:addItemAfter, delItem:delItem,
     addBatch:addBatch, delBatch:delBatch, setBatchDate:setBatchDate, toggleFold:toggleFold, setMonth:setMonth,
     nameFocus:nameFocus, nameInput:nameInput, nameKey:nameKey, nameBlur:nameBlur,
-    saveOrder:saveOrder, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
+    saveOrder:saveOrder, saveDraft:saveDraft, saveAndBack:saveAndBack, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
+    openTextImport:openTextImport, closeTextImport:closeTextImport, doTextImport:doTextImport,
+    histOpen:histOpen, histOnFile:histOnFile, histYear:histYear, histStock:histStock,
+    histConfirm:histConfirm, histCancel:histCancel, closeMsg:closeMsg,
+    openExcelImport:openExcelImport, onExcelFile:onExcelFile,
     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
 })();
 
