@@ -4419,6 +4419,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <button class="btn pri" type="button" onclick="Purchase.saveOrder()">入库</button>
               </div>
               <div class="wp-detail-body">
+                <div id="purMsg" class="redhint pur-topmsg" hidden><span id="purMsgTx"></span><button type="button" class="pur-msgx" aria-label="关闭提示" onclick="Purchase.closeMsg()">×</button></div>
                 <div class="wp-order">
                   <div class="wp-order-row">
                     <div class="wp-field wp-req"><label>月份 *</label><input id="purMonth" class="wp-in" type="month" onchange="Purchase.setMonth(this.value)"></div>
@@ -4440,7 +4441,6 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                 <div class="wp-blocks" id="purBlocks"></div>
                 <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
                 <div class="wp-foot" id="purFoot"></div>
-                <div id="purMsg" class="redhint"></div>
                 <div class="wp-hint">提示：每个月是一张大进货单，按「进货日期」拆成小订单；药名可直接输入或用拼音选，单价按 元/kg 录入（数量填 g/kg/斤 均可，金额自动换算）；点「入库」后写入库存与进货价，等同发药。只入库不打印、不生成图片。</div>
               </div>
             </div>
@@ -4620,6 +4620,13 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           }
           .pur-prod:hover{background:#e7f7ee!important}
           #purMsg:empty{display:none}
+          #purMsg.pur-topmsg{ position:relative; display:flex!important; align-items:flex-start; gap:6px;
+            margin:0 0 10px!important; padding:9px 36px 9px 12px!important; border-radius:8px!important; line-height:1.6; }
+          #purMsg .pur-msgx{ position:absolute; right:6px; top:4px; width:24px; height:24px;
+            padding:0; border:0; background:transparent; color:inherit; opacity:.6;
+            font-size:16px; line-height:24px; text-align:center; cursor:pointer; border-radius:6px; }
+          #purMsg .pur-msgx:hover{ opacity:1; background:rgba(0,0,0,.06); }
+          #purMsg[hidden]{display:none!important}
           .pur-hint.ok{color:#5b8c5a}
           .pur-del{color:var(--danger,#c0392b)}
           .pur-total{font-size:13px}
@@ -17136,6 +17143,15 @@ var Purchase = (function(){
   }
   function ensure(){ return ensureLoaded(); }
   function setSearch(v){ S.search=(v||''); renderList(); }
+  /* 录单页顶部提示条：showMsg 显示、closeMsg 关闭（用户要求：提示在最上面、可手动关掉） */
+  function showMsg(t){
+    var m=$('purMsg'), tx=$('purMsgTx');
+    var s=String(t==null?'':t);
+    if(tx) tx.textContent=s;
+    if(m) m.hidden=!s;
+    if(s && m){ try{ m.scrollIntoView({block:'nearest'}); }catch(e){} }
+  }
+  function closeMsg(){ showMsg(''); }
   function showSub(sub){
     S.sub=sub;
     var bs=document.querySelectorAll('#purchaseRoot .wp-sub');
@@ -17462,7 +17478,7 @@ var Purchase = (function(){
       S.cur.items=[{dt:(S.cur.month||monthNow())+'-01', name:'',qty:'',unit:'g',cost:'',amount:0}];
     }
     renderBlocks(); renderFoot(); fillDrugList();
-    var msg=$('purMsg'); if(msg) msg.textContent='';
+    showMsg('');
   }
   function addItem(dt){
     if(!S.cur) return;
@@ -17946,11 +17962,11 @@ var Purchase = (function(){
   function saveAndBack(){ persistDraft(true); }
   function persistDraft(back){
     if(!S.cur) return;
-    var msg=$('purMsg'); if(msg) msg.textContent='';
+    showMsg('');
     normCur();
-    if(!S.cur.items.length){ if(msg) msg.textContent='请至少录入一味药材'; return; }
+    if(!S.cur.items.length){ showMsg('请至少录入一味药材'); return; }
     if(wasStocked(S.cur.no)){
-      if(msg) msg.textContent='这张单已经入库，不能存成草稿；改完后请点「入库」重新记账。';
+      showMsg('这张单已经入库，不能存成草稿；改完后请点「入库」重新记账。');
       return;
     }
     recalc();
@@ -18003,9 +18019,9 @@ var Purchase = (function(){
       if(!(parseFloat(it.cost)>=0)){ bad.push(nm+' 缺进货单价'); }
     });
     S.cur.items=S.cur.items.filter(function(it){ return String(it.name||'').trim(); });
-    var m=$('purMsg'); if(m) m.textContent='';
-    if(!S.cur.items.length){ if(m) m.textContent='请至少录入一味药材'; return; }
-    if(bad.length){ if(m) m.textContent='有 '+bad.length+' 行还没确定好，不能入库：'+bad.join('、'); return; }
+    showMsg('');
+    if(!S.cur.items.length){ showMsg('请至少录入一味药材'); return; }
+    if(bad.length){ showMsg('有 '+bad.length+' 行还没确定好，不能入库：'+bad.join('、')); return; }
     /* 严格按「药名 + 单位」匹配库存：库里没有就先问一句，绝不偷偷建药 */
     var miss=missingUnits(S.cur.items);
     if(miss.length){
@@ -18194,8 +18210,7 @@ var Purchase = (function(){
   /* ---------- 自动建药确认 ---------- */
   function closeNewDrug(){
     closeM('purNewModal');
-    var m=$('purMsg');
-    if(m) m.textContent='已取消保存：请先在「药物管理」里建好这些药材，再回来录单。';
+    showMsg('已取消保存：请先在「药物管理」里建好这些药材，再回来录单。');
     S.pending=null; S.missing=[];
   }
   function confirmNewDrug(){
@@ -18274,7 +18289,7 @@ var Purchase = (function(){
     saveOrder:saveOrder, saveDraft:saveDraft, saveAndBack:saveAndBack, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
     openTextImport:openTextImport, closeTextImport:closeTextImport, doTextImport:doTextImport,
     histOpen:histOpen, histOnFile:histOnFile, histYear:histYear, histStock:histStock,
-    histConfirm:histConfirm, histCancel:histCancel,
+    histConfirm:histConfirm, histCancel:histCancel, closeMsg:closeMsg,
     openExcelImport:openExcelImport, onExcelFile:onExcelFile,
     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
 })();
