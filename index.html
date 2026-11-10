@@ -4402,6 +4402,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div class="wp-list">
                 <div class="wp-list-bar">
                   <input id="purSearch" class="wp-search sch" placeholder="搜索 月份 / 单号 / 状态" oninput="Purchase.setSearch(this.value)">
+                  <button class="btn sm" type="button" onclick="Purchase.histOpen()">导入历史Excel</button>
                   <span class="wp-list-count" id="purListCount"></span>
                 </div>
                 <div id="purList" class="wp-list-body"></div>
@@ -4431,8 +4432,10 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
                   </label>
                   <button class="btn sm" type="button" onclick="Purchase.openTextImport()">粘贴文本制表</button>
                   <button class="btn sm" type="button" onclick="Purchase.openExcelImport()">导入Excel</button>
+                  <button class="btn sm" type="button" onclick="Purchase.histOpen()">导入历史Excel</button>
                   <input type="file" id="purFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="Purchase.onExcelFile(this)">
-                  <span class="pur-imp-hint">导入的药材会写进上面这个进货日期的小订单</span>
+                  <input type="file" id="purHistFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="Purchase.histOnFile(this)">
+                  <span class="pur-imp-hint">「导入Excel」写进上面这个进货日期；「导入历史Excel」按月建单、按日期拆小订单</span>
                 </div>
                 <div class="wp-blocks" id="purBlocks"></div>
                 <div class="wp-add"><button class="btn pri" type="button" onclick="Purchase.addBatch()">+ 添加小订单（按进货日期）</button></div>
@@ -4493,6 +4496,44 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           </div>
         </div>
 
+        <!-- 进货单：导入历史 Excel（按月建大单，按日期拆小订单，先审匹配再写库） -->
+        <div class="modal" id="purHistModal">
+          <div class="pur-mw wide">
+            <div class="pur-mh">导入历史进货单
+              <button class="x" type="button" onclick="Purchase.histCancel()">×</button>
+            </div>
+            <div class="pur-mb">
+              <div class="pur-hist-bar">
+                <label>日期没写年份时按
+                  <input id="purHistYear" type="number" min="2000" max="2099" class="pur-hist-y" onchange="Purchase.histYear(this.value)"> 年
+                </label>
+                <label class="pur-hist-chk">
+                  <input type="checkbox" id="purHistStock" onchange="Purchase.histStock(this.checked)">
+                  同时写入库存（只对勾选且已匹配的行）
+                </label>
+                <span class="pur-hist-stat" id="purHistStat"></span>
+              </div>
+              <div class="pur-hist-wrap">
+                <table class="pur-hist-tbl">
+                  <thead><tr>
+                    <th class="c1">导入</th><th class="c2">进货日期</th><th class="c3">表格品名</th>
+                    <th class="c4">匹配药材</th><th class="c5">数量</th><th class="c6">单位</th>
+                    <th class="c7">单价/元kg</th><th class="c8">金额</th><th class="c9">匹配方式</th>
+                  </tr></thead>
+                  <tbody id="purHistBody"></tbody>
+                </table>
+              </div>
+              <datalist id="purHistDrugs"></datalist>
+              <div id="purHistMsg" class="redhint"></div>
+              <p class="pur-dt pur-hist-note">不勾「写入库存」＝只记进货价历史，库存不动；入库状态显示「价格导入」。勾选后按审核通过的匹配写入库存并标「已入库」。</p>
+            </div>
+            <div class="pur-ma">
+              <button type="button" class="mini" onclick="Purchase.histCancel()">取消</button>
+              <button type="button" class="pri" onclick="Purchase.histConfirm()">开始导入</button>
+            </div>
+          </div>
+        </div>
+
         <style>
           .pur-imp{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
           .pur-imp-hint{ font-size:11px; color:var(--neutral-5,#8a8f98); }
@@ -4514,6 +4555,35 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           .pur-dh{ margin:8px 0 0; font-size:13px; font-weight:600; color:var(--neutral-title); }
           .pur-dl{ margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--neutral-6); line-height:1.9; }
           .pur-dl b{ color:var(--pri-deep); }
+          .pur-mw.wide{ width:min(1120px,94vw); }
+          .pur-hist-bar{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--neutral-6); }
+          .pur-hist-y{ width:70px; height:28px; box-sizing:border-box; padding:0 6px; font-family:inherit; font-size:12px;
+            border:1px solid var(--neutral-3); border-radius:6px; background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-chk{ display:flex; align-items:center; gap:5px; cursor:pointer; }
+          .pur-hist-stat{ margin-left:auto; font-weight:600; color:var(--pri-deep); }
+          .pur-hist-wrap{ max-height:56vh; overflow:auto; border:1px solid var(--neutral-2); border-radius:8px; }
+          .pur-hist-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
+          .pur-hist-tbl th{ position:sticky; top:0; z-index:1; background:var(--neutral-0,#fbfbfa); text-align:left;
+            font-weight:600; color:var(--neutral-6); padding:7px 8px; border-bottom:1px solid var(--neutral-2); white-space:nowrap; }
+          .pur-hist-tbl td{ padding:5px 8px; border-bottom:1px solid var(--neutral-1,#f0f0ee); vertical-align:middle; }
+          .pur-hist-tbl .c1{ width:44px; text-align:center; }
+          .pur-hist-tbl .c5,.pur-hist-tbl .c7,.pur-hist-tbl .c8{ text-align:right; white-space:nowrap; }
+          .pur-hist-tbl .c9{ white-space:nowrap; color:var(--neutral-5,#8a8f98); }
+          .pur-hist-tbl tr.pur-hist-m td{ background:var(--pri-soft,#eef6f0); font-weight:700; color:var(--pri-deep);
+            padding:8px; position:sticky; top:30px; }
+          .pur-hist-m select{ height:26px; font-family:inherit; font-size:12px; margin-left:8px; border-radius:6px;
+            border:1px solid var(--neutral-3); background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-tbl tr.ok td.c9{ color:#2e7d4f; }
+          .pur-hist-tbl tr.warn{ background:#fff9e8; }
+          .pur-hist-tbl tr.warn td.c9{ color:#a7720a; }
+          .pur-hist-tbl tr.bad{ background:#fdeeee; }
+          .pur-hist-tbl tr.bad td.c9{ color:var(--danger,#c0392b); }
+          .pur-hist-tbl tr.off{ opacity:.45; }
+          .pur-hist-in{ width:100%; min-width:110px; height:26px; box-sizing:border-box; padding:0 6px;
+            font-family:inherit; font-size:12px; border:1px solid var(--neutral-3); border-radius:6px;
+            background:var(--n-white); color:var(--neutral-title); }
+          .pur-hist-in:focus{ outline:none; border-color:var(--pri); box-shadow:0 0 0 2px var(--pri-soft); }
+          .pur-hist-note{ margin-top:10px; font-size:11px; }
         </style>
         <style>
           .pur-form{padding:4px 2px;max-width:1120px}
@@ -8510,7 +8580,8 @@ SUPA.loadDrugs=function(noSave){
 };
 /* ---------- 进货单 / 进货价历史 ---------- */
 SUPA.loadPurchases=function(){
-  return SUPA.q('purchases?select=*&order=dt.desc&limit=6000')
+  /* 列表 + 编辑只用到这几列，不再 select=*（items 才是大头，其余字段没用） */
+  return SUPA.q('purchases?select=no,dt,total,note,items&order=dt.desc&limit=6000')
     .then(function(rows){ return rows||[]; });
 };
 SUPA.savePurchase=function(rec){
@@ -8520,10 +8591,24 @@ SUPA.loadCostLog=function(name){
   return SUPA.q('drug_cost_log?drug=eq.'+encodeURIComponent(name)+'&order=created_at.desc&limit=300')
     .then(function(rows){ return rows||[]; });
 };
-/* 进货价历史全量（进货单页启动时用）：云端唯一来源 */
+/* 进货价历史全量（进货单页用）：云端唯一来源。
+   只取「判已入库 / 算最近进价」必需的 4 列；并且两页并发翻页
+   （原来 qAll 一页等一页，1460 行要 2 个网络来回）。 */
 SUPA.loadAllCostLogs=function(){
-  return SUPA.qAll('drug_cost_log?select=*&order=created_at.desc')
-    .then(function(rows){ return rows||[]; });
+  var base='drug_cost_log?select=drug,dt,cost,purchase_no&order=created_at.desc';
+  var PS=1000, out=[];
+  function page(off){
+    return SUPA.q(base+'&limit='+PS+'&offset='+off).then(function(rows){ return rows||[]; });
+  }
+  function step(off){
+    return Promise.all([page(off), page(off+PS)]).then(function(res){
+      res[0].forEach(function(r){ out.push(r); });
+      res[1].forEach(function(r){ out.push(r); });
+      if(res[0].length<PS || res[1].length<PS) return out;
+      return step(off+PS*2);
+    });
+  }
+  return step(0);
 };
 SUPA.addCostLog=function(row){
   return SUPA.q('drug_cost_log', {method:'POST', body:row});
@@ -16922,11 +17007,8 @@ var WPrint=(function(){
 var Purchase = (function(){
   /* 进货单：录单 → 库存累加 → 进价历史 → 建议价联动；删除可回滚库存。
      ⚠ 库存严格按「药名 + 单位」匹配：同一味药的 g 和 kg 是两条独立库存。 */
-  var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[], fold:{}};
-  function load(){
-    /* 进货单 / 进价历史只从 Supabase 加载（见 ensure） */
-    S.orders=[]; S.log=[];
-  }
+  var S={orders:[], cur:null, sub:'list', search:'', log:[], del:null, pending:null, missing:[], fold:{},
+         loaded:false, loadedAt:0, loading:false, err:false};
   /* 进货单写库由 SUPA.savePurchase / SUPA.addCostLog 完成，不再保存本地副本 */
   function saveLS(){}
   function saveLogLS(){}
@@ -16961,7 +17043,9 @@ var Purchase = (function(){
   function statusTextOf(o){
     if(!o) return '';
     if(wasStocked(o.no)) return '已入库';
-    return isDraftOf(o)?'草稿':'未入库';
+    if(isDraftOf(o)) return '草稿';
+    if(isHistOf(o)) return '价格导入';
+    return '未入库';
   }
   function itemDt(it){
     var dt=String((it&&it.dt)||'').slice(0,10);
@@ -17022,19 +17106,35 @@ var Purchase = (function(){
     if(a==null||b==null) return parseFloat(qty)||0;
     return Math.round(((parseFloat(qty)||0)*a/b)*1000)/1000;
   }
-  function ensure(){
-    load();
-    renderList();
-    if(!SUPA.on) return Promise.resolve();
-    return Promise.all([
-      SUPA.loadPurchases().catch(function(){ return []; }),
-      SUPA.loadAllCostLogs().catch(function(){ return []; })
+  /* 进货单 / 进价历史只从云端取，取回后在内存里缓存 CACHE_TTL 毫秒。
+     进入页面先用已有数据渲染（0 等待），过期才后台再刷；
+     模块加载时会自动预取一次（见本模块底部），所以第一次点进来通常已就绪。 */
+  var CACHE_TTL=60000;
+  function ensureLoaded(){
+    if(!SUPA.on){ renderList(); return Promise.resolve(); }
+    if(S.loading) return S.loading;
+    if(S.loaded && (Date.now()-S.loadedAt)<CACHE_TTL){ renderList(); return Promise.resolve(); }
+    S.loading=true; S.err=false;
+    renderList();                 /* 没数据时显示「正在加载…」；有旧数据则先画旧数据 */
+    S.loading=Promise.all([
+      SUPA.loadPurchases().catch(function(){ return null; }),
+      SUPA.loadAllCostLogs().catch(function(){ return null; })
     ]).then(function(res){
-      S.orders=(res&&res[0])||[];
-      S.log=(res&&res[1])||[];
+      /* 有一个接口失败就保留上一次的数据，绝不把列表清空 */
+      if(res[0]) S.orders=res[0];
+      if(res[1]) S.log=res[1];
+      if(!res[0] && !S.orders.length) S.err=true;
+      if(res[0]) S.loaded=true;
+      S.loadedAt=Date.now(); S.loading=false;
+      renderList();
+    }, function(){
+      S.loading=false;
+      if(!S.orders.length) S.err=true;
       renderList();
     });
+    return S.loading;
   }
+  function ensure(){ return ensureLoaded(); }
   function setSearch(v){ S.search=(v||''); renderList(); }
   function showSub(sub){
     S.sub=sub;
@@ -17508,6 +17608,333 @@ var Purchase = (function(){
     });
   }
 
+  /* ================= 导入历史 Excel（按月建大单 / 按日期拆小订单） =================
+     与上面的「导入Excel」是两条路：
+       上面 → 写进当前正在录的这张单、一个进货日期（当月补录）
+       这里 → 一次读完整张历史表，一个月生成一张大单，单内按「进货日期」拆小订单
+     单价用表格里的「单价」列（元/kg），不再用「最近进价」，否则历史价会被抹掉。 */
+  var HIST_TAG='__hist__';
+  var _hist=null;
+  function histPad(n){ return (n<10?'0':'')+n; }
+  function isHistOf(o){ return String((o&&o.note)||'')===HIST_TAG; }
+  function histAmt(r){ return round2(amountOf(r.qty, r.cost, r.unit)); }
+  function histNextMonth(m){
+    var y=parseInt(String(m).slice(0,4),10), mo=parseInt(String(m).slice(5,7),10);
+    if(!isFinite(y)||!isFinite(mo)) return m;
+    mo++; if(mo>12){ mo=1; y++; }
+    return y+'-'+histPad(mo);
+  }
+  /* 日期：9月7日 / 2025-09-07 / 2025/9/7 / 9-7 / 9/7 / Excel 序列号 */
+  function histDate(v, year){
+    var s=String(v==null?'':v).trim();
+    if(!s) return '';
+    if(/^\d{5}(\.\d+)?$/.test(s)){
+      var d=new Date(Date.UTC(1899,11,30)+Math.round(parseFloat(s))*86400000);
+      if(!isNaN(d.getTime())) return d.getUTCFullYear()+'-'+histPad(d.getUTCMonth()+1)+'-'+histPad(d.getUTCDate());
+    }
+    s=s.replace(/年|月/g,'-').replace(/日/g,'').replace(/[\/.]/g,'-').replace(/\s+/g,'');
+    var m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m) return m[1]+'-'+histPad(+m[2])+'-'+histPad(+m[3]);
+    m=s.match(/^(\d{4})-(\d{1,2})$/);
+    if(m) return m[1]+'-'+histPad(+m[2])+'-01';
+    m=s.match(/^(\d{1,2})-(\d{1,2})$/);
+    if(m) return year+'-'+histPad(+m[1])+'-'+histPad(+m[2]);
+    m=s.match(/^(\d{1,2})$/);
+    if(m) return year+'-'+histPad(+m[1])+'-01';
+    return '';
+  }
+  /* 匹配：精确 → 归一化精确 → 别名 → 去括号主干 → 唯一包含（标记疑似） */
+  function histMatch(raw){
+    var nm=String(raw||'').trim(); if(!nm) return null;
+    var d=findDrug(nm), i, j;
+    if(d) return {name:d.n, how:'精确'};
+    var nk=normName(nm);
+    for(i=0;i<drugsList.length;i++){
+      if(drugsList[i] && normName(drugsList[i].n)===nk) return {name:drugsList[i].n, how:'精确'};
+    }
+    for(i=0;i<drugsList.length;i++){
+      var al=(drugsList[i]&&drugsList[i].al)||[];
+      for(j=0;j<al.length;j++){ if(normName(al[j])===nk) return {name:drugsList[i].n, how:'别名'}; }
+    }
+    var core=nm.replace(/[（(【\[].*$/,'').trim();
+    if(core && core!==nm){
+      d=findDrug(core); if(d) return {name:d.n, how:'去括号'};
+      for(i=0;i<drugsList.length;i++){
+        if(drugsList[i] && normName(drugsList[i].n)===normName(core)) return {name:drugsList[i].n, how:'去括号'};
+      }
+    }
+    var key=normName(core||nm);
+    if(key.length>=2){
+      var hits=[];
+      for(i=0;i<drugsList.length;i++){
+        var dn=normName(drugsList[i]&&drugsList[i].n);
+        if(dn && (dn.indexOf(key)===0 || key.indexOf(dn)===0)){
+          hits.push(drugsList[i].n);
+          if(hits.length>1) break;
+        }
+      }
+      if(hits.length===1) return {name:hits[0], how:'疑似包含', suspect:true};
+    }
+    return null;
+  }
+  function histSplitLine(l){
+    var out=[],cur='',q=false;
+    for(var i=0;i<l.length;i++){
+      var c=l[i];
+      if(q){ if(c==='"'){ if(l[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else if(c==='"'){ q=true; }
+      else if(c===','){ out.push(cur); cur=''; }
+      else cur+=c;
+    }
+    out.push(cur); return out;
+  }
+  function histNum(v){
+    var m=String(v==null?'':v).replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);
+    return m?parseFloat(m[0]):0;
+  }
+  function histParse(text, year){
+    text=String(text||'').replace(/^\ufeff/,'');
+    var lines=text.split(/\r?\n/).filter(function(l){ return String(l||'').trim(); });
+    var head=null, hi=-1, k;
+    for(k=0;k<lines.length&&k<20;k++){
+      var cand=histSplitLine(lines[k]);
+      var s=cand.join('|');
+      if(/品名|药名|名称|药材/.test(s) && /数量|单价|金额|日期/.test(s)){ head=cand; hi=k; break; }
+    }
+    if(!head) head=['进货日期','品名','级别','单位','数量','单价','金额'];
+    var idx={};
+    for(k=0;k<head.length;k++) idx[String(head[k]==null?'':head[k]).trim()]=k;
+    function col(){
+      var a,m;
+      for(a=0;a<arguments.length;a++){ if(idx[arguments[a]]!=null) return idx[arguments[a]]; }
+      for(var key in idx){ for(m=0;m<arguments.length;m++){ if(key.indexOf(arguments[m])>=0) return idx[key]; } }
+      return -1;
+    }
+    var cd=col('进货日期','日期'), cn=col('品名','药名','名称','药材','药品'),
+        cu=col('单位','规格'), cq=col('数量','重量','克数','剂量'),
+        cc=col('单价','进价','价格'), ca=col('金额'), cl=col('级别','等级');
+    if(cn<0) cn=1;
+    var out=[], lastDate='';
+    for(var r=(hi>=0?hi+1:0); r<lines.length; r++){
+      var a=histSplitLine(lines[r]); if(!a || a.length<2) continue;
+      var dv=cd>=0?String(a[cd]==null?'':a[cd]).trim():'';
+      if(dv){ var dd=histDate(dv, year); if(dd) lastDate=dd; }
+      var nm=String(a[cn]==null?'':a[cn]).trim();
+      if(!nm) continue;
+      if(/合计|小计|总计|共计/.test(nm)) continue;
+      if(!/[一-龥A-Za-z]/.test(nm)) continue;
+      var qv=histNum(cq>=0?a[cq]:''), cv=histNum(cc>=0?a[cc]:''), av=histNum(ca>=0?a[ca]:'');
+      if(!(cv>0)){ cv=parseFloat(costFor(nm))||0; }   /* 表格没填单价时退回最近进价 */
+      var uv=cu>=0?normUnit(String(a[cu]==null?'':a[cu])):'';
+      if(!uv) uv='';
+      var mt=histMatch(nm);
+      out.push({ dt:lastDate, month:lastDate?lastDate.slice(0,7):'',
+        name:nm, lv:cl>=0?String(a[cl]==null?'':a[cl]).trim():'',
+        unit:uv, qty:qv, cost:cv, sheetAmount:av,
+        pick:mt?(mt.name||''):'', how:mt?(mt.how||''):'', suspect:!!(mt&&mt.suspect),
+        skip:!(mt && !mt.suspect) });
+    }
+    return out;
+  }
+  function histOpen(){
+    var y=$('purHistYear');
+    if(y && !y.value) y.value=String(new Date().getFullYear());
+    var f=$('purHistFile'); if(f) f.click();
+  }
+  function histOnFile(fi){
+    var file=fi&&fi.files&&fi.files[0]; if(fi) fi.value='';
+    if(!file) return;
+    if(typeof WPlan==='undefined' || !WPlan.readSheet){ toastErr('导入组件未就绪，请刷新页面重试'); return; }
+    var y=$('purHistYear'); var year=String((y&&y.value)||new Date().getFullYear());
+    WPlan.readSheet(file, function(txt){
+      var rows=histParse(String(txt||''), year);
+      if(!rows.length){ toastErr('没有识别到药材行：请确认表格有「进货日期 / 品名 / 数量 / 单价」列'); return; }
+      _hist={ text:String(txt||''), year:year, stock:false, conflict:{}, rows:rows };
+      var dl=$('purHistDrugs');
+      if(dl) dl.innerHTML=drugsList.map(function(d){ return '<option value="'+esc(d.n)+'">'; }).join('');
+      var msg=$('purHistMsg'); if(msg) msg.textContent='';
+      histRender();
+      openM('purHistModal');
+    });
+  }
+  function histYear(v){
+    if(!_hist) return;
+    var y=parseInt(v,10);
+    if(!isFinite(y) || y<2000 || y>2099){ return; }
+    _hist.year=String(y);
+    _hist.rows=histParse(_hist.text, _hist.year);
+    _hist.conflict={};
+    histRender();
+  }
+  function histStock(on){ if(_hist){ _hist.stock=!!on; histStat(); } }
+  function histCancel(){ _hist=null; closeM('purHistModal'); }
+  function histMsg(t){ var m=$('purHistMsg'); if(m) m.textContent=String(t||''); }
+  function histStat(){
+    if(!_hist) return;
+    var cnt=0, sum=0;
+    _hist.rows.forEach(function(r){ if(!r.skip && r.pick){ cnt++; sum+=histAmt(r); } });
+    var el=$('purHistStat');
+    if(el) el.textContent='待导入 '+cnt+' 味 · ¥'+fmt2(sum)+(_hist.stock?' · 含库存':' · 仅价格');
+  }
+  function histRender(){
+    if(!_hist) return;
+    var body=$('purHistBody'); if(!body) return;
+    var y=$('purHistYear'); if(y) y.value=_hist.year;
+    var st=$('purHistStock'); if(st) st.checked=!!_hist.stock;
+    var groups={}, order=[];
+    _hist.rows.forEach(function(r,i){
+      r._i=i;
+      var m=r.month||'';
+      if(!groups[m]){ groups[m]=[]; order.push(m); }
+      groups[m].push(r);
+    });
+    order.sort(function(a,b){
+      if(!a) return 1; if(!b) return -1;
+      return a<b?-1:(a>b?1:0);
+    });
+    var html='';
+    order.forEach(function(m){
+      var rows=groups[m], cnt=0, sum=0;
+      rows.forEach(function(r){ if(!r.skip && r.pick){ cnt++; sum+=histAmt(r); } });
+      var ex=m?findByMonth(m):null;
+      var mode=m?(_hist.conflict[m]||(ex?'skip':'import')):'skip';
+      if(m) _hist.conflict[m]=mode;
+      html+='<tr class="pur-hist-m"><td colspan="9">'
+        + (m?esc(monthLabel(m)):'未识别到日期（不会导入）')
+        + ' · 已确认 '+cnt+' 味 · ¥'+fmt2(sum)
+        + (ex?(' <span style="color:#a7720a">该月已有单据</span>'
+            + '<select data-k="mode" data-m="'+esc(m)+'">'
+            + '<option value="skip"'+(mode==='skip'?' selected':'')+'>跳过整月</option>'
+            + '<option value="import"'+(mode==='import'?' selected':'')+'>覆盖整月</option>'
+            + '</select>'):'')
+        + '</td></tr>';
+      rows.forEach(function(r){
+        var cls=r.pick?(r.suspect?'warn':'ok'):'bad';
+        if(r.skip) cls+=' off';
+        html+='<tr class="'+cls+'" data-i="'+r._i+'">'
+          +'<td class="c1"><input type="checkbox" data-k="skip"'+(r.skip?'':' checked')+'></td>'
+          +'<td class="c2">'+esc(r.dt||'—')+'</td>'
+          +'<td class="c3">'+esc(r.name)+(r.lv?' <span style="color:#8a8f98">('+esc(r.lv)+')</span>':'')+'</td>'
+          +'<td class="c4"><input class="pur-hist-in" list="purHistDrugs" data-k="pick" value="'+esc(r.pick||'')+'" placeholder="选择药材"></td>'
+          +'<td class="c5">'+(r.qty||'')+'</td>'
+          +'<td class="c6">'+esc(r.unit||'')+'</td>'
+          +'<td class="c7">'+(r.cost||'')+'</td>'
+          +'<td class="c8">¥'+fmt2(histAmt(r))+'</td>'
+          +'<td class="c9">'+(r.pick?esc(r.suspect?'疑似包含':(r.how||'')):'未匹配')+'</td>'
+          +'</tr>';
+      });
+    });
+    body.innerHTML=html;
+    body.onchange=histChange;
+    histStat();
+  }
+  function histChange(e){
+    var t=e&&e.target; if(!t || !_hist) return;
+    var k=t.getAttribute('data-k');
+    if(k==='mode'){ _hist.conflict[t.getAttribute('data-m')]=t.value; histRender(); return; }
+    if(k!=='skip' && k!=='pick') return;
+    var tr=t.parentNode; while(tr && tr.tagName!=='TR') tr=tr.parentNode;
+    if(!tr) return;
+    var r=_hist.rows[parseInt(tr.getAttribute('data-i'),10)]; if(!r) return;
+    if(k==='skip'){ r.skip=!t.checked; histRender(); return; }
+    var v=String(t.value||'').trim();
+    var m=histMatch(v);
+    if(m){ r.pick=m.name; r.how=m.how; r.suspect=!!m.suspect; r.skip=false; }
+    else { r.pick=''; r.how=''; r.suspect=false; r.skip=true; }
+    histRender();
+  }
+  /* 删掉某月「只记价格」留下的流水（purchase_no 为空 + 来源=历史导入） */
+  function histDropPriceLogs(m){
+    if(!m) return;
+    S.log=S.log.filter(function(r){
+      return !(r && !r.purchase_no && String(r.dt||'').slice(0,7)===String(m));
+    });
+    if(SUPA.on){
+      try{
+        /* drug_cost_log 没有 src 列（云端表结构如此），只能用「无单号 + 日期区间」界定价格导入的流水 */
+        SUPA.q('drug_cost_log?purchase_no=is.null'
+          +'&dt=gte.'+m+'-01&dt=lt.'+histNextMonth(m)+'-01',{method:'DELETE'}).catch(function(){});
+      }catch(e){}
+    }
+  }
+  /* 覆盖某月：先撤旧单（入库过的要回滚库存与流水），再删该月的「历史导入」价格流水 */
+  function histClearMonth(m){
+    var ex=findByMonth(m); if(!ex) return Promise.resolve();
+    var no=ex.no;
+    if(wasStocked(no)) undoStock(ex);
+    S.orders=S.orders.filter(function(x){ return x.no!==no; });
+    histDropPriceLogs(m);
+    var jobs=[];
+    try{ jobs.push(SUPA.q('purchases?no=eq.'+encodeURIComponent(no),{method:'DELETE'}).catch(function(){})); }catch(e){}
+    return Promise.all(jobs);
+  }
+  function histConfirm(){
+    if(!_hist) return;
+    var groups={}, order=[];
+    _hist.rows.forEach(function(r){
+      if(r.skip || !r.pick || !r.dt) return;
+      var m=r.dt.slice(0,7);
+      if(!groups[m]){ groups[m]=[]; order.push(m); }
+      groups[m].push(r);
+    });
+    if(!order.length){ histMsg('没有可导入的行：请勾选要导入的行，并在「匹配药材」里选到药品库里的药'); return; }
+    var stock=!!_hist.stock;
+    var todo=[], skipped=[];
+    order.sort().forEach(function(m){
+      var ex=findByMonth(m);
+      var mode=_hist.conflict[m]||(ex?'skip':'import');
+      if(mode==='skip'){ skipped.push(m); return; }
+      todo.push({m:m, rows:groups[m]});
+    });
+    if(!todo.length){ histMsg('这些月份都选了「跳过整月」，没有可导入的数据'); return; }
+    closeM('purHistModal');
+    histMsg('');
+    var added=0, months=0;
+    var jobs=todo.map(function(p){
+      return histClearMonth(p.m).then(function(){
+        var items=p.rows.map(function(r){
+          var d=findDrug(r.pick);
+          var unit=r.unit||(d&&d.u)||'g';
+          return {name:r.pick, qty:r.qty, unit:unit, cost:r.cost, amount:histAmt(r), dt:r.dt,
+                  lv:r.lv||'', su:stockUnit(d,unit), sq:stockQty(d,unit,r.qty)};
+        });
+        if(!items.length) return;
+        var total=0; items.forEach(function(it){ total+=it.amount; });
+        var o={no:'PF-'+p.m, month:p.m, dt:p.m+'-01', supplier:'', items:items,
+               total:round2(total), note:stock?'':HIST_TAG};
+        var rec={no:o.no, dt:o.dt, supplier:'', total:o.total, note:o.note,
+          items:items.map(function(it){
+            return {name:it.name,qty:it.qty,unit:it.unit,cost:it.cost,amount:it.amount,dt:it.dt,su:it.su,sq:it.sq,lv:it.lv||''};
+          })};
+        return SUPA.savePurchase(rec).then(function(){
+          items.forEach(function(it){
+            if(stock){
+              applyStock(it.name, it.su, it.sq, it.cost, it.dt, '', o.no);
+            }else{
+              var clog={drug:it.name, dt:it.dt, qty:it.sq, unit:it.su, cost:it.cost,
+                        supplier:'', purchase_no:null};
+              S.log.push(clog);
+              if(SUPA.on){ try{ SUPA.addCostLog(clog).catch(function(){}); }catch(e){} }
+            }
+          });
+          S.orders=upsert(S.orders,o);
+          added+=items.length; months++;
+        });
+      });
+    });
+    Promise.all(jobs).then(function(){
+      _hist=null;
+      S.loaded=true; S.loadedAt=Date.now();
+      renderList();
+      if(stock){ try{ if(typeof renderDrugTable==='function') renderDrugTable(); }catch(e){} }
+      toast('历史导入完成：'+months+' 个月 / '+added+' 味药'+(stock?'（含库存）':'（只记价格）'));
+    }).catch(function(e){
+      S.loaded=true; S.loadedAt=Date.now();
+      renderList();
+      toastErr('历史导入中断：'+((e&&e.message)||'网络错误')+'，已写入的月份会保留');
+    });
+  }
+
   /* ---------- 保存草稿 / 保存并返回列表 ---------- */
   function normCur(){
     var mo=$('purMonth'); if(mo && mo.value) S.cur.month=String(mo.value).slice(0,7);
@@ -17537,6 +17964,7 @@ var Purchase = (function(){
     }
     delete S.cur._origNo;
     S.orders=upsert(S.orders,S.cur); saveLS();
+    S.loaded=true; S.loadedAt=Date.now();   /* 本地已是最新，缓存窗口重新计时 */
     if(SUPA.on){
       var rec={ no:S.cur.no, dt:S.cur.month+'-01', supplier:'',
         items:S.cur.items.map(function(it){ return {name:it.name,qty:parseFloat(it.qty),unit:it.unit,cost:parseFloat(it.cost),amount:it.amount,dt:itemDt(it)}; }),
@@ -17596,6 +18024,8 @@ var Purchase = (function(){
     /* 重复入库：先把旧单造成的库存与进价流水撤回，再按新内容重记，否则库存会翻倍 */
     var prev=findByNo(S.cur.no);
     if(prev && wasStocked(prev.no)) undoStock(prev);
+    /* 价格导入的单据现在入库：先删掉当时只记价格的流水，避免同一批出现两套进价记录 */
+    if(prev && !wasStocked(prev.no) && isHistOf(prev)) histDropPriceLogs(monthOf(prev));
     /* 改过月份：把旧月份那张单撤掉（否则同一个月会同时存在两张单、库存也会重复累加） */
     var orig=S.cur._origNo;
     if(orig && orig!==S.cur.no){
@@ -17672,7 +18102,7 @@ var Purchase = (function(){
     saveDrugsLS();
     if(SUPA.on){ try{ SUPA.q('drugs?on_conflict=name',{method:'POST',body:dmRowOfFull(d)}).catch(warnStockCloud); }catch(e){} }
     /* 进价历史：每次进货都留一条（时间 / 价格 / 来源=进货单） */
-    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno, src:'进货单'};
+    var clog={drug:name, dt:dt, qty:qty, unit:unit, cost:cost, supplier:supplier, purchase_no:pno};
     S.log.push(clog); saveLogLS();
     if(SUPA.on){ try{ SUPA.addCostLog(clog).catch(function(){}); }catch(e){} }
   }
@@ -17728,7 +18158,9 @@ var Purchase = (function(){
     var dh=document.getElementById('purDelHead');
     if(dh) dh.textContent = wasStocked(o.no)
       ? '本月进货单已入库，删除时是否同时扣回对应库存？'
-      : (isDraftOf(o) ? '这是草稿（还没入库），删除不会影响库存。' : '本月进货单还没入库，删除不会影响库存。');
+      : (isDraftOf(o) ? '这是草稿（还没入库），删除不会影响库存。'
+        : (isHistOf(o) ? '这是「价格导入」的单据（未入库），删除会连同该月历史进价一起删掉，库存不变。'
+                       : '本月进货单还没入库，删除不会影响库存。'));
     var ul=$('purDelList');
     if(ul) ul.innerHTML=(o.items||[]).map(function(it){
       return '<li>'+esc(it.name)+' <b>'+esc(String(it.qty))+' '+esc(it.unit)+'</b>'+(it.dt?' <span class="pur-hint">'+esc(String(it.dt).slice(5))+'</span>':'')+'</li>';
@@ -17741,11 +18173,16 @@ var Purchase = (function(){
     var stocked=wasStocked(o.no);
     if(withStock && stocked) undoStock(o);
     S.orders=S.orders.filter(function(x){ return x.no!==o.no; }); saveLS();
+    S.loaded=true; S.loadedAt=Date.now();
     if(SUPA.on){
       try{ SUPA.q('purchases?no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
       if(stocked && !withStock){
         /* 只删单据、不扣库存时，进价流水也一并删掉，避免留下来源已不存在的记录 */
         try{ SUPA.q('drug_cost_log?purchase_no=eq.'+encodeURIComponent(o.no),{method:'DELETE'}).catch(function(){}); }catch(e){}
+      }
+      if(!stocked && isHistOf(o)){
+        /* 价格导入的单据：流水没有 purchase_no，按「月份 + 来源」清掉 */
+        histDropPriceLogs(monthOf(o));
       }
     }
     if(S.cur && S.cur.no===o.no) S.cur=null;
@@ -17807,7 +18244,14 @@ var Purchase = (function(){
       });
     }
     var cnt=$('purListCount'); if(cnt) cnt.textContent=list.length?('共 '+list.length+' 个月'):'';
-    if(!list.length){ box.innerHTML='<div class="wp-list-empty">还没有进货单，点右上「新建 / 录单」开始。</div>'; return; }
+    if(!list.length){
+      box.innerHTML='<div class="wp-list-empty">'
+        +(S.loading?'正在加载进货单…'
+          :(S.err?'进货单加载失败，请检查网络后重试。'
+                 :'还没有进货单，点右上「新建 / 录单」开始。'))
+        +'</div>';
+      return;
+    }
     box.innerHTML=list.map(function(o){
       var its=(o.items||[]).filter(function(it){ return String(it.name||'').trim(); });
       var bs=batchesOf(o), st=statusTextOf(o), stocked=(st==='已入库');
@@ -17821,11 +18265,16 @@ var Purchase = (function(){
         +'</div>';
     }).join('');
   }
+  /* 进货单数据启动即预取（只拉进货单用到的两张表），
+     用户点进「进货单」时列表通常已经在内存里（0 等待）。 */
+  if(typeof SUPA!=='undefined' && SUPA.on) ensureLoaded();
   return { ensure:ensure, showSub:showSub, newOrder:newOrder, editOrder:editOrder, addItem:addItem, addItemAfter:addItemAfter, delItem:delItem,
     addBatch:addBatch, delBatch:delBatch, setBatchDate:setBatchDate, toggleFold:toggleFold, setMonth:setMonth,
     nameFocus:nameFocus, nameInput:nameInput, nameKey:nameKey, nameBlur:nameBlur,
     saveOrder:saveOrder, saveDraft:saveDraft, saveAndBack:saveAndBack, setSearch:setSearch, delOrder:delOrder, closeDel:closeDel, doDel:doDel,
     openTextImport:openTextImport, closeTextImport:closeTextImport, doTextImport:doTextImport,
+    histOpen:histOpen, histOnFile:histOnFile, histYear:histYear, histStock:histStock,
+    histConfirm:histConfirm, histCancel:histCancel,
     openExcelImport:openExcelImport, onExcelFile:onExcelFile,
     closeNewDrug:closeNewDrug, confirmNewDrug:confirmNewDrug, latestCost:latestCost, _state:S };
 })();
