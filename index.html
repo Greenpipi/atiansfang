@@ -3916,7 +3916,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stKpi .delta.flat{ color:var(--neutral-4); }
 .stGrid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:12px; }
 .stCard{ grid-column:span 12; background:var(--n-white); border:1px solid var(--neutral-2); border-radius:16px; box-shadow:var(--shadow-1); padding:14px 16px 15px; min-width:0; }
-.stCol8{ grid-column:span 8; } .stCol7{ grid-column:span 7; } .stCol5{ grid-column:span 5; } .stCol4{ grid-column:span 4; } .stCol3{ grid-column:span 3; }
+.stCol8{ grid-column:span 8; } .stCol7{ grid-column:span 7; } .stCol6{ grid-column:span 6; } .stCol5{ grid-column:span 5; } .stCol4{ grid-column:span 4; } .stCol3{ grid-column:span 3; } .stCol2{ grid-column:span 2; }
 .stCardHd{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:24px; margin-bottom:10px; font-size:14px; font-weight:700; color:var(--neutral-title); }
 .stCardHd .hint{ font-size:11px; font-weight:400; color:var(--neutral-4); }
 .stCardHd .right{ margin-left:auto; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
@@ -3933,6 +3933,11 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stMixBar{ display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--neutral-1); margin:6px 0 12px; }
 .stMixBar i{ display:block; height:100%; min-width:0; }
 .stMixLegend{ display:grid; grid-template-columns:1fr 1fr; gap:7px 14px; }
+@media (min-width:1281px){
+  .stCol2 .stMixLegend{ grid-template-columns:1fr; gap:6px; }
+  .stCol2 .stMixRow .p{ display:none; }
+  .stCol2 .stMixRow .v{ font-size:11px; }
+}
 .stMixRow{ display:flex; align-items:center; gap:7px; min-width:0; font-size:12px; color:var(--neutral-6); }
 .stMixRow .dot{ flex:0 0 8px; width:8px; height:8px; border-radius:50%; }
 .stMixRow .lb{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -3994,7 +3999,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stPill.order{ background:#fff7ed; border:1px solid #fed7aa; color:#b45309; }
 @media (max-width:1280px){
   .stKpis{ grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .stCol8,.stCol7,.stCol5,.stCol4,.stCol3{ grid-column:span 12; }
+  .stCol8,.stCol7,.stCol6,.stCol5,.stCol4,.stCol3,.stCol2{ grid-column:span 12; }
 }
 @media (max-width:760px){
   .page[data-page="stat"] .stPage{ padding:12px 12px 30px; }
@@ -5248,17 +5253,17 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <div class="stKpis" id="stKpis"></div>
 
           <div class="stGrid">
-            <section class="stCard stCol5">
+            <section class="stCard stCol6">
               <div class="stCardHd">营收趋势 <span class="hint" id="stTrendHint"></span></div>
               <div class="stChart" id="stTrend"></div>
             </section>
 
-            <section class="stCard stCol3">
+            <section class="stCard stCol4">
               <div class="stCardHd">时段分布 <span class="hint" id="stHoursHint"></span></div>
               <div class="stChart" id="stHours"></div>
             </section>
 
-            <section class="stCard stCol4">
+            <section class="stCard stCol2">
               <div class="stCardHd">收入构成 <span class="hint" id="stMixHint"></span></div>
               <div id="stMix"></div>
             </section>
