@@ -8699,6 +8699,15 @@ var RxMemo=(function(){
 /* ---------- 统计页 ---------- */
 var StatPage=(function(){
   var RANGE='today', FROM='', TO='', _bound=false, _ctx=null;
+  /* 低饱和配色：减少绿色视觉疲劳 */
+  var C_INK='#364a3f';      /* 很深的墨绿，当作“黑”用 */
+  var C_GREEN='#4f7d63';    /* 低饱和主绿 */
+  var C_SAGE='#b8d6c4';     /* 浅鼠尾草绿 */
+  var C_LEAF='#7fa58f';     /* 中浅绿，用于药费构成 */
+  var C_OLIVE='#8b9a76';    /* 橄榄 */
+  var C_TAN='#b08a63';      /* 棕褐 */
+  var C_AMBER='#c58a4a';    /* 低饱和橙 */
+  var C_GRAY='#c9d1cc';     /* 浅灰绿 */
   function p2(x){ return pad2(x); }
   function ymd(d){ return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
   function parseYmd(s){
@@ -9002,13 +9011,13 @@ var StatPage=(function(){
       /* 日常药方（绿）：有订单堆叠时顶边是直角，没有订单时顶部圆角 */
       if(hd>0){
         if(ho>0){
-          h+='<rect x="'+f1(x)+'" y="'+f1(base-hd)+'" width="'+f1(bw)+'" height="'+f1(hd)+'" fill="'+(p.hi?'#15a34a':'#9fd8b6')+'"/>';
+          h+='<rect x="'+f1(x)+'" y="'+f1(base-hd)+'" width="'+f1(bw)+'" height="'+f1(hd)+'" fill="'+(p.hi?C_GREEN:C_SAGE)+'"/>';
         }else{
-          h+='<g fill="'+(p.hi?'#15a34a':'#9fd8b6')+'">'+barPath(x,base-hd,bw,hd,3)+'</g>';
+          h+='<g fill="'+(p.hi?C_GREEN:C_SAGE)+'">'+barPath(x,base-hd,bw,hd,3)+'</g>';
         }
       }
       /* 药方订单（橙）：堆在日常药方上方 */
-      if(ho>0) h+='<g fill="#d97706">'+barPath(x,top,bw,ho,3)+'</g>';
+      if(ho>0) h+='<g fill="'+C_AMBER+'">'+barPath(x,top,bw,ho,3)+'</g>';
       if(hd<=0 && ho<=0){
         h+='<rect x="'+f1(x)+'" y="'+f1(base-1)+'" width="'+f1(bw)+'" height="1" fill="#f0f2f3"/>';
       }
@@ -9016,12 +9025,12 @@ var StatPage=(function(){
       if(showLabels && (dv>0 || ov>0)){
         var cx=f1(x+bw/2);
         if(ov>0 && dv>0){
-          h+='<text x="'+cx+'" y="'+f1(top-18)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a3e">'+esc('日常 '+money2(dv)+' · '+p.n+'单')+'</text>';
-          h+='<text x="'+cx+'" y="'+f1(top-5)+'" text-anchor="middle" font-size="11" fill="#b45309">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
+          h+='<text x="'+cx+'" y="'+f1(top-18)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#2f5a45">'+esc('日常 '+money2(dv)+' · '+p.n+'单')+'</text>';
+          h+='<text x="'+cx+'" y="'+f1(top-5)+'" text-anchor="middle" font-size="11" fill="#9a6a2f">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
         }else if(ov>0){
-          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" fill="#b45309">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
+          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" fill="#9a6a2f">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
         }else{
-          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a3e">'+esc(money2(dv)+' · '+p.n+'单')+'</text>';
+          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#2f5a45">'+esc(money2(dv)+' · '+p.n+'单')+'</text>';
         }
       }
       /* 透明热区：整根柱子都能显示 tooltip */
@@ -9069,7 +9078,7 @@ var StatPage=(function(){
     for(i=0;i<24;i++){
       var p=arr[i], bh=p.v>0?Math.max(2,ih*(p.v/max)):0;
       var x=L+step*i+(step-bw)/2;
-      var fill=(i===peak)?'#0b7a3e':(p.v>0?'#9fd8b6':'#f0f2f3');
+      var fill=(i===peak)?C_GREEN:(p.v>0?'#d8e0db':'#f0f2f3');
       if(bh>0) h+='<g fill="'+fill+'">'+barPath(x,T+ih-bh,bw,bh,2)+'</g>';
       else h+='<rect x="'+f1(x)+'" y="'+f1(T+ih-1)+'" width="'+f1(bw)+'" height="1" fill="#f0f2f3"/>';
       h+='<rect x="'+f1(x)+'" y="'+f1(T+ih-Math.max(bh,1))+'" width="'+f1(bw)+'" height="'+f1(Math.max(bh,1))+'" fill="transparent"><title>'+esc(i+'点：'+p.n+' 单 / '+money2(p.v))+'</title></rect>';
@@ -9162,11 +9171,11 @@ var StatPage=(function(){
       return;
     }
     var items=[
-      {lb:'药费',v:s.drug,c:'#15a34a'},
-      {lb:'代煎',v:s.dj,c:'#0d9488'},
-      {lb:'加工',v:s.e,c:'#7c8b84'},
-      {lb:'其他费用',v:s.otherFee,c:'#b7c2bc'},
-      {lb:'药方订单',v:s.orderTotal||0,c:'#d97706'}
+      {lb:'药费',v:s.drug,c:C_LEAF},
+      {lb:'代煎',v:s.dj,c:C_INK},
+      {lb:'加工',v:s.e,c:C_OLIVE},
+      {lb:'其他费用',v:s.otherFee,c:C_GRAY},
+      {lb:'药方订单',v:s.orderTotal||0,c:C_AMBER}
     ];
     if(s.other>0.004) items.push({lb:'调整',v:s.other,c:'#c7d2cc'});
     var denom=0, i;
@@ -9188,12 +9197,13 @@ var StatPage=(function(){
   }
 
   function barRows(arr,total){
-    var max=0, i;
-    for(i=0;i<arr.length;i++) max=Math.max(max,arr[i].n);
+    var max=0, maxIdx=-1, i;
+    for(i=0;i<arr.length;i++){ if(arr[i].n>max){ max=arr[i].n; maxIdx=i; } }
     var h='<div class="stBars">';
     for(i=0;i<arr.length;i++){
       var x=arr[i];
-      h+='<div class="stBarRow"><span class="nm">'+x.lb+'</span><div class="bar"><i style="width:'+(max?x.n/max*100:0).toFixed(1)+'%"></i></div><span class="v">'+x.n+' 单</span><span class="p">'+(total?pct(x.n/total):'0%')+'</span></div>';
+      var c=(max>0 && i===maxIdx)?C_GREEN:C_INK;
+      h+='<div class="stBarRow"><span class="nm">'+x.lb+'</span><div class="bar"><i style="width:'+(max?x.n/max*100:0).toFixed(1)+'%;background:'+c+'"></i></div><span class="v">'+x.n+' 单</span><span class="p">'+(total?pct(x.n/total):'0%')+'</span></div>';
     }
     return h+'</div>';
   }
@@ -9248,10 +9258,11 @@ var StatPage=(function(){
     $('stTopHint').textContent=(RANGE==='today'?'今日已发药':'本区间已发药');
     if(!arr.length){ $('stTopDrugs').innerHTML='<div class="stEmpty">该区间暂无用药记录</div>'; return; }
     var max=arr[0].count, h='<div class="stBars">';
+    var cols=[C_GREEN,C_OLIVE,C_TAN];
     for(var i=0;i<arr.length;i++){
-      var x=arr[i];
+      var x=arr[i], c=(i<3?cols[i]:C_INK);
       h+='<div class="stBarRow"><span class="nm" title="'+esc(x.name)+'">'+esc(x.name)+'</span>'
-        +'<div class="bar"><i style="width:'+(max?x.count/max*100:0).toFixed(1)+'%"></i></div>'
+        +'<div class="bar"><i style="width:'+(max?x.count/max*100:0).toFixed(1)+'%;background:'+c+'"></i></div>'
         +'<span class="v">'+x.count+' 次</span>'
         +'<span class="p">'+(x.g>=1000?(x.g/1000).toFixed(1)+'kg':(Math.round(x.g)+'g'))+'</span></div>';
     }
@@ -9289,7 +9300,7 @@ var StatPage=(function(){
           +'<td class="nm" title="'+esc(x.name)+'">'+esc(x.name||'(未填姓名)')+'</td>'
           +'<td class="num">'+x.j+'</td>'
           +'<td class="num">'+money2(x.drug)+'</td>'
-          +'<td class="num"'+(x.dj>0?' style="color:#0f766e;font-weight:700"':'')+'>'+(x.dj>0?money2(x.dj):'—')+'</td>'
+          +'<td class="num"'+(x.dj>0?' style="color:'+C_INK+';font-weight:700"':'')+'>'+(x.dj>0?money2(x.dj):'—')+'</td>'
           +'<td class="num">'+(other>0.004?money2(other):'—')+'</td>'
           +'<td class="strong">'+money2(x.total)+'</td>'
           +'<td><span class="stPill '+(x.fa?'fa':'no')+'">'+(x.fa?(x.isOrder?'已发':'已发药'):(x.isOrder?'未发':'未发药'))+'</span></td>'
@@ -9429,8 +9440,8 @@ var StatPage=(function(){
     }
     if($('stTrendHint')) $('stTrendHint').textContent=hint;
     $('stTrend').innerHTML=barSvg(pts)
-      +'<div class="stLegend"><span><i style="background:#15a34a"></i>日常药方</span>'
-      +'<span><i style="background:#d97706"></i>药方订单</span></div>';
+      +'<div class="stLegend"><span><i style="background:'+C_GREEN+'"></i>日常药方</span>'
+      +'<span><i style="background:'+C_AMBER+'"></i>药方订单</span></div>';
     if($('stHoursHint')) $('stHoursHint').textContent=(RANGE==='today'?'今日':'本区间');
     $('stHours').innerHTML=hourSvg(ctx);
     renderMix(ctx);
