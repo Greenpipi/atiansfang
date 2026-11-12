@@ -3916,7 +3916,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stKpi .delta.flat{ color:var(--neutral-4); }
 .stGrid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:12px; }
 .stCard{ grid-column:span 12; background:var(--n-white); border:1px solid var(--neutral-2); border-radius:16px; box-shadow:var(--shadow-1); padding:14px 16px 15px; min-width:0; }
-.stCol8{ grid-column:span 8; } .stCol7{ grid-column:span 7; } .stCol5{ grid-column:span 5; } .stCol4{ grid-column:span 4; }
+.stCol8{ grid-column:span 8; } .stCol7{ grid-column:span 7; } .stCol5{ grid-column:span 5; } .stCol4{ grid-column:span 4; } .stCol3{ grid-column:span 3; }
 .stCardHd{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:24px; margin-bottom:10px; font-size:14px; font-weight:700; color:var(--neutral-title); }
 .stCardHd .hint{ font-size:11px; font-weight:400; color:var(--neutral-4); }
 .stCardHd .right{ margin-left:auto; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
@@ -3925,6 +3925,8 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stCk{ display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--neutral-5); white-space:nowrap; cursor:pointer; }
 .stCk input{ width:14px; height:14px; margin:0; accent-color:var(--pri); }
 .stChart svg{ display:block; width:100%; height:auto; overflow:visible; }
+#stTrend svg{ max-width:760px; margin:0 auto; }
+#stHours svg{ max-width:440px; margin:0 auto; }
 .stLegend{ display:flex; align-items:center; gap:14px; margin-top:8px; font-size:11px; color:var(--neutral-4); }
 .stLegend i{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:1px; }
 .stEmpty{ display:flex; align-items:center; justify-content:center; min-height:120px; color:var(--neutral-4); font-size:12.5px; text-align:center; padding:12px; }
@@ -3992,7 +3994,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
 .stPill.order{ background:#fff7ed; border:1px solid #fed7aa; color:#b45309; }
 @media (max-width:1280px){
   .stKpis{ grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .stCol8,.stCol7,.stCol5,.stCol4{ grid-column:span 12; }
+  .stCol8,.stCol7,.stCol5,.stCol4,.stCol3{ grid-column:span 12; }
 }
 @media (max-width:760px){
   .page[data-page="stat"] .stPage{ padding:12px 12px 30px; }
@@ -5246,14 +5248,19 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
           <div class="stKpis" id="stKpis"></div>
 
           <div class="stGrid">
-            <section class="stCard stCol8">
+            <section class="stCard stCol5">
               <div class="stCardHd">营收趋势 <span class="hint" id="stTrendHint"></span></div>
               <div class="stChart" id="stTrend"></div>
             </section>
 
-            <section class="stCard stCol4">
+            <section class="stCard stCol3">
               <div class="stCardHd">时段分布 <span class="hint" id="stHoursHint"></span></div>
               <div class="stChart" id="stHours"></div>
+            </section>
+
+            <section class="stCard stCol4">
+              <div class="stCardHd">收入构成 <span class="hint" id="stMixHint"></span></div>
+              <div id="stMix"></div>
             </section>
 
             <section class="stCard stCol7">
@@ -5272,12 +5279,7 @@ button.sch-x.sch-x.sch-x svg{ width:8px; height:8px; display:block; color:#fff; 
               <div id="stTopDrugs"></div>
             </section>
 
-            <section class="stCard stCol5">
-              <div class="stCardHd">收入构成 <span class="hint" id="stMixHint"></span></div>
-              <div id="stMix"></div>
-            </section>
-
-            <section class="stCard stCol7">
+            <section class="stCard stCol12">
               <div class="stCardHd">处方结构 <span class="hint" id="stDoseHint"></span></div>
               <div id="stDose"></div>
             </section>
@@ -8970,22 +8972,26 @@ var StatPage=(function(){
   }
   function barSvg(points){
     if(!points.length) return '<div class="stEmpty">该区间暂无营收</div>';
-    var W=720,H=232,L=46,R=12,T=14,B=30;
+    var n=points.length, showLabels=n<=7;
+    var W=720, H=showLabels?292:232, L=46, R=12;
+    var T=showLabels?56:14, B=showLabels?44:30;
     var iw=W-L-R, ih=H-T-B, max=0, total=0, i;
-    for(i=0;i<points.length;i++){ var tv=points[i].v+points[i].o; max=Math.max(max,tv); total+=tv; }
+    for(i=0;i<n;i++){ var tv=points[i].v+points[i].o; max=Math.max(max,tv); total+=tv; }
     max=niceMax(max);
-    var n=points.length, step=iw/n, bw=Math.max(4,Math.min(38,step*0.62));
+    var step=iw/n, bw=Math.max(4,Math.min(38,step*0.62));
     var h='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="营收趋势">';
     for(var g=0;g<=4;g++){
       var gy=T+ih-(ih*g/4);
       h+='<line x1="'+L+'" y1="'+f1(gy)+'" x2="'+(W-R)+'" y2="'+f1(gy)+'" stroke="#eceef1" stroke-width="1"/>';
-      h+='<text x="'+(L-8)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="10" fill="#a4abb3">'+shortNum(max*g/4)+'</text>';
+      h+='<text x="'+(L-8)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="11" fill="#a4abb3">'+shortNum(max*g/4)+'</text>';
     }
+    var base=T+ih;
     for(i=0;i<n;i++){
-      var p=points[i], dv=p.v, ov=p.o, base=T+ih;
+      var p=points[i], dv=p.v, ov=p.o;
       var hd=dv>0?ih*(dv/max):0;
       var ho=ov>0?ih*(ov/max):0;
       var x=L+step*i+(step-bw)/2;
+      var top=base-hd-ho;
       var title=p.k+'：日常 '+money2(dv)+'（'+p.n+' 单）';
       if(ov>0) title+=' · 订单 '+money2(ov)+'（'+p.on+' 单）';
       /* 日常药方（绿）：有订单堆叠时顶边是直角，没有订单时顶部圆角 */
@@ -8997,16 +9003,34 @@ var StatPage=(function(){
         }
       }
       /* 药方订单（橙）：堆在日常药方上方 */
-      if(ho>0) h+='<g fill="#d97706">'+barPath(x,base-hd-ho,bw,ho,3)+'</g>';
+      if(ho>0) h+='<g fill="#d97706">'+barPath(x,top,bw,ho,3)+'</g>';
       if(hd<=0 && ho<=0){
         h+='<rect x="'+f1(x)+'" y="'+f1(base-1)+'" width="'+f1(bw)+'" height="1" fill="#f0f2f3"/>';
       }
+      /* 柱子上方：金额 + 单数；日常绿色、订单橙色 */
+      if(showLabels && (dv>0 || ov>0)){
+        var cx=f1(x+bw/2);
+        if(ov>0 && dv>0){
+          h+='<text x="'+cx+'" y="'+f1(top-18)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a3e">'+esc('日常 '+money2(dv)+' · '+p.n+'单')+'</text>';
+          h+='<text x="'+cx+'" y="'+f1(top-5)+'" text-anchor="middle" font-size="11" fill="#b45309">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
+        }else if(ov>0){
+          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" fill="#b45309">'+esc('订单 '+money2(ov)+' · '+p.on+'单')+'</text>';
+        }else{
+          h+='<text x="'+cx+'" y="'+f1(top-6)+'" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a3e">'+esc(money2(dv)+' · '+p.n+'单')+'</text>';
+        }
+      }
       /* 透明热区：整根柱子都能显示 tooltip */
-      h+='<rect x="'+f1(x)+'" y="'+f1(base-hd-ho)+'" width="'+f1(bw)+'" height="'+f1(Math.max(hd+ho,1))+'" fill="transparent"><title>'+esc(title)+'</title></rect>';
+      h+='<rect x="'+f1(x)+'" y="'+f1(top)+'" width="'+f1(bw)+'" height="'+f1(Math.max(hd+ho,1))+'" fill="transparent"><title>'+esc(title)+'</title></rect>';
     }
     var every=Math.max(1,Math.ceil(n/8));
     for(var j=0;j<n;j+=every){
-      h+='<text x="'+(L+step*j+step/2).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" fill="#a4abb3">'+esc(points[j].label)+'</text>';
+      var px=(L+step*j+step/2).toFixed(1);
+      if(showLabels && points[j].sub){
+        h+='<text x="'+px+'" y="'+(H-26)+'" text-anchor="middle" font-size="11" fill="#6b7280">'+esc(points[j].label)+'</text>';
+        h+='<text x="'+px+'" y="'+(H-9)+'" text-anchor="middle" font-size="10" fill="#a4abb3">'+esc(points[j].sub)+'</text>';
+      }else{
+        h+='<text x="'+px+'" y="'+(H-10)+'" text-anchor="middle" font-size="11" fill="#a4abb3">'+esc(points[j].label)+'</text>';
+      }
     }
     if(total<=0){
       h+='<text x="'+(L+iw/2)+'" y="'+(T+18)+'" text-anchor="middle" font-size="11" fill="#c0c6cc">该区间暂无营收</text>';
@@ -9367,6 +9391,10 @@ var StatPage=(function(){
   function render(){
     var ctx=build(); _ctx=ctx;
     var label={today:'今日',week:'本周',month:'本月',year:'本年',last12:'近12月',custom:'自定义'}[RANGE]||'今日';
+    if(RANGE==='today'){
+      var td=parseYmd(today());
+      label+=' · '+(td.getMonth()+1)+'月'+td.getDate()+'日';
+    }
     if($('stRangeLabel')) $('stRangeLabel').textContent=label;
     renderKpis(ctx);
     renderNotice(ctx);
@@ -9377,8 +9405,10 @@ var StatPage=(function(){
       pts=series(a,b,'day');
       var nm={'-2':'前日','-1':'昨日','0':'今日','1':'明日','2':'后日'};
       for(var pi=0;pi<pts.length;pi++){
-        var diff=Math.round((parseYmd(pts[pi].k).getTime()-tt.getTime())/86400000);
+        var pd=parseYmd(pts[pi].k);
+        var diff=Math.round((pd.getTime()-tt.getTime())/86400000);
         pts[pi].label=nm[String(diff)]||pts[pi].label;
+        pts[pi].sub=(pd.getMonth()+1)+'月'+pd.getDate()+'日';
         pts[pi].hi=pts[pi].k===today();
       }
       hint='前日 — 后日';
