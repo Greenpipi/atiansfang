@@ -7245,15 +7245,32 @@ function histPriceIn(p, baseU, baseP, toU){
 }
 /* 子规格（盒 / 个 / 瓶…）不占顶层条目，价格挂在药物的 units 里。
    这里把「药名 + 单位」摊成一条可计价的虚拟条目，让划价能认出「1 盒 = 400 元」。 */
+/* 单位归一（只用于匹配，不改变显示）：克→g、公斤/千克→kg、枚/颗/只→个 */
+function uKey(u){
+  u=String(u==null?'':u).trim().toLowerCase();
+  if(u==='克'||u==='ｇ') return 'g';
+  if(u==='公斤'||u==='千克'||u==='㎏') return 'kg';
+  if(u==='枚'||u==='颗'||u==='只') return '个';
+  return u||'g';
+}
+/* 重量类单位：可互相换算（g ↔ kg ↔ 斤） */
+function isWU(u){ u=uKey(u); return u==='g'||u==='kg'||u==='斤'; }
+/* 按「药名 + 单位」取目录条目：先匹配主规格，再匹配一药多规格的子规格。
+   全站统一走这里，保证「g 就用 g 的价、个就用个的价」，绝不跨单位取价。 */
+function pickEntryByUnit(name, unit){
+  var want=uKey(unit||'g'), all=findDrugAll(name)||[], i;
+  for(i=0;i<all.length;i++){ if(uKey(all[i].u||'g')===want) return all[i]; }
+  return specEntryOf(name, want);
+}
 function specEntryOf(name, want){
-  var w=String(want||'').toLowerCase();
+  var w=uKey(want||'');
   if(!w) return null;
   var all=findDrugAll(name);
   for(var i=0;i<all.length;i++){
     var sp=(typeof dmSpecsOf==='function')?dmSpecsOf(all[i]):[];
     for(var j=1;j<sp.length;j++){
       var x=sp[j];
-      if(String(x.unit||'').toLowerCase()!==w) continue;
+      if(uKey(x.unit||'')!==w) continue;
       if(specDeleted(all[i].n, x.unit)) continue;    /* 删掉的规格不再参与计价/识别 */
       return { n:all[i].n, u:x.unit, p:x.p, c:x.amt, cat:all[i].cat, py:all[i].py, __sub:1 };
     }
@@ -7261,40 +7278,28 @@ function specEntryOf(name, want){
   return null;
 }
 /* 选中这味药应该用目录里**哪一条**（autoPrice 与 priceOf 共用，保证两边口径一致）：
-   ① 计价单位(du→unit→g)精确匹配；①' 命中「一药多规格」里的子规格；② 没有匹配 → g 条目优先；
-   ③ 再没有 → 用户选定的候选 / 同名第一条。 */
+   ① 计价单位(unit→du→g)精确匹配主规格；② 再匹配「一药多规格」子规格；
+   ③ 重量单位（g/kg/斤）可退到 g 条目按系数换算；④ 都没有 → null（宁可显示无价，也不跨单位取价）。
+   ⚠ 2026-11-17 用户报「按 g 开方却按个的价划价」（大枣 30g 取到 0.2 元/个）：
+     原实现缺了子规格匹配、且找不到时退回同名第一条（个），把 0.2 元/个 当成 g 价。 */
 function pickDrugEntry(it){
   if(!it||!it.name) return null;
-  var want=priceUnit(it).toLowerCase(), all=findDrugAll(it.name), d=null;
-  for(var k=0;k<all.length;k++){
-    if(String(all[k].u||'g').toLowerCase()===want){ d=all[k]; break; }
+  var want=priceUnit(it);
+  var d=pickEntryByUnit(it.name, want);
+  if(!d && isWU(want)){
+    d=pickEntryByUnit(it.name,'g') || pickEntryByUnit(it.name,'kg');
   }
-  /* 顶层没有匹配条目 → 先看「一药多规格」里的子规格。
-     ⚠ 2026-11-17 用户报「按 g 开方却按个的价划价」（大枣 30g 取到 0.2 元/个）：
-       这里是 **want==='g' 也必须查子规格**——主规格是「个」、g 只存在于 d.un[] 时，
-       原条件 `want!=='g'` 会跳过子规格，直接落到「g 条目优先」，找不到就退回同名第一条（个），
-       于是 30g 用了 0.2 元/个 的价。 */
-  if(!d){
-    var sub=specEntryOf(it.name, want);
-    if(sub) return sub;
-  }
-  if(!d){
-    for(var k2=0;k2<all.length;k2++){
-      if(String(all[k2].u||'g').toLowerCase()==='g'){ d=all[k2]; break; }
-    }
-  }
-  if(!d) d=lockedDrug(it)||findDrug(it.name);
   return d;
 }
 function priceOf(it){
   if(!it||it.zibei||!it.name) return null;
   if(it.price!=null && it.price!=='') return n(it.price);
-  /* 选定了具体单位/价格（来自候选）→ 直接用它的价 */
-  if(it.dp!=null && it.dp!=='') return n(it.dp);
+  /* 先按「当前单位」现查目录（含多规格子规格），保证单位与价格永远一致 */
   var d=pickDrugEntry(it);
-  if(!d) return null;
-  if(d.p==null || d.p==='') return null;   /* 目录里这一味没售价 → 真的没价 */
-  return n(d.p)*unitCoef(d.u, priceUnit(it));   /* 换算只在这里做一次 */
+  if(d && d.p!=null && d.p!=='') return n(d.p)*unitCoef(d.u, priceUnit(it));   /* 换算只在这里做一次 */
+  /* 目录里没有该单位（如自定义耗材）→ 才用选药时记下的那一条价格 */
+  if(it.dp!=null && it.dp!=='') return n(it.dp);
+  return null;   /* 目录里这一味没售价 → 真的没价 */
 }
 /* 该格锁定的候选是「哪一条」（同名前可能有 g 0.13 / 个 0.02 两条）。
    ⚠ 2026-10-07 16:55 用户报「药物管理改了价，自动划价还用旧价」——
@@ -7734,14 +7739,20 @@ function gstItemsText(items){
   return out.join('  ');
 }
 function gstPriceFor(guest, name, du){
+  var want=uKey(du||'g');
+  var hit=pickEntryByUnit(name, want);
+  if(!hit && isWU(want)) hit=pickEntryByUnit(name,'g')||pickEntryByUnit(name,'kg');
+  var p=(hit && hit.p!=null && hit.p!=='') ? n(hit.p)*unitCoef(hit.u, want) : null;
+  /* 专属价按药品主单位存：同单位直接用，同为重量单位才按系数换算，跨量纲改读「药名（单位）」键 */
   var dp=docPrice(guest, name);
-  if(dp!=null) return dp;
-  var all=findDrugAll(name)||[];
-  var d=null, i;
-  for(i=0;i<all.length;i++){ if(String(all[i].u||'g').toLowerCase()===String(du||'g').toLowerCase()){ d=all[i]; break; } }
-  if(!d) d=all[0];
-  if(!d || d.p==null || d.p==='') return null;
-  return n(d.p)*unitCoef(String(d.u||'g'), du||'g');
+  if(dp!=null){
+    var d0=(findDrugAll(name)||[])[0], bu=d0?String(d0.u||'g'):want;
+    if(uKey(bu)===want) return dp;
+    if(isWU(bu)&&isWU(want)) return dp*unitCoef(bu, want);
+  }
+  var gp=docPrice(guest, name+'（'+want+'）');
+  if(gp!=null) return gp;
+  return p;
 }
 function gstBuildItems(text, guest){
   var parsed=parseItems(text), out=[], i;
@@ -7750,10 +7761,18 @@ function gstBuildItems(text, guest){
     if(p.zibei){ out.push({name:p.name,qty:0,unit:'',du:'',price:0,manual:false,zibei:true,sfx:'',rm:''}); continue; }
     var u=normUnit(p.unit||'g')||'g';
     var sp=splitSfx(p.name), nm=sp.nm;
-    var all=findDrugAll(nm)||[], d=all[0]||null;
-    var du=d?String(d.u||'g'):u;
-    var q=n(p.qty);
-    if(u!==du) q=q*unitCoef(du,u);
+    var all=findDrugAll(nm)||[], d0=all[0]||null;
+    /* 单位口径与 WPlan.mk 一致：药库有该单位（含多规格子规格）就保留，
+       只有重量单位才允许换算到主单位；跨量纲保留原单位、价留空 */
+    var hit=pickEntryByUnit(nm, u);
+    var du=u, q=n(p.qty);
+    if(!hit){
+      var mu=d0?String(d0.u||'g'):u;
+      if(isWU(mu)&&isWU(u)){
+        du=mu;
+        if(uKey(u)!==uKey(du)) q=q*unitCoef(du,u);
+      }
+    }
     out.push({name:nm,qty:q,unit:du,du:du,price:gstPriceFor(guest,nm,du),
               manual:false,zibei:false,sfx:sp.sfx,rm:''});
   }
@@ -8425,11 +8444,10 @@ function statParseDet(m){
     var m1=nm.match(/^(.*?)[\s]*(\d+(?:\.\d+)?)\s*(g|kg|ml|\u514b|\u4e2a|\u888b|\u652f|\u7247|\u4e38)?\s*$/i);
     if(m1){ nm=m1[1].trim(); qty=parseFloat(m1[2]); unit=normUnit(m1[3]||'g'); }
     if(!nm||!qty) continue;
-    var d=findDrug(nm), p=d? n(d.p) : null;
-    if(p==null){
-      var all=findDrugAll(nm);
-      for(var k=0;k<all.length;k++){ if(String(all[k].u||'g')===String(unit)){ p=n(all[k].p); break; } }
-    }
+    /* 按该行自己解析出的单位取价（含多规格子规格），不再无条件用主规格价 */
+    var d=pickEntryByUnit(nm, unit);
+    if(!d && isWU(unit)) d=pickEntryByUnit(nm,'g')||pickEntryByUnit(nm,'kg');
+    var p=(d && d.p!=null && d.p!=='') ? n(d.p)*unitCoef(d.u, unit) : null;
     if(p==null){ miss++; continue; }
     sum+=p*qty;
   }
@@ -12937,12 +12955,19 @@ function acAccept(idx){
     cell.classList.remove('zibei');
   }
   /* 记住用户选中的那条（单位 + 该单位的价格），后续计价按它算。
+     ⚠ 不能无条件写主规格：剂量框里已有「30g」时，主单位是「个」就会记成 个 的价
+       （大枣 30g 划成 0.2 元/个）。单位一律以剂量框里实际显示的单位为准。
      ⚠ readCell 在药名变化时会把 du/dp 清空，所以要在它之后再写回去。 */
-  var wantU=(d.u||'g'), wantP=(d.p!=null&&d.p!=='')?n(d.p):null;
   acHide();
   dupMerged=-1;
   readCell(k);
-  if(items[k]&&!items[k].zibei){ items[k].du=wantU; items[k].dp=wantP; }
+  if(items[k]&&!items[k].zibei){
+    var wantU0=String(items[k].unit||d.u||'g');
+    var e0=pickEntryByUnit(d.n, wantU0);
+    if(!e0 && isWU(wantU0)) e0=pickEntryByUnit(d.n,'g')||pickEntryByUnit(d.n,'kg');
+    items[k].du=e0?String(e0.u||wantU0):wantU0;
+    items[k].dp=(e0 && e0.p!=null && e0.p!=='') ? n(e0.p)*unitCoef(e0.u, wantU0) : null;
+  }
   if(dupMerged>=0){
     toastErr('「'+d.n+'」重复了，已把剂量合并到第 '+(dupMerged+1)+' 格');
     renderSheet(); growCells(); recalc();
@@ -14673,15 +14698,15 @@ var WPlan = (function(){
   function findOrder(id){ for(var i=0;i<S.orders.length;i++) if(S.orders[i].id === id) return S.orders[i]; return null; }
   function curGuest(){ return S.cur ? (S.cur.guest || '') : ''; }
 
-  /* ---- 计价：客人专属价优先，其次药品目录零售价 ---- */
+  /* ---- 计价：客人专属价优先，其次药品目录零售价 ----
+     单位口径统一走 pickEntryByUnit：主规格 → 多规格子规格；重量单位才允许按系数退到 g。
+     ⚠ 2026-11-17 排查：原实现找不到单位就退回同名第一条（all[0]），
+       大枣这种「主单位个、g 在子规格」的药，30g 会拿到 0.2 元/个 的价。 */
   function dirPricePerUnit(name, unit){
-    var all = findDrugAll(name) || []; if(!all.length) return null;
     unit = String(unit || 'g').toLowerCase();
-    var d = null, i;
-    for(i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === unit){ d = all[i]; break; } }
-    if(!d){ for(i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === 'g'){ d = all[i]; break; } } }
-    if(!d) d = all[0];
-    if(d.p == null || d.p === '') return null;
+    var d = pickEntryByUnit(name, unit);
+    if(!d && isWU(unit)) d = pickEntryByUnit(name, 'g') || pickEntryByUnit(name, 'kg');
+    if(!d || d.p == null || d.p === '') return null;
     return { price: n(d.p) * unitCoef(d.u, unit), du: d.u };
   }
   function priceFor(name, guest, unit){
@@ -14689,8 +14714,11 @@ var WPlan = (function(){
     if(guest){
       var dp = docPrice(guest, name);
       if(dp != null){
-        var d0 = (findDrugAll(name) || [])[0]; var du = d0 ? String(d0.u || 'g') : unit;
-        return dp * unitCoef(du, unit);
+        /* 专属价按药品主单位存；只有同为重量单位时才可按系数换算，跨量纲不套用 */
+        var d0 = (findDrugAll(name) || [])[0];
+        var bu = d0 ? String(d0.u || 'g') : unit;
+        if(uKey(bu) === uKey(unit)) return dp;
+        if(isWU(bu) && isWU(unit)) return dp * unitCoef(bu, unit);
       }
     }
     var x = dirPricePerUnit(name, unit);
@@ -14702,34 +14730,29 @@ var WPlan = (function(){
        绝不把元/g 硬乘 1 当成元/个（这正是「单位换了单价没换」的根因） */
   function priceForUnit(name, guest, unit){
     unit = String(unit || 'g').toLowerCase();
-    var all = findDrugAll(name) || [], i, d0 = all[0] || null;
-    if(isWeightUnit(unit)){
-      if(guest){
-        var dp = docPrice(guest, name);
-        if(dp != null) return dp * unitCoef(d0 ? String(d0.u || 'g') : unit, unit);
-      }
-      for(i=0;i<all.length;i++){
-        if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
-      }
-      for(i=0;i<all.length;i++){
-        if(String(all[i].u || 'g').toLowerCase() === 'g' && all[i].p != null && all[i].p !== ''){
-          return n(all[i].p) * unitCoef('g', unit);
-        }
-      }
-      return null;
-    }
-    /* 非重量单位：专属价也只认「药名（单位）」这个键，避免把按 g 存的价格套到「个」上 */
+    var all = findDrugAll(name) || [], d0 = all[0] || null, p = null;
     if(guest){
-      var gp = docPrice(guest, name + '（' + unit + '）');
-      if(gp != null) return gp * 1;
+      var dp = docPrice(guest, name);
+      var bu = d0 ? String(d0.u || 'g') : unit;
+      if(dp != null){
+        if(uKey(bu) === uKey(unit)) p = dp;
+        else if(isWU(bu) && isWU(unit)) p = dp * unitCoef(bu, unit);
+      }
+      /* 非重量单位 / 药品主单位不匹配时，只认「药名（单位）」这个键 */
+      if(p == null){
+        var gp = docPrice(guest, name + '（' + unit + '）');
+        if(gp != null) p = gp;
+      }
     }
-    for(i=0;i<all.length;i++){
-      if(String(all[i].u || 'g').toLowerCase() === unit && all[i].p != null && all[i].p !== '') return n(all[i].p);
+    if(p == null){
+      var hit = pickEntryByUnit(name, unit);
+      if(hit && hit.p != null && hit.p !== '') p = n(hit.p);
     }
-    if(specDeleted(name, unit)) return null;
-    var sub = specEntryOf(name, unit);
-    if(sub && sub.p != null && sub.p !== '') return n(sub.p);
-    return null;
+    if(p == null && isWU(unit)){
+      var g = pickEntryByUnit(name, 'g') || pickEntryByUnit(name, 'kg');
+      if(g && g.p != null && g.p !== '') p = n(g.p) * unitCoef(g.u, unit);
+    }
+    return p;
   }
   /* 一条药材该用的单价：按它自己的单位取（含一药多规格的规格价），
      非重量单位取不到就留空（绝不拿元/g 冒充元/个） */
@@ -14758,11 +14781,21 @@ var WPlan = (function(){
       }
       return { name: nm, qty: q, unit: u, du: u, price: priceForUnit(base, guest, u), manual: false, zibei: false };
     }
-    var all = findDrugAll(name) || []; var d = all[0] || null;
-    var du = d ? String(d.u || 'g') : u;
-    /* 数量换算：fileUnit → du（如 kg→g 应 ×1000）。
-       unitCoef(a,b) 是「价格/单位a → 价格/单位b」系数，数量换算用其逆，即 unitCoef(du, fileUnit)。 */
-    if(u !== du){ q = q * unitCoef(du, u); }
+    /* 非 keepUnit 路径（历史复用 / 文本制表）也要保住行自己的单位：
+       ① 药库里有这个单位（主规格或多规格子规格）→ 原样保留，数量不换算；
+       ② 药库只有别的重量单位（g/kg/斤）→ 换算到那个单位；
+       ③ 跨量纲又没有该规格（如按「盒」开方但药库只有 g）→ 保留原单位、价留空，
+          绝不把元/g 硬套成元/盒。 */
+    var all = findDrugAll(name) || [], d0 = all[0] || null;
+    var hit = pickEntryByUnit(name, u);
+    var du = u;
+    if(!hit){
+      var mu = d0 ? String(d0.u || 'g') : u;
+      if(isWU(mu) && isWU(u)){
+        du = mu;
+        if(uKey(u) !== uKey(du)) q = q * unitCoef(du, u);
+      }
+    }
     return { name: name, qty: q, unit: du, du: du, price: priceForUnit(name, guest, du), manual: false, zibei: false };
   }
   function mkFromParsed(it, guest){
@@ -15827,12 +15860,19 @@ var WPlan = (function(){
         var bd0 = (findDrugAll(nm) || [])[0];
         var baseU0 = bd0 ? String(bd0.u || 'g') : 'g';
         var rowU0 = String(it.unit || it.du || 'g');
-        var basePrice = Math.round(price * unitCoef(rowU0, baseU0) * 1000000) / 1000000;
-        rows.push({doctor:guest, drug:nm, from_price:null, to_price:basePrice,
+        /* 只有同量纲（同单位 / 都是重量单位）才折到药品基础单位；
+           跨量纲（个、盒…）按该单位单独存一条「药名（单位）」价，
+           否则 0.03 元/g 会被当成 0.03 元/个（2026-11-17 单位核对）。 */
+        var sameDim = (uKey(rowU0) === uKey(baseU0)) || (isWU(rowU0) && isWU(baseU0));
+        var basePrice = sameDim
+          ? Math.round(price * unitCoef(rowU0, baseU0) * 1000000) / 1000000
+          : Math.round(price * 1000000) / 1000000;
+        var priceNm = sameDim ? nm : (nm + '（' + rowU0 + '）');
+        rows.push({doctor:guest, drug:priceNm, from_price:null, to_price:basePrice,
                    rx_no:o.no||'', created_at:dstr+'T12:00:00+08:00'});
-        if(!seen[nm]){
-          seen[nm] = 1;
-          logs.push({t:dstr+' '+nowHM(), d:nm, from:'', to:String(basePrice), rx:o.no||'', who:guest, u:baseU0});
+        if(!seen[priceNm]){
+          seen[priceNm] = 1;
+          logs.push({t:dstr+' '+nowHM(), d:priceNm, from:'', to:String(basePrice), rx:o.no||'', who:guest, u:(sameDim?baseU0:rowU0)});
         }
       }
     }
@@ -15925,12 +15965,15 @@ var WPlan = (function(){
     tip.style.left = left + 'px';
     tip.style.top = top + 'px';
   }
-  /* 历史价单位判别参照（元/基础单位）：零售价 → 进货价/kg → 批发价/kg → 当前行单价 */
+  /* 历史价单位判别参照（元/基础单位）：零售价 → 进货价/kg → 批发价/kg → 当前行单价
+     ⚠ 参照价必须取「基础单位对应的规格」：大枣主单位是个、g 在子规格里时，
+       拿主规格 0.2 元/个 当参照会把 g 价误判成 kg 价。 */
   function priceRefBase(d, it, baseU, formU){
+    var e = d ? (pickEntryByUnit(d.n, baseU) || d) : null;
     var ref = 0;
-    if(d && n(d.p) > 0) ref = n(d.p);
-    if(!ref && d && n(d.cost) > 0) ref = n(d.cost) * unitCoef('kg', baseU);
-    if(!ref && d && n(d.wp) > 0) ref = n(d.wp) * unitCoef('kg', baseU);
+    if(e && n(e.p) > 0) ref = n(e.p);
+    if(!ref && e && n(e.cost) > 0) ref = n(e.cost) * unitCoef('kg', baseU);
+    if(!ref && e && n(e.wp) > 0) ref = n(e.wp) * unitCoef('kg', baseU);
     if(!ref) ref = n(it && it.price) * unitCoef(formU, baseU);
     return ref;
   }
@@ -15946,6 +15989,8 @@ var WPlan = (function(){
     /* 价格 hover 统一按 kg 显示；判别参照=目录零售价（基础单位），没有则用当前行单价换算 */
     var rowU = 'kg';
     var baseU = String((d && d.u) || 'g');
+    /* 基础单位优先取重量单位 g（主规格是「个」时，价参照要用子规格里的 g 价） */
+    if(d && !isWU(baseU) && pickEntryByUnit(d.n, 'g')) baseU = 'g';
     var formU = String(it.du || it.unit || baseU);
     var baseP = priceRefBase(d, it, baseU, formU);
     var cv = function(v){ return histPriceIn(v, baseU, baseP, rowU); };
@@ -16004,13 +16049,17 @@ var WPlan = (function(){
     }
     var u = String(d.u || 'g');
     var rowU = String(it.unit || it.du || u);
+    /* 当前表格行单位对应的规格（含一药多规格），用于展示该单位的零售价 */
+    var hit = pickEntryByUnit(d.n, rowU) || d;
     var guest = String(curGuest() || '').trim();
     var gp = guest ? docPrice(guest, d.n) : null;
-    /* 客人价按目录基础单位（通常 g）记录；显示时换算到当前表格行的单位 */
-    var gpShow = gp;
+    /* 客人价按目录基础单位记录；只有同量纲才换算到当前行单位，跨量纲改读「药名（单位）」键 */
+    var gpShow = null;
     if(gp != null){
-      gpShow = gp * unitCoef(String((d && d.u) || 'g'), rowU);
+      if(uKey(u) === uKey(rowU)) gpShow = gp;
+      else if(isWU(u) && isWU(rowU)) gpShow = gp * unitCoef(u, rowU);
     }
+    if(gpShow == null && guest) gpShow = docPrice(guest, d.n + '（' + rowU + '）');
     /* 第一块：当前客人专属价（高亮） */
     var h = '<div class="wp-peek-hl"><div class="hl-k">' + (guest ? esc(guest) + ' 专属价' : '当前客人专属价') + '</div>'
       + (gpShow != null
@@ -16029,7 +16078,7 @@ var WPlan = (function(){
       + kv('单位 / 常用量', u + ' / ' + (d.c || '—'));
     /* 第四块：标准价格（零售价按目录基础单位；批发价 / 进货价按 kg 口径） */
     h += '<div class="wp-peek-h4">标准价格</div>'
-      + kv('零售价', (d.p != null && d.p !== '') ? ('¥' + money(d.p) + ' / ' + u) : '—')
+      + kv('零售价', (hit.p != null && hit.p !== '') ? ('¥' + money(hit.p) + ' / ' + String(hit.u || rowU)) : '—')
       + kv('批发价', (d.wp != null && d.wp !== '') ? ('¥' + money(d.wp) + ' / kg') : '—')
       + kv('进货价', (d.bp != null && d.bp !== '') ? ('¥' + money(d.bp) + ' / kg') : '—');
     /* 第五块：最近进货记录 */
@@ -16306,7 +16355,11 @@ var WPlan = (function(){
     /* 已被删掉的药名（墓碑）不再自动重建：否则导入一次就又在药物管理里长出一条 */
     if(drugDeleted(name)) return null;
     var all = findDrugAll(name) || [];
-    for(var i=0;i<all.length;i++){ if(String(all[i].u || 'g').toLowerCase() === String(unit).toLowerCase()) return all[i]; }
+    for(var i=0;i<all.length;i++){ if(uKey(all[i].u||'g') === uKey(unit)) return all[i]; }
+    /* 一药多规格：主药名（去掉「（单位）」后缀）下已有该单位 → 直接用该规格，绝不新建重复药名 */
+    var base = String(name||'').replace(/[（(][^）)]*[）)]\s*$/, '').trim();
+    var hit = (base && base !== name) ? pickEntryByUnit(base, unit) : specEntryOf(name, unit);
+    if(hit) return hit;
     var rec = { n: name, py: '', u: unit, c: '', cat: '中药', tccat: '', p: null, bp: null, st: 0 };
     if(!drugsList) drugsList = [];
     drugsList.push(rec);
@@ -18196,9 +18249,9 @@ var Purchase = (function(){
   }
   function hasUnit(d, unit){
     if(!d) return false;
-    if(String(d.u||'g')===String(unit)) return true;
+    if(uKey(d.u||'g')===uKey(unit)) return true;
     var un=d.un||[];
-    for(var i=0;i<un.length;i++){ if(String(un[i].unit)===String(unit)) return true; }
+    for(var i=0;i<un.length;i++){ if(uKey(un[i].unit)===uKey(unit)) return true; }
     return false;
   }
   /* 进货价一律按「元/kg」录入（数据库 bp / cost 也是元/kg）。
@@ -18575,9 +18628,9 @@ var Purchase = (function(){
   }
   function stockOf(d, unit){
     if(!d) return 0;
-    if(String(d.u||'g')===String(unit) && (d.st!==''&&d.st!=null)) return parseFloat(d.st)||0;
+    if(uKey(d.u||'g')===uKey(unit) && (d.st!==''&&d.st!=null)) return parseFloat(d.st)||0;
     var un=d.un||[];
-    for(var i=0;i<un.length;i++){ if(String(un[i].unit)===String(unit)) return parseFloat(un[i].stock)||0; }
+    for(var i=0;i<un.length;i++){ if(uKey(un[i].unit)===uKey(unit)) return parseFloat(un[i].stock)||0; }
     return 0;
   }
   function renderEdit(){
