@@ -7161,7 +7161,13 @@ function readCell(k){
   else if(ds===''||ds==='自备'){ it.qty=0; it.unit=''; it.zibei=(ds==='自备'); }
   else{
     var m=ds.match(DOSE_RE);
-    if(m){ it.qty=parseFloat(m[1]); it.unit=normUnit(m[2]); it.zibei=false; }
+    if(m){
+      var nu=normUnit(m[2]);
+      /* 剂量框里的单位改了 → 之前锁定的候选单位(du)作废，否则会出现
+         「显示 30g、却按个的价划价」这种单位与价格不对应的脏状态（2026-11-17 用户报） */
+      if(it.du && String(it.du).toLowerCase()!==String(nu).toLowerCase()){ it.du=''; it.dp=null; }
+      it.qty=parseFloat(m[1]); it.unit=nu; it.zibei=false;
+    }
   }
   items[k]=it;
   cell.classList.toggle('zibei',!!it.zibei);
@@ -7221,8 +7227,10 @@ function unitCoef(from,to){
   if(f==='g'&&t==='斤') return 500;        /* 元/g ×500 = 元/斤 */
   return 1;
 }
-/* 计价单位：用户显式选定的候选单位(du)优先，其次剂量框里的单位(unit)，最后 g */
-function priceUnit(it){ return String((it&&(it.du||it.unit))||'g'); }
+/* 计价单位：以剂量框里实际显示的单位为准（unit），没有才退回选定的候选单位(du)，最后 g。
+   ⚠ 不能反过来优先 du：du 是「选药那一刻」的快照，用户改过剂量单位后会过期，
+     过期 du 会让 30g 按 个/斤 的价划价（2026-11-17 用户报的单位错价）。 */
+function priceUnit(it){ return String((it&&(it.unit||it.du))||'g'); }
 /* ---- 历史成交价单位判定（全局，多个模块共用） ----
    旧数据里同一味药有的按 g 记（0.12），有的按 kg 记（120）；
    若记录值相对零售价放大约 100 倍以上，视为当时按 kg 录入的 kg 价。 */
@@ -7261,7 +7269,12 @@ function pickDrugEntry(it){
   for(var k=0;k<all.length;k++){
     if(String(all[k].u||'g').toLowerCase()===want){ d=all[k]; break; }
   }
-  if(!d && want!=='g'){
+  /* 顶层没有匹配条目 → 先看「一药多规格」里的子规格。
+     ⚠ 2026-11-17 用户报「按 g 开方却按个的价划价」（大枣 30g 取到 0.2 元/个）：
+       这里是 **want==='g' 也必须查子规格**——主规格是「个」、g 只存在于 d.un[] 时，
+       原条件 `want!=='g'` 会跳过子规格，直接落到「g 条目优先」，找不到就退回同名第一条（个），
+       于是 30g 用了 0.2 元/个 的价。 */
+  if(!d){
     var sub=specEntryOf(it.name, want);
     if(sub) return sub;
   }
