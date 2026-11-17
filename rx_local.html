@@ -11302,7 +11302,7 @@ function copyRxImage(){
           if(!blob){ toastErr('生成失败，请改用「打印」'); return; }
           if(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem){
             navigator.clipboard.write([new ClipboardItem({'image/png':blob})])
-              .then(function(){ toast('处方图片已复制，可直接粘贴到微信发给客户'); })
+              .then(function(){ toast('处方图片已复制'); })
               .catch(function(){ fallbackDownload(blob); });
           }else{
             fallbackDownload(blob);
