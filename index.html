@@ -15185,25 +15185,30 @@ var WPlan = (function(){
       + '</div>'
       + '</div>';
   }
-  /* 该药材的可选单位：仓库主单位 + 多单位子规格 */
+  /* 该药材的可选单位：g / kg（通用重量单位，永远可选）+ 仓库主单位 + 多单位子规格。
+     ⚠ 以前只列药库里已有的规格，导致 Excel 里写 kg 的行打开下拉只有 g，
+       一选就被改成 g（把 kg 价当 g 价用）。 */
   function unitOptionsFor(name){
     var out = [], seen = {}, all = findDrugAll(name) || [], i, j;
+    function add(u){ u = String(u || '').trim(); if(u && !seen[u]){ seen[u] = 1; out.push(u); } }
+    add('g'); add('kg');
     for(i=0;i<all.length;i++){
       var d = all[i], u = String(d.u || 'g');
-      if(u && !seen[u]){ seen[u] = 1; out.push(u); }
+      add(u);
       var sp = (typeof dmSpecsOf === 'function') ? dmSpecsOf(d) : [];
       for(j=1;j<sp.length;j++){
         var su = String(sp[j].unit || '');
         if(su && !seen[su] && !specDeleted(name, su)){ seen[su] = 1; out.push(su); }
       }
     }
-    if(!out.length){ out = ['g', 'kg']; }
     return out;
   }
   function rowHTML(bid, i, it){
     var amt = amountOf(it);
-    /* 单位备选 = 该药材在仓库里实际存在的规格（主单位 + 多单位子规格） */
+    /* 单位备选 = 药库规格 + g/kg；当前单位必须在列表里（否则下拉会把现有值顶掉） */
     var uOpts = unitOptionsFor(it.name);
+    var curU = String(it.unit || it.du || 'g');
+    if(uOpts.indexOf(curU) < 0) uOpts = uOpts.concat([curU]);
     var unitCell = '<input class="wp-unit-in" data-ddoptions="' + esc(JSON.stringify(uOpts)) + '" value="' + esc(it.unit || it.du || 'g') + '" title="单位（只列出该药材已有规格）" onchange="WPlan.setUnit(\'' + bid + '\',' + i + ',this.value)">';
     /* 输入框内部右侧的标签（绝对定位）：先煎等脚注 + 匹配到的仓库标准药 */
     var hasStd = !!(it.disp && it.name);
@@ -17153,6 +17158,12 @@ var WPlan = (function(){
   }
   /* 预览表格：绿=已匹配，红=未匹配。每行都能下拉换药：
      选中即确定该行药品，单价随之重算；与自动匹配结果不同时记作手动指定（确认后存别名）。 */
+  /* 导入预览「单位」下拉的备选：g / kg + 药库规格 + 表格里这一行原本的单位 */
+  function impUnitOpts(r){
+    var out = unitOptionsFor(r.std || r.orig), u = String(r.unit || '').trim();
+    if(u && out.indexOf(u) < 0) out = out.concat([u]);
+    return out;
+  }
   function impRender(){
     var body = document.getElementById(_imp.inline ? 'wpTextMatchBody' : 'wpImportBody');
     var sum = document.getElementById(_imp.inline ? 'wpTextMatchSum' : 'wpImportSum');
@@ -17170,7 +17181,7 @@ var WPlan = (function(){
         + '<td>' + esc(r.orig) + '</td>'
         + '<td>' + stdCell + '</td>'
         + '<td class="imp-qty-cell"><input class="imp-qty" type="text" inputmode="decimal" autocomplete="off" value="' + esc(r.qty == null ? '' : String(r.qty)) + '" oninput="WPlan.impEditQty(' + i + ',this.value)"></td>'
-        + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(unitOptionsFor(r.std || r.orig))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
+        + '<td><input class="imp-unit" data-ddoptions="' + esc(JSON.stringify(impUnitOpts(r))) + '" value="' + esc(r.unit) + '" onchange="WPlan.impEditUnit(' + i + ',this.value)"></td>'
         + '<td class="num">' + pr + '</td>'
         + '<td>' + (r.rm ? esc(r.rm) : '') + '</td>'
         + '<td class="imp-del"><button class="imp-minus" type="button" title="从识别列表移除这一行" onmousedown="return false" onclick="WPlan.impDelRow(' + i + ')"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></td>'
