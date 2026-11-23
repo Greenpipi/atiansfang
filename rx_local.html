@@ -6708,12 +6708,20 @@ var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$','i');
 var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$','i');
 var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$','i');
 function normUnit(u){
-  u=String(u||'').trim().toLowerCase();
+  u=String(u||'').trim();
+  /* 全角 → 半角（中文输入法常见「Ｋｇ」「ｋｇ」「Ｇ」），再去掉空格/句点 */
+  u=u.replace(/[\uFF01-\uFF5E]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+     .replace(/[\u3000\s]+/g, '').replace(/[。．]/g, '.').toLowerCase();
+  /* 「kg/袋」「kg·包」只取前面的重量单位 */
+  if(u.indexOf('/') > 0) u = u.split('/')[0];
+  if(u.indexOf('每') === 0) u = u.slice(1);
+  u = u.replace(/[.、,;；:：]+$/, '');
   if(!u) return 'g';                 /* 无单位默认按 g */
-  if(u==='克'||u==='g'||u==='ｇ') return 'g';
-  if(u==='kg'||u==='千克'||u==='公斤'||u==='㎏') return 'kg';   /* kg/Kg/KG 与 千克/公斤 统一 */
-  if(u==='ml'||u==='毫升') return 'ml';
+  if(u==='克'||u==='g'||u==='ｇ'||u==='gram'||u==='grams') return 'g';
+  if(u==='kg'||u==='千克'||u==='公斤'||u==='㎏'||u==='kgs'||u==='kilo') return 'kg';   /* kg/Kg/KG 与 千克/公斤 统一 */
+  if(u==='ml'||u==='毫升'||u==='cc') return 'ml';
   if(u==='枚'||u==='颗'||u==='只') return '个';   /* 枚/颗/只 = 个（否则「红枣5枚」会被当成自备、数量丢失） */
+  if(u==='市斤') return '斤';
   return u;                         /* 个/条/盒/斤 等非重量单位原样保留 */
 }
 /* CSV 导入可识别的单位（normUnit 归一后）。不在此表 → 视为「未识别到单位」，须提示用户。 */
@@ -17129,6 +17137,7 @@ var WPlan = (function(){
       var price = d ? priceForUnit(std, guest, u || 'g') : null;
       out.push({
         orig: nm0, qty: qv, unit: u || 'g', sfx: sp.sfx || '',
+        unitMissing: !u,                     /* 表格里没读到单位 → 预览里明确提示，别静默按 g */
         std: std, autoStd: std, autoHow: d ? mk2.how : 'none', drug: d, price: price, ok: !!d,
         how: d ? mk2.how : 'none', rm: uniq.join('，')
       });
@@ -17168,9 +17177,12 @@ var WPlan = (function(){
         + '</tr>';
     }
     body.innerHTML = h || '<tr><td colspan="7" class="imp-empty">没有可导入的药名行</td></tr>';
+    var noUnit = 0;
+    for(i=0;i<rows.length;i++){ if(rows[i].unitMissing) noUnit++; }
     if(sum){
       sum.innerHTML = '共 <b>' + rows.length + '</b> 行 · 已匹配 <b class="ok">' + hits + '</b> 行 · 未匹配 <b class="bad">' + (rows.length - hits) + '</b> 行'
-        + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）';
+        + '（药名可直接输入药名/拼音搜索，选中的药即为该行确定药品）'
+        + (noUnit ? '<br><span style="color:#c0392b;font-weight:600">⚠ 有 ' + noUnit + ' 行没在表格里读到单位（已按 g）——请检查「单位」列，或直接在下面每行的单位格里改掉。</span>' : '');
     }
   }
   /* 每行药名格：输入即检索，备选浮层与日常打单完全一致（#wpAc / .wp-ac） */
