@@ -6704,9 +6704,9 @@ function acSearch(q){
 
 /* ---------------- 药方文本解析 / 生成 ---------------- */
 var UNIT_RE='公斤|千克|毫升|g|克|kg|KG|㎏|斤|个|枚|颗|片|粒|袋|盒|支|瓶|ml|ML|丸|贴|包|条|把';
-var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$');
-var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
-var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$');
+var UNIT_ONLY_RE=new RegExp('^('+UNIT_RE+')$','i');
+var DOSE_RE=new RegExp('^(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$','i');
+var GLUE_RE=new RegExp('^(.*[^\\d.])(\\d+(?:\\.\\d+)?)('+UNIT_RE+')?$','i');
 function normUnit(u){
   u=String(u||'').trim().toLowerCase();
   if(!u) return 'g';                 /* 无单位默认按 g */
@@ -17075,11 +17075,16 @@ var WPlan = (function(){
       for(var key in idx){ for(var m=0;m<arguments.length;m++){ if(idx.hasOwnProperty(key) && key.indexOf(arguments[m]) >= 0) return idx[key]; } }
       return -1;
     }
-    var cn, cq, cu, cr, extras = [];
+    var cn, cq, cu, cr, extras = [], headUnit = '';
     if(head){
       cn = col('药名','名称','品名','药材','药品');
       cq = col('数量','克数','重量','剂量','克','量');
       cu = col('单位','规格');
+      /* 表头本身就写了单位，如「数量(Kg)」「重量（公斤）」：整列按这个单位读 */
+      if(cq >= 0){
+        var hm = String(head[cq] || '').match(/[（(]\s*([^）)]+)\s*[）)]/);
+        if(hm){ var hu = normUnit(hm[1]); if(KNOWN_UNITS[hu]) headUnit = hu; }
+      }
       if(cn < 0) cn = 0;                    /* 有表头但没认到药名列：退回第一列 */
       cr = col('备注','说明');
       /* 已知列之外的「是否加虫包 / 先来 / 签名…」：除签名等身份列外，值转成备注 */
@@ -17104,7 +17109,7 @@ var WPlan = (function(){
       var im = raw.match(/^([0-9]*\.?[0-9]+)\s*([^\d\s]+)$/);
       if(im){ qv = parseFloat(im[1]); if(!rawU) rawU = im[2]; }
       /** 单位识别不区分大小写（kg/Kg/KG → kg，g/G → g，千克/公斤 → kg）；识别不到要提示，不静默处理 */
-      var u = rawU ? normUnit(rawU) : '';
+      var u = rawU ? normUnit(rawU) : (headUnit || '');
       if(!u || !KNOWN_UNITS[u]) miss.push('第 ' + (r + 2) + ' 行 ' + nm0 + (rawU ? '（' + rawU + '）' : '（未填单位）'));
       /* 特殊列 → 备注：是否加虫包=是 → 加虫包；先来=先来 → 先来 */
       var notes = [], ei, hv, hdv;
@@ -17348,8 +17353,13 @@ var WPlan = (function(){
     for(i = 1; i <= 30; i++){ if(map['xl/worksheets/sheet' + i + '.xml']){ ws = map['xl/worksheets/sheet' + i + '.xml']; break; } }
     if(!ws) throw new Error('xlsx 里没有找到工作表');
     var sstP = map['xl/sharedStrings.xml'] ? unzipEntry(buf, map['xl/sharedStrings.xml']) : Promise.resolve('');
-    return Promise.all([sstP, unzipEntry(buf, ws)]).then(function(arr){
+    var styP = map['xl/styles.xml'] ? unzipEntry(buf, map['xl/styles.xml']) : Promise.resolve('');
+    return Promise.all([sstP, unzipEntry(buf, ws), styP]).then(function(arr){
       var dp = new DOMParser();
+      /* 单元格「数字格式」里可能写着单位（如 0"Kg"、#,##0.0"公斤"）：
+         Excel 里看着是 20Kg，但值只是数字 20。这里把单位抽出来补回数值，
+         否则导入会当成没有单位、默认按 g。 */
+      var cellUnit = fmtUnitsOf(dp, arr[2]);
       var sst = [], sdoc = dp.parseFromString(arr[0] || '<x/>', 'application/xml');
       var si = sdoc.getElementsByTagName('si'), k, t2;
       for(k = 0; k < si.length; k++){
@@ -17369,6 +17379,12 @@ var WPlan = (function(){
           if(ty === 's'){ v = sst[parseInt(vel ? vel.textContent : '', 10)] || ''; }
           else if(ty === 'inlineStr'){ var it = cell.getElementsByTagName('t')[0]; v = it ? (it.textContent || '') : ''; }
           else v = vel ? (vel.textContent || '') : '';
+          /* 数值单元格 + 数字格式里带单位 → 拼成「20Kg」，让单位识别能吃到 */
+          if(v !== '' && ty !== 's' && ty !== 'inlineStr'){
+            var sIdx = parseInt(cell.getAttribute('s') || '0', 10) || 0;
+            var fu = cellUnit[sIdx] || '';
+            if(fu && /^-?\d+(?:\.\d+)?$/.test(String(v).trim())) v = String(v).trim() + fu;
+          }
           row[ci] = v;
         }
         grid.push(row);
@@ -17376,6 +17392,45 @@ var WPlan = (function(){
       return gridToCsv(grid);
     });
   }
+  /* 从数字格式里抽单位：0"Kg" / #,##0.0"公斤" / 0.0kg */
+  function fmtUnitOf(code){
+    if(!code) return '';
+    var cands = [], m, re = /"([^"]*)"/g;
+    while((m = re.exec(code))){ cands.push(m[1]); }
+    var tail = String(code).replace(/"[^"]*"/g, '').match(/(公斤|千克|毫升|kg|g|克|斤|ml|个|枚|颗|片|粒|袋|盒|瓶|支|包|丸|贴|条|把|只|对|张|卷|块|束)\s*$/i);
+    if(tail) cands.push(tail[1]);
+    for(var c = 0; c < cands.length; c++){
+      var u = String(cands[c] || '').trim();
+      if(u && /^(公斤|千克|毫升|kg|g|克|斤|ml|个|枚|颗|片|粒|袋|盒|瓶|支|包|丸|贴|条|把|只|对|张|卷|块|束)$/i.test(u)) return u;
+    }
+    return '';
+  }
+  /* 从 xl/styles.xml 里抽出「每个单元格样式对应的单位」：
+     Excel 的 0"Kg" / #,##0.0"公斤" 这类数字格式，显示时有单位、值里没有。
+     返回 { 样式下标: 单位 }，取不到就返回空对象。 */
+  function fmtUnitsOf(dp, stylesXml){
+    var out = {};
+    try{
+      if(!stylesXml) return out;
+      var doc = dp.parseFromString(stylesXml, 'application/xml');
+      var nf = doc.getElementsByTagName('numFmt'), codes = {}, i;
+      for(i = 0; i < nf.length; i++){
+        var id = String(nf[i].getAttribute('numFmtId') || '');
+        if(id) codes[id] = String(nf[i].getAttribute('formatCode') || '');
+      }
+      var builtin = { 9: '0%', 10: '0.00%', 14: 'yyyy-mm-dd', 22: 'm/d/yyyy' };
+      var xfs = doc.getElementsByTagName('cellXfs')[0];
+      var xf = xfs ? xfs.getElementsByTagName('xf') : [];
+      for(i = 0; i < xf.length; i++){
+        var fid = String(xf[i].getAttribute('numFmtId') || '0');
+        var code = codes[fid] || builtin[fid] || '';
+        var u = fmtUnitOf(code);
+        if(u) out[i] = u;
+      }
+    }catch(e){ return {}; }
+    return out;
+  }
+
   function onExcelFile(fi){
     var f = fi.files && fi.files[0]; fi.value = ''; if(!f) return;
     readBuf(f, function(buf){
